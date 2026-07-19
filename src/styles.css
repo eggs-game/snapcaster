@@ -24,7 +24,7 @@ body { background: var(--bg2); color: var(--text); font-family: Inter, system-ui
 .game { display: flex; flex-direction: column; height: 100vh; }
 /* 6px extra top padding lines this bar up with the sidebar head (14px sidebar
    padding vs 8px panel padding). */
-.panel-topbar { display: flex; align-items: center; gap: 10px; padding: 8px 6px 2px; }
+.panel-topbar { display: flex; align-items: center; gap: 10px; padding: 8px 6px 10px; }
 .panel-topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
 .visitor-strip { display: flex; align-items: center; gap: 5px; max-width: 280px; overflow-x: auto; }
 .visitor-avatar { position: relative; width: 28px; height: 28px; display: grid; place-items: center; border: 1px solid #465064; border-radius: 50%; background: var(--panel2); color: var(--text); font-size: 0.75rem; font-weight: 700; }
