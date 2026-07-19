@@ -46,6 +46,15 @@ header { display: flex; align-items: center; gap: 18px; padding: 8px 14px; }
 .control-row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; border: 1px solid #333a48; border-radius: 12px; background: var(--panel2); color: var(--text); font-size: 1rem; cursor: pointer; text-align: left; }
 .control-row:hover { border-color: var(--accent); }
 .control-row.off { background: #3a2325; border-color: #5a3235; color: #f0b6b4; }
+.device-field { display: flex; flex-direction: column; gap: 6px; }
+.device-field select {
+  width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #333a48;
+  background: var(--panel2); color: var(--text); font-family: inherit; font-size: 0.9rem;
+  cursor: pointer;
+}
+.device-field select:focus { outline: none; border-color: var(--accent); }
+.device-field select:disabled { opacity: 0.5; cursor: default; }
+.device-error { color: var(--danger); font-size: 0.82rem; margin: 0; }
 .color-picker { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; padding-top: 12px; border-top: 1px solid #333a48; }
 .color-label { color: var(--dim); font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase; }
 .color-swatches { display: flex; gap: 10px; }

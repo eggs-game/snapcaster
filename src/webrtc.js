@@ -27,6 +27,8 @@ export class GameConnection {
     this.commander = "";
     this.color = "";
     this.muted = false;
+    this.videoDeviceId = "";
+    this.audioDeviceId = "";
   }
 
   async initMedia() {
@@ -37,6 +39,63 @@ export class GameConnection {
       video: { width: { ideal: 3840 }, height: { ideal: 2160 }, frameRate: { ideal: 24 } },
       audio: { echoCancellation: true, noiseSuppression: true },
     });
+    this.videoDeviceId = this.localStream.getVideoTracks()[0]?.getSettings?.().deviceId || "";
+    this.audioDeviceId = this.localStream.getAudioTracks()[0]?.getSettings?.().deviceId || "";
+    return this.localStream;
+  }
+
+  // After permission, labels are populated — call again on devicechange.
+  async listDevices() {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    return {
+      cameras: devices.filter((d) => d.kind === "videoinput"),
+      mics: devices.filter((d) => d.kind === "audioinput"),
+    };
+  }
+
+  // Swap the local camera or mic (Zoom-style) and push the new track to every peer.
+  async switchDevice(kind, deviceId) {
+    if (!this.localStream || !deviceId) return this.localStream;
+    const constraints = kind === "video"
+      ? {
+        video: {
+          deviceId: { exact: deviceId },
+          width: { ideal: 3840 },
+          height: { ideal: 2160 },
+          frameRate: { ideal: 24 },
+        },
+        audio: false,
+      }
+      : {
+        audio: {
+          deviceId: { exact: deviceId },
+          echoCancellation: true,
+          noiseSuppression: true,
+        },
+        video: false,
+      };
+    const fresh = await navigator.mediaDevices.getUserMedia(constraints);
+    const newTrack = kind === "video" ? fresh.getVideoTracks()[0] : fresh.getAudioTracks()[0];
+    // Drop unused tracks from the temporary stream so nothing is left open.
+    for (const t of fresh.getTracks()) if (t !== newTrack) t.stop();
+
+    const oldTrack = this.localStream.getTracks().find((t) => t.kind === kind);
+    newTrack.enabled = oldTrack ? oldTrack.enabled : true;
+
+    // Push the new track to peers before tearing down the old one.
+    for (const { pc } of this.peers.values()) {
+      const sender = pc.getSenders().find((s) => s.track?.kind === kind);
+      if (sender) await sender.replaceTrack(newTrack);
+    }
+
+    if (oldTrack) {
+      this.localStream.removeTrack(oldTrack);
+      oldTrack.stop();
+    }
+    this.localStream.addTrack(newTrack);
+
+    if (kind === "video") this.videoDeviceId = deviceId;
+    else this.audioDeviceId = deviceId;
     return this.localStream;
   }
 

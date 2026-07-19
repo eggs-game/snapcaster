@@ -27,6 +27,11 @@ export default function Game({ session, onLeave }) {
   const [controlsOpen, setControlsOpen] = useState(false);
   const [controlsClosing, setControlsClosing] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [cameras, setCameras] = useState([]);
+  const [mics, setMics] = useState([]);
+  const [videoDeviceId, setVideoDeviceId] = useState("");
+  const [audioDeviceId, setAudioDeviceId] = useState("");
+  const [deviceError, setDeviceError] = useState("");
 
   // Play the slide-out animation before unmounting the drawer.
   const closeControls = useCallback(() => {
@@ -57,13 +62,29 @@ export default function Game({ session, onLeave }) {
       try {
         const stream = await conn.initMedia();
         setLocalStream(stream);
+        setVideoDeviceId(conn.videoDeviceId);
+        setAudioDeviceId(conn.audioDeviceId);
+        const devices = await conn.listDevices();
+        setCameras(devices.cameras);
+        setMics(devices.mics);
         const id = await conn.join(session.code, session.name);
         setMyId(id);
       } catch (e) {
         setError(String(e.message || e));
       }
     })();
-    return () => conn.close();
+    const onDeviceChange = async () => {
+      try {
+        const devices = await conn.listDevices();
+        setCameras(devices.cameras);
+        setMics(devices.mics);
+      } catch { /* ignore */ }
+    };
+    navigator.mediaDevices?.addEventListener?.("devicechange", onDeviceChange);
+    return () => {
+      navigator.mediaDevices?.removeEventListener?.("devicechange", onDeviceChange);
+      conn.close();
+    };
   }, []);
 
   // captureClientY lets flipped tiles pass the reflected point for capture
@@ -131,6 +152,30 @@ export default function Game({ session, onLeave }) {
     connRef.current?.setMuted(!next);
   };
   const toggleCam = () => { connRef.current.toggleTrack("video", !camOn); setCamOn(!camOn); };
+
+  const chooseCamera = async (deviceId) => {
+    if (!deviceId || deviceId === videoDeviceId) return;
+    setDeviceError("");
+    try {
+      await connRef.current.switchDevice("video", deviceId);
+      setVideoDeviceId(deviceId);
+      // Nudge React so the local <video> rebinds if the stream identity changed.
+      setLocalStream(connRef.current.localStream);
+    } catch (e) {
+      setDeviceError(String(e.message || e));
+    }
+  };
+
+  const chooseMic = async (deviceId) => {
+    if (!deviceId || deviceId === audioDeviceId) return;
+    setDeviceError("");
+    try {
+      await connRef.current.switchDevice("audio", deviceId);
+      setAudioDeviceId(deviceId);
+    } catch (e) {
+      setDeviceError(String(e.message || e));
+    }
+  };
 
   if (error) {
     return (
@@ -214,7 +259,7 @@ export default function Game({ session, onLeave }) {
                 <X size={20} />
               </button>
             </div>
-            <h3 className="drawer-section">Controls</h3>
+            <h3 className="drawer-section">Video</h3>
             <button
               className={camOn ? "control-row" : "control-row off"}
               onClick={toggleCam}
@@ -222,6 +267,23 @@ export default function Game({ session, onLeave }) {
               {camOn ? <Video size={20} /> : <VideoOff size={20} />}
               <span>{camOn ? "Camera on" : "Camera off"}</span>
             </button>
+            <label className="device-field">
+              <span className="color-label">Camera</span>
+              <select
+                value={videoDeviceId}
+                onChange={(e) => chooseCamera(e.target.value)}
+                disabled={!cameras.length}
+              >
+                {!cameras.length && <option value="">No cameras found</option>}
+                {cameras.map((d, i) => (
+                  <option key={d.deviceId || i} value={d.deviceId}>
+                    {d.label || `Camera ${i + 1}`}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <h3 className="drawer-section">Microphone</h3>
             <button
               className={micOn ? "control-row" : "control-row off"}
               onClick={toggleMic}
@@ -229,6 +291,23 @@ export default function Game({ session, onLeave }) {
               {micOn ? <Mic size={20} /> : <MicOff size={20} />}
               <span>{micOn ? "Mic on" : "Mic muted"}</span>
             </button>
+            <label className="device-field">
+              <span className="color-label">Microphone</span>
+              <select
+                value={audioDeviceId}
+                onChange={(e) => chooseMic(e.target.value)}
+                disabled={!mics.length}
+              >
+                {!mics.length && <option value="">No microphones found</option>}
+                {mics.map((d, i) => (
+                  <option key={d.deviceId || i} value={d.deviceId}>
+                    {d.label || `Microphone ${i + 1}`}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {deviceError && <p className="device-error">{deviceError}</p>}
+
             <div className="color-picker">
               <span className="color-label">Your color</span>
               <div className="color-swatches">
