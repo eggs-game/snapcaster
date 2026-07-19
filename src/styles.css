@@ -84,10 +84,11 @@ body { background: var(--bg2); color: var(--text); font-family: Inter, system-ui
 .main { flex: 1; display: flex; gap: 8px; padding: 8px; min-height: 0; }
 
 /* Video panel: rounded container holding the in-panel top bar + the grid. */
-/* Outer radius = tile radius (20px) + 8px padding so the corners stay concentric. */
-.video-panel { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 8px; background: var(--bg); border: 1px solid #333a48; border-radius: 28px; box-shadow: 0 4px 18px rgba(0,0,0,0.35); }
+/* Concentric corners: video 8px + 4px tile border = 12px tile radius,
+   + 8px panel padding = 20px panel radius. */
+.video-panel { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 8px; background: var(--bg); border: 1px solid #333a48; border-radius: 20px; box-shadow: 0 4px 18px rgba(0,0,0,0.35); }
 .grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 8px; min-width: 0; min-height: 0; }
-.tile { position: relative; display: flex; flex-direction: column; background: var(--bg); border: 4px solid #333a48; border-radius: 20px; overflow: hidden; }
+.tile { position: relative; display: flex; flex-direction: column; background: var(--bg); border: 4px solid #333a48; border-radius: 12px; overflow: hidden; }
 .video-wrap { position: relative; flex: 1; min-height: 0; cursor: crosshair; }
 .tile video { display: block; width: 100%; height: 100%; object-fit: cover; }
 .tile.empty { display: flex; align-items: center; justify-content: center; color: var(--dim); background: var(--bg); cursor: default; }
@@ -127,7 +128,7 @@ body { background: var(--bg2); color: var(--text); font-family: Inter, system-ui
 @keyframes flash { from { transform: scale(0.4); opacity: 1; } to { transform: scale(1.4); opacity: 0; } }
 
 /* Sidebar */
-.sidebar { width: 300px; background: var(--bg); padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; border: 1px solid #333a48; border-radius: 28px; box-shadow: 0 4px 18px rgba(0,0,0,0.35); }
+.sidebar { width: 300px; background: var(--bg); padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; border: 1px solid #333a48; border-radius: 20px; box-shadow: 0 4px 18px rgba(0,0,0,0.35); }
 .sidebar-head { display: flex; align-items: center; justify-content: space-between; }
 .sidebar-settings { display: flex; flex-direction: column; gap: 10px; }
 .sidebar.settings-view .sidebar-head { gap: 8px; }
