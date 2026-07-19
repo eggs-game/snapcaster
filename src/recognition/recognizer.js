@@ -751,7 +751,10 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   let bestCandidateDistance = 0xffff;
   for (const candidate of candidates) {
     candidatesTried++;
-    const gray = toGray(candidate.image);
+    // White-balance the crop so a warm/cool room cast doesn't bias the
+    // grayscale hash or the color signature toward mis-tinted cards.
+    const wbImage = whiteBalance(candidate.image);
+    const gray = toGray(wbImage);
     const variants = queryVariants(gray);
     queryCandidates.push({ strategy: candidate.strategy, vectors: variants });
     if (!bestCandidateImage) {
@@ -792,7 +795,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
           }
         }
       }
-      const colorSig = colorIndex ? colorSignature(candidate.image) : null;
+      const colorSig = colorIndex ? colorSignature(wbImage) : null;
       for (let i = 0; i < n; i++) {
         if (candidateDists[i] > cutoff) continue;
         let score = candidateDists[i];
@@ -1002,6 +1005,33 @@ function orbScore(query, ref) {
   return inliers;
 }
 
+// Gray-world white balance. The index is built from neutral Scryfall scans,
+// but a real room (warm lamps, sunset, screen glow) casts the whole capture —
+// which is why dark cards kept matching sepia/fiery cards. Neutralizing the
+// query before color and hash comparison removes that systematic bias.
+// Returns a new ImageData; never mutates the input.
+function whiteBalance(imageData) {
+  const { data, width, height } = imageData;
+  let sr = 0, sg = 0, sb = 0, count = 0;
+  for (let i = 0; i < data.length; i += 16) { // sample every 4th pixel
+    sr += data[i]; sg += data[i + 1]; sb += data[i + 2]; count++;
+  }
+  const mr = sr / count, mg = sg / count, mb = sb / count;
+  const gray = (mr + mg + mb) / 3;
+  // Clamp channel gains so a nearly single-color scene can't blow up.
+  const gr = Math.max(0.5, Math.min(2, gray / Math.max(1, mr)));
+  const gg = Math.max(0.5, Math.min(2, gray / Math.max(1, mg)));
+  const gb = Math.max(0.5, Math.min(2, gray / Math.max(1, mb)));
+  const out = new Uint8ClampedArray(data.length);
+  for (let i = 0; i < data.length; i += 4) {
+    out[i] = data[i] * gr;
+    out[i + 1] = data[i + 1] * gg;
+    out[i + 2] = data[i + 2] * gb;
+    out[i + 3] = data[i + 3];
+  }
+  return new ImageData(out, width, height);
+}
+
 // Saturation-weighted hue histogram (12 buckets + 1 neutral) over the card
 // area. The single most human clue: a blue card must never lose to a red one.
 function colorSignature(imageData) {
@@ -1071,8 +1101,11 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped) {
   const shortlist = matches.slice(0, 36);
   const refs = await Promise.all(shortlist.map((m) => fetchReference(m.scryfall_id, m.face || 0)));
   const queryFeats = queryImages.map((img) => orbFeatures(img, 500));
-  const querySig = colorSignature(queryImages[0]);
-  const queryRing = queryIsCardShaped ? ringSignature(queryImages[0]) : null;
+  // References are neutral Scryfall scans, so neutralize the query's room cast
+  // before comparing color and frame-ring hue.
+  const wbQuery = whiteBalance(queryImages[0]);
+  const querySig = colorSignature(wbQuery);
+  const queryRing = queryIsCardShaped ? ringSignature(wbQuery) : null;
   try {
     for (let i = 0; i < shortlist.length; i++) {
       if (!refs[i]) { shortlist[i].art_inliers = 0; shortlist[i].color_sim = 0; continue; }
