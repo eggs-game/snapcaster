@@ -65,7 +65,7 @@ header { display: flex; align-items: center; gap: 18px; padding: 8px 14px; }
 .commander-banner { position: absolute; z-index: 2; top: 0; left: 0; right: 0; min-height: 40px; display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: rgba(18, 21, 28, 0.35); border-bottom: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(8px); font-size: 0.84rem; }
 .banner-stack { display: flex; flex-direction: column; min-width: 0; gap: 1px; }
 .banner-player-row { display: flex; align-items: center; gap: 5px; min-width: 0; }
-.banner-player { color: var(--dim); font-size: 0.7rem; letter-spacing: 0.03em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.banner-player { color: #fff; font-size: 0.7rem; letter-spacing: 0.03em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .banner-muted { flex: none; color: #e0736b; }
 .commander-name { min-width: 0; overflow: hidden; color: var(--text); font-weight: 450; text-overflow: ellipsis; white-space: nowrap; }
 .commander-name.unset { color: var(--dim); font-weight: 400; font-style: italic; }
