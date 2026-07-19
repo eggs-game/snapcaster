@@ -173,14 +173,6 @@ export default function CardSidebar({
               <ArrowLeft size={20} />
             </button>
             <span className="logo">Settings</span>
-            <button
-              className="drawer-toggle"
-              onClick={onClose}
-              aria-label="Close sidebar"
-              title="Close sidebar"
-            >
-              <PanelLeft size={20} />
-            </button>
           </>
         ) : (
           <div className="sidebar-head-actions">
