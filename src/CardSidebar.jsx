@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { PanelRightClose } from "lucide-react";
+import { PanelLeftClose } from "lucide-react";
 import { suggestCardNames } from "./cardSearch.js";
 
 const CV_LABEL = {
@@ -96,7 +96,7 @@ export default function CardSidebar({ current, lookups, onPick, onClose, onSearc
           aria-label="Close card lookup"
           title="Close card lookup"
         >
-          <PanelRightClose size={20} />
+          <PanelLeftClose size={20} />
         </button>
       </div>
 

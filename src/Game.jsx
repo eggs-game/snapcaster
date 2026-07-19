@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
   Check, Droplet, Flame, FlipVertical2, Link2, Mic, MicOff, MoreVertical,
-  PanelLeftClose, PanelLeftOpen, PanelRightOpen, Skull, Sun, TreeDeciduous,
+  PanelLeftClose, PanelLeftOpen, Search, Skull, Sun, TreeDeciduous,
   UserRound, Video, VideoOff, X,
 } from "lucide-react";
 import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
@@ -325,8 +325,34 @@ export default function Game({ session, onLeave }) {
         ))}
 
       <div className="main">
+        {sidebarOpen && (
+          <CardSidebar
+            current={current}
+            lookups={lookups}
+            onPick={(m) => setCurrent({ matches: [m] })}
+            onSearch={(cardOrError) => {
+              if (cardOrError.error) {
+                setCurrent({ error: cardOrError.error });
+                return;
+              }
+              setCurrent({ matches: [cardOrError] });
+              setLookups((l) => [...l.slice(-11), { by: session.name, card: cardOrError, at: Date.now() }]);
+            }}
+            onClose={() => setSidebarOpen(false)}
+          />
+        )}
         <div className="video-panel">
           <div className="panel-topbar">
+            {!sidebarOpen && (
+              <button
+                className="drawer-toggle"
+                onClick={() => setSidebarOpen(true)}
+                aria-label="Open card lookup"
+                title="Open card lookup"
+              >
+                <Search size={22} />
+              </button>
+            )}
             <button
               className="drawer-toggle"
               onClick={() => (controlsOpen ? closeControls() : setControlsOpen(true))}
@@ -367,16 +393,6 @@ export default function Game({ session, onLeave }) {
                   </div>
                 ))}
               </div>
-              {!sidebarOpen && (
-                <button
-                  className="drawer-toggle"
-                  onClick={() => setSidebarOpen(true)}
-                  aria-label="Open card lookup"
-                  title="Open card lookup"
-                >
-                  <PanelRightOpen size={22} />
-                </button>
-              )}
             </div>
           </div>
           <div className="grid">
@@ -394,22 +410,6 @@ export default function Game({ session, onLeave }) {
             ))}
           </div>
         </div>
-        {sidebarOpen && (
-          <CardSidebar
-            current={current}
-            lookups={lookups}
-            onPick={(m) => setCurrent({ matches: [m] })}
-            onSearch={(cardOrError) => {
-              if (cardOrError.error) {
-                setCurrent({ error: cardOrError.error });
-                return;
-              }
-              setCurrent({ matches: [cardOrError] });
-              setLookups((l) => [...l.slice(-11), { by: session.name, card: cardOrError, at: Date.now() }]);
-            }}
-            onClose={() => setSidebarOpen(false)}
-          />
-        )}
       </div>
     </div>
   );
