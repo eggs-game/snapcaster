@@ -154,6 +154,7 @@ let cvPromise = null;
 
 function loadCV() {
   if (cvPromise) return cvPromise;
+  console.log("[snapcaster worker] loading OpenCV…");
   cvPromise = new Promise((resolve, reject) => {
     // Point Emscripten at the CDN for its wasm, in case this build fetches it
     // separately rather than embedding it.
@@ -164,7 +165,11 @@ function loadCV() {
       return reject(e);
     }
     const start = Date.now();
-    const done = () => { cvReady = true; resolve(self.cv); };
+    const done = () => {
+      cvReady = true;
+      console.log("[snapcaster worker] OpenCV ready");
+      resolve(self.cv);
+    };
     const poll = () => {
       if (self.cv && self.cv.Mat) return done();
       if (Date.now() - start > 90000) return reject(new Error("OpenCV init timeout"));
@@ -319,7 +324,7 @@ async function identify(bmp) {
   await loadIndex();
   // Wait for OpenCV so recognition is always outline-corrected. This wait is in
   // the worker — the page stays responsive; the sidebar shows its loading state.
-  try { await loadCV(); } catch (e) { /* fall back to center crop below */ }
+  try { await loadCV(); } catch (e) { console.warn("[snapcaster worker] OpenCV failed; using center-crop", e); }
 
   let rectified = null, cardFound = false;
   if (cvReady) {
