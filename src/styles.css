@@ -102,7 +102,7 @@ body { background: var(--bg2); color: var(--text); font-family: Inter, system-ui
 .banner-player { color: #fff; font-size: 13px; letter-spacing: 0.03em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .banner-muted { flex: none; color: #e0736b; }
 .commander-name { min-width: 0; overflow: hidden; color: var(--text); font-size: 15px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
-.commander-name.unset { color: var(--dim); font-style: italic; }
+.commander-name.unset { display: flex; align-items: center; gap: 5px; color: var(--dim); font-weight: 400; }
 .commander-search { position: relative; min-width: 80px; }
 .commander-picker input { width: 100%; background: #151922; border: 1px solid #3a4353; border-radius: 5px; color: var(--text); padding: 5px 7px; font-family: inherit; font-size: 15px; }
 .commander-picker input:focus { border-color: var(--accent); outline: none; }
