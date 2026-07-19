@@ -201,7 +201,6 @@ function CommanderBanner({ tile, onChoose }) {
   if (!tile.isMe) {
     return (
       <div className="commander-banner">
-        <span className="commander-label">Commander</span>
         <span className={tile.commander ? "commander-name" : "commander-name unset"}>
           {tile.commander || "Not selected"}
         </span>
@@ -216,19 +215,22 @@ function CommanderBanner({ tile, onChoose }) {
   };
   return (
     <form className="commander-banner commander-picker" onSubmit={submit}>
-      <label htmlFor={`commander-${tile.id}`}>Commander</label>
       <input
         id={`commander-${tile.id}`}
         list={`commander-options-${tile.id}`}
         value={draft}
-        onChange={(event) => setDraft(event.target.value)}
-        placeholder="Search for your commander…"
+        onChange={(event) => {
+          const value = event.target.value;
+          setDraft(value);
+          if (suggestions.includes(value)) onChoose(value);
+        }}
+        placeholder="Add commander"
+        aria-label="Add commander"
         autoComplete="off"
       />
       <datalist id={`commander-options-${tile.id}`}>
         {suggestions.map((name) => <option value={name} key={name} />)}
       </datalist>
-      <button type="submit" disabled={!draft.trim() || draft.trim() === tile.commander}>Set</button>
     </form>
   );
 }
