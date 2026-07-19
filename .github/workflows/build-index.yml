@@ -1,0 +1,40 @@
+name: Build card index
+
+on:
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: "Scryfall scope: 'bulk' for every printing, or a search query like set:otj"
+        default: "bulk"
+        required: true
+  schedule:
+    - cron: "0 5 1 * *" # monthly refresh for new sets
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install numpy opencv-python-headless pillow requests
+      - name: Build index
+        run: |
+          SCOPE="${{ github.event.inputs.scope || 'bulk' }}"
+          if [ "$SCOPE" = "bulk" ]; then
+            python scripts/build_index.py --bulk default_cards
+          else
+            python scripts/build_index.py --query "$SCOPE"
+          fi
+      - name: Commit index
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add -f public/carddata
+          git commit -m "Update card index" || echo "No changes"
+          git push
