@@ -33,8 +33,14 @@ function orderCorners(pts) {
 
 // Find largest card-like quadrilateral in canvas; returns corners or null.
 export async function findCardQuad(canvas) {
-  let cv;
-  try { cv = await loadOpenCV(); } catch { return null; }
+  // Never block the click on OpenCV's ~10 MB WASM compile. If it isn't ready
+  // yet, kick off the load in the background and fall back to a center crop
+  // for this lookup. Once loaded, later clicks get full outline detection.
+  if (!window.cv?.Mat) {
+    loadOpenCV().catch(() => {});
+    return null;
+  }
+  const cv = window.cv;
   const src = cv.imread(canvas);
   const gray = new cv.Mat(), blur = new cv.Mat(), bin = new cv.Mat();
   const results = [];
