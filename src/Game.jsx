@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
   Mic, MicOff, PanelLeftClose, PanelLeftOpen,
-  PanelRightClose, PanelRightOpen, Video, VideoOff,
+  PanelRightClose, PanelRightOpen, Video, VideoOff, X,
 } from "lucide-react";
 import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
 import { identify as identifyCard, preload as preloadRecognition } from "./recognition/matcher.js";
@@ -23,6 +23,16 @@ export default function Game({ session, onLeave }) {
   const [flash, setFlash] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [controlsOpen, setControlsOpen] = useState(false);
+  const [controlsClosing, setControlsClosing] = useState(false);
+
+  // Play the slide-out animation before unmounting the drawer.
+  const closeControls = useCallback(() => {
+    setControlsClosing(true);
+    setTimeout(() => {
+      setControlsOpen(false);
+      setControlsClosing(false);
+    }, 200);
+  }, []);
 
   useEffect(() => {
     // Spin up the recognition worker now so OpenCV compiles in the background
@@ -129,7 +139,7 @@ export default function Game({ session, onLeave }) {
         <div className="topbar-left">
           <button
             className="drawer-toggle"
-            onClick={() => setControlsOpen((open) => !open)}
+            onClick={() => (controlsOpen ? closeControls() : setControlsOpen(true))}
             aria-label={controlsOpen ? "Close controls" : "Open controls"}
             title={controlsOpen ? "Close controls" : "Open controls"}
           >
@@ -148,9 +158,17 @@ export default function Game({ session, onLeave }) {
       </header>
 
       {controlsOpen && (
-        <div className="controls-overlay" onClick={() => setControlsOpen(false)}>
+        <div
+          className={controlsClosing ? "controls-overlay closing" : "controls-overlay"}
+          onClick={closeControls}
+        >
           <aside className="controls-drawer" onClick={(e) => e.stopPropagation()}>
-            <h3>Controls</h3>
+            <div className="drawer-head">
+              <h3>Controls</h3>
+              <button className="drawer-toggle" onClick={closeControls} aria-label="Close controls" title="Close controls">
+                <X size={20} />
+              </button>
+            </div>
             <button
               className={camOn ? "control-row" : "control-row off"}
               onClick={toggleCam}
