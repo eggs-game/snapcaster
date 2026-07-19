@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
   Check, Droplet, Flame, FlipVertical2, Link2, Mic, MicOff, MoreVertical,
-  PanelLeftClose, PanelLeftOpen, Search, Skull, Sun, TreeDeciduous,
+  Search, Settings, Skull, Sun, TreeDeciduous,
   UserRound, Video, VideoOff, X,
 } from "lucide-react";
 import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
@@ -339,6 +339,7 @@ export default function Game({ session, onLeave }) {
               setLookups((l) => [...l.slice(-11), { by: session.name, card: cardOrError, at: Date.now() }]);
             }}
             onClose={() => setSidebarOpen(false)}
+            onOpenControls={() => (controlsOpen ? closeControls() : setControlsOpen(true))}
           />
         )}
         <div className="video-panel">
@@ -353,14 +354,16 @@ export default function Game({ session, onLeave }) {
                 <Search size={22} />
               </button>
             )}
-            <button
-              className="drawer-toggle"
-              onClick={() => (controlsOpen ? closeControls() : setControlsOpen(true))}
-              aria-label={controlsOpen ? "Close controls" : "Open controls"}
-              title={controlsOpen ? "Close controls" : "Open controls"}
-            >
-              {controlsOpen ? <PanelLeftClose size={22} /> : <PanelLeftOpen size={22} />}
-            </button>
+            {!sidebarOpen && (
+              <button
+                className="drawer-toggle"
+                onClick={() => (controlsOpen ? closeControls() : setControlsOpen(true))}
+                aria-label="Open controls"
+                title="Open controls"
+              >
+                <Settings size={22} />
+              </button>
+            )}
             <span className="logo game-code" title="Lobby code">{session.code}</span>
             {!isVisitor && <button
               className={linkCopied ? "copy-link copied" : "copy-link"}

@@ -117,6 +117,7 @@ body { background: var(--bg2); color: var(--text); font-family: Inter, system-ui
 /* Sidebar */
 .sidebar { width: 300px; background: var(--bg); padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; border: 1px solid #333a48; border-radius: 28px; box-shadow: 0 4px 18px rgba(0,0,0,0.35); }
 .sidebar-head { display: flex; align-items: center; justify-content: space-between; }
+.sidebar-head-actions { display: flex; align-items: center; gap: 2px; }
 .sidebar-search { position: relative; }
 .sidebar-search input {
   width: 100%; padding: 9px 11px; border-radius: 8px; border: 1px solid #3a4353;

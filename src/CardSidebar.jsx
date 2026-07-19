@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { PanelLeftClose } from "lucide-react";
+import { PanelLeftClose, Settings } from "lucide-react";
 import { suggestCardNames } from "./cardSearch.js";
 
 const CV_LABEL = {
@@ -26,7 +26,7 @@ function cardFromScryfall(card) {
   };
 }
 
-export default function CardSidebar({ current, lookups, onPick, onClose, onSearch }) {
+export default function CardSidebar({ current, lookups, onPick, onClose, onSearch, onOpenControls }) {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [highlight, setHighlight] = useState(-1);
@@ -90,14 +90,24 @@ export default function CardSidebar({ current, lookups, onPick, onClose, onSearc
     <aside className="sidebar">
       <div className="sidebar-head">
         <h3>Card lookup</h3>
-        <button
-          className="drawer-toggle"
-          onClick={onClose}
-          aria-label="Close card lookup"
-          title="Close card lookup"
-        >
-          <PanelLeftClose size={20} />
-        </button>
+        <div className="sidebar-head-actions">
+          <button
+            className="drawer-toggle"
+            onClick={onOpenControls}
+            aria-label="Open controls"
+            title="Open controls"
+          >
+            <Settings size={20} />
+          </button>
+          <button
+            className="drawer-toggle"
+            onClick={onClose}
+            aria-label="Close card lookup"
+            title="Close card lookup"
+          >
+            <PanelLeftClose size={20} />
+          </button>
+        </div>
       </div>
 
       <div className="sidebar-search">
