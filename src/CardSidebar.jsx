@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
-  ArrowLeft, ArrowUpRight, Mic, MicOff, PanelLeftClose, Search, Settings, Video, VideoOff,
+  ArrowLeft, ArrowUpRight, Mic, MicOff, PanelLeft, Search, Settings, Video, VideoOff,
 } from "lucide-react";
 import { suggestCardNames } from "./cardSearch.js";
 
@@ -179,7 +179,7 @@ export default function CardSidebar({
               aria-label="Close sidebar"
               title="Close sidebar"
             >
-              <PanelLeftClose size={20} />
+              <PanelLeft size={20} />
             </button>
           </>
         ) : (
@@ -190,7 +190,7 @@ export default function CardSidebar({
               aria-label="Close card lookup"
               title="Close card lookup"
             >
-              <PanelLeftClose size={20} />
+              <PanelLeft size={20} />
             </button>
             <button
               className="drawer-toggle"
