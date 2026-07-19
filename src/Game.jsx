@@ -1,14 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
-import {
-  combineRecognitionResults,
-  identify as identifyCard,
-  preload as preloadRecognition,
-} from "./recognition/matcher.js";
+import { identify as identifyCard, preload as preloadRecognition } from "./recognition/matcher.js";
 import CardSidebar from "./CardSidebar.jsx";
-
-const SCAN_FRAMES = 3;
-const FRAME_GAP_MS = 90;
 
 export default function Game({ session, onLeave }) {
   const connRef = useRef(null);
@@ -59,27 +52,15 @@ export default function Game({ session, onLeave }) {
     setTimeout(() => setFlash(null), 600);
     setCurrent({ loading: true });
     try {
-      // Capture a short burst before recognition. A stable result must appear
-      // in at least two frames, preventing one noisy frame from surfacing a
-      // random-looking card.
-      const images = [];
-      for (let i = 0; i < SCAN_FRAMES; i++) {
-        images.push(tileId === myId
-          ? await captureLocalFrame(conn.localStream)
-          : await conn.requestRemoteCapture(tileId, pt.nx, pt.ny));
-        if (i < SCAN_FRAMES - 1) {
-          await new Promise((resolve) => setTimeout(resolve, FRAME_GAP_MS));
-        }
-      }
-      const frameResults = [];
-      for (const image of images) frameResults.push(await identifyCard(image, pt));
-      const data = combineRecognitionResults(frameResults);
+      const image = tileId === myId
+        ? await captureLocalFrame(conn.localStream)
+        : await conn.requestRemoteCapture(tileId, pt.nx, pt.ny);
+      const data = await identifyCard(image, pt);
       setCurrent({
         matches: data.matches || [],
         cardFound: data.card_found,
         cvStatus: data.cv_status,
         candidatesTried: data.candidates_tried,
-        scanCount: data.scan_count,
       });
       const top = data.matches?.[0];
       if (top && top.confidence > 0.2) {

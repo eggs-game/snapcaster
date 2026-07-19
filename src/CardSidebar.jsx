@@ -27,13 +27,12 @@ export default function CardSidebar({ current, lookups, onPick }) {
           </span>
           {best && (
             <span className={best.distance <= 90 ? "diag ok" : best.distance <= 215 ? "diag iffy" : "diag bad"}>
-              Best distance: {best.distance} via {best.strategy || "unknown"}
-              {current.scanCount ? ` · ${best.consensus}/${current.scanCount} frames` : ""}
+              Best distance: {best.distance} via {best.strategy || "unknown"} ({current.candidatesTried || 1} tried)
             </span>
           )}
         </div>
       )}
-      {current?.loading && <div className="lookup-status">Scanning 3 frames…</div>}
+      {current?.loading && <div className="lookup-status">Identifying…</div>}
       {current?.error && <div className="lookup-status error">{current.error}</div>}
       {current?.matches?.length === 0 && <div className="lookup-status">No match found. Try clicking closer to the card center.</div>}
       {best && !top && <div className="lookup-status">No confident match. Hold the card steady, fill more of the video, and click its center.</div>}
