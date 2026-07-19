@@ -119,17 +119,6 @@ export default function Game({ session, onLeave }) {
 
   return (
     <div className="game">
-      <header>
-        <span className="logo">Snapcaster</span>
-        <span className="code">Game code: <b>{session.code}</b></span>
-        <div className="controls">
-          <button onClick={toggleMic} className={micOn ? "" : "off"}>{micOn ? "Mute" : "Unmute"}</button>
-          <button onClick={toggleCam} className={camOn ? "" : "off"}>{camOn ? "Camera off" : "Camera on"}</button>
-          <button onClick={() => changeLife(-1)}>−1 life</button>
-          <button onClick={() => changeLife(+1)}>+1 life</button>
-          <button className="leave" onClick={onLeave}>Leave</button>
-        </div>
-      </header>
       <div className="main">
         <div className="grid">
           {tiles.map((t) => (
