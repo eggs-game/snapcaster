@@ -166,7 +166,7 @@ export default function Game({ session, onLeave }) {
           >
             {controlsOpen ? <PanelLeftClose size={22} /> : <PanelLeftOpen size={22} />}
           </button>
-          <span className="logo" title="Lobby code">{session.code}</span>
+          <span className="logo game-code" title="Lobby code">{session.code}</span>
           <button
             className={linkCopied ? "copy-link copied" : "copy-link"}
             onClick={async () => {
@@ -209,11 +209,12 @@ export default function Game({ session, onLeave }) {
         >
           <aside className="controls-drawer" onClick={(e) => e.stopPropagation()}>
             <div className="drawer-head">
-              <h3>Controls</h3>
+              <span className="logo">Snapcaster</span>
               <button className="drawer-toggle" onClick={closeControls} aria-label="Close controls" title="Close controls">
                 <X size={20} />
               </button>
             </div>
+            <h3 className="drawer-section">Controls</h3>
             <button
               className={camOn ? "control-row" : "control-row off"}
               onClick={toggleCam}
