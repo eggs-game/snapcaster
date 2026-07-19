@@ -255,25 +255,39 @@ function orderCorners(pts) {
   return [bySum[0], byDiff[0], bySum[3], byDiff[3]];
 }
 
-function quadGeometry(pts, imageWidth, imageHeight, area) {
+function pointInQuad(point, corners) {
+  let inside = false;
+  for (let i = 0, j = corners.length - 1; i < corners.length; j = i++) {
+    const a = corners[i], b = corners[j];
+    if (((a.y > point.y) !== (b.y > point.y))
+      && point.x < ((b.x - a.x) * (point.y - a.y)) / (b.y - a.y) + a.x) {
+      inside = !inside;
+    }
+  }
+  return inside;
+}
+
+function quadGeometry(pts, imageWidth, imageHeight, area, click) {
   const [tl, tr, br, bl] = orderCorners(pts);
+  const corners = [tl, tr, br, bl];
   const width = (Math.hypot(tr.x - tl.x, tr.y - tl.y) + Math.hypot(br.x - bl.x, br.y - bl.y)) / 2;
   const height = (Math.hypot(bl.x - tl.x, bl.y - tl.y) + Math.hypot(br.x - tr.x, br.y - tr.y)) / 2;
   const aspect = Math.max(width, height) / Math.max(1, Math.min(width, height));
   const cx = pts.reduce((sum, p) => sum + p.x, 0) / 4;
   const cy = pts.reduce((sum, p) => sum + p.y, 0) / 4;
   const centerDistance = Math.hypot(
-    (cx - imageWidth / 2) / imageWidth,
-    (cy - imageHeight / 2) / imageHeight,
+    (cx - click.x) / imageWidth,
+    (cy - click.y) / imageHeight,
   );
   // A Magic card is 1.39:1. Permit perspective distortion but strongly prefer
   // card-like, centered contours because the capture is centered on the click.
   const aspectFit = Math.max(0.15, 1 - Math.abs(aspect - CARD_H / CARD_W));
   const centerFit = Math.max(0.2, 1 - centerDistance * 2);
-  return { corners: [tl, tr, br, bl], aspect, score: area * aspectFit * centerFit };
+  const containsClick = pointInQuad(click, corners);
+  return { corners, aspect, containsClick, score: area * aspectFit * centerFit };
 }
 
-function findCardQuads(srcImageData) {
+function findCardQuads(srcImageData, click) {
   const cv = self.cv;
   const src = cv.matFromImageData(srcImageData);
   const gray = new cv.Mat(), blur = new cv.Mat(), bin = new cv.Mat();
@@ -296,7 +310,7 @@ function findCardQuads(srcImageData) {
           if (approx.rows === 4 && cv.isContourConvex(approx)) {
             const pts = [];
             for (let r = 0; r < 4; r++) pts.push({ x: approx.data32S[r * 2], y: approx.data32S[r * 2 + 1] });
-            const geometry = quadGeometry(pts, srcImageData.width, srcImageData.height, area);
+            const geometry = quadGeometry(pts, srcImageData.width, srcImageData.height, area, click);
             if (geometry.aspect >= 1.12 && geometry.aspect <= 2.0) {
               const key = geometry.corners.map((p) => `${Math.round(p.x / 8)},${Math.round(p.y / 8)}`).join("|");
               if (!seen.has(key)) {
@@ -323,8 +337,10 @@ function findCardQuads(srcImageData) {
   } finally {
     src.delete(); gray.delete(); blur.delete(); bin.delete();
   }
-  results.sort((a, b) => b.score - a.score);
-  return results.slice(0, 3).map((result) => result.corners);
+  const containing = results.filter((result) => result.containsClick);
+  const pool = containing.length ? containing : results;
+  pool.sort((a, b) => b.score - a.score);
+  return pool.slice(0, 3).map((result) => result.corners);
 }
 
 function matToImageData(mat) {
@@ -363,13 +379,16 @@ function rectifyCard(srcImageData, corners) {
 // Click-guided fallback at card aspect ratio -> CARD_W x CARD_H. Trying several
 // scales makes recognition useful even when glare, a sleeve, or a hand prevents
 // OpenCV from finding a closed four-sided contour.
-function centerCropImageData(bmp, scale = 0.9) {
+function centerCropImageData(bmp, scale = 0.9, point = { nx: 0.5, ny: 0.5 }) {
   const w = bmp.width, h = bmp.height;
   let ch = Math.round(h * scale), cw = Math.round((ch * CARD_W) / CARD_H);
   if (cw > w) { cw = Math.round(w * scale); ch = Math.round((cw * CARD_H) / CARD_W); }
+  const cx = point.nx * w, cy = point.ny * h;
+  const x0 = Math.max(0, Math.min(w - cw, cx - cw / 2));
+  const y0 = Math.max(0, Math.min(h - ch, cy - ch / 2));
   const canvas = new OffscreenCanvas(CARD_W, CARD_H);
   const ctx = canvas.getContext("2d");
-  ctx.drawImage(bmp, (w - cw) / 2, (h - ch) / 2, cw, ch, 0, 0, CARD_W, CARD_H);
+  ctx.drawImage(bmp, x0, y0, cw, ch, 0, 0, CARD_W, CARD_H);
   return ctx.getImageData(0, 0, CARD_W, CARD_H);
 }
 
@@ -395,7 +414,7 @@ function waitForCV(ms) {
   });
 }
 
-async function identify(bmp) {
+async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   await loadIndex();
   // Prefer the accurate OpenCV pipeline, but don't hang the first scan forever
   // if it's still compiling — fall back to center-crop this once; the diagnostic
@@ -404,6 +423,12 @@ async function identify(bmp) {
 
   const candidates = [];
   let cardFound = false;
+  const nx = Number(point?.nx), ny = Number(point?.ny);
+  const normalizedPoint = {
+    nx: Number.isFinite(nx) ? Math.max(0, Math.min(1, nx)) : 0.5,
+    ny: Number.isFinite(ny) ? Math.max(0, Math.min(1, ny)) : 0.5,
+  };
+  const click = { x: normalizedPoint.nx * bmp.width, y: normalizedPoint.ny * bmp.height };
   if (cvReady) {
     try {
       const srcImageData = bitmapToImageData(bmp);
@@ -414,7 +439,7 @@ async function identify(bmp) {
       if (Math.abs(inputAspect - CARD_H / CARD_W) < 0.12) {
         candidates.push({ image: srcImageData, strategy: "full-frame" });
       }
-      const quads = findCardQuads(srcImageData);
+      const quads = findCardQuads(srcImageData, click);
       cardFound = quads.length > 0;
       for (let i = 0; i < quads.length; i++) {
         candidates.push({ image: rectifyCard(srcImageData, quads[i]), strategy: `outline-${i + 1}` });
@@ -423,12 +448,11 @@ async function identify(bmp) {
       console.warn("[snapcaster worker] outline detection failed", e);
     }
   }
-  // Always include click-centered crops at several sizes. The click is centered
-  // in the captured square, so one of these often approximates the card border
-  // even when no closed contour is available.
+  // Always include click-centered crops at several sizes. One often
+  // approximates the card border even when no closed contour is available.
   for (const scale of [0.9, 0.75, 0.6, 0.45, 0.35]) {
     candidates.push({
-      image: centerCropImageData(bmp, scale),
+      image: centerCropImageData(bmp, scale, normalizedPoint),
       strategy: `center-${Math.round(scale * 100)}`,
     });
   }
@@ -483,10 +507,10 @@ loadIndex().catch(() => {});
 loadCV().catch(() => {});
 
 self.onmessage = async (e) => {
-  const { id, type, bmp } = e.data || {};
+  const { id, type, bmp, point } = e.data || {};
   if (type === "identify") {
     try {
-      const res = await identify(bmp);
+      const res = await identify(bmp, point);
       self.postMessage({ id, ...res });
     } catch (err) {
       if (bmp && bmp.close) bmp.close();

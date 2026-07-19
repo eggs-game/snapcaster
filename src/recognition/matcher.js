@@ -71,7 +71,7 @@ async function dataUrlToBitmap(dataUrl) {
   return await createImageBitmap(blob);
 }
 
-function runOnWorker(bmp) {
+function runOnWorker(bmp, point = { nx: 0.5, ny: 0.5 }) {
   const w = getWorker();
   const id = ++seq;
   return new Promise((resolve, reject) => {
@@ -80,19 +80,19 @@ function runOnWorker(bmp) {
       reject(new Error("Card recognition timed out. Please try again."));
     }, IDENTIFY_TIMEOUT_MS);
     pending.set(id, { resolve, reject, timer });
-    w.postMessage({ type: "identify", id, bmp }, [bmp]);
+    w.postMessage({ type: "identify", id, bmp, point }, [bmp]);
   });
 }
 
-export async function identify(imageDataUrl) {
+export async function identify(imageDataUrl, point) {
   const bmp = await dataUrlToBitmap(imageDataUrl);
-  return runOnWorker(bmp);
+  return runOnWorker(bmp, point);
 }
 
 // Console debug hook: `await window.__scIdentifyUrl("<card image url>")`
 // runs a full recognition on a fetched image (no camera needed).
 if (typeof window !== "undefined") {
-  window.__scIdentifyUrl = async (url) => {
+  window.__scIdentifyUrl = async (url, point = { nx: 0.5, ny: 0.5 }) => {
     const img = await new Promise((res, rej) => {
       const i = new Image();
       i.crossOrigin = "anonymous";
@@ -101,7 +101,7 @@ if (typeof window !== "undefined") {
       i.src = url;
     });
     const bmp = await createImageBitmap(img);
-    const r = await runOnWorker(bmp);
+    const r = await runOnWorker(bmp, point);
     console.log("[snapcaster] __scIdentifyUrl top matches:", r.matches.map((m) => `${m.name} (d=${m.distance}, conf=${m.confidence.toFixed(2)})`));
     return r;
   };

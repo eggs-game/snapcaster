@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import { GameConnection, captureLocalCrop, clickToNormalized } from "./webrtc.js";
+import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
 import { identify as identifyCard, preload as preloadRecognition } from "./recognition/matcher.js";
 import CardSidebar from "./CardSidebar.jsx";
 
@@ -53,9 +53,9 @@ export default function Game({ session, onLeave }) {
     setCurrent({ loading: true });
     try {
       const image = tileId === myId
-        ? await captureLocalCrop(conn.localStream, pt.nx, pt.ny)
+        ? await captureLocalFrame(conn.localStream)
         : await conn.requestRemoteCapture(tileId, pt.nx, pt.ny);
-      const data = await identifyCard(image);
+      const data = await identifyCard(image, pt);
       setCurrent({
         matches: data.matches || [],
         cardFound: data.card_found,

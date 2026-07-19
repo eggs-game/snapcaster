@@ -120,7 +120,7 @@ export class GameConnection {
       try { m = JSON.parse(e.data); } catch { return; }
       if (m.t === "cap-req") {
         try {
-          const image = await captureLocalCrop(this.localStream, m.nx, m.ny);
+          const image = await captureLocalFrame(this.localStream);
           this._sendChunked(peerId, { t: "cap-res", id: m.id }, image);
         } catch (err) {
           this._dcSend(peerId, { t: "cap-res", id: m.id, error: String(err) });
@@ -187,10 +187,9 @@ export class GameConnection {
   }
 }
 
-// Full-res crop around normalized point from local camera. Keep most of the
-// frame height: a card held close to the webcam can easily exceed the old 55%
-// crop and lose its top/bottom edges, making outline detection impossible.
-export async function captureLocalCrop(stream, nx, ny) {
+// Stable camera frame used for recognition. The click point is sent separately
+// so clicking different parts of one card never changes the source image.
+export async function captureLocalFrame(stream) {
   const track = stream?.getVideoTracks()[0];
   if (!track) throw new Error("no local video");
   const video = document.createElement("video");
@@ -198,14 +197,16 @@ export async function captureLocalCrop(stream, nx, ny) {
   video.muted = true;
   await video.play();
   const w = video.videoWidth, h = video.videoHeight;
-  const side = Math.round(Math.min(w, h) * 0.9);
-  const x0 = Math.max(0, Math.min(w - side, Math.round(nx * w) - side / 2));
-  const y0 = Math.max(0, Math.min(h - side, Math.round(ny * h) - side / 2));
+  if (!w || !h) throw new Error("camera frame is not ready");
+  // 1280px retains enough card detail while keeping remote data-channel
+  // transfers and OpenCV contour detection fast.
+  const scale = Math.min(1, 1280 / w);
+  const outW = Math.round(w * scale), outH = Math.round(h * scale);
   const canvas = document.createElement("canvas");
-  canvas.width = side; canvas.height = side;
-  canvas.getContext("2d").drawImage(video, x0, y0, side, side, 0, 0, side, side);
+  canvas.width = outW; canvas.height = outH;
+  canvas.getContext("2d").drawImage(video, 0, 0, w, h, 0, 0, outW, outH);
   video.pause(); video.srcObject = null;
-  return canvas.toDataURL("image/jpeg", 0.88);
+  return canvas.toDataURL("image/jpeg", 0.86);
 }
 
 // Map click on an object-fit:cover video to normalized source coords.
