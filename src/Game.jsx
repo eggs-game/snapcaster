@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
-  Check, Droplet, Flame, FlipVertical2, Link2, Mic, MicOff, MoreVertical,
-  Search, Settings, Skull, Sun, TreeDeciduous,
-  UserRound, Video, VideoOff, X,
+  Check, Droplet, Flame, FlipVertical2, Link2, MicOff, MoreVertical,
+  Search, Settings, Skull, Sun, TreeDeciduous, UserRound,
 } from "lucide-react";
 import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
 import { suggestCardNames } from "./cardSearch.js";
@@ -27,8 +26,7 @@ export default function Game({ session, onLeave }) {
   const [current, setCurrent] = useState(null);
   const [flash, setFlash] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [controlsOpen, setControlsOpen] = useState(false);
-  const [controlsClosing, setControlsClosing] = useState(false);
+  const [sidebarView, setSidebarView] = useState("lookup"); // "lookup" | "settings"
   const [linkCopied, setLinkCopied] = useState(false);
   const [visitorLinkCopied, setVisitorLinkCopied] = useState(false);
   const [cameras, setCameras] = useState([]);
@@ -36,15 +34,6 @@ export default function Game({ session, onLeave }) {
   const [videoDeviceId, setVideoDeviceId] = useState("");
   const [audioDeviceId, setAudioDeviceId] = useState("");
   const [deviceError, setDeviceError] = useState("");
-
-  // Play the slide-out animation before unmounting the drawer.
-  const closeControls = useCallback(() => {
-    setControlsClosing(true);
-    setTimeout(() => {
-      setControlsOpen(false);
-      setControlsClosing(false);
-    }, 200);
-  }, []);
 
   useEffect(() => {
     // Spin up the recognition worker now so OpenCV compiles in the background
@@ -234,90 +223,6 @@ export default function Game({ session, onLeave }) {
 
   return (
     <div className="game">
-      {controlsOpen && (
-        <div
-          className={controlsClosing ? "controls-overlay closing" : "controls-overlay"}
-          onClick={closeControls}
-        >
-          <aside className="controls-drawer" onClick={(e) => e.stopPropagation()}>
-            <div className="drawer-head">
-              <span className="logo">Snapcaster</span>
-              <button className="drawer-toggle" onClick={closeControls} aria-label="Close controls" title="Close controls">
-                <X size={20} />
-              </button>
-            </div>
-            {isVisitor && <p className="visitor-note">You joined as a visitor. You can listen, speak, and look up cards.</p>}
-            {!isVisitor && <>
-              <h3 className="drawer-section">Video</h3>
-              <button
-                className={camOn ? "control-row" : "control-row off"}
-                onClick={toggleCam}
-              >
-                {camOn ? <Video size={20} /> : <VideoOff size={20} />}
-                <span>{camOn ? "Camera on" : "Camera off"}</span>
-              </button>
-              <label className="device-field">
-                <span className="color-label">Camera</span>
-                <select
-                  value={videoDeviceId}
-                  onChange={(e) => chooseCamera(e.target.value)}
-                  disabled={!cameras.length}
-                >
-                  {!cameras.length && <option value="">No cameras found</option>}
-                  {cameras.map((d, i) => (
-                    <option key={d.deviceId || i} value={d.deviceId}>
-                      {d.label || `Camera ${i + 1}`}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </>}
-
-            <h3 className="drawer-section">Microphone</h3>
-            <button
-              className={micOn ? "control-row" : "control-row off"}
-              onClick={toggleMic}
-            >
-              {micOn ? <Mic size={20} /> : <MicOff size={20} />}
-              <span>{micOn ? "Mic on" : "Mic muted"}</span>
-            </button>
-            <label className="device-field">
-              <span className="color-label">Microphone</span>
-              <select
-                value={audioDeviceId}
-                onChange={(e) => chooseMic(e.target.value)}
-                disabled={!mics.length}
-              >
-                {!mics.length && <option value="">No microphones found</option>}
-                {mics.map((d, i) => (
-                  <option key={d.deviceId || i} value={d.deviceId}>
-                    {d.label || `Microphone ${i + 1}`}
-                  </option>
-                ))}
-              </select>
-            </label>
-            {deviceError && <p className="device-error">{deviceError}</p>}
-
-            {!isVisitor && <div className="color-picker">
-              <span className="color-label">Your color</span>
-              <div className="color-swatches">
-                {TILE_COLORS.map((color) => (
-                  <button
-                    key={color}
-                    type="button"
-                    className={myColor === color ? "color-swatch selected" : "color-swatch"}
-                    style={{ background: color }}
-                    aria-label={`Choose color ${color}`}
-                    title="Choose seat color"
-                    onClick={() => chooseColor(color)}
-                  />
-                ))}
-              </div>
-            </div>}
-          </aside>
-        </div>
-      )}
-
       {visitors
         .filter((visitor) => visitor.id !== myId && streams[visitor.id])
         .map((visitor) => (
@@ -338,8 +243,27 @@ export default function Game({ session, onLeave }) {
               setCurrent({ matches: [cardOrError] });
               setLookups((l) => [...l.slice(-11), { by: session.name, card: cardOrError, at: Date.now() }]);
             }}
-            onClose={() => setSidebarOpen(false)}
-            onOpenControls={() => (controlsOpen ? closeControls() : setControlsOpen(true))}
+            onClose={() => {
+              setSidebarOpen(false);
+              setSidebarView("lookup");
+            }}
+            view={sidebarView}
+            onViewChange={setSidebarView}
+            isVisitor={isVisitor}
+            camOn={camOn}
+            micOn={micOn}
+            cameras={cameras}
+            mics={mics}
+            videoDeviceId={videoDeviceId}
+            audioDeviceId={audioDeviceId}
+            deviceError={deviceError}
+            myColor={myColor}
+            tileColors={TILE_COLORS}
+            onToggleCam={toggleCam}
+            onToggleMic={toggleMic}
+            onChooseCamera={chooseCamera}
+            onChooseMic={chooseMic}
+            onChooseColor={chooseColor}
           />
         )}
         <div className="video-panel">
@@ -347,7 +271,10 @@ export default function Game({ session, onLeave }) {
             {!sidebarOpen && (
               <button
                 className="drawer-toggle"
-                onClick={() => setSidebarOpen(true)}
+                onClick={() => {
+                  setSidebarView("lookup");
+                  setSidebarOpen(true);
+                }}
                 aria-label="Open card lookup"
                 title="Open card lookup"
               >
@@ -357,9 +284,12 @@ export default function Game({ session, onLeave }) {
             {!sidebarOpen && (
               <button
                 className="drawer-toggle"
-                onClick={() => (controlsOpen ? closeControls() : setControlsOpen(true))}
-                aria-label="Open controls"
-                title="Open controls"
+                onClick={() => {
+                  setSidebarView("settings");
+                  setSidebarOpen(true);
+                }}
+                aria-label="Open settings"
+                title="Open settings"
               >
                 <Settings size={22} />
               </button>
