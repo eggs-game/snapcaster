@@ -63,7 +63,7 @@ export default function Game({ session, onLeave }) {
         candidatesTried: data.candidates_tried,
       });
       const top = data.matches?.[0];
-      if (top && top.confidence > 0.35) {
+      if (top && top.confidence > 0.2) {
         conn.announceCard(top, session.name);
         setLookups((l) => [...l.slice(-11), { by: session.name, card: top, at: Date.now() }]);
       }

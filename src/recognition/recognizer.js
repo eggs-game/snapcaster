@@ -10,7 +10,11 @@ const OPENCV_BASE = "https://docs.opencv.org/4.9.0/";
 const HASH_SIZE = 16;
 const VEC_BYTES = 64;
 const CARD_W = 244, CARD_H = 340;
-const CONF_GOOD = 90, CONF_BAD = 170;
+// Real webcam captures are much noisier than source images. A correctly
+// rectified physical card commonly lands around 170–205, while unrelated
+// center crops tend to be 220+. Keep the high-confidence bound strict, but do
+// not discard useful first-place matches such as the user's LTC Taunt scan.
+const CONF_GOOD = 90, CONF_BAD = 230;
 
 // ---------- perceptual hashing (mirror of hash.js) ----------
 const POPCOUNT = new Uint8Array(256);
@@ -451,15 +455,26 @@ async function identify(bmp) {
     if (candidateBest <= 45) break;
   }
 
+  // Keep enough printing-level candidates to deduplicate by card name below.
+  // Every printing still competes independently; the best-matching artwork for
+  // a card becomes the result shown to the user.
   const top = [];
   for (let i = 0; i < n; i++) {
-    if (top.length < 5 || dists[i] < top[top.length - 1].d) {
+    if (top.length < 20 || dists[i] < top[top.length - 1].d) {
       top.push({ i, d: dists[i] });
       top.sort((a, b) => a.d - b.d);
-      if (top.length > 5) top.pop();
+      if (top.length > 20) top.pop();
     }
   }
-  const matches = top.map((t) => ({ ...cardMeta(t.i, t.d), strategy: strategies[t.i] }));
+  const matches = [];
+  const names = new Set();
+  for (const t of top) {
+    const match = { ...cardMeta(t.i, t.d), strategy: strategies[t.i] };
+    if (names.has(match.name)) continue;
+    names.add(match.name);
+    matches.push(match);
+    if (matches.length === 5) break;
+  }
   return { matches, cardFound, cvStatus, candidatesTried };
 }
 

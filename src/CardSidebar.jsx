@@ -9,9 +9,10 @@ const CV_LABEL = {
 
 export default function CardSidebar({ current, lookups, onPick }) {
   const best = current?.matches?.[0];
-  // Do not present a forced nearest neighbour as an identification. With a
-  // weak crop, some card will always rank first even when it is plainly wrong.
-  const top = best && best.distance <= 145 ? best : null;
+  // Do not present a forced nearest neighbour as an identification. Real camera
+  // scans can score around 190 even when the correct printing is ranked first,
+  // so show those as a clearly labeled possible match.
+  const top = best && best.distance <= 215 ? best : null;
   const showDiag = current && !current.loading && current.cvStatus !== undefined;
   return (
     <aside className="sidebar">
@@ -25,7 +26,7 @@ export default function CardSidebar({ current, lookups, onPick }) {
             {current.cardFound ? "Card outline detected" : "No outline — using center crop"}
           </span>
           {best && (
-            <span className={best.distance <= 90 ? "diag ok" : best.distance <= 145 ? "diag iffy" : "diag bad"}>
+            <span className={best.distance <= 90 ? "diag ok" : best.distance <= 215 ? "diag iffy" : "diag bad"}>
               Best distance: {best.distance} via {best.strategy || "unknown"} ({current.candidatesTried || 1} tried)
             </span>
           )}
@@ -43,7 +44,7 @@ export default function CardSidebar({ current, lookups, onPick }) {
             <span>{top.set_name || top.set?.toUpperCase()} · #{top.collector_number}</span>
             {top.confidence !== undefined && (
               <span className={top.confidence > 0.5 ? "conf good" : "conf iffy"}>
-                {Math.round(top.confidence * 100)}% match
+                {top.confidence > 0.5 ? `${Math.round(top.confidence * 100)}% match` : "Possible match"}
               </span>
             )}
             {top.scryfall_uri && <a href={top.scryfall_uri} target="_blank" rel="noreferrer">View on Scryfall</a>}
