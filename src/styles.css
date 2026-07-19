@@ -133,18 +133,26 @@ body { background: var(--bg2); color: var(--text); font-family: Inter, system-ui
 @keyframes flash { from { transform: scale(0.4); opacity: 1; } to { transform: scale(1.4); opacity: 0; } }
 
 /* Sidebar */
-/* The sidebar mounts when opened, so the mount animation doubles as the
-   open transition. */
-.sidebar { width: 300px; background: var(--bg); padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; border: 1px solid #333a48; border-radius: 20px; box-shadow: 0 4px 18px rgba(0,0,0,0.35); animation: sidebar-slide-in 0.22s ease; }
+/* Opens/closes by sliding while freeing layout space so the video panel
+   expands/contracts with the motion instead of snapping at the end. */
+.sidebar {
+  width: 300px; flex: none; background: var(--bg); padding: 14px; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 10px; border: 1px solid #333a48;
+  border-radius: 20px; box-shadow: 0 4px 18px rgba(0,0,0,0.35);
+  animation: sidebar-slide-in 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+}
 @keyframes sidebar-slide-in {
-  from { transform: translateX(calc(-100% - 16px)); opacity: 0.5; }
-  to { transform: translateX(0); opacity: 1; }
+  from { margin-left: -308px; opacity: 0; }
+  to { margin-left: 0; opacity: 1; }
 }
 /* Closing keeps the sidebar mounted until this animation finishes. */
-.sidebar.slide-out { animation: sidebar-slide-out 0.22s ease forwards; }
+.sidebar.slide-out {
+  animation: sidebar-slide-out 0.34s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  pointer-events: none;
+}
 @keyframes sidebar-slide-out {
-  from { transform: translateX(0); opacity: 1; }
-  to { transform: translateX(calc(-100% - 16px)); opacity: 0.5; }
+  from { margin-left: 0; opacity: 1; }
+  to { margin-left: -308px; opacity: 0; }
 }
 .sidebar-head { display: flex; align-items: center; justify-content: space-between; }
 .sidebar-head-actions { display: flex; align-items: center; gap: 4px; min-width: 0; }
