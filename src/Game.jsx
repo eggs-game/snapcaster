@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
-  Mic, MicOff, PanelLeftClose, PanelLeftOpen,
+  FlipHorizontal2, Mic, MicOff, MoreVertical, PanelLeftClose, PanelLeftOpen,
   PanelRightClose, PanelRightOpen, Video, VideoOff, X,
 } from "lucide-react";
 import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
@@ -65,9 +65,11 @@ export default function Game({ session, onLeave }) {
     return () => conn.close();
   }, []);
 
-  const identify = useCallback(async (tileId, videoEl, clientX, clientY) => {
+  // captureClientX lets mirrored tiles pass the reflected point for capture
+  // while the click flash stays where the player actually clicked.
+  const identify = useCallback(async (tileId, videoEl, clientX, clientY, captureClientX = clientX) => {
     const conn = connRef.current;
-    const pt = clickToNormalized(videoEl, clientX, clientY);
+    const pt = clickToNormalized(videoEl, captureClientX, clientY);
     if (!pt) return;
     const rect = videoEl.getBoundingClientRect();
     setFlash({ tileId, x: clientX - rect.left, y: clientY - rect.top });
@@ -249,6 +251,7 @@ const TILE_COLORS = ["#d4a94e", "#5b9bd5", "#7bc47f", "#c0504d"];
 
 function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, onChangeLife, flash }) {
   const videoRef = useRef(null);
+  const [mirrored, setMirrored] = useState(false);
   useEffect(() => {
     if (videoRef.current && tile.stream) videoRef.current.srcObject = tile.stream;
   }, [tile.stream]);
@@ -263,12 +266,33 @@ function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, onCh
 
   return (
     <div className="tile" style={{ borderColor: color }}>
-      <CommanderBanner tile={tile} onChoose={onChooseCommander} />
+      <CommanderBanner
+        tile={tile}
+        onChoose={onChooseCommander}
+        mirrored={mirrored}
+        onToggleMirror={() => setMirrored((m) => !m)}
+      />
       <div
         className="video-wrap"
-        onClick={(e) => videoRef.current && onIdentify(tile.id, videoRef.current, e.clientX, e.clientY)}
+        onClick={(e) => {
+          if (!videoRef.current) return;
+          // A mirrored video shows the source flipped; reflect the click so
+          // recognition still targets the card the player actually clicked.
+          let captureX = e.clientX;
+          if (mirrored) {
+            const rect = videoRef.current.getBoundingClientRect();
+            captureX = rect.left + rect.right - e.clientX;
+          }
+          onIdentify(tile.id, videoRef.current, e.clientX, e.clientY, captureX);
+        }}
       >
-        <video ref={videoRef} autoPlay playsInline muted={tile.isMe} />
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted={tile.isMe}
+          style={mirrored ? { transform: "scaleX(-1)" } : undefined}
+        />
         {flash && <div className="click-flash" style={{ left: flash.x, top: flash.y }} />}
         <div
           className={tile.isMe ? "life-badge mine" : "life-badge"}
@@ -374,7 +398,40 @@ function ManaCost({ cost }) {
   );
 }
 
-function CommanderBanner({ tile, onChoose }) {
+// Right edge of the banner: three-dot video-options menu stacked above the
+// commander's mana symbols.
+function BannerRight({ cost, mirrored, onToggleMirror }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="banner-right" onClick={(e) => e.stopPropagation()}>
+      <button
+        className="menu-btn"
+        onClick={() => setOpen((o) => !o)}
+        aria-label="Video options"
+        title="Video options"
+      >
+        <MoreVertical size={15} />
+      </button>
+      <ManaCost cost={cost} />
+      {open && (
+        <div className="tile-menu">
+          <button
+            type="button"
+            onClick={() => {
+              onToggleMirror();
+              setOpen(false);
+            }}
+          >
+            <FlipHorizontal2 size={15} />
+            <span>{mirrored ? "Unmirror video" : "Mirror video"}</span>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CommanderBanner({ tile, onChoose, mirrored, onToggleMirror }) {
   const [draft, setDraft] = useState(tile.commander);
   const [suggestions, setSuggestions] = useState([]);
   const [editing, setEditing] = useState(false);
@@ -443,7 +500,7 @@ function CommanderBanner({ tile, onChoose }) {
             {tile.commander || "Not selected"}
           </span>
         </div>
-        <ManaCost cost={manaCost} />
+        <BannerRight cost={manaCost} mirrored={mirrored} onToggleMirror={onToggleMirror} />
       </div>
     );
   }
@@ -460,7 +517,7 @@ function CommanderBanner({ tile, onChoose }) {
           {playerRow}
           <span className="commander-name">{tile.commander}</span>
         </div>
-        <ManaCost cost={manaCost} />
+        <BannerRight cost={manaCost} mirrored={mirrored} onToggleMirror={onToggleMirror} />
       </div>
     );
   }
@@ -493,6 +550,7 @@ function CommanderBanner({ tile, onChoose }) {
       <datalist id={`commander-options-${tile.id}`}>
         {suggestions.map((name) => <option value={name} key={name} />)}
       </datalist>
+      <BannerRight cost="" mirrored={mirrored} onToggleMirror={onToggleMirror} />
     </form>
   );
 }
