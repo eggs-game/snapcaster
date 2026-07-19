@@ -178,7 +178,11 @@ function loadCV() {
       setTimeout(poll, 50);
     };
     if (self.cv && typeof self.cv.then === "function") {
-      self.cv.then((m) => { self.cv = m; done(); }).catch(reject);
+      // OpenCV 4.x exposes `cv` as an Emscripten "thenable" that is NOT a real
+      // Promise (no .catch). Wrap it so chaining works, and also start polling
+      // as a fallback in case the thenable never settles.
+      Promise.resolve(self.cv).then((m) => { if (m && m.Mat) self.cv = m; done(); }, reject);
+      setTimeout(poll, 2000);
     } else if (self.cv && self.cv.onRuntimeInitialized !== undefined) {
       self.cv.onRuntimeInitialized = done;
       setTimeout(poll, 2000);
