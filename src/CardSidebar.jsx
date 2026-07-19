@@ -151,16 +151,7 @@ export default function CardSidebar({
           </>
         ) : (
           <>
-            <span className="logo">Snapcaster</span>
             <div className="sidebar-head-actions">
-              <button
-                className="drawer-toggle"
-                onClick={() => onViewChange("settings")}
-                aria-label="Open settings"
-                title="Open settings"
-              >
-                <Settings size={20} />
-              </button>
               <button
                 className="drawer-toggle"
                 onClick={onClose}
@@ -169,7 +160,16 @@ export default function CardSidebar({
               >
                 <PanelLeftClose size={20} />
               </button>
+              <span className="logo">Snapcaster</span>
             </div>
+            <button
+              className="drawer-toggle"
+              onClick={() => onViewChange("settings")}
+              aria-label="Open settings"
+              title="Open settings"
+            >
+              <Settings size={20} />
+            </button>
           </>
         )}
       </div>
