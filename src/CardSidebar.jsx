@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { PanelRightClose } from "lucide-react";
+import { suggestCardNames } from "./cardSearch.js";
 
 const CV_LABEL = {
   ready: "OpenCV ready",
@@ -41,12 +42,7 @@ export default function CardSidebar({ current, lookups, onPick, onClose, onSearc
     const controller = new AbortController();
     const timer = setTimeout(async () => {
       try {
-        const response = await fetch(
-          `https://api.scryfall.com/cards/autocomplete?q=${encodeURIComponent(q)}`,
-          { signal: controller.signal },
-        );
-        if (!response.ok) return;
-        setSuggestions((await response.json()).data || []);
+        setSuggestions(await suggestCardNames(q, controller.signal));
         setHighlight(-1);
       } catch (error) {
         if (error.name !== "AbortError") setSuggestions([]);

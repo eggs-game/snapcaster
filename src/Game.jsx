@@ -5,6 +5,7 @@ import {
   UserRound, Video, VideoOff, X,
 } from "lucide-react";
 import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
+import { suggestCardNames } from "./cardSearch.js";
 import { identify as identifyCard, preload as preloadRecognition } from "./recognition/matcher.js";
 import CardSidebar from "./CardSidebar.jsx";
 
@@ -611,13 +612,8 @@ function CommanderBanner({ tile, onChoose, flipped, onToggleFlip }) {
     const controller = new AbortController();
     const timer = setTimeout(async () => {
       try {
-        const response = await fetch(`https://api.scryfall.com/cards/autocomplete?q=${encodeURIComponent(query)}`, {
-          signal: controller.signal,
-        });
-        if (response.ok) {
-          setSuggestions((await response.json()).data || []);
-          setHighlight(-1);
-        }
+        setSuggestions(await suggestCardNames(query, controller.signal));
+        setHighlight(-1);
       } catch (error) {
         if (error.name !== "AbortError") setSuggestions([]);
       }
