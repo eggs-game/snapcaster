@@ -358,12 +358,17 @@ function CommanderBanner({ tile, onChoose }) {
     };
   }, [draft, tile.commander]);
 
+  const playerLabel = `${tile.name}${tile.isMe ? " (you)" : ""}`;
+
   if (!tile.isMe) {
     return (
       <div className="commander-banner">
-        <span className={tile.commander ? "commander-name" : "commander-name unset"}>
-          {tile.commander || "Not selected"}
-        </span>
+        <div className="banner-stack">
+          <span className="banner-player">{playerLabel}</span>
+          <span className={tile.commander ? "commander-name" : "commander-name unset"}>
+            {tile.commander || "Not selected"}
+          </span>
+        </div>
         <ManaCost cost={manaCost} />
       </div>
     );
@@ -377,7 +382,10 @@ function CommanderBanner({ tile, onChoose }) {
         onClick={() => setEditing(true)}
         title="Click to change commander"
       >
-        <span className="commander-name">{tile.commander}</span>
+        <div className="banner-stack">
+          <span className="banner-player">{playerLabel}</span>
+          <span className="commander-name">{tile.commander}</span>
+        </div>
         <ManaCost cost={manaCost} />
       </div>
     );
