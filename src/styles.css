@@ -21,6 +21,9 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, -apple
 /* Game layout */
 .game { display: flex; flex-direction: column; height: 100vh; }
 header { display: flex; align-items: center; gap: 18px; padding: 8px 14px; background: var(--panel); }
+.topbar { justify-content: space-between; }
+.drawer-toggle { display: flex; align-items: center; justify-content: center; padding: 6px; background: transparent; border: none; border-radius: 8px; color: var(--text); cursor: pointer; }
+.drawer-toggle:hover { background: var(--panel2); color: var(--accent); }
 .logo { color: var(--accent); font-weight: 800; }
 .code b { letter-spacing: 0.2em; color: var(--accent); }
 .controls { margin-left: auto; display: flex; gap: 8px; }
@@ -42,7 +45,7 @@ header { display: flex; align-items: center; gap: 18px; padding: 8px 14px; backg
 .commander-picker input:focus { border-color: var(--accent); outline: none; }
 .tile-bar { position: absolute; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-between; padding: 6px 10px; background: linear-gradient(transparent, rgba(0,0,0,0.75)); font-size: 0.9rem; }
 .life { color: var(--accent); font-weight: 700; }
-.life-badge { position: absolute; z-index: 2; bottom: 10px; min-width: 46px; padding: 8px 12px; border-radius: 12px; color: #10131a; font-size: 1.25rem; font-weight: 800; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.45); pointer-events: none; }
+.life-badge { position: absolute; z-index: 2; bottom: 0; min-width: 46px; padding: 8px 12px; color: #10131a; font-size: 1.25rem; font-weight: 800; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.45); pointer-events: none; }
 .click-flash { position: absolute; width: 44px; height: 44px; margin: -22px 0 0 -22px; border: 3px solid var(--accent); border-radius: 50%; animation: flash 0.6s ease-out forwards; pointer-events: none; }
 @keyframes flash { from { transform: scale(0.4); opacity: 1; } to { transform: scale(1.4); opacity: 0; } }
 

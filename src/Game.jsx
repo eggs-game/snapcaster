@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
+import { PanelRightClose, PanelRightOpen } from "lucide-react";
 import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
 import { identify as identifyCard, preload as preloadRecognition } from "./recognition/matcher.js";
 import CardSidebar from "./CardSidebar.jsx";
@@ -17,6 +18,7 @@ export default function Game({ session, onLeave }) {
   const [lookups, setLookups] = useState([]);
   const [current, setCurrent] = useState(null);
   const [flash, setFlash] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
     // Spin up the recognition worker now so OpenCV compiles in the background
@@ -119,6 +121,17 @@ export default function Game({ session, onLeave }) {
 
   return (
     <div className="game">
+      <header className="topbar">
+        <span className="logo">Snapcaster</span>
+        <button
+          className="drawer-toggle"
+          onClick={() => setSidebarOpen((open) => !open)}
+          aria-label={sidebarOpen ? "Close card lookup" : "Open card lookup"}
+          title={sidebarOpen ? "Close card lookup" : "Open card lookup"}
+        >
+          {sidebarOpen ? <PanelRightClose size={22} /> : <PanelRightOpen size={22} />}
+        </button>
+      </header>
       <div className="main">
         <div className="grid">
           {tiles.map((t, i) => (
@@ -133,7 +146,9 @@ export default function Game({ session, onLeave }) {
             />
           ))}
         </div>
-        <CardSidebar current={current} lookups={lookups} onPick={(m) => setCurrent({ matches: [m] })} />
+        {sidebarOpen && (
+          <CardSidebar current={current} lookups={lookups} onPick={(m) => setCurrent({ matches: [m] })} />
+        )}
       </div>
       <footer className="hint">Click any card on any video to identify it. Share code <b>{session.code}</b> with friends.</footer>
     </div>
@@ -166,7 +181,15 @@ function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, flas
       >
         <video ref={videoRef} autoPlay playsInline muted={tile.isMe} />
         {flash && <div className="click-flash" style={{ left: flash.x, top: flash.y }} />}
-        <div className="life-badge" style={{ background: color, [innerSide]: 10 }}>
+        <div
+          className="life-badge"
+          style={{
+            background: color,
+            [innerSide]: 0,
+            // Flush against the corner: only round the corner facing the video.
+            borderRadius: innerSide === "right" ? "12px 0 0 0" : "0 12px 0 0",
+          }}
+        >
           {tile.life}
         </div>
         {/* Keep the name on the outer edge, away from the life badge. */}
