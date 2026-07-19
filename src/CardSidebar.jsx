@@ -356,7 +356,6 @@ export default function CardSidebar({
             </>
           )}
 
-          <h3>Recent lookups</h3>
           <ul className="lookups">
             {[...(lookups || [])].reverse().map((l, i) => (
               <li key={i} onClick={() => onPick(l.card)}>
