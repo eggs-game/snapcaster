@@ -8,7 +8,10 @@ const CV_LABEL = {
 };
 
 export default function CardSidebar({ current, lookups, onPick }) {
-  const top = current?.matches?.[0];
+  const best = current?.matches?.[0];
+  // Do not present a forced nearest neighbour as an identification. With a
+  // weak crop, some card will always rank first even when it is plainly wrong.
+  const top = best && best.distance <= 145 ? best : null;
   const showDiag = current && !current.loading && current.cvStatus !== undefined;
   return (
     <aside className="sidebar">
@@ -21,9 +24,9 @@ export default function CardSidebar({ current, lookups, onPick }) {
           <span className={current.cardFound ? "diag ok" : "diag bad"}>
             {current.cardFound ? "Card outline detected" : "No outline — using center crop"}
           </span>
-          {top && (
-            <span className={top.distance <= 90 ? "diag ok" : top.distance <= 142 ? "diag iffy" : "diag bad"}>
-              Best distance: {top.distance} (lower = better; ~5 is ideal)
+          {best && (
+            <span className={best.distance <= 90 ? "diag ok" : best.distance <= 145 ? "diag iffy" : "diag bad"}>
+              Best distance: {best.distance} via {best.strategy || "unknown"} ({current.candidatesTried || 1} tried)
             </span>
           )}
         </div>
@@ -31,6 +34,7 @@ export default function CardSidebar({ current, lookups, onPick }) {
       {current?.loading && <div className="lookup-status">Identifying…</div>}
       {current?.error && <div className="lookup-status error">{current.error}</div>}
       {current?.matches?.length === 0 && <div className="lookup-status">No match found. Try clicking closer to the card center.</div>}
+      {best && !top && <div className="lookup-status">No confident match. Hold the card steady, fill more of the video, and click its center.</div>}
       {top && (
         <div className="card-hit">
           <img src={top.image} alt={top.name} />

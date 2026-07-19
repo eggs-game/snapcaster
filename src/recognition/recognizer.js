@@ -158,11 +158,17 @@ function loadCV() {
   console.log("[snapcaster worker] loadCV: start");
   cvPromise = new Promise((resolve, reject) => {
     const start = Date.now();
+    let settled = false;
     const finish = () => {
+      if (settled) return;
+      settled = true;
       cvReady = true;
       cvStatus = "ready";
       console.log(`[snapcaster worker] OpenCV ready in ${Date.now() - start}ms`);
-      resolve(self.cv);
+      // Never resolve with `self.cv`. OpenCV's Emscripten module is a
+      // self-resolving thenable, so native Promise assimilation would loop
+      // forever and leave every identification stuck on "Identifying…".
+      resolve();
     };
     // Emscripten reads this config object during importScripts. The wasm is
     // embedded as a base64 data URI in the docs build, so locateFile is only a
@@ -177,14 +183,18 @@ function loadCV() {
       console.log(`[snapcaster worker] importScripts done (typeof cv=${typeof self.cv})`);
     } catch (e) {
       console.error("[snapcaster worker] importScripts failed", e);
+      settled = true;
       cvStatus = "failed";
       return reject(e);
     }
-    // Some builds expose `cv` as an Emscripten thenable (has .then, but is NOT a
-    // real Promise). Adopt its resolved module if/when it settles, ignoring
-    // errors — the poll below is the authoritative readiness check.
+    // OpenCV exposes an Emscripten thenable, not a real Promise. Call its
+    // callback directly; do not wrap it in Promise.resolve (which recursively
+    // assimilates this self-resolving thenable and never completes).
     if (self.cv && typeof self.cv.then === "function") {
-      Promise.resolve(self.cv).then((m) => { if (m && m.Mat) self.cv = m; }, () => {});
+      self.cv.then((m) => {
+        if (m && m.Mat) self.cv = m;
+        if (self.cv && self.cv.Mat) finish();
+      });
     }
     // Authoritative signal: poll until the real module (with .Mat) exists,
     // regardless of how this particular build reports readiness.
@@ -193,6 +203,7 @@ function loadCV() {
       if (self.cv && self.cv.Mat) return finish();
       if (++ticks % 20 === 0) console.log(`[snapcaster worker] waiting for OpenCV… ${Date.now() - start}ms`);
       if (Date.now() - start > 60000) {
+        settled = true;
         cvStatus = "failed";
         console.error("[snapcaster worker] OpenCV init timeout (60s)");
         return reject(new Error("OpenCV init timeout"));
@@ -240,11 +251,30 @@ function orderCorners(pts) {
   return [bySum[0], byDiff[0], bySum[3], byDiff[3]];
 }
 
-function findCardQuad(srcImageData) {
+function quadGeometry(pts, imageWidth, imageHeight, area) {
+  const [tl, tr, br, bl] = orderCorners(pts);
+  const width = (Math.hypot(tr.x - tl.x, tr.y - tl.y) + Math.hypot(br.x - bl.x, br.y - bl.y)) / 2;
+  const height = (Math.hypot(bl.x - tl.x, bl.y - tl.y) + Math.hypot(br.x - tr.x, br.y - tr.y)) / 2;
+  const aspect = Math.max(width, height) / Math.max(1, Math.min(width, height));
+  const cx = pts.reduce((sum, p) => sum + p.x, 0) / 4;
+  const cy = pts.reduce((sum, p) => sum + p.y, 0) / 4;
+  const centerDistance = Math.hypot(
+    (cx - imageWidth / 2) / imageWidth,
+    (cy - imageHeight / 2) / imageHeight,
+  );
+  // A Magic card is 1.39:1. Permit perspective distortion but strongly prefer
+  // card-like, centered contours because the capture is centered on the click.
+  const aspectFit = Math.max(0.15, 1 - Math.abs(aspect - CARD_H / CARD_W));
+  const centerFit = Math.max(0.2, 1 - centerDistance * 2);
+  return { corners: [tl, tr, br, bl], aspect, score: area * aspectFit * centerFit };
+}
+
+function findCardQuads(srcImageData) {
   const cv = self.cv;
   const src = cv.matFromImageData(srcImageData);
   const gray = new cv.Mat(), blur = new cv.Mat(), bin = new cv.Mat();
   const results = [];
+  const seen = new Set();
   try {
     cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
     cv.bilateralFilter(gray, blur, 7, 50, 50);
@@ -255,14 +285,21 @@ function findCardQuad(srcImageData) {
       for (let i = 0; i < contours.size(); i++) {
         const c = contours.get(i);
         const area = cv.contourArea(c);
-        if (area > imgArea * 0.05) {
+        if (area > imgArea * 0.01 && area < imgArea * 0.98) {
           const peri = cv.arcLength(c, true);
           const approx = new cv.Mat();
           cv.approxPolyDP(c, approx, 0.03 * peri, true);
           if (approx.rows === 4 && cv.isContourConvex(approx)) {
             const pts = [];
             for (let r = 0; r < 4; r++) pts.push({ x: approx.data32S[r * 2], y: approx.data32S[r * 2 + 1] });
-            results.push({ pts, area });
+            const geometry = quadGeometry(pts, srcImageData.width, srcImageData.height, area);
+            if (geometry.aspect >= 1.12 && geometry.aspect <= 2.0) {
+              const key = geometry.corners.map((p) => `${Math.round(p.x / 8)},${Math.round(p.y / 8)}`).join("|");
+              if (!seen.has(key)) {
+                seen.add(key);
+                results.push(geometry);
+              }
+            }
           }
           approx.delete();
         }
@@ -282,9 +319,8 @@ function findCardQuad(srcImageData) {
   } finally {
     src.delete(); gray.delete(); blur.delete(); bin.delete();
   }
-  if (!results.length) return null;
-  results.sort((a, b) => b.area - a.area);
-  return orderCorners(results[0].pts);
+  results.sort((a, b) => b.score - a.score);
+  return results.slice(0, 3).map((result) => result.corners);
 }
 
 function matToImageData(mat) {
@@ -360,21 +396,52 @@ async function identify(bmp) {
   // panel reports the real status so the user knows to retry in a moment.
   await waitForCV(15000);
 
-  let rectified = null, cardFound = false;
+  const candidates = [];
+  let cardFound = false;
   if (cvReady) {
     try {
       const srcImageData = bitmapToImageData(bmp);
-      const quad = findCardQuad(srcImageData);
-      if (quad) { rectified = rectifyCard(srcImageData, quad); cardFound = true; }
-    } catch (e) { rectified = null; }
+      // If the input already has card-like proportions (for example the debug
+      // hook or a tightly framed camera capture), preserve it. OpenCV may detect
+      // an inner art/text frame rather than the outer edge.
+      const inputAspect = Math.max(bmp.width, bmp.height) / Math.min(bmp.width, bmp.height);
+      if (Math.abs(inputAspect - CARD_H / CARD_W) < 0.12) {
+        candidates.push({ image: srcImageData, strategy: "full-frame" });
+      }
+      const quads = findCardQuads(srcImageData);
+      cardFound = quads.length > 0;
+      for (let i = 0; i < quads.length; i++) {
+        candidates.push({ image: rectifyCard(srcImageData, quads[i]), strategy: `outline-${i + 1}` });
+      }
+    } catch (e) {
+      console.warn("[snapcaster worker] outline detection failed", e);
+    }
   }
-  if (!rectified) rectified = centerCropImageData(bmp);
+  // Always include a deterministic fallback. The best hash distance across all
+  // candidates wins, so a bad contour cannot override a better crop.
+  candidates.push({ image: centerCropImageData(bmp), strategy: "center-crop" });
   if (bmp.close) bmp.close();
 
-  const gray = toGray(rectified);
   const n = cards.length;
   const dists = new Uint16Array(n).fill(0xffff);
-  for (const q of queryVariants(gray)) hammingSearch(q, index, n, dists);
+  const strategies = new Array(n).fill("none");
+  let candidatesTried = 0;
+  for (const candidate of candidates) {
+    candidatesTried++;
+    const candidateDists = new Uint16Array(n).fill(0xffff);
+    for (const q of queryVariants(toGray(candidate.image))) hammingSearch(q, index, n, candidateDists);
+    let candidateBest = 0xffff;
+    for (let i = 0; i < n; i++) {
+      if (candidateDists[i] < candidateBest) candidateBest = candidateDists[i];
+      if (candidateDists[i] < dists[i]) {
+        dists[i] = candidateDists[i];
+        strategies[i] = candidate.strategy;
+      }
+    }
+    // A distance this low is already a decisive match; avoid spending time on
+    // weaker fallback candidates.
+    if (candidateBest <= 45) break;
+  }
 
   const top = [];
   for (let i = 0; i < n; i++) {
@@ -384,7 +451,8 @@ async function identify(bmp) {
       if (top.length > 5) top.pop();
     }
   }
-  return { matches: top.map((t) => cardMeta(t.i, t.d)), cardFound, cvStatus };
+  const matches = top.map((t) => ({ ...cardMeta(t.i, t.d), strategy: strategies[t.i] }));
+  return { matches, cardFound, cvStatus, candidatesTried };
 }
 
 // Kick off loads as soon as the worker spins up.

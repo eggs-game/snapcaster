@@ -35,21 +35,31 @@ export function preload() {
 let worker = null;
 let seq = 0;
 const pending = new Map();
+const IDENTIFY_TIMEOUT_MS = 30000;
 
 function getWorker() {
   if (!worker) {
     worker = new Worker(new URL("./recognizer.js", import.meta.url));
     worker.onmessage = (e) => {
-      const { id, matches, cardFound, cvStatus, error } = e.data || {};
+      const { id, matches, cardFound, cvStatus, candidatesTried, error } = e.data || {};
       const p = pending.get(id);
       if (!p) return;
       pending.delete(id);
+      clearTimeout(p.timer);
       if (error) p.reject(new Error(error));
-      else p.resolve({ matches: matches || [], card_found: !!cardFound, cv_status: cvStatus || "unknown" });
+      else p.resolve({
+        matches: matches || [],
+        card_found: !!cardFound,
+        cv_status: cvStatus || "unknown",
+        candidates_tried: candidatesTried || 0,
+      });
     };
     worker.onerror = (e) => {
       const err = new Error(e.message || "recognition worker crashed");
-      for (const [, p] of pending) p.reject(err);
+      for (const [, p] of pending) {
+        clearTimeout(p.timer);
+        p.reject(err);
+      }
       pending.clear();
     };
   }
@@ -65,7 +75,11 @@ function runOnWorker(bmp) {
   const w = getWorker();
   const id = ++seq;
   return new Promise((resolve, reject) => {
-    pending.set(id, { resolve, reject });
+    const timer = setTimeout(() => {
+      pending.delete(id);
+      reject(new Error("Card recognition timed out. Please try again."));
+    }, IDENTIFY_TIMEOUT_MS);
+    pending.set(id, { resolve, reject, timer });
     w.postMessage({ type: "identify", id, bmp }, [bmp]);
   });
 }
