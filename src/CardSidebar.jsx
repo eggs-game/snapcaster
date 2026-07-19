@@ -355,7 +355,6 @@ export default function CardSidebar({
               </div>
             </>
           )}
-          {!current && !searching && <div className="lookup-status">Click a card on any video feed, or search by name.</div>}
 
           <h3>Recent lookups</h3>
           <ul className="lookups">
