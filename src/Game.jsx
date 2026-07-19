@@ -123,6 +123,11 @@ export default function Game({ session, onLeave }) {
         artChecked: data.art_checked,
         titleScore: data.title_score,
         ocrError: data.ocr_error,
+        captureImage: image,
+        cameraRes: (() => {
+          const s = conn.localStream?.getVideoTracks?.()[0]?.getSettings?.();
+          return s?.width ? `${s.width}×${s.height}` : "";
+        })(),
       });
       const top = data.matches?.[0];
       if (top && (top.identified_by === "ocr-title" || top.distance <= 170)) {

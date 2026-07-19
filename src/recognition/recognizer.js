@@ -888,7 +888,8 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
         candidates.find((c) => c.strategy === "center-45")?.image,
         candidates.find((c) => c.strategy === "center-27")?.image,
       ].filter((img, i, arr) => img && arr.indexOf(img) === i);
-      const verified = await verifyTopMatches(matches, queryImages);
+      const cardShaped = bestCandidateStrategy === "full-frame" || bestCandidateStrategy.startsWith("outline-");
+      const verified = await verifyTopMatches(matches, queryImages, cardShaped);
       matchesOut = verified.matches;
       artBest = verified.artBest;
       artChecked = verified.artChecked;
@@ -1034,11 +1035,44 @@ function colorSimilarity(a, b) {
   return s;
 }
 
-async function verifyTopMatches(matches, queryImages) {
+// Hue histogram of the card's outer border ring (outer 7% band). The frame
+// color is Magic's strongest identity signal: a white-bordered card must not
+// be answered with a red one. Only meaningful when the image IS a card
+// (outline-rectified or full-frame), not a loose background crop.
+function ringSignature(imageData) {
+  const { data, width, height } = imageData;
+  const bx = Math.max(2, Math.round(width * 0.07));
+  const by = Math.max(2, Math.round(height * 0.07));
+  const hist = new Float32Array(13);
+  const add = (x, y) => {
+    const i = (y * width + x) * 4;
+    const r = data[i] / 255, g = data[i + 1] / 255, b = data[i + 2] / 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    const s = max ? (max - min) / max : 0;
+    if (s < 0.18 || max < 0.12) { hist[12] += 0.5; return; }
+    let h;
+    if (max === r) h = ((g - b) / (max - min) + 6) % 6;
+    else if (max === g) h = (b - r) / (max - min) + 2;
+    else h = (r - g) / (max - min) + 4;
+    hist[Math.min(11, Math.floor(h * 2))] += s;
+  };
+  for (let y = 0; y < height; y += 2) {
+    for (let x = 0; x < width; x += 2) {
+      if (x < bx || x >= width - bx || y < by || y >= height - by) add(x, y);
+    }
+  }
+  let sum = 0;
+  for (const v of hist) sum += v;
+  if (sum) for (let i = 0; i < hist.length; i++) hist[i] /= sum;
+  return hist;
+}
+
+async function verifyTopMatches(matches, queryImages, queryIsCardShaped) {
   const shortlist = matches.slice(0, 36);
   const refs = await Promise.all(shortlist.map((m) => fetchReference(m.scryfall_id, m.face || 0)));
   const queryFeats = queryImages.map((img) => orbFeatures(img, 500));
   const querySig = colorSignature(queryImages[0]);
+  const queryRing = queryIsCardShaped ? ringSignature(queryImages[0]) : null;
   try {
     for (let i = 0; i < shortlist.length; i++) {
       if (!refs[i]) { shortlist[i].art_inliers = 0; shortlist[i].color_sim = 0; continue; }
@@ -1051,6 +1085,7 @@ async function verifyTopMatches(matches, queryImages) {
         rf.kp.delete(); rf.desc.delete();
       }
       shortlist[i].color_sim = colorSimilarity(querySig, colorSignature(refs[i]));
+      if (queryRing) shortlist[i].ring_sim = colorSimilarity(queryRing, ringSignature(refs[i]));
     }
   } finally {
     for (const qf of queryFeats) { qf.kp.delete(); qf.desc.delete(); }
@@ -1058,6 +1093,10 @@ async function verifyTopMatches(matches, queryImages) {
   const maxInliers = Math.max(...shortlist.map((m) => m.art_inliers || 0), 0);
   // Coarse color agreement bands: same color identity, plausible, or clashing.
   const colorBand = (m) => ((m.color_sim || 0) >= 0.45 ? 2 : (m.color_sim || 0) >= 0.22 ? 1 : 0);
+  // Border-frame agreement: 1 = frames plausibly match, 0 = frame clash
+  // (e.g. white-bordered query vs red-frame reference). Neutral (1) when the
+  // query wasn't card-shaped and no ring was computed.
+  const ringBand = (m) => (m.ring_sim === undefined ? 1 : m.ring_sim >= 0.3 ? 1 : 0);
   let ranked;
   if (maxInliers >= 12) {
     // Keypoints carry real signal — rank by them, color as tiebreak, and let a
@@ -1070,9 +1109,11 @@ async function verifyTopMatches(matches, queryImages) {
     }
   } else {
     // Keypoints are noise at this capture quality (e.g. 6 matches everywhere).
-    // Do NOT reorder by them — rank by color agreement, then hash distance, so
-    // a red reference can never surface for a blue card.
-    ranked = [...shortlist].sort((a, b) => colorBand(b) - colorBand(a) || a.distance - b.distance);
+    // Do NOT reorder by them — rank by frame agreement, then color agreement,
+    // then hash distance, so a red-framed reference can never surface for a
+    // white-bordered card.
+    ranked = [...shortlist].sort((a, b) => ringBand(b) - ringBand(a)
+      || colorBand(b) - colorBand(a) || a.distance - b.distance);
   }
   const best = ranked[0], second = ranked[1];
   const decisive = (best?.art_inliers || 0) >= 16

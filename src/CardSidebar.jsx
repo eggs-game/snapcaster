@@ -113,6 +113,11 @@ export default function CardSidebar({
     || best.identified_by === "search"
     || best.distance <= 195
   ) ? best : null;
+  // A decisive identification (art keypoints, title read, or manual search).
+  // Anything else is a ranked guess and must say so.
+  const decisive = !!top && ["ocr-title", "art-match", "search"].includes(top.identified_by);
+  const debugMode = typeof window !== "undefined"
+    && new URLSearchParams(window.location.search).has("debug");
 
   return (
     <aside
@@ -330,6 +335,39 @@ export default function CardSidebar({
                   </a>
                 )}
               </div>
+              {!decisive && <span className="match-qualifier">Possible match — not certain</span>}
+            </div>
+          )}
+          {best && !decisive && current?.matches?.length > 1 && (
+            <div className="alts" aria-label="Other possible matches">
+              {current.matches.slice(top ? 1 : 0, top ? 9 : 8).map((m, i) => (
+                <img key={i} src={m.image} alt={m.name} title={`${m.name} (${m.set})`} onClick={() => onPick(m)} />
+              ))}
+            </div>
+          )}
+          {debugMode && current && !current.loading && (
+            <div className="scan-debug">
+              <span>{CV_LABEL[current.cvStatus] || CV_LABEL.unknown}</span>
+              <span>{current.cardFound ? "Card outline detected" : "No outline — using crops"}</span>
+              {current.cameraRes && <span>Camera: {current.cameraRes}</span>}
+              {best && (
+                <span>
+                  Best: d{best.distance} via {best.strategy || "?"} ({current.candidatesTried || 1} tried)
+                </span>
+              )}
+              {current.artBest && (
+                <span>
+                  Art: {current.artBest.inliers} kp{current.artBest.weak ? " (weak)" : ""}, color {current.artBest.color}% on {current.artBest.name} ({current.artChecked} compared)
+                </span>
+              )}
+              {current.ocrText && <span>Title read: {current.ocrText}</span>}
+              {current.ocrImage && <img className="debug-strip" src={current.ocrImage} alt="OCR strip" />}
+              {current.captureImage && (
+                <>
+                  <span>Capture sent to recognizer:</span>
+                  <img className="debug-capture" src={current.captureImage} alt="Recognition capture" />
+                </>
+              )}
             </div>
           )}
           <ul className="lookups">
