@@ -10,6 +10,10 @@ const OPENCV_BASE = "https://docs.opencv.org/4.9.0/";
 const HASH_SIZE = 16;
 const VEC_BYTES = 64;
 const CARD_W = 244, CARD_H = 340;
+// Candidate cards are kept at up to this width (2.5x hash size) so title OCR
+// works on the pixels the camera actually captured instead of a 244px
+// thumbnail. Hashing areaResizes to 64x64 regardless, so it is unaffected.
+const OCR_MAX_W = 610;
 // Real webcam captures are much noisier than source images. A correctly
 // rectified physical card commonly lands around 170–205, while unrelated
 // center crops tend to be 220+. Keep the high-confidence bound strict, but do
@@ -439,7 +443,12 @@ function rectifyCard(srcImageData, corners) {
   const hL = Math.hypot(bl.x - tl.x, bl.y - tl.y);
   const hR = Math.hypot(br.x - tr.x, br.y - tr.y);
   const landscape = (wTop + wBot) / 2 > (hL + hR) / 2;
-  const dw = landscape ? CARD_H : CARD_W, dh = landscape ? CARD_W : CARD_H;
+  // Rectify near the card's native resolution in the source frame (capped),
+  // not the 244px hash thumbnail — title OCR needs every captured pixel.
+  const nativeW = landscape ? Math.max(hL, hR) : Math.max(wTop, wBot);
+  const scale = Math.max(1, Math.min(OCR_MAX_W, Math.round(nativeW)) / CARD_W);
+  const outW = Math.round(CARD_W * scale), outH = Math.round(CARD_H * scale);
+  const dw = landscape ? outH : outW, dh = landscape ? outW : outH;
 
   const src = cv.matFromImageData(srcImageData);
   const srcPts = cv.matFromArray(4, 1, cv.CV_32FC2, [tl.x, tl.y, tr.x, tr.y, br.x, br.y, bl.x, bl.y]);
@@ -470,10 +479,14 @@ function centerCropImageData(bmp, scale = 0.9, point = { nx: 0.5, ny: 0.5 }) {
   const cx = point.nx * w, cy = point.ny * h;
   const x0 = Math.max(0, Math.min(w - cw, cx - cw / 2));
   const y0 = Math.max(0, Math.min(h - ch, cy - ch / 2));
-  const canvas = new OffscreenCanvas(CARD_W, CARD_H);
+  // Keep native resolution (capped) rather than the 244px hash thumbnail so
+  // the title stays legible for OCR.
+  const outScale = Math.max(1, Math.min(OCR_MAX_W, cw) / CARD_W);
+  const ow = Math.round(CARD_W * outScale), oh = Math.round(CARD_H * outScale);
+  const canvas = new OffscreenCanvas(ow, oh);
   const ctx = canvas.getContext("2d");
-  ctx.drawImage(bmp, x0, y0, cw, ch, 0, 0, CARD_W, CARD_H);
-  return ctx.getImageData(0, 0, CARD_W, CARD_H);
+  ctx.drawImage(bmp, x0, y0, cw, ch, 0, 0, ow, oh);
+  return ctx.getImageData(0, 0, ow, oh);
 }
 
 function bitmapToImageData(bmp) {
@@ -483,7 +496,7 @@ function bitmapToImageData(bmp) {
   return ctx.getImageData(0, 0, bmp.width, bmp.height);
 }
 
-async function makeTitleImage(cardImage, turns = 0) {
+async function makeTitleImage(cardImage, turns = 0, mode = "plain") {
   const source = new OffscreenCanvas(cardImage.width, cardImage.height);
   source.getContext("2d").putImageData(cardImage, 0, 0);
   let oriented = source;
@@ -518,9 +531,38 @@ async function makeTitleImage(cardImage, turns = 0) {
     10, 10, 980, 120,
   );
   const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  for (let p = 0; p < pixels.data.length; p += 4) {
-    const gray = 0.299 * pixels.data[p] + 0.587 * pixels.data[p + 1] + 0.114 * pixels.data[p + 2];
-    pixels.data[p] = pixels.data[p + 1] = pixels.data[p + 2] = gray;
+  const grays = new Float32Array(pixels.data.length / 4);
+  for (let p = 0, i = 0; p < pixels.data.length; p += 4, i++) {
+    grays[i] = 0.299 * pixels.data[p] + 0.587 * pixels.data[p + 1] + 0.114 * pixels.data[p + 2];
+  }
+  if (mode === "flat") {
+    // Glare / uneven lighting rescue: estimate the low-frequency illumination
+    // field (heavy downscale + smooth upscale) and divide it out, so a bright
+    // streak across half the title no longer swallows the letters, then
+    // percentile-stretch what remains.
+    for (let i = 0; i < grays.length; i++) pixels.data[i * 4] = pixels.data[i * 4 + 1] = pixels.data[i * 4 + 2] = grays[i];
+    ctx.putImageData(pixels, 0, 0);
+    const small = new OffscreenCanvas(50, 8);
+    small.getContext("2d").drawImage(canvas, 0, 0, 50, 8);
+    const field = new OffscreenCanvas(canvas.width, canvas.height);
+    const fieldCtx = field.getContext("2d");
+    fieldCtx.imageSmoothingEnabled = true;
+    fieldCtx.imageSmoothingQuality = "high";
+    fieldCtx.drawImage(small, 0, 0, canvas.width, canvas.height);
+    const illum = fieldCtx.getImageData(0, 0, canvas.width, canvas.height).data;
+    for (let i = 0; i < grays.length; i++) {
+      grays[i] = Math.min(255, (grays[i] / Math.max(25, illum[i * 4])) * 150);
+    }
+    const sorted = Float32Array.from(grays).sort();
+    const lo = sorted[Math.floor(sorted.length * 0.02)];
+    const hi = sorted[Math.floor(sorted.length * 0.98)];
+    const range = Math.max(1, hi - lo);
+    for (let i = 0; i < grays.length; i++) {
+      grays[i] = Math.max(0, Math.min(255, ((grays[i] - lo) / range) * 255));
+    }
+  }
+  for (let p = 0, i = 0; p < pixels.data.length; p += 4, i++) {
+    pixels.data[p] = pixels.data[p + 1] = pixels.data[p + 2] = grays[i];
   }
   ctx.putImageData(pixels, 0, 0);
   return canvas.convertToBlob({ type: "image/png" });
@@ -653,7 +695,10 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   }
   const titleCandidates = await Promise.all(preferredTitleCandidates.map(async (candidate) => ({
     strategy: candidate.strategy,
-    images: await Promise.all([0, 1, 2, 3].map((turns) => makeTitleImage(candidate.image, turns))),
+    images: await Promise.all([0, 1, 2, 3].map((turns) => makeTitleImage(candidate.image, turns, "plain"))),
+    // Illumination-flattened variants, used by the main thread as a retry when
+    // the plain reads score poorly (glare, dim rooms, hotspot lighting).
+    imagesFlat: await Promise.all([0, 1, 2, 3].map((turns) => makeTitleImage(candidate.image, turns, "flat"))),
   })));
   return {
     matches, printingMatches, titleCandidates, queryCandidates,

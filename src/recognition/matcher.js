@@ -293,24 +293,55 @@ async function applyTitleOCR(result) {
   try {
     const worker = await getOCRWorker();
     let bestRead = null;
-    search:
-    for (const candidate of result.title_candidates) {
-      for (let rotation = 0; rotation < candidate.images.length; rotation++) {
-        const { data } = await worker.recognize(candidate.images[rotation]);
-        const title = bestIndexedTitle(data.text);
-        const read = {
-          title,
-          text: String(data.text || "").trim(),
-          confidence: data.confidence || 0,
-          rotation,
-          strategy: candidate.strategy,
-          image: candidate.images[rotation],
-        };
-        if (!bestRead || (title?.score || 0) > (bestRead.title?.score || 0)
-          || ((title?.score || 0) === (bestRead.title?.score || 0) && read.confidence > bestRead.confidence)) {
-          bestRead = read;
+    const reads = [];
+    const runRead = async (image, rotation, strategy, flat) => {
+      const { data } = await worker.recognize(image);
+      const title = bestIndexedTitle(data.text);
+      const read = {
+        title,
+        text: String(data.text || "").trim(),
+        confidence: data.confidence || 0,
+        rotation,
+        strategy,
+        image,
+        flat,
+      };
+      reads.push(read);
+      if (!bestRead || (title?.score || 0) > (bestRead.title?.score || 0)
+        || ((title?.score || 0) === (bestRead.title?.score || 0) && read.confidence > bestRead.confidence)) {
+        bestRead = read;
+      }
+      return (title?.score || 0) >= 0.96 && read.confidence >= 45;
+    };
+    // Cards are usually upright in frame, so try every candidate upright (then
+    // upside-down for players across the table) before the sideways rotations,
+    // instead of burning 4 rotations on one candidate at a time.
+    const attempts = [];
+    for (const rotation of [0, 2, 1, 3]) {
+      for (const candidate of result.title_candidates) {
+        if (candidate.images?.[rotation]) {
+          attempts.push({
+            image: candidate.images[rotation],
+            flat: candidate.imagesFlat?.[rotation],
+            rotation,
+            strategy: candidate.strategy,
+          });
         }
-        if ((title?.score || 0) >= 0.96 && read.confidence >= 45) break search;
+      }
+    }
+    search:
+    for (const attempt of attempts.slice(0, 24)) {
+      if (await runRead(attempt.image, attempt.rotation, attempt.strategy, attempt.flat)) break search;
+    }
+    // Glare / low-light retry: if nothing read convincingly, re-run the most
+    // promising reads on their illumination-flattened strips.
+    if ((bestRead?.title?.score || 0) < 0.82) {
+      const promising = [...reads]
+        .sort((a, b) => (b.title?.score || 0) - (a.title?.score || 0) || b.confidence - a.confidence)
+        .slice(0, 3);
+      for (const read of promising) {
+        if (!read.flat) continue;
+        if (await runRead(read.flat, read.rotation, `${read.strategy}+flat`, null)) break;
       }
     }
     const title = bestRead?.title;
