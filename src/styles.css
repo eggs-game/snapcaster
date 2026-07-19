@@ -3,7 +3,7 @@
   --bg: #12141a; --panel: #1c2029; --panel2: #232936;
   --text: #e8e6e1; --dim: #9aa0ac; --accent: #d4a94e; --danger: #c0504d;
 }
-body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, sans-serif; }
+body { background: var(--bg); color: var(--text); font-family: Inter, system-ui, -apple-system, sans-serif; }
 
 /* Lobby */
 .lobby { max-width: 420px; margin: 12vh auto; display: flex; flex-direction: column; gap: 16px; padding: 0 20px; }
