@@ -82,7 +82,7 @@ header { display: flex; align-items: center; gap: 18px; padding: 8px 14px; }
 .tile-menu button { display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 9px; background: none; border: none; border-radius: 6px; color: var(--text); font-family: inherit; font-size: 0.82rem; text-align: left; cursor: pointer; }
 .tile-menu button:hover { background: var(--panel2); }
 .life { color: var(--accent); font-weight: 700; }
-.life-badge { position: absolute; z-index: 2; bottom: 0; display: flex; align-items: center; justify-content: center; min-width: 62px; padding: 10px 14px; color: #10131a; font-size: 1.6rem; font-weight: 800; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.45); opacity: 0.72; transition: opacity 0.15s ease; pointer-events: none; }
+.life-badge { position: absolute; z-index: 2; bottom: 0; display: flex; align-items: center; justify-content: center; min-width: 62px; padding: 10px 14px; color: #10131a; font-size: 1.6rem; font-weight: 800; text-align: center; opacity: 0.88; transition: opacity 0.15s ease; pointer-events: none; }
 .life-badge.mine { pointer-events: auto; cursor: default; }
 .life-badge:hover { opacity: 1; }
 .life-btn { width: 0; padding: 0; overflow: hidden; opacity: 0; border: none; background: none; color: #10131a; font-size: 1.35rem; font-weight: 800; line-height: 1; cursor: pointer; transition: width 0.15s ease, opacity 0.15s ease; }
