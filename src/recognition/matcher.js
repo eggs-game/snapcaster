@@ -50,11 +50,16 @@ async function dataUrlToCanvas(dataUrl) {
 }
 
 export async function identify(imageDataUrl) {
+  const L = (m) => console.log(`[snapcaster] identify: ${m}`);
+  L("start");
   await loadIndex();
+  L(`index ready (${cards?.length} faces)`);
   const canvas = await dataUrlToCanvas(imageDataUrl);
+  L(`canvas ${canvas.width}x${canvas.height}`);
 
   let rectified, cardFound = false;
   const quad = await findCardQuad(canvas);
+  L(`quad ${quad ? "found" : "none (center-crop)"}`);
   if (quad) {
     rectified = await rectifyCard(canvas, quad);
     cardFound = true;
@@ -68,6 +73,7 @@ export async function identify(imageDataUrl) {
   const n = cards.length;
   const dists = new Uint16Array(n).fill(0xffff);
   for (const q of queryVariants(gray)) hammingSearch(q, indexData, n, dists);
+  L("hamming search done");
 
   // top 5
   const top = [];
