@@ -56,7 +56,14 @@ export default function CardSidebar({
   const [suggestions, setSuggestions] = useState([]);
   const [highlight, setHighlight] = useState(-1);
   const [searching, setSearching] = useState(false);
-  const settings = view === "settings";
+  // Card-flip between views: rotate to the edge, swap content, rotate back.
+  const [shownView, setShownView] = useState(view);
+  const [flipPhase, setFlipPhase] = useState(null); // "out" | "in" | null
+  const settings = shownView === "settings";
+
+  useEffect(() => {
+    if (view !== shownView && !flipPhase) setFlipPhase("out");
+  }, [view, shownView, flipPhase]);
 
   useEffect(() => {
     const q = query.trim();
@@ -114,7 +121,21 @@ export default function CardSidebar({
   const showDiag = current && !current.loading && current.cvStatus !== undefined;
 
   return (
-    <aside className={settings ? "sidebar settings-view" : "sidebar"}>
+    <aside
+      className={[
+        "sidebar",
+        settings ? "settings-view" : "",
+        flipPhase ? `flip-${flipPhase}` : "",
+      ].filter(Boolean).join(" ")}
+      onAnimationEnd={() => {
+        if (flipPhase === "out") {
+          setShownView(view);
+          setFlipPhase("in");
+        } else if (flipPhase === "in") {
+          setFlipPhase(view !== shownView ? "out" : null);
+        }
+      }}
+    >
       <div className="sidebar-head">
         {settings ? (
           <>
