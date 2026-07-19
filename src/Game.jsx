@@ -237,11 +237,53 @@ function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, flas
   );
 }
 
+// Renders "{2}{B}{R}" style mana costs as Scryfall symbol images.
+function ManaCost({ cost }) {
+  if (!cost) return null;
+  const symbols = [...cost.matchAll(/\{([^}]+)\}/g)].map((m) => m[1]);
+  return (
+    <span className="mana-cost">
+      {symbols.map((sym, i) => (
+        <img
+          key={`${sym}-${i}`}
+          className="mana-symbol"
+          src={`https://svgs.scryfall.io/card-symbols/${sym.replace(/\//g, "")}.svg`}
+          alt={`{${sym}}`}
+        />
+      ))}
+    </span>
+  );
+}
+
 function CommanderBanner({ tile, onChoose }) {
   const [draft, setDraft] = useState(tile.commander);
   const [suggestions, setSuggestions] = useState([]);
+  const [editing, setEditing] = useState(false);
+  const [manaCost, setManaCost] = useState("");
 
   useEffect(() => setDraft(tile.commander), [tile.commander]);
+
+  // Look up the commander's mana cost for the banner display.
+  useEffect(() => {
+    setManaCost("");
+    const name = tile.commander?.trim();
+    if (!name) return undefined;
+    const controller = new AbortController();
+    (async () => {
+      try {
+        const response = await fetch(`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(name)}`, {
+          signal: controller.signal,
+        });
+        if (!response.ok) return;
+        const card = await response.json();
+        setManaCost(card.mana_cost || card.card_faces?.[0]?.mana_cost || "");
+      } catch {
+        /* banner just shows the name without symbols */
+      }
+    })();
+    return () => controller.abort();
+  }, [tile.commander]);
+
   useEffect(() => {
     const query = draft.trim();
     if (query.length < 2 || query === tile.commander) {
@@ -271,14 +313,33 @@ function CommanderBanner({ tile, onChoose }) {
         <span className={tile.commander ? "commander-name" : "commander-name unset"}>
           {tile.commander || "Not selected"}
         </span>
+        <ManaCost cost={manaCost} />
       </div>
     );
   }
 
+  // Once set, show the commander as overlay text (click to change).
+  if (tile.commander && !editing) {
+    return (
+      <div
+        className="commander-banner commander-set"
+        onClick={() => setEditing(true)}
+        title="Click to change commander"
+      >
+        <span className="commander-name">{tile.commander}</span>
+        <ManaCost cost={manaCost} />
+      </div>
+    );
+  }
+
+  const choose = (commander) => {
+    onChoose(commander);
+    setEditing(false);
+  };
   const submit = (event) => {
     event.preventDefault();
     const commander = draft.trim();
-    if (commander) onChoose(commander);
+    if (commander) choose(commander);
   };
   return (
     <form className="commander-banner commander-picker" onSubmit={submit}>
@@ -289,11 +350,12 @@ function CommanderBanner({ tile, onChoose }) {
         onChange={(event) => {
           const value = event.target.value;
           setDraft(value);
-          if (suggestions.includes(value)) onChoose(value);
+          if (suggestions.includes(value)) choose(value);
         }}
         placeholder="Add commander"
         aria-label="Add commander"
         autoComplete="off"
+        autoFocus={editing}
       />
       <datalist id={`commander-options-${tile.id}`}>
         {suggestions.map((name) => <option value={name} key={name} />)}
