@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { GameConnection, captureLocalCrop, clickToNormalized } from "./webrtc.js";
-import { identify as identifyCard } from "./recognition/matcher.js";
+import { identify as identifyCard, preload as preloadRecognition } from "./recognition/matcher.js";
 import CardSidebar from "./CardSidebar.jsx";
 
 export default function Game({ session, onLeave }) {
@@ -18,6 +18,9 @@ export default function Game({ session, onLeave }) {
   const [flash, setFlash] = useState(null);
 
   useEffect(() => {
+    // Spin up the recognition worker now so OpenCV compiles in the background
+    // (off the main thread) while the player sets up their camera and cards.
+    preloadRecognition();
     const conn = new GameConnection({
       onRoster: setRoster,
       onRemoteStream: (id, stream) => setStreams((s) => ({ ...s, [id]: stream })),

@@ -1,24 +1,20 @@
-// Loads the prebuilt card index (/carddata/*) and identifies card crops.
-import { VEC_BYTES, CARD_W, CARD_H, toGray, queryVariants, hammingSearch } from "./hash.js";
-import { findCardQuad, rectifyCard, centerCropCard, loadOpenCV } from "./quad.js";
+// Card identification front-end. The heavy lifting (OpenCV outline detection +
+// perspective rectify, perceptual hashing, Hamming search) runs in a Web Worker
+// (./recognizer.js) so the ~10 MB OpenCV WASM compile never freezes the UI.
+// This module only: (1) loads the index once for the lobby's "N printings" banner,
+// and (2) captures crops and relays them to the worker.
+import { VEC_BYTES } from "./hash.js";
 
-const CONF_GOOD = 90, CONF_BAD = 170; // of 512 bits
-
-let indexData = null; // Uint8Array N*64
-let cards = null;     // [[name, set, cn, id, face], ...]
+let cards = null;
 let loadPromise = null;
 
-export function preload() {
-  loadOpenCV().catch(() => {});
-  return loadIndex();
-}
-
+// Lightweight index load, used only for the lobby's readiness banner/count.
 export function loadIndex() {
   if (loadPromise) return loadPromise;
   loadPromise = (async () => {
     const [hRes, cRes] = await Promise.all([fetch("/carddata/hashes.bin"), fetch("/carddata/cards.json")]);
     if (!hRes.ok || !cRes.ok) throw new Error("Card index not found — run the 'Build card index' GitHub Action, then redeploy.");
-    indexData = new Uint8Array(await hRes.arrayBuffer());
+    const indexData = new Uint8Array(await hRes.arrayBuffer());
     cards = await cRes.json();
     if (indexData.length !== cards.length * VEC_BYTES) throw new Error("Card index is corrupted — rebuild it.");
     return cards.length;
@@ -28,61 +24,71 @@ export function loadIndex() {
 
 export function indexSize() { return cards ? cards.length : 0; }
 
-function cardMeta(i, distance) {
-  const [name, set, cn, id, face] = cards[i];
-  const side = face === 1 ? "back" : "front";
-  return {
-    name, set, collector_number: cn,
-    image: `https://cards.scryfall.io/normal/${side}/${id[0]}/${id[1]}/${id}.jpg`,
-    scryfall_uri: `https://scryfall.com/card/${set}/${cn}`,
-    distance,
-    confidence: Math.max(0, Math.min(1, (CONF_BAD - distance) / (CONF_BAD - CONF_GOOD))),
-  };
+// Warm the worker (and thus OpenCV + the index inside it) ahead of the first
+// click, e.g. when a game screen mounts, so recognition is ready sooner.
+export function preload() {
+  getWorker();
+  return loadIndex();
 }
 
-async function dataUrlToCanvas(dataUrl) {
-  const img = new Image();
-  await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = dataUrl; });
-  const canvas = document.createElement("canvas");
-  canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
-  canvas.getContext("2d").drawImage(img, 0, 0);
-  return canvas;
+// ---------- recognition worker plumbing ----------
+let worker = null;
+let seq = 0;
+const pending = new Map();
+
+function getWorker() {
+  if (!worker) {
+    worker = new Worker(new URL("./recognizer.js", import.meta.url));
+    worker.onmessage = (e) => {
+      const { id, matches, cardFound, error } = e.data || {};
+      const p = pending.get(id);
+      if (!p) return;
+      pending.delete(id);
+      if (error) p.reject(new Error(error));
+      else p.resolve({ matches: matches || [], card_found: !!cardFound });
+    };
+    worker.onerror = (e) => {
+      const err = new Error(e.message || "recognition worker crashed");
+      for (const [, p] of pending) p.reject(err);
+      pending.clear();
+    };
+  }
+  return worker;
+}
+
+async function dataUrlToBitmap(dataUrl) {
+  const blob = await (await fetch(dataUrl)).blob();
+  return await createImageBitmap(blob);
+}
+
+function runOnWorker(bmp) {
+  const w = getWorker();
+  const id = ++seq;
+  return new Promise((resolve, reject) => {
+    pending.set(id, { resolve, reject });
+    w.postMessage({ type: "identify", id, bmp }, [bmp]);
+  });
 }
 
 export async function identify(imageDataUrl) {
-  const L = (m) => console.log(`[snapcaster] identify: ${m}`);
-  L("start");
-  await loadIndex();
-  L(`index ready (${cards?.length} faces)`);
-  const canvas = await dataUrlToCanvas(imageDataUrl);
-  L(`canvas ${canvas.width}x${canvas.height}`);
+  const bmp = await dataUrlToBitmap(imageDataUrl);
+  return runOnWorker(bmp);
+}
 
-  let rectified, cardFound = false;
-  const quad = await findCardQuad(canvas);
-  L(`quad ${quad ? "found" : "none (center-crop)"}`);
-  if (quad) {
-    rectified = await rectifyCard(canvas, quad);
-    cardFound = true;
-  } else {
-    rectified = centerCropCard(canvas);
-  }
-
-  const ctx = rectified.getContext("2d");
-  const gray = toGray(ctx.getImageData(0, 0, rectified.width, rectified.height));
-
-  const n = cards.length;
-  const dists = new Uint16Array(n).fill(0xffff);
-  for (const q of queryVariants(gray)) hammingSearch(q, indexData, n, dists);
-  L("hamming search done");
-
-  // top 5
-  const top = [];
-  for (let i = 0; i < n; i++) {
-    if (top.length < 5 || dists[i] < top[top.length - 1].d) {
-      top.push({ i, d: dists[i] });
-      top.sort((a, b) => a.d - b.d);
-      if (top.length > 5) top.pop();
-    }
-  }
-  return { matches: top.map((t) => cardMeta(t.i, t.d)), card_found: cardFound };
+// Console debug hook: `await window.__scIdentifyUrl("<card image url>")`
+// runs a full recognition on a fetched image (no camera needed).
+if (typeof window !== "undefined") {
+  window.__scIdentifyUrl = async (url) => {
+    const img = await new Promise((res, rej) => {
+      const i = new Image();
+      i.crossOrigin = "anonymous";
+      i.onload = () => res(i);
+      i.onerror = rej;
+      i.src = url;
+    });
+    const bmp = await createImageBitmap(img);
+    const r = await runOnWorker(bmp);
+    console.log("[snapcaster] __scIdentifyUrl top matches:", r.matches.map((m) => `${m.name} (d=${m.distance}, conf=${m.confidence.toFixed(2)})`));
+    return r;
+  };
 }
