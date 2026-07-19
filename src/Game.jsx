@@ -150,7 +150,6 @@ export default function Game({ session, onLeave }) {
           <CardSidebar current={current} lookups={lookups} onPick={(m) => setCurrent({ matches: [m] })} />
         )}
       </div>
-      <footer className="hint">Click any card on any video to identify it. Share code <b>{session.code}</b> with friends.</footer>
     </div>
   );
 }
