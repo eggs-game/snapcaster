@@ -721,6 +721,14 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       strategy: `tilt${angle}@${Math.round(scale * 100)}`,
     });
   }
+  // Clicks frequently land below or beside the card (debug captures show the
+  // card pushed to the top of a centered crop, framed by forehead/hand). Offset
+  // crops re-center on where the card actually is — the up-bias is strongest
+  // since a card held to the forehead sits above the natural click.
+  for (const [dx, dy] of [[0, -0.11], [0, -0.06], [-0.08, -0.04], [0.08, -0.04], [0, 0.07]]) {
+    const p = { nx: normalizedPoint.nx + dx, ny: normalizedPoint.ny + dy };
+    candidates.push({ image: centerCropImageData(bmp, 0.4, p), strategy: `off${Math.round(dx * 100)},${Math.round(dy * 100)}` });
+  }
   if (bmp.close) bmp.close();
 
   // Rank every candidate against the full printing index. The sharded (v2)
@@ -738,7 +746,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   const artGlobal = useV3 && artIndex ? new Uint16Array(n).fill(0xffff) : null;
   const artGlobalStrategies = new Set([
     "full-frame", "outline-1", "outline-2", "center-45", "center-35", "center-27",
-    "tilt20@35", "tilt-20@35",
+    "tilt20@35", "tilt-20@35", "off0,-11", "off0,-6", "off-8,-4", "off8,-4", "off0,7",
   ]);
   // Combined gray+art+color ranking score (v3). Gray distances stay in `dists`
   // for the calibrated display/keep gates.
@@ -883,14 +891,16 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   let artBest = null, artChecked = 0, artDecisive = false;
   if (cvReady && matches.length && bestCandidateImage) {
     try {
-      // Verify against differently-produced crops (best guess + a mid and a
-      // tight click-centered crop): a bad best-crop guess shouldn't sink the
-      // whole verification, and hand-held cards live in the tight crops.
+      // Feed ORB pure-card crops. Outline rectifications exclude the skin/hair
+      // background that was drowning the keypoint matches (weak 0-4 inliers on
+      // every real scan); the best-ranked crop and a couple tight/offset crops
+      // back them up when no clean outline was found.
       const queryImages = [
+        ...candidates.filter((c) => c.strategy.startsWith("outline-")).slice(0, 2).map((c) => c.image),
         bestCandidateImage,
-        candidates.find((c) => c.strategy === "center-45")?.image,
+        candidates.find((c) => c.strategy === "off0,-11")?.image,
         candidates.find((c) => c.strategy === "center-27")?.image,
-      ].filter((img, i, arr) => img && arr.indexOf(img) === i);
+      ].filter((img, i, arr) => img && arr.indexOf(img) === i).slice(0, 4);
       const cardShaped = bestCandidateStrategy === "full-frame" || bestCandidateStrategy.startsWith("outline-");
       const verified = await verifyTopMatches(matches, queryImages, cardShaped);
       matchesOut = verified.matches;
@@ -956,15 +966,27 @@ function orbFeatures(imageData, nfeatures) {
   const cv = self.cv;
   const src = cv.matFromImageData(imageData);
   const gray = new cv.Mat();
+  const eq = new cv.Mat();
   const mask = new cv.Mat();
   const kp = new cv.KeyPointVector();
   const desc = new cv.Mat();
-  const orb = new cv.ORB(nfeatures);
+  // Lower FAST threshold (default 20 -> 8) and more pyramid levels so soft,
+  // small webcam captures still yield keypoints; CLAHE lifts local contrast in
+  // dim/low-detail art. scaleFactor 1.2, WTA_K 2, HARRIS, patch 31, fastThr 8.
+  const orb = new cv.ORB(nfeatures, 1.2, 10, 31, 0, 2, cv.ORB_HARRIS_SCORE, 31, 8);
+  let clahe = null;
   try {
     cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
-    orb.detectAndCompute(gray, mask, kp, desc);
+    let input = gray;
+    try {
+      clahe = cv.createCLAHE ? cv.createCLAHE(3, new cv.Size(8, 8)) : new cv.CLAHE(3, new cv.Size(8, 8));
+      clahe.apply(gray, eq);
+      input = eq;
+    } catch (e) { input = gray; } // CLAHE binding unavailable — use plain gray
+    orb.detectAndCompute(input, mask, kp, desc);
   } finally {
-    src.delete(); gray.delete(); mask.delete(); orb.delete();
+    src.delete(); gray.delete(); eq.delete(); mask.delete(); orb.delete();
+    if (clahe && clahe.delete) clahe.delete();
   }
   return { kp, desc };
 }
