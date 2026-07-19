@@ -3,6 +3,7 @@ import { isConfigured, makeCode } from "./signaling.js";
 import { loadIndex } from "./recognition/matcher.js";
 
 export default function Lobby({ onStart }) {
+  const visitorMode = new URLSearchParams(window.location.search).get("visitor") === "1";
   const [name, setName] = useState(localStorage.getItem("sc-name") || "");
   const [code, setCode] = useState(() => {
     const fromUrl = new URLSearchParams(window.location.search).get("code") || "";
@@ -20,16 +21,21 @@ export default function Lobby({ onStart }) {
       .catch(() => setIndexStatus("missing"));
   }, []);
 
-  const go = (roomCode) => {
+  const go = (roomCode, role = visitorMode ? "visitor" : "player") => {
     if (!name.trim()) return alert("Enter your name first");
     localStorage.setItem("sc-name", name.trim());
-    onStart({ name: name.trim(), code: roomCode });
+    onStart({ name: name.trim(), code: roomCode, role });
   };
 
   return (
     <div className="lobby">
       <h1>Snapcaster</h1>
       <p className="tagline">Remote paper Magic with card recognition that actually works.</p>
+      {visitorMode && (
+        <div className="banner visitor-welcome">
+          Join as a visitor — voice only, with access to card lookups. You won't occupy a player seat.
+        </div>
+      )}
 
       {!isConfigured() && (
         <div className="banner error">
@@ -49,17 +55,25 @@ export default function Lobby({ onStart }) {
 
       <input placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} maxLength={24} />
       <div className="lobby-actions">
-        <button className="primary" disabled={!isConfigured()} onClick={() => go(makeCode())}>
-          Create game
-        </button>
+        {!visitorMode && (
+          <button className="primary" disabled={!isConfigured()} onClick={() => go(makeCode(), "player")}>
+            Create game
+          </button>
+        )}
         <div className="join-row">
           <input placeholder="CODE" value={code} maxLength={4}
                  onChange={(e) => setCode(e.target.value.toUpperCase())}
                  onKeyDown={(e) => e.key === "Enter" && code.length === 4 && go(code)} />
-          <button disabled={code.length !== 4 || !isConfigured()} onClick={() => go(code)}>Join</button>
+          <button disabled={code.length !== 4 || !isConfigured()} onClick={() => go(code)}>
+            {visitorMode ? "Join as visitor" : "Join"}
+          </button>
         </div>
       </div>
-      <p className="hint">Up to 4 players. You'll need a webcam pointed at your playmat.</p>
+      <p className="hint">
+        {visitorMode
+          ? "You'll be asked for microphone access only."
+          : "Up to 4 players. You'll need a webcam pointed at your playmat."}
+      </p>
     </div>
   );
 }

@@ -12,6 +12,7 @@ if (import.meta.env.VITE_TURN_URL) {
 }
 
 const CHUNK = 12000; // chars per data-channel chunk
+const MAX_VISITORS = 8; // peer-to-peer video fan-out is not an unlimited broadcast service
 
 export class GameConnection {
   constructor(handlers) {
@@ -27,16 +28,21 @@ export class GameConnection {
     this.commander = "";
     this.color = "";
     this.muted = false;
+    this.life = 40;
+    this.role = "player";
+    this.roster = [];
     this.videoDeviceId = "";
     this.audioDeviceId = "";
   }
 
-  async initMedia() {
+  async initMedia({ audioOnly = false } = {}) {
     // Ask for the camera's maximum resolution — recognition crops are taken
     // from the raw local track, so every native pixel directly improves card
     // identification (WebRTC scales the *sent* video down on its own).
     this.localStream = await navigator.mediaDevices.getUserMedia({
-      video: { width: { ideal: 3840 }, height: { ideal: 2160 }, frameRate: { ideal: 24 } },
+      video: audioOnly
+        ? false
+        : { width: { ideal: 3840 }, height: { ideal: 2160 }, frameRate: { ideal: 24 } },
       audio: { echoCancellation: true, noiseSuppression: true },
     });
     this.videoDeviceId = this.localStream.getVideoTracks()[0]?.getSettings?.().deviceId || "";
@@ -56,6 +62,7 @@ export class GameConnection {
   // Swap the local camera or mic (Zoom-style) and push the new track to every peer.
   async switchDevice(kind, deviceId) {
     if (!this.localStream || !deviceId) return this.localStream;
+    if (this.role === "visitor" && kind === "video") return this.localStream;
     const constraints = kind === "video"
       ? {
         video: {
@@ -99,24 +106,37 @@ export class GameConnection {
     return this.localStream;
   }
 
-  async join(code, name) {
-    this.room = await joinRoom(code, name, {
-      onRoster: (roster) => this._onRoster(roster),
+  async join(code, name, role = "player") {
+    this.role = role === "visitor" ? "visitor" : "player";
+    this.room = await joinRoom(code, name, this.role, {
+      onRoster: (roster) => {
+        // Presence can sync before joinRoom has returned our ID.
+        if (!this.myId) this.roster = roster;
+        else this._onRoster(roster);
+      },
       onMessage: (msg) => this._onSignal(msg),
     });
     this.myId = this.room.myId;
+    this._onRoster(this.roster);
     return this.myId;
   }
 
   _onRoster(roster) {
-    if (roster.length > 4) {
-      const me = roster.find((r) => r.id === this.myId);
-      const myRank = roster.indexOf(me);
+    this.roster = roster;
+    const players = roster.filter((r) => r.role !== "visitor");
+    const visitors = roster.filter((r) => r.role === "visitor");
+    if (this.role === "player" && players.length > 4) {
+      const myRank = players.findIndex((r) => r.id === this.myId);
       if (myRank >= 4) {
         this.h.onError?.("Game is full (4 players max)");
         this.close();
         return;
       }
+    }
+    if (this.role === "visitor" && visitors.findIndex((r) => r.id === this.myId) >= MAX_VISITORS) {
+      this.h.onError?.(`Visitor room is full (${MAX_VISITORS} visitors max)`);
+      this.close();
+      return;
     }
     const ids = new Set(roster.map((r) => r.id));
     // peers that left
@@ -134,13 +154,17 @@ export class GameConnection {
       this.knownIds.add(r.id);
       if (me && r.joinedAt < me.joinedAt) this._makeOffer(r.id);
     }
-    this.h.onRoster?.(roster.slice(0, 4));
-    if (this.commander) this.room?.send({ type: "commander", commander: this.commander });
-    if (this.color) this.room?.send({ type: "color", color: this.color });
+    this.h.onRoster?.(roster);
+    if (this.role === "player") {
+      this.room?.send({ type: "life", life: this.life });
+      if (this.commander) this.room?.send({ type: "commander", commander: this.commander });
+      if (this.color) this.room?.send({ type: "color", color: this.color });
+    }
     if (this.muted) this.room?.send({ type: "muted", muted: true });
   }
 
   async _onSignal(msg) {
+    const senderRole = this.roster.find((r) => r.id === msg.from)?.role || "player";
     switch (msg.type) {
       case "offer": {
         const p = this._getPeer(msg.from);
@@ -156,11 +180,21 @@ export class GameConnection {
       case "ice":
         try { await this.peers.get(msg.from)?.pc.addIceCandidate(msg.candidate); } catch { /* ignore */ }
         break;
-      case "life": this.h.onLife?.(msg.from, msg.life); break;
-      case "commander": this.h.onCommander?.(msg.from, String(msg.commander || "").slice(0, 120)); break;
-      case "color": this.h.onColor?.(msg.from, String(msg.color || "").slice(0, 20)); break;
+      case "life":
+        if (senderRole !== "visitor") this.h.onLife?.(msg.from, msg.life);
+        break;
+      case "commander":
+        if (senderRole !== "visitor") {
+          this.h.onCommander?.(msg.from, String(msg.commander || "").slice(0, 120));
+        }
+        break;
+      case "color":
+        if (senderRole !== "visitor") this.h.onColor?.(msg.from, String(msg.color || "").slice(0, 20));
+        break;
       case "muted": this.h.onMuted?.(msg.from, !!msg.muted); break;
-      case "card-identified": this.h.onCardIdentified?.(msg); break;
+      case "card-identified":
+        if (senderRole !== "visitor") this.h.onCardIdentified?.(msg);
+        break;
     }
   }
 
@@ -170,6 +204,9 @@ export class GameConnection {
     const entry = { pc, dc: null, chunks: new Map() };
     this.peers.set(peerId, entry);
     for (const t of this.localStream?.getTracks() || []) pc.addTrack(t, this.localStream);
+    // An audio-only visitor still needs a video m-line in offers so players
+    // can send their camera feed back to the visitor.
+    if (this.role === "visitor") pc.addTransceiver("video", { direction: "recvonly" });
     pc.onicecandidate = (e) => e.candidate && this.room.send({ type: "ice", candidate: e.candidate }, peerId);
     pc.ontrack = (e) => this.h.onRemoteStream?.(peerId, e.streams[0]);
     pc.ondatachannel = (e) => this._setupDC(peerId, e.channel);
@@ -244,12 +281,18 @@ export class GameConnection {
     });
   }
 
-  setLife(life) { this.room?.send({ type: "life", life }); }
+  setLife(life) {
+    if (this.role === "visitor") return;
+    this.life = Number(life);
+    this.room?.send({ type: "life", life: this.life });
+  }
   setCommander(commander) {
+    if (this.role === "visitor") return;
     this.commander = String(commander || "").trim().slice(0, 120);
     this.room?.send({ type: "commander", commander: this.commander });
   }
   setColor(color) {
+    if (this.role === "visitor") return;
     this.color = String(color || "").trim().slice(0, 20);
     this.room?.send({ type: "color", color: this.color });
   }
@@ -257,9 +300,13 @@ export class GameConnection {
     this.muted = !!muted;
     this.room?.send({ type: "muted", muted: this.muted });
   }
-  announceCard(card, byName) { this.room?.send({ type: "card-identified", card, byName }); }
+  announceCard(card, byName) {
+    if (this.role === "visitor") return;
+    this.room?.send({ type: "card-identified", card, byName });
+  }
 
   toggleTrack(kind, enabled) {
+    if (this.role === "visitor" && kind === "video") return;
     for (const t of this.localStream?.getTracks() || []) if (t.kind === kind) t.enabled = enabled;
   }
 

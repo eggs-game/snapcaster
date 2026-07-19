@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
-  Check, FlipVertical2, Link2, Mic, MicOff, MoreVertical,
+  Check, FlipVertical2, Link2, Mic, MicOff, MoreVertical, UserRound,
   PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, Video, VideoOff, X,
 } from "lucide-react";
 import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
@@ -8,6 +8,7 @@ import { identify as identifyCard, preload as preloadRecognition } from "./recog
 import CardSidebar from "./CardSidebar.jsx";
 
 export default function Game({ session, onLeave }) {
+  const isVisitor = session.role === "visitor";
   const connRef = useRef(null);
   const [myId, setMyId] = useState(null);
   const [roster, setRoster] = useState([]);
@@ -27,6 +28,7 @@ export default function Game({ session, onLeave }) {
   const [controlsOpen, setControlsOpen] = useState(false);
   const [controlsClosing, setControlsClosing] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [visitorLinkCopied, setVisitorLinkCopied] = useState(false);
   const [cameras, setCameras] = useState([]);
   const [mics, setMics] = useState([]);
   const [videoDeviceId, setVideoDeviceId] = useState("");
@@ -60,14 +62,14 @@ export default function Game({ session, onLeave }) {
     connRef.current = conn;
     (async () => {
       try {
-        const stream = await conn.initMedia();
+        const stream = await conn.initMedia({ audioOnly: isVisitor });
         setLocalStream(stream);
         setVideoDeviceId(conn.videoDeviceId);
         setAudioDeviceId(conn.audioDeviceId);
         const devices = await conn.listDevices();
-        setCameras(devices.cameras);
+        if (!isVisitor) setCameras(devices.cameras);
         setMics(devices.mics);
-        const id = await conn.join(session.code, session.name);
+        const id = await conn.join(session.code, session.name, isVisitor ? "visitor" : "player");
         setMyId(id);
       } catch (e) {
         setError(String(e.message || e));
@@ -76,7 +78,7 @@ export default function Game({ session, onLeave }) {
     const onDeviceChange = async () => {
       try {
         const devices = await conn.listDevices();
-        setCameras(devices.cameras);
+        if (!isVisitor) setCameras(devices.cameras);
         setMics(devices.mics);
       } catch { /* ignore */ }
     };
@@ -85,7 +87,7 @@ export default function Game({ session, onLeave }) {
       navigator.mediaDevices?.removeEventListener?.("devicechange", onDeviceChange);
       conn.close();
     };
-  }, []);
+  }, [isVisitor, session.code, session.name]);
 
   // captureClientY lets flipped tiles pass the reflected point for capture
   // while the click flash stays where the player actually clicked.
@@ -120,26 +122,29 @@ export default function Game({ session, onLeave }) {
       });
       const top = data.matches?.[0];
       if (top && (top.identified_by === "ocr-title" || top.distance <= 170)) {
-        conn.announceCard(top, session.name);
+        if (!isVisitor) conn.announceCard(top, session.name);
         setLookups((l) => [...l.slice(-11), { by: session.name, card: top, at: Date.now() }]);
       }
     } catch (e) {
       setCurrent({ error: String(e.message || e) });
     }
-  }, [myId, session.name]);
+  }, [isVisitor, myId, session.name]);
 
   const changeLife = (delta) => {
+    if (isVisitor) return;
     const life = (lives[myId] ?? 40) + delta;
     setLives((l) => ({ ...l, [myId]: life }));
     connRef.current.setLife(life);
   };
 
   const chooseCommander = (commander) => {
+    if (isVisitor) return;
     setCommanders((values) => ({ ...values, [myId]: commander }));
     connRef.current?.setCommander(commander);
   };
 
   const chooseColor = (color) => {
+    if (isVisitor) return;
     setColors((values) => ({ ...values, [myId]: color }));
     connRef.current?.setColor(color);
   };
@@ -151,7 +156,11 @@ export default function Game({ session, onLeave }) {
     setMutedPlayers((values) => ({ ...values, [myId]: !next }));
     connRef.current?.setMuted(!next);
   };
-  const toggleCam = () => { connRef.current.toggleTrack("video", !camOn); setCamOn(!camOn); };
+  const toggleCam = () => {
+    if (isVisitor) return;
+    connRef.current.toggleTrack("video", !camOn);
+    setCamOn(!camOn);
+  };
 
   const chooseCamera = async (deviceId) => {
     if (!deviceId || deviceId === videoDeviceId) return;
@@ -177,6 +186,26 @@ export default function Game({ session, onLeave }) {
     }
   };
 
+  const copyJoinLink = async (visitor = false) => {
+    const url = new URL(window.location.href);
+    url.search = "";
+    url.searchParams.set("code", session.code);
+    if (visitor) url.searchParams.set("visitor", "1");
+    try {
+      await navigator.clipboard.writeText(url.toString());
+    } catch {
+      const input = document.createElement("input");
+      input.value = url.toString();
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand("copy");
+      input.remove();
+    }
+    const setter = visitor ? setVisitorLinkCopied : setLinkCopied;
+    setter(true);
+    setTimeout(() => setter(false), 1600);
+  };
+
   if (error) {
     return (
       <div className="lobby">
@@ -187,7 +216,9 @@ export default function Game({ session, onLeave }) {
     );
   }
 
-  const tiles = roster.map((p, i) => ({
+  const players = roster.filter((p) => p.role !== "visitor").slice(0, 4);
+  const visitors = roster.filter((p) => p.role === "visitor");
+  const tiles = players.map((p, i) => ({
     ...p,
     life: lives[p.id] ?? 40,
     commander: commanders[p.id] || "",
@@ -197,7 +228,7 @@ export default function Game({ session, onLeave }) {
     isMe: p.id === myId,
   }));
   while (tiles.length < 4) tiles.push({ id: `empty-${tiles.length}`, empty: true });
-  const myColor = colors[myId] || TILE_COLORS[Math.max(0, roster.findIndex((p) => p.id === myId))] || TILE_COLORS[0];
+  const myColor = colors[myId] || TILE_COLORS[Math.max(0, players.findIndex((p) => p.id === myId))] || TILE_COLORS[0];
 
   return (
     <div className="game">
@@ -212,39 +243,47 @@ export default function Game({ session, onLeave }) {
             {controlsOpen ? <PanelLeftClose size={22} /> : <PanelLeftOpen size={22} />}
           </button>
           <span className="logo game-code" title="Lobby code">{session.code}</span>
-          <button
+          {!isVisitor && <button
             className={linkCopied ? "copy-link copied" : "copy-link"}
-            onClick={async () => {
-              const url = `${window.location.origin}${window.location.pathname}?code=${session.code}`;
-              try {
-                await navigator.clipboard.writeText(url);
-              } catch {
-                // Fallback for older browsers / denied clipboard permission.
-                const input = document.createElement("input");
-                input.value = url;
-                document.body.appendChild(input);
-                input.select();
-                document.execCommand("copy");
-                input.remove();
-              }
-              setLinkCopied(true);
-              setTimeout(() => setLinkCopied(false), 1600);
-            }}
+            onClick={() => copyJoinLink(false)}
             aria-label="Copy game link"
             title={linkCopied ? "Link copied" : "Copy game link"}
           >
             {linkCopied ? <Check size={16} /> : <Link2 size={16} />}
             <span>{linkCopied ? "Copied" : "Copy link"}</span>
+          </button>}
+          {!isVisitor && <button
+            className={visitorLinkCopied ? "copy-link copied" : "copy-link"}
+            onClick={() => copyJoinLink(true)}
+            aria-label="Copy visitor link"
+            title={visitorLinkCopied ? "Visitor link copied" : "Copy visitor link"}
+          >
+            {visitorLinkCopied ? <Check size={16} /> : <UserRound size={16} />}
+            <span>{visitorLinkCopied ? "Copied" : "Visitor link"}</span>
+          </button>}
+        </div>
+        <div className="topbar-right">
+          <div className="visitor-strip" aria-label={`${visitors.length} visitors`}>
+            {visitors.map((visitor) => (
+              <div
+                key={visitor.id}
+                className="visitor-avatar"
+                title={`${visitor.name}${mutedPlayers[visitor.id] ? " (muted)" : ""}`}
+              >
+                {visitor.name.trim().charAt(0).toUpperCase() || "V"}
+                {mutedPlayers[visitor.id] && <MicOff size={9} className="visitor-muted" />}
+              </div>
+            ))}
+          </div>
+          <button
+            className="drawer-toggle"
+            onClick={() => setSidebarOpen((open) => !open)}
+            aria-label={sidebarOpen ? "Close card lookup" : "Open card lookup"}
+            title={sidebarOpen ? "Close card lookup" : "Open card lookup"}
+          >
+            {sidebarOpen ? <PanelRightClose size={22} /> : <PanelRightOpen size={22} />}
           </button>
         </div>
-        <button
-          className="drawer-toggle"
-          onClick={() => setSidebarOpen((open) => !open)}
-          aria-label={sidebarOpen ? "Close card lookup" : "Open card lookup"}
-          title={sidebarOpen ? "Close card lookup" : "Open card lookup"}
-        >
-          {sidebarOpen ? <PanelRightClose size={22} /> : <PanelRightOpen size={22} />}
-        </button>
       </header>
 
       {controlsOpen && (
@@ -259,29 +298,32 @@ export default function Game({ session, onLeave }) {
                 <X size={20} />
               </button>
             </div>
-            <h3 className="drawer-section">Video</h3>
-            <button
-              className={camOn ? "control-row" : "control-row off"}
-              onClick={toggleCam}
-            >
-              {camOn ? <Video size={20} /> : <VideoOff size={20} />}
-              <span>{camOn ? "Camera on" : "Camera off"}</span>
-            </button>
-            <label className="device-field">
-              <span className="color-label">Camera</span>
-              <select
-                value={videoDeviceId}
-                onChange={(e) => chooseCamera(e.target.value)}
-                disabled={!cameras.length}
+            {isVisitor && <p className="visitor-note">You joined as a visitor. You can listen, speak, and look up cards.</p>}
+            {!isVisitor && <>
+              <h3 className="drawer-section">Video</h3>
+              <button
+                className={camOn ? "control-row" : "control-row off"}
+                onClick={toggleCam}
               >
-                {!cameras.length && <option value="">No cameras found</option>}
-                {cameras.map((d, i) => (
-                  <option key={d.deviceId || i} value={d.deviceId}>
-                    {d.label || `Camera ${i + 1}`}
-                  </option>
-                ))}
-              </select>
-            </label>
+                {camOn ? <Video size={20} /> : <VideoOff size={20} />}
+                <span>{camOn ? "Camera on" : "Camera off"}</span>
+              </button>
+              <label className="device-field">
+                <span className="color-label">Camera</span>
+                <select
+                  value={videoDeviceId}
+                  onChange={(e) => chooseCamera(e.target.value)}
+                  disabled={!cameras.length}
+                >
+                  {!cameras.length && <option value="">No cameras found</option>}
+                  {cameras.map((d, i) => (
+                    <option key={d.deviceId || i} value={d.deviceId}>
+                      {d.label || `Camera ${i + 1}`}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </>}
 
             <h3 className="drawer-section">Microphone</h3>
             <button
@@ -308,7 +350,7 @@ export default function Game({ session, onLeave }) {
             </label>
             {deviceError && <p className="device-error">{deviceError}</p>}
 
-            <div className="color-picker">
+            {!isVisitor && <div className="color-picker">
               <span className="color-label">Your color</span>
               <div className="color-swatches">
                 {TILE_COLORS.map((color) => (
@@ -323,10 +365,16 @@ export default function Game({ session, onLeave }) {
                   />
                 ))}
               </div>
-            </div>
+            </div>}
           </aside>
         </div>
       )}
+
+      {visitors
+        .filter((visitor) => visitor.id !== myId && streams[visitor.id])
+        .map((visitor) => (
+          <RemoteAudio key={visitor.id} stream={streams[visitor.id]} />
+        ))}
 
       <div className="main">
         <div className="grid">
@@ -349,6 +397,20 @@ export default function Game({ session, onLeave }) {
       </div>
     </div>
   );
+}
+
+function RemoteAudio({ stream }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.srcObject = stream;
+      ref.current.play().catch(() => {
+        // Browsers normally allow this after the explicit Join click. If one
+        // blocks autoplay, the element will retry when the stream updates.
+      });
+    }
+  }, [stream]);
+  return <audio ref={ref} autoPlay playsInline />;
 }
 
 // Seat accent palette: yellow, blue, green, red.
