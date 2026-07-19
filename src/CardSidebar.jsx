@@ -4,6 +4,14 @@ import {
 } from "lucide-react";
 import { suggestCardNames } from "./cardSearch.js";
 
+// Labels for the ?debug=1 diagnostics panel.
+const CV_LABEL = {
+  ready: "OpenCV ready",
+  loading: "OpenCV still loading…",
+  failed: "OpenCV failed to load",
+  unknown: "OpenCV status unknown",
+};
+
 function cardFromScryfall(card) {
   const face = card.card_faces?.[0];
   return {
