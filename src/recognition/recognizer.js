@@ -155,40 +155,51 @@ let cvPromise = null;
 
 function loadCV() {
   if (cvPromise) return cvPromise;
-  console.log("[snapcaster worker] loading OpenCV…");
+  console.log("[snapcaster worker] loadCV: start");
   cvPromise = new Promise((resolve, reject) => {
-    // Point Emscripten at the CDN for its wasm, in case this build fetches it
-    // separately rather than embedding it.
-    self.Module = { locateFile: (p) => OPENCV_BASE + p };
-    try {
-      importScripts(OPENCV_BASE + "opencv.js");
-    } catch (e) {
-      return reject(e);
-    }
     const start = Date.now();
-    const done = () => {
+    const finish = () => {
       cvReady = true;
       cvStatus = "ready";
-      console.log("[snapcaster worker] OpenCV ready");
+      console.log(`[snapcaster worker] OpenCV ready in ${Date.now() - start}ms`);
       resolve(self.cv);
     };
-    const poll = () => {
-      if (self.cv && self.cv.Mat) return done();
-      if (Date.now() - start > 90000) return reject(new Error("OpenCV init timeout"));
-      setTimeout(poll, 50);
+    // Emscripten reads this config object during importScripts. The wasm is
+    // embedded as a base64 data URI in the docs build, so locateFile is only a
+    // safety net; onRuntimeInitialized is one of several ready signals we watch.
+    self.Module = {
+      locateFile: (p) => OPENCV_BASE + p,
+      onRuntimeInitialized: () => console.log("[snapcaster worker] onRuntimeInitialized fired"),
     };
-    if (self.cv && typeof self.cv.then === "function") {
-      // OpenCV 4.x exposes `cv` as an Emscripten "thenable" that is NOT a real
-      // Promise (no .catch). Wrap it so chaining works, and also start polling
-      // as a fallback in case the thenable never settles.
-      Promise.resolve(self.cv).then((m) => { if (m && m.Mat) self.cv = m; done(); }, reject);
-      setTimeout(poll, 2000);
-    } else if (self.cv && self.cv.onRuntimeInitialized !== undefined) {
-      self.cv.onRuntimeInitialized = done;
-      setTimeout(poll, 2000);
-    } else {
-      poll();
+    try {
+      console.log("[snapcaster worker] importScripts opencv.js…");
+      importScripts(OPENCV_BASE + "opencv.js");
+      console.log(`[snapcaster worker] importScripts done (typeof cv=${typeof self.cv})`);
+    } catch (e) {
+      console.error("[snapcaster worker] importScripts failed", e);
+      cvStatus = "failed";
+      return reject(e);
     }
+    // Some builds expose `cv` as an Emscripten thenable (has .then, but is NOT a
+    // real Promise). Adopt its resolved module if/when it settles, ignoring
+    // errors — the poll below is the authoritative readiness check.
+    if (self.cv && typeof self.cv.then === "function") {
+      Promise.resolve(self.cv).then((m) => { if (m && m.Mat) self.cv = m; }, () => {});
+    }
+    // Authoritative signal: poll until the real module (with .Mat) exists,
+    // regardless of how this particular build reports readiness.
+    let ticks = 0;
+    const poll = () => {
+      if (self.cv && self.cv.Mat) return finish();
+      if (++ticks % 20 === 0) console.log(`[snapcaster worker] waiting for OpenCV… ${Date.now() - start}ms`);
+      if (Date.now() - start > 60000) {
+        cvStatus = "failed";
+        console.error("[snapcaster worker] OpenCV init timeout (60s)");
+        return reject(new Error("OpenCV init timeout"));
+      }
+      setTimeout(poll, 100);
+    };
+    poll();
   });
   cvPromise.catch(() => { cvStatus = "failed"; });
   return cvPromise;
@@ -327,11 +338,27 @@ function bitmapToImageData(bmp) {
   return ctx.getImageData(0, 0, bmp.width, bmp.height);
 }
 
+// Resolve when OpenCV becomes ready, or after `ms` — whichever comes first.
+// Keeps loading in the background so later scans get the accurate pipeline.
+function waitForCV(ms) {
+  loadCV().catch(() => {});
+  if (cvReady) return Promise.resolve();
+  return new Promise((resolve) => {
+    const t0 = Date.now();
+    const tick = () => {
+      if (cvReady || cvStatus === "failed" || Date.now() - t0 > ms) return resolve();
+      setTimeout(tick, 100);
+    };
+    tick();
+  });
+}
+
 async function identify(bmp) {
   await loadIndex();
-  // Wait for OpenCV so recognition is always outline-corrected. This wait is in
-  // the worker — the page stays responsive; the sidebar shows its loading state.
-  try { await loadCV(); } catch (e) { console.warn("[snapcaster worker] OpenCV failed; using center-crop", e); }
+  // Prefer the accurate OpenCV pipeline, but don't hang the first scan forever
+  // if it's still compiling — fall back to center-crop this once; the diagnostic
+  // panel reports the real status so the user knows to retry in a moment.
+  await waitForCV(15000);
 
   let rectified = null, cardFound = false;
   if (cvReady) {
