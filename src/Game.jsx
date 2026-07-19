@@ -223,6 +223,7 @@ export default function Game({ session, onLeave }) {
               flash={flash?.tileId === t.id ? flash : null}
               onIdentify={identify}
               onChooseCommander={chooseCommander}
+              onChangeLife={changeLife}
             />
           ))}
         </div>
@@ -237,7 +238,7 @@ export default function Game({ session, onLeave }) {
 // Seat accent palette: yellow, blue, green, red.
 const TILE_COLORS = ["#d4a94e", "#5b9bd5", "#7bc47f", "#c0504d"];
 
-function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, flash }) {
+function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, onChangeLife, flash }) {
   const videoRef = useRef(null);
   useEffect(() => {
     if (videoRef.current && tile.stream) videoRef.current.srcObject = tile.stream;
@@ -261,15 +262,22 @@ function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, flas
         <video ref={videoRef} autoPlay playsInline muted={tile.isMe} />
         {flash && <div className="click-flash" style={{ left: flash.x, top: flash.y }} />}
         <div
-          className="life-badge"
+          className={tile.isMe ? "life-badge mine" : "life-badge"}
           style={{
             background: color,
             [innerSide]: 0,
             // Flush against the corner: only round the corner facing the video.
             borderRadius: innerSide === "right" ? "12px 0 0 0" : "0 12px 0 0",
           }}
+          onClick={(e) => e.stopPropagation()}
         >
-          {tile.life}
+          {tile.isMe && (
+            <button className="life-btn" onClick={() => onChangeLife(-1)} aria-label="Lose 1 life">−</button>
+          )}
+          <span className="life-value">{tile.life}</span>
+          {tile.isMe && (
+            <button className="life-btn" onClick={() => onChangeLife(+1)} aria-label="Gain 1 life">+</button>
+          )}
         </div>
         {/* Keep the name on the outer edge, away from the life badge. */}
         <div className="tile-bar" style={{ justifyContent: innerSide === "right" ? "flex-start" : "flex-end" }}>
