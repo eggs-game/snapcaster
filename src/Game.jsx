@@ -338,10 +338,6 @@ function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, onCh
             <button className="life-btn" onClick={() => onChangeLife(+1)} aria-label="Gain 1 life">+</button>
           )}
         </div>
-        {/* Keep the name on the outer edge, away from the life badge. */}
-        <div className="tile-bar" style={{ justifyContent: innerSide === "right" ? "flex-start" : "flex-end" }}>
-          <span className="pname">{tile.name}{tile.isMe ? " (you)" : ""}</span>
-        </div>
       </div>
     </div>
   );

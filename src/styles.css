@@ -81,8 +81,6 @@ header { display: flex; align-items: center; gap: 18px; padding: 8px 14px; }
 .tile-menu { position: absolute; top: 22px; right: 0; z-index: 5; min-width: 180px; padding: 5px; background: var(--panel); border: 1px solid #333a48; border-radius: 10px; box-shadow: 0 8px 22px rgba(0,0,0,0.5); }
 .tile-menu button { display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 9px; background: none; border: none; border-radius: 6px; color: var(--text); font-family: inherit; font-size: 0.82rem; text-align: left; cursor: pointer; }
 .tile-menu button:hover { background: var(--panel2); }
-.tile-bar { position: absolute; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-between; padding: 6px 10px; font-size: 0.9rem; }
-.pname { text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
 .life { color: var(--accent); font-weight: 700; }
 .life-badge { position: absolute; z-index: 2; bottom: 0; display: flex; align-items: center; justify-content: center; min-width: 62px; padding: 10px 14px; color: #10131a; font-size: 1.6rem; font-weight: 800; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.45); opacity: 0.72; transition: opacity 0.15s ease; pointer-events: none; }
 .life-badge.mine { pointer-events: auto; cursor: default; }
