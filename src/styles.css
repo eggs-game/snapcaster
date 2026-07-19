@@ -31,9 +31,9 @@ body { background: var(--bg2); color: var(--text); font-family: Inter, system-ui
 .visitor-strip { display: flex; align-items: center; gap: 5px; max-width: 280px; overflow-x: auto; }
 .visitor-avatar { position: relative; width: 28px; height: 28px; display: grid; place-items: center; border: 1px solid #465064; border-radius: 50%; background: var(--panel2); color: var(--text); font-size: 0.75rem; font-weight: 700; }
 .visitor-muted { position: absolute; right: -3px; bottom: -2px; padding: 2px; box-sizing: content-box; border-radius: 50%; background: var(--danger); color: #fff; }
-/* Icon-only buttons share the copy-link design: stroke, panel fill, 8px radius. */
-.drawer-toggle { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; flex: none; padding: 0; background: var(--panel2); border: 1px solid #333a48; border-radius: 8px; color: var(--dim); cursor: pointer; }
-.drawer-toggle:hover { color: var(--text); border-color: var(--accent); }
+/* Icon-only drawer toggles: plain icons, no boxed chrome. */
+.drawer-toggle { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; flex: none; padding: 0; background: none; border: none; border-radius: 8px; color: var(--dim); cursor: pointer; }
+.drawer-toggle:hover { color: var(--text); }
 .logo { color: var(--accent); font-weight: 800; }
 .lobby-name {
   background: none; border: none; padding: 0; font: inherit; color: var(--accent); font-size: 15px; font-weight: 800;
@@ -136,8 +136,6 @@ body { background: var(--bg2); color: var(--text); font-family: Inter, system-ui
 .sidebar { width: 300px; background: var(--bg); padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; border: 1px solid #333a48; border-radius: 20px; box-shadow: 0 4px 18px rgba(0,0,0,0.35); }
 .sidebar-head { display: flex; align-items: center; justify-content: space-between; }
 .sidebar-head-actions { display: flex; align-items: center; gap: 6px; min-width: 0; }
-.sidebar-head .drawer-toggle { background: none; border: none; }
-.sidebar-head .drawer-toggle:hover { color: var(--text); }
 /* Two half-turns with a content swap in between read as one full card flip. */
 .sidebar.flip-out { animation: sidebar-flip-out 0.18s ease-in forwards; }
 .sidebar.flip-in { animation: sidebar-flip-in 0.18s ease-out; }
