@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
-  ArrowLeft, Mic, MicOff, PanelLeftClose, Settings, Video, VideoOff,
+  ArrowLeft, Mic, MicOff, PanelLeftClose, Search, Settings, Video, VideoOff,
 } from "lucide-react";
 import { suggestCardNames } from "./cardSearch.js";
 
@@ -264,6 +264,7 @@ export default function CardSidebar({
       ) : (
         <>
           <div className="sidebar-search">
+            <Search size={16} className="search-icon" aria-hidden="true" />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}

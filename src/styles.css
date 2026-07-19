@@ -146,8 +146,9 @@ body { background: var(--bg2); color: var(--text); font-family: Inter, system-ui
 .sidebar.settings-view .sidebar-head { gap: 8px; }
 .sidebar.settings-view .logo { flex: 1; }
 .sidebar-search { position: relative; }
+.sidebar-search .search-icon { position: absolute; top: 50%; left: 11px; transform: translateY(-50%); color: var(--dim); pointer-events: none; }
 .sidebar-search input {
-  width: 100%; padding: 9px 11px; border-radius: 8px; border: 1px solid #3a4353;
+  width: 100%; padding: 9px 11px 9px 34px; border-radius: 8px; border: 1px solid #3a4353;
   background: #151922; color: var(--text); font-family: inherit; font-size: 0.9rem;
 }
 .sidebar-search input:focus { outline: none; border-color: var(--accent); }
