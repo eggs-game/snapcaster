@@ -29,6 +29,7 @@ export class GameConnection {
     this.color = "";
     this.muted = false;
     this.life = 40;
+    this.lobbyName = "";
     this.role = "player";
     this.roster = [];
     this.videoDeviceId = "";
@@ -157,6 +158,7 @@ export class GameConnection {
     this.h.onRoster?.(roster);
     if (this.role === "player") {
       this.room?.send({ type: "life", life: this.life });
+      if (this.lobbyName) this.room?.send({ type: "lobby-name", lobbyName: this.lobbyName });
       if (this.commander) this.room?.send({ type: "commander", commander: this.commander });
       if (this.color) this.room?.send({ type: "color", color: this.color });
     }
@@ -182,6 +184,11 @@ export class GameConnection {
         break;
       case "life":
         if (senderRole !== "visitor") this.h.onLife?.(msg.from, msg.life);
+        break;
+      case "lobby-name":
+        if (senderRole !== "visitor") {
+          this.h.onLobbyName?.(String(msg.lobbyName || "").trim().slice(0, 48));
+        }
         break;
       case "commander":
         if (senderRole !== "visitor") {
@@ -285,6 +292,11 @@ export class GameConnection {
     if (this.role === "visitor") return;
     this.life = Number(life);
     this.room?.send({ type: "life", life: this.life });
+  }
+  setLobbyName(lobbyName) {
+    if (this.role === "visitor") return;
+    this.lobbyName = String(lobbyName || "").trim().slice(0, 48);
+    this.room?.send({ type: "lobby-name", lobbyName: this.lobbyName });
   }
   setCommander(commander) {
     if (this.role === "visitor") return;

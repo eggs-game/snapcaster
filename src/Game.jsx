@@ -19,6 +19,9 @@ export default function Game({ session, onLeave }) {
   const [mutedPlayers, setMutedPlayers] = useState({}); // id -> bool
   const [streams, setStreams] = useState({});
   const [localStream, setLocalStream] = useState(null);
+  const [lobbyName, setLobbyName] = useState(() => session.lobbyName || "");
+  const [editingLobbyName, setEditingLobbyName] = useState(false);
+  const [lobbyNameDraft, setLobbyNameDraft] = useState(() => session.lobbyName || "");
   const [error, setError] = useState(null);
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(true);
@@ -44,6 +47,10 @@ export default function Game({ session, onLeave }) {
       onRemoteStream: (id, stream) => setStreams((s) => ({ ...s, [id]: stream })),
       onPeerLeft: (id) => setStreams((s) => { const c = { ...s }; delete c[id]; return c; }),
       onLife: (id, life) => setLives((l) => ({ ...l, [id]: life })),
+      onLobbyName: (name) => {
+        setLobbyName(name);
+        setLobbyNameDraft(name);
+      },
       onCommander: (id, commander) => setCommanders((values) => ({ ...values, [id]: commander })),
       onColor: (id, color) => setColors((values) => ({ ...values, [id]: color })),
       onMuted: (id, muted) => setMutedPlayers((values) => ({ ...values, [id]: muted })),
@@ -62,6 +69,11 @@ export default function Game({ session, onLeave }) {
         setMics(devices.mics);
         const id = await conn.join(session.code, session.name, isVisitor ? "visitor" : "player");
         setMyId(id);
+        if (!isVisitor && session.lobbyName) {
+          conn.setLobbyName(session.lobbyName);
+          setLobbyName(session.lobbyName);
+          setLobbyNameDraft(session.lobbyName);
+        }
       } catch (e) {
         setError(String(e.message || e));
       }
@@ -126,6 +138,16 @@ export default function Game({ session, onLeave }) {
     const life = (lives[myId] ?? 40) + delta;
     setLives((l) => ({ ...l, [myId]: life }));
     connRef.current.setLife(life);
+  };
+
+  const chooseLobbyName = (next) => {
+    if (isVisitor) return;
+    const name = next.trim().slice(0, 48);
+    if (!name) return;
+    setLobbyName(name);
+    setLobbyNameDraft(name);
+    setEditingLobbyName(false);
+    connRef.current?.setLobbyName(name);
   };
 
   const chooseCommander = (commander) => {
@@ -294,7 +316,37 @@ export default function Game({ session, onLeave }) {
                 <Settings size={22} />
               </button>
             )}
-            <span className="logo game-code" title="Lobby code">{session.code}</span>
+            {editingLobbyName && !isVisitor ? (
+              <form
+                className="lobby-name-edit"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  chooseLobbyName(lobbyNameDraft);
+                }}
+              >
+                <input
+                  value={lobbyNameDraft}
+                  onChange={(e) => setLobbyNameDraft(e.target.value)}
+                  onBlur={() => chooseLobbyName(lobbyNameDraft || lobbyName || "Untitled game")}
+                  maxLength={48}
+                  autoFocus
+                  aria-label="Lobby name"
+                />
+              </form>
+            ) : (
+              <button
+                type="button"
+                className="logo lobby-name"
+                title={isVisitor ? `Lobby code ${session.code}` : `Click to rename · code ${session.code}`}
+                onClick={() => {
+                  if (isVisitor) return;
+                  setLobbyNameDraft(lobbyName || "Untitled game");
+                  setEditingLobbyName(true);
+                }}
+              >
+                {lobbyName || "Untitled game"}
+              </button>
+            )}
             {!isVisitor && <button
               className={linkCopied ? "copy-link copied" : "copy-link"}
               onClick={() => copyJoinLink(false)}

@@ -9,6 +9,7 @@ export default function Lobby({ onStart }) {
     const fromUrl = new URLSearchParams(window.location.search).get("code") || "";
     return fromUrl.toUpperCase().slice(0, 4);
   });
+  const [lobbyName, setLobbyName] = useState("");
   const [indexStatus, setIndexStatus] = useState("loading");
   const [indexCount, setIndexCount] = useState(0);
 
@@ -21,10 +22,15 @@ export default function Lobby({ onStart }) {
       .catch(() => setIndexStatus("missing"));
   }, []);
 
-  const go = (roomCode, role = visitorMode ? "visitor" : "player") => {
+  const go = (roomCode, role = visitorMode ? "visitor" : "player", createdLobbyName = "") => {
     if (!name.trim()) return alert("Enter your name first");
     localStorage.setItem("sc-name", name.trim());
-    onStart({ name: name.trim(), code: roomCode, role });
+    onStart({
+      name: name.trim(),
+      code: roomCode,
+      role,
+      lobbyName: createdLobbyName.trim().slice(0, 48),
+    });
   };
 
   return (
@@ -54,9 +60,21 @@ export default function Lobby({ onStart }) {
       )}
 
       <input placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} maxLength={24} />
+      {!visitorMode && (
+        <input
+          placeholder="Lobby name (optional)"
+          value={lobbyName}
+          onChange={(e) => setLobbyName(e.target.value)}
+          maxLength={48}
+        />
+      )}
       <div className="lobby-actions">
         {!visitorMode && (
-          <button className="primary" disabled={!isConfigured()} onClick={() => go(makeCode(), "player")}>
+          <button
+            className="primary"
+            disabled={!isConfigured()}
+            onClick={() => go(makeCode(), "player", lobbyName || "Untitled game")}
+          >
             Create game
           </button>
         )}

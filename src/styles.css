@@ -30,6 +30,16 @@ body { background: var(--bg2); color: var(--text); font-family: Inter, system-ui
 .drawer-toggle { display: flex; align-items: center; justify-content: center; padding: 6px; background: transparent; border: none; border-radius: 8px; color: var(--text); cursor: pointer; }
 .drawer-toggle:hover { background: var(--panel2); color: var(--accent); }
 .logo { color: var(--accent); font-weight: 800; }
+.lobby-name {
+  background: none; border: none; padding: 0; font: inherit; color: var(--accent); font-weight: 800;
+  cursor: pointer; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left;
+}
+.lobby-name:hover { text-decoration: underline; text-underline-offset: 3px; }
+.lobby-name-edit input {
+  min-width: 140px; max-width: 280px; padding: 5px 8px; border-radius: 6px; border: 1px solid var(--accent);
+  background: #151922; color: var(--text); font-family: inherit; font-size: 0.95rem; font-weight: 700;
+}
+.lobby-name-edit input:focus { outline: none; }
 .game-code { letter-spacing: 0.22em; }
 .copy-link { display: flex; align-items: center; gap: 6px; padding: 5px 10px; background: var(--panel2); border: 1px solid #333a48; border-radius: 8px; color: var(--dim); font-family: inherit; font-size: 0.8rem; cursor: pointer; }
 .copy-link:hover { color: var(--text); border-color: var(--accent); }
