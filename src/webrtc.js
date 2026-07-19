@@ -16,7 +16,7 @@ const CHUNK = 12000; // chars per data-channel chunk
 export class GameConnection {
   constructor(handlers) {
     // handlers: onRoster, onRemoteStream, onPeerLeft, onLife,
-    // onCommander, onCardIdentified, onError
+    // onCommander, onColor, onCardIdentified, onError
     this.h = handlers;
     this.peers = new Map();     // peerId -> {pc, dc, chunks: Map}
     this.pending = new Map();   // requestId -> {resolve, reject, timer}
@@ -25,6 +25,7 @@ export class GameConnection {
     this.myId = null;
     this.knownIds = new Set();
     this.commander = "";
+    this.color = "";
   }
 
   async initMedia() {
@@ -75,6 +76,7 @@ export class GameConnection {
     }
     this.h.onRoster?.(roster.slice(0, 4));
     if (this.commander) this.room?.send({ type: "commander", commander: this.commander });
+    if (this.color) this.room?.send({ type: "color", color: this.color });
   }
 
   async _onSignal(msg) {
@@ -95,6 +97,7 @@ export class GameConnection {
         break;
       case "life": this.h.onLife?.(msg.from, msg.life); break;
       case "commander": this.h.onCommander?.(msg.from, String(msg.commander || "").slice(0, 120)); break;
+      case "color": this.h.onColor?.(msg.from, String(msg.color || "").slice(0, 20)); break;
       case "card-identified": this.h.onCardIdentified?.(msg); break;
     }
   }
@@ -183,6 +186,10 @@ export class GameConnection {
   setCommander(commander) {
     this.commander = String(commander || "").trim().slice(0, 120);
     this.room?.send({ type: "commander", commander: this.commander });
+  }
+  setColor(color) {
+    this.color = String(color || "").trim().slice(0, 20);
+    this.room?.send({ type: "color", color: this.color });
   }
   announceCard(card, byName) { this.room?.send({ type: "card-identified", card, byName }); }
 

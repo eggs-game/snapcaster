@@ -13,6 +13,7 @@ export default function Game({ session, onLeave }) {
   const [roster, setRoster] = useState([]);
   const [lives, setLives] = useState({}); // id -> life
   const [commanders, setCommanders] = useState({}); // id -> card name
+  const [colors, setColors] = useState({}); // id -> hex color
   const [streams, setStreams] = useState({});
   const [localStream, setLocalStream] = useState(null);
   const [error, setError] = useState(null);
@@ -44,6 +45,7 @@ export default function Game({ session, onLeave }) {
       onPeerLeft: (id) => setStreams((s) => { const c = { ...s }; delete c[id]; return c; }),
       onLife: (id, life) => setLives((l) => ({ ...l, [id]: life })),
       onCommander: (id, commander) => setCommanders((values) => ({ ...values, [id]: commander })),
+      onColor: (id, color) => setColors((values) => ({ ...values, [id]: color })),
       onCardIdentified: (msg) => setLookups((l) => [...l.slice(-11), { by: msg.byName, card: msg.card, at: Date.now() }]),
       onError: setError,
     });
@@ -111,6 +113,11 @@ export default function Game({ session, onLeave }) {
     connRef.current?.setCommander(commander);
   };
 
+  const chooseColor = (color) => {
+    setColors((values) => ({ ...values, [myId]: color }));
+    connRef.current?.setColor(color);
+  };
+
   const toggleMic = () => { connRef.current.toggleTrack("audio", !micOn); setMicOn(!micOn); };
   const toggleCam = () => { connRef.current.toggleTrack("video", !camOn); setCamOn(!camOn); };
 
@@ -124,14 +131,16 @@ export default function Game({ session, onLeave }) {
     );
   }
 
-  const tiles = roster.map((p) => ({
+  const tiles = roster.map((p, i) => ({
     ...p,
     life: lives[p.id] ?? 40,
     commander: commanders[p.id] || "",
+    color: colors[p.id] || TILE_COLORS[i % TILE_COLORS.length],
     stream: p.id === myId ? localStream : streams[p.id],
     isMe: p.id === myId,
   }));
   while (tiles.length < 4) tiles.push({ id: `empty-${tiles.length}`, empty: true });
+  const myColor = colors[myId] || TILE_COLORS[Math.max(0, roster.findIndex((p) => p.id === myId))] || TILE_COLORS[0];
 
   return (
     <div className="game">
@@ -183,6 +192,22 @@ export default function Game({ session, onLeave }) {
               {micOn ? <Mic size={20} /> : <MicOff size={20} />}
               <span>{micOn ? "Mic on" : "Mic muted"}</span>
             </button>
+            <div className="color-picker">
+              <span className="color-label">Your color</span>
+              <div className="color-swatches">
+                {TILE_COLORS.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    className={myColor === color ? "color-swatch selected" : "color-swatch"}
+                    style={{ background: color }}
+                    aria-label={`Choose color ${color}`}
+                    title="Choose seat color"
+                    onClick={() => chooseColor(color)}
+                  />
+                ))}
+              </div>
+            </div>
           </aside>
         </div>
       )}
@@ -193,7 +218,7 @@ export default function Game({ session, onLeave }) {
             <VideoTile
               key={t.id}
               tile={t}
-              color={TILE_COLORS[i % TILE_COLORS.length]}
+              color={t.color || TILE_COLORS[i % TILE_COLORS.length]}
               innerSide={i % 2 === 0 ? "right" : "left"}
               flash={flash?.tileId === t.id ? flash : null}
               onIdentify={identify}
@@ -209,7 +234,7 @@ export default function Game({ session, onLeave }) {
   );
 }
 
-// One accent color per seat: yellow, blue, green, red.
+// Seat accent palette: yellow, blue, green, red.
 const TILE_COLORS = ["#d4a94e", "#5b9bd5", "#7bc47f", "#c0504d"];
 
 function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, flash }) {
