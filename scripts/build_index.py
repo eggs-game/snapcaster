@@ -5,12 +5,21 @@ Outputs:
   manifest.json          index version and counts
   names.json             unique card names used by OCR fuzzy matching
   shards/00..ff.json     metadata + visual hash, partitioned by card name
+  cards.json/hashes.bin  global grayscale hash index (browser Stage B ranking)
+  colors.bin             per-printing 13-byte hue histogram (v3)
+  arthashes.bin          per-printing 32-byte pHash of the art region (v3)
 
-Each shard row is:
-  [name, set, collector_number, scryfall_id, face, base64_hash]
+Each shard row is (v3):
+  [name, set, collector_number, scryfall_id, face, base64_hash,
+   base64_color, base64_arthash]
 
-Existing shards (or the legacy cards.json/hashes.bin pair) are reused by
-Scryfall ID + face, so scheduled updates download only newly released artwork.
+The color histogram and art hash MUST stay formula-compatible with
+src/recognition/recognizer.js (colorSignature / art pHash) — change both or
+neither.
+
+Existing v3 shard rows are reused by Scryfall ID + face, so scheduled updates
+download only newly released artwork. v2 rows (no color/art fields) are NOT
+reused — the first v3 build refetches everything.
 """
 import argparse
 import base64
@@ -56,6 +65,48 @@ def dhash_bits(gray):
 def compute_hashes(bgr):
     gray = cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
     return np.concatenate([np.packbits(phash_bits(gray)), np.packbits(dhash_bits(gray))]).astype(np.uint8)
+
+
+def compute_color_signature(bgr):
+    """13-byte saturation-weighted hue histogram (12 hue buckets + neutral).
+
+    Mirrors colorSignature() in src/recognition/recognizer.js exactly:
+    central region x 10-90% / y 8-92%, every 2nd pixel, s<0.18 or v<0.12
+    counts 0.5 into the neutral bucket, hue buckets weighted by saturation.
+    """
+    h, w = bgr.shape[:2]
+    region = bgr[int(h * 0.08):int(np.ceil(h * 0.92)):2,
+                 int(w * 0.1):int(np.ceil(w * 0.9)):2].astype(np.float32) / 255.0
+    b, g, r = region[..., 0], region[..., 1], region[..., 2]
+    cmax = np.maximum(np.maximum(r, g), b)
+    cmin = np.minimum(np.minimum(r, g), b)
+    delta = cmax - cmin
+    sat = np.where(cmax > 0, delta / np.maximum(cmax, 1e-9), 0)
+    neutral = (sat < 0.18) | (cmax < 0.12)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        hue = np.where(cmax == r, ((g - b) / np.maximum(delta, 1e-9) + 6) % 6,
+              np.where(cmax == g, (b - r) / np.maximum(delta, 1e-9) + 2,
+                       (r - g) / np.maximum(delta, 1e-9) + 4))
+    bucket = np.minimum(11, np.floor(hue * 2)).astype(np.int32)
+    hist = np.zeros(13, dtype=np.float64)
+    np.add.at(hist, bucket[~neutral], sat[~neutral])
+    hist[12] = neutral.sum() * 0.5
+    total = hist.sum()
+    if total:
+        hist /= total
+    return np.clip(np.round(hist * 255), 0, 255).astype(np.uint8)
+
+
+# Art region of an upright card: mirrors ART_REGION in recognizer.js.
+ART_X0, ART_X1, ART_Y0, ART_Y1 = 0.08, 0.92, 0.10, 0.56
+
+
+def compute_art_hash(bgr):
+    """32-byte pHash of the art region. Mirrors artPHash() in recognizer.js."""
+    h, w = bgr.shape[:2]
+    art = bgr[int(h * ART_Y0):int(h * ART_Y1), int(w * ART_X0):int(w * ART_X1)]
+    gray = cv2.cvtColor(art, cv2.COLOR_BGR2GRAY)
+    return np.packbits(phash_bits(gray)).astype(np.uint8)
 
 
 def normalize_name(name):
@@ -115,7 +166,11 @@ def faces(card):
 
 
 def load_existing(out_dir):
-    """Return {(scryfall_id, face): row} from v2 shards or legacy files."""
+    """Return {(scryfall_id, face): row} of reusable v3 rows.
+
+    Only rows that already carry the v3 color + art fields (8 columns) are
+    reused; v2 rows are dropped so their images get refetched and enriched.
+    """
     existing = {}
     shard_dir = os.path.join(out_dir, "shards")
     if os.path.isdir(shard_dir):
@@ -124,21 +179,8 @@ def load_existing(out_dir):
                 continue
             with open(os.path.join(shard_dir, filename), encoding="utf-8") as source:
                 for row in json.load(source):
-                    existing[(row[3], int(row[4]))] = row
-        return existing
-
-    cards_path = os.path.join(out_dir, "cards.json")
-    hashes_path = os.path.join(out_dir, "hashes.bin")
-    if os.path.exists(cards_path) and os.path.exists(hashes_path):
-        with open(cards_path, encoding="utf-8") as source:
-            cards = json.load(source)
-        hashes = np.fromfile(hashes_path, dtype=np.uint8)
-        if hashes.size == len(cards) * VEC_BYTES:
-            hashes = hashes.reshape((-1, VEC_BYTES))
-            for row, vector in zip(cards, hashes):
-                existing[(row[3], int(row[4]))] = [
-                    *row[:5], base64.b64encode(vector.tobytes()).decode("ascii")
-                ]
+                    if len(row) >= 8:
+                        existing[(row[3], int(row[4]))] = row
     return existing
 
 
@@ -169,8 +211,12 @@ def fetch_and_hash(task, limiter):
             bgr = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
             bgr = cv2.resize(bgr, (CARD_W, CARD_H), interpolation=cv2.INTER_AREA)
             vector = compute_hashes(bgr)
+            color = compute_color_signature(bgr)
+            art = compute_art_hash(bgr)
             return [name, set_code, collector_number, card_id, face,
-                    base64.b64encode(vector.tobytes()).decode("ascii")]
+                    base64.b64encode(vector.tobytes()).decode("ascii"),
+                    base64.b64encode(color.tobytes()).decode("ascii"),
+                    base64.b64encode(art.tobytes()).decode("ascii")]
         except Exception as error:
             if attempt == 3:
                 return error
@@ -201,7 +247,7 @@ def write_index(rows, out_dir):
         json.dump(names, output, separators=(",", ":"))
     with open(os.path.join(out_dir, "manifest.json"), "w", encoding="utf-8") as output:
         json.dump({
-            "version": 2,
+            "version": 3,
             "count": len(rows),
             "names": len(names),
             "shards": SHARD_COUNT,
@@ -219,6 +265,13 @@ def write_index(rows, out_dir):
     with open(os.path.join(out_dir, "hashes.bin"), "wb") as output:
         for row in ordered:
             output.write(base64.b64decode(row[5]))
+    # v3 companion tables, same row order as cards.json/hashes.bin.
+    with open(os.path.join(out_dir, "colors.bin"), "wb") as output:
+        for row in ordered:
+            output.write(base64.b64decode(row[6]))
+    with open(os.path.join(out_dir, "arthashes.bin"), "wb") as output:
+        for row in ordered:
+            output.write(base64.b64decode(row[7]))
 
 def main():
     parser = argparse.ArgumentParser()

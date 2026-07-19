@@ -167,7 +167,7 @@ function bestIndexedTitle(text) {
     // easily even through the token-similarity path — require the entire read
     // to be exactly that name.
     if (target.length < 4) {
-      if (observed === target && (!best || best.score < 1)) best = { name, score: 1 };
+      if (observed === target && (!best || best.score < 1)) best = { name, score: 1, len: target.length };
       continue;
     }
     let score;
@@ -179,7 +179,12 @@ function bestIndexedTitle(text) {
       // them: "Gaunt from ... the Rampart" still identifies Taunt correctly.
       score = Math.max(wholeLine, orderedTokenSimilarity(observed, target));
     }
-    if (!best || score > best.score) best = { name, score };
+    // On equal score prefer the LONGER name: reading "Crashing Wave" makes
+    // both "Crash" (substring) and "Crashing Wave" score 1, and the longer
+    // name is the one the strip actually shows.
+    if (!best || score > best.score || (score === best.score && target.length > best.len)) {
+      best = { name, score, len: target.length };
+    }
   }
   return best;
 }
@@ -431,12 +436,16 @@ function runVisualFallback(queryCandidates) {
   });
 }
 
-export async function identify(imageDataUrl, point) {
-  const bmp = await dataUrlToBitmap(imageDataUrl);
-  const result = await runOnWorker(bmp, point);
-  // A decisive art-keypoint match settles identity — skip the slower OCR pass.
+// A decisive art-keypoint match settles identity — skip the slower OCR pass
+// (which could otherwise override 200 agreeing keypoints with a fuzzy title).
+async function finishIdentify(result) {
   if (result.art_decisive && result.matches?.[0]?.identified_by === "art-match") return result;
   return applyTitleOCR(result);
+}
+
+export async function identify(imageDataUrl, point) {
+  const bmp = await dataUrlToBitmap(imageDataUrl);
+  return finishIdentify(await runOnWorker(bmp, point));
 }
 
 // Console debug hook: `await window.__scIdentifyUrl("<card image url>")`
@@ -451,7 +460,7 @@ if (typeof window !== "undefined") {
       i.src = url;
     });
     const bmp = await createImageBitmap(img);
-    const r = await applyTitleOCR(await runOnWorker(bmp, point));
+    const r = await finishIdentify(await runOnWorker(bmp, point));
     console.log("[snapcaster] __scIdentifyUrl top matches:", r.matches.map((m) => `${m.name} (d=${m.distance}, conf=${m.confidence.toFixed(2)})`));
     return r;
   };

@@ -147,6 +147,33 @@ function queryVariants(gray) {
   return variants;
 }
 
+// Art region of an upright card — MUST mirror ART_X0..ART_Y1 in
+// scripts/build_index.py.
+const ART_X0 = 0.08, ART_X1 = 0.92, ART_Y0 = 0.10, ART_Y1 = 0.56;
+
+function cropGray(gray, x0f, x1f, y0f, y1f) {
+  const { pix, w, h } = gray;
+  const x0 = Math.floor(w * x0f), x1 = Math.floor(w * x1f);
+  const y0 = Math.floor(h * y0f), y1 = Math.floor(h * y1f);
+  const cw = x1 - x0, ch = y1 - y0;
+  const out = new Float32Array(cw * ch);
+  for (let y = 0; y < ch; y++) {
+    for (let x = 0; x < cw; x++) out[y * cw + x] = pix[(y + y0) * w + (x + x0)];
+  }
+  return { pix: out, w: cw, h: ch };
+}
+
+// 32-byte pHash of the art region. Mirrors compute_art_hash in build_index.py.
+function artPHash(gray) {
+  const art = cropGray(gray, ART_X0, ART_X1, ART_Y0, ART_Y1);
+  const small = areaResize(art, 64, 64);
+  const low = dct2_lowfreq(small.pix);
+  const med = median(low);
+  const bits = new Uint8Array(HASH_SIZE * HASH_SIZE);
+  for (let i = 0; i < low.length; i++) bits[i] = low[i] > med ? 1 : 0;
+  return packBits(bits);
+}
+
 function hammingSearch(query, index, nCards, distsOut) {
   for (let i = 0; i < nCards; i++) {
     const off = i * VEC_BYTES;
@@ -226,6 +253,8 @@ function loadCV() {
 
 // ---------- card index ----------
 let index = null, cards = null, manifest = null, shardedIndex = false, indexPromise = null;
+let colorIndex = null, artIndex = null; // v3 companion tables
+const COLOR_BYTES = 13, ART_BYTES = 32;
 
 function loadIndex() {
   if (indexPromise) return indexPromise;
@@ -233,7 +262,7 @@ function loadIndex() {
     const manifestResponse = await fetch("/carddata/manifest.json");
     if (manifestResponse.ok) {
       manifest = await manifestResponse.json();
-      if (manifest.version === 2) {
+      if (manifest.version >= 2) {
         shardedIndex = true;
         return manifest.count;
       }
@@ -258,6 +287,25 @@ async function loadGlobalIndex() {
   index = new Uint8Array(await hashResponse.arrayBuffer());
   cards = await cardsResponse.json();
   if (index.length !== cards.length * VEC_BYTES) throw new Error("Global fallback index corrupted");
+  // v3 companion tables: per-printing color histograms + art-region hashes.
+  // Optional — a v2 deployment simply proceeds grayscale-only.
+  if ((manifest?.version || 0) >= 3) {
+    try {
+      const [colorResp, artResp] = await Promise.all([
+        fetch("/carddata/colors.bin"),
+        fetch("/carddata/arthashes.bin"),
+      ]);
+      if (colorResp.ok) {
+        const table = new Uint8Array(await colorResp.arrayBuffer());
+        if (table.length === cards.length * COLOR_BYTES) colorIndex = table;
+      }
+      if (artResp.ok) {
+        const table = new Uint8Array(await artResp.arrayBuffer());
+        if (table.length === cards.length * ART_BYTES) artIndex = table;
+      }
+      console.log(`[snapcaster worker] v3 tables: color=${!!colorIndex} art=${!!artIndex}`);
+    } catch (e) { /* grayscale-only */ }
+  }
   return cards.length;
 }
 
@@ -667,6 +715,10 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   }
   const n = cards?.length || 0;
   const dists = new Uint16Array(n).fill(0xffff);
+  const useV3 = n > 0 && (colorIndex || artIndex);
+  // Combined gray+art+color ranking score (v3). Gray distances stay in `dists`
+  // for the calibrated display/keep gates.
+  const rank = useV3 ? new Float64Array(n).fill(Infinity) : null;
   const strategies = new Array(n).fill("none");
   const queryCandidates = [];
   let candidatesTried = 0;
@@ -675,7 +727,8 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   let bestCandidateDistance = 0xffff;
   for (const candidate of candidates) {
     candidatesTried++;
-    const variants = queryVariants(toGray(candidate.image));
+    const gray = toGray(candidate.image);
+    const variants = queryVariants(gray);
     queryCandidates.push({ strategy: candidate.strategy, vectors: variants });
     if (!bestCandidateImage) {
       bestCandidateImage = candidate.image;
@@ -689,7 +742,46 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       if (candidateDists[i] < candidateBest) candidateBest = candidateDists[i];
       if (candidateDists[i] < dists[i]) {
         dists[i] = candidateDists[i];
-        strategies[i] = candidate.strategy;
+        if (!useV3) strategies[i] = candidate.strategy;
+      }
+    }
+    if (useV3) {
+      // Rescore this candidate's ~400 gray-closest printings with art + color.
+      // Histogram cutoff keeps this O(n) with no per-printing allocation.
+      const counts = new Uint32Array(513);
+      for (let i = 0; i < n; i++) counts[candidateDists[i] <= 512 ? candidateDists[i] : 512]++;
+      let cutoff = 0, cumulative = 0;
+      while (cutoff < 512 && cumulative + counts[cutoff] < 400) { cumulative += counts[cutoff]; cutoff++; }
+      let artVecs = null;
+      if (artIndex) {
+        artVecs = [];
+        let img = gray;
+        for (let r = 0; r < 4; r++) { artVecs.push(artPHash(img)); img = rotate90(img); }
+      }
+      const colorSig = colorIndex ? colorSignature(candidate.image) : null;
+      for (let i = 0; i < n; i++) {
+        if (candidateDists[i] > cutoff) continue;
+        let score = candidateDists[i];
+        if (artVecs) {
+          let artDist = 0xffff;
+          const off = i * ART_BYTES;
+          for (const av of artVecs) {
+            let d = 0;
+            for (let b = 0; b < ART_BYTES; b++) d += POPCOUNT[artIndex[off + b] ^ av[b]];
+            if (d < artDist) artDist = d;
+          }
+          score += artDist * 1.8; // 256-bit art hash weighted near the 512-bit gray hash
+        }
+        if (colorSig) {
+          let sim = 0;
+          const off = i * COLOR_BYTES;
+          for (let b = 0; b < COLOR_BYTES; b++) sim += Math.min(colorSig[b], colorIndex[off + b] / 255);
+          score += (1 - Math.min(1, sim)) * 150; // color clash pushes a printing far down
+        }
+        if (score < rank[i]) {
+          rank[i] = score;
+          strategies[i] = candidate.strategy;
+        }
       }
     }
     if (candidateBest < bestCandidateDistance) {
@@ -701,26 +793,31 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     // weaker fallback candidates.
     if (candidateBest <= 60) break;
   }
+  const rankArr = rank || dists;
 
   // Keep enough printing-level candidates to deduplicate by card name below.
   // Every printing still competes independently; the best-matching artwork for
-  // a card becomes the result shown to the user.
+  // a card becomes the result shown to the user. Selection uses the combined
+  // gray+art+color rank when v3 tables are loaded; reported distance stays the
+  // calibrated gray hash distance.
   const top = [];
   for (let i = 0; i < n; i++) {
-    if (top.length < 20 || dists[i] < top[top.length - 1].d) {
-      top.push({ i, d: dists[i] });
-      top.sort((a, b) => a.d - b.d);
-      if (top.length > 20) top.pop();
+    if (top.length < 30 || rankArr[i] < top[top.length - 1].r) {
+      top.push({ i, r: rankArr[i] });
+      top.sort((a, b) => a.r - b.r);
+      if (top.length > 30) top.pop();
     }
   }
-  const printingMatches = top.map((t) => ({ ...cardMeta(t.i, t.d), strategy: strategies[t.i] }));
+  const printingMatches = top
+    .filter((t) => Number.isFinite(t.r))
+    .map((t) => ({ ...cardMeta(t.i, dists[t.i]), strategy: strategies[t.i] }));
   const matches = [];
   const names = new Set();
   for (const match of printingMatches) {
     if (names.has(match.name)) continue;
     names.add(match.name);
     matches.push(match);
-    if (matches.length === 15) break;
+    if (matches.length === 24) break;
   }
   // Stage C: verify the top hash guesses against the real card images by
   // matching art keypoints. A decisive art match settles identity outright.
