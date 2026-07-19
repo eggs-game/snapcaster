@@ -126,6 +126,7 @@ export default function Game({ session, onLeave }) {
               key={t.id}
               tile={t}
               color={TILE_COLORS[i % TILE_COLORS.length]}
+              innerSide={i % 2 === 0 ? "right" : "left"}
               flash={flash?.tileId === t.id ? flash : null}
               onIdentify={identify}
               onChooseCommander={chooseCommander}
@@ -142,7 +143,7 @@ export default function Game({ session, onLeave }) {
 // One accent color per seat: yellow, blue, green, red.
 const TILE_COLORS = ["#d4a94e", "#5b9bd5", "#7bc47f", "#c0504d"];
 
-function VideoTile({ tile, color, onIdentify, onChooseCommander, flash }) {
+function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, flash }) {
   const videoRef = useRef(null);
   useEffect(() => {
     if (videoRef.current && tile.stream) videoRef.current.srcObject = tile.stream;
@@ -165,9 +166,12 @@ function VideoTile({ tile, color, onIdentify, onChooseCommander, flash }) {
       >
         <video ref={videoRef} autoPlay playsInline muted={tile.isMe} />
         {flash && <div className="click-flash" style={{ left: flash.x, top: flash.y }} />}
-        <div className="tile-bar">
+        <div className="life-badge" style={{ background: color, [innerSide]: 10 }}>
+          {tile.life}
+        </div>
+        {/* Keep the name on the outer edge, away from the life badge. */}
+        <div className="tile-bar" style={{ justifyContent: innerSide === "right" ? "flex-start" : "flex-end" }}>
           <span className="pname">{tile.name}{tile.isMe ? " (you)" : ""}</span>
-          <span className="life">{tile.life} ❤</span>
         </div>
       </div>
     </div>
