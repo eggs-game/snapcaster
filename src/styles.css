@@ -72,8 +72,12 @@ header { display: flex; align-items: center; gap: 18px; padding: 8px 14px; }
 .banner-muted { flex: none; color: #e0736b; }
 .commander-name { min-width: 0; overflow: hidden; color: var(--text); font-weight: 450; text-overflow: ellipsis; white-space: nowrap; }
 .commander-name.unset { color: var(--dim); font-weight: 400; font-style: italic; }
-.commander-picker input { min-width: 80px; flex: 1; background: #151922; border: 1px solid #3a4353; border-radius: 5px; color: var(--text); padding: 5px 7px; font-family: inherit; }
+.commander-search { position: relative; flex: 1; min-width: 80px; }
+.commander-picker input { width: 100%; background: #151922; border: 1px solid #3a4353; border-radius: 5px; color: var(--text); padding: 5px 7px; font-family: inherit; }
 .commander-picker input:focus { border-color: var(--accent); outline: none; }
+.commander-suggest { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 6; max-height: 220px; overflow-y: auto; margin: 0; padding: 5px; list-style: none; background: var(--panel); border: 1px solid #333a48; border-radius: 10px; box-shadow: 0 8px 22px rgba(0,0,0,0.5); }
+.commander-suggest li { padding: 7px 9px; border-radius: 6px; font-size: 0.85rem; color: var(--text); cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.commander-suggest li.active { background: var(--panel2); }
 .commander-set { cursor: pointer; }
 .commander-set:hover .commander-name { color: var(--accent); }
 .mana-cost { flex: none; display: flex; align-items: center; gap: 3px; }

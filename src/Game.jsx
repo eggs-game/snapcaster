@@ -456,6 +456,7 @@ function BannerRight({ cost, flipped, onToggleFlip }) {
 function CommanderBanner({ tile, onChoose, flipped, onToggleFlip }) {
   const [draft, setDraft] = useState(tile.commander);
   const [suggestions, setSuggestions] = useState([]);
+  const [highlight, setHighlight] = useState(-1);
   const [editing, setEditing] = useState(false);
   const [manaCost, setManaCost] = useState("");
 
@@ -494,7 +495,10 @@ function CommanderBanner({ tile, onChoose, flipped, onToggleFlip }) {
         const response = await fetch(`https://api.scryfall.com/cards/autocomplete?q=${encodeURIComponent(query)}`, {
           signal: controller.signal,
         });
-        if (response.ok) setSuggestions((await response.json()).data || []);
+        if (response.ok) {
+          setSuggestions((await response.json()).data || []);
+          setHighlight(-1);
+        }
       } catch (error) {
         if (error.name !== "AbortError") setSuggestions([]);
       }
@@ -545,33 +549,58 @@ function CommanderBanner({ tile, onChoose, flipped, onToggleFlip }) {
   }
 
   const choose = (commander) => {
+    setSuggestions([]);
     onChoose(commander);
     setEditing(false);
   };
   const submit = (event) => {
     event.preventDefault();
-    const commander = draft.trim();
+    const commander = (highlight >= 0 ? suggestions[highlight] : draft).trim();
     if (commander) choose(commander);
   };
   return (
     <form className="commander-banner commander-picker" onSubmit={submit}>
-      <input
-        id={`commander-${tile.id}`}
-        list={`commander-options-${tile.id}`}
-        value={draft}
-        onChange={(event) => {
-          const value = event.target.value;
-          setDraft(value);
-          if (suggestions.includes(value)) choose(value);
-        }}
-        placeholder="Add commander"
-        aria-label="Add commander"
-        autoComplete="off"
-        autoFocus={editing}
-      />
-      <datalist id={`commander-options-${tile.id}`}>
-        {suggestions.map((name) => <option value={name} key={name} />)}
-      </datalist>
+      <div className="commander-search">
+        <input
+          id={`commander-${tile.id}`}
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          onKeyDown={(event) => {
+            if (!suggestions.length) return;
+            if (event.key === "ArrowDown") {
+              event.preventDefault();
+              setHighlight((i) => (i + 1) % suggestions.length);
+            } else if (event.key === "ArrowUp") {
+              event.preventDefault();
+              setHighlight((i) => (i <= 0 ? suggestions.length - 1 : i - 1));
+            } else if (event.key === "Escape") {
+              setSuggestions([]);
+            }
+          }}
+          placeholder="Add commander"
+          aria-label="Add commander"
+          autoComplete="off"
+          autoFocus={editing}
+        />
+        {suggestions.length > 0 && (
+          <ul className="commander-suggest">
+            {suggestions.map((name, i) => (
+              <li
+                key={name}
+                className={i === highlight ? "active" : ""}
+                onMouseEnter={() => setHighlight(i)}
+                // mousedown so the pick lands before the input loses focus
+                onMouseDown={(event) => {
+                  event.preventDefault();
+                  choose(name);
+                }}
+              >
+                {name}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
       <BannerRight cost="" flipped={flipped} onToggleFlip={onToggleFlip} />
     </form>
   );
