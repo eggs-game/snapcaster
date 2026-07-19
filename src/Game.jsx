@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
   Check, FlipVertical2, Link2, Mic, MicOff, MoreVertical, UserRound,
-  PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, Video, VideoOff, X,
+  PanelLeftClose, PanelLeftOpen, PanelRightOpen, Video, VideoOff, X,
 } from "lucide-react";
 import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
 import { identify as identifyCard, preload as preloadRecognition } from "./recognition/matcher.js";
@@ -232,60 +232,6 @@ export default function Game({ session, onLeave }) {
 
   return (
     <div className="game">
-      <header className="topbar">
-        <div className="topbar-left">
-          <button
-            className="drawer-toggle"
-            onClick={() => (controlsOpen ? closeControls() : setControlsOpen(true))}
-            aria-label={controlsOpen ? "Close controls" : "Open controls"}
-            title={controlsOpen ? "Close controls" : "Open controls"}
-          >
-            {controlsOpen ? <PanelLeftClose size={22} /> : <PanelLeftOpen size={22} />}
-          </button>
-          <span className="logo game-code" title="Lobby code">{session.code}</span>
-          {!isVisitor && <button
-            className={linkCopied ? "copy-link copied" : "copy-link"}
-            onClick={() => copyJoinLink(false)}
-            aria-label="Copy game link"
-            title={linkCopied ? "Link copied" : "Copy game link"}
-          >
-            {linkCopied ? <Check size={16} /> : <Link2 size={16} />}
-            <span>{linkCopied ? "Copied" : "Copy link"}</span>
-          </button>}
-          {!isVisitor && <button
-            className={visitorLinkCopied ? "copy-link copied" : "copy-link"}
-            onClick={() => copyJoinLink(true)}
-            aria-label="Copy visitor link"
-            title={visitorLinkCopied ? "Visitor link copied" : "Copy visitor link"}
-          >
-            {visitorLinkCopied ? <Check size={16} /> : <UserRound size={16} />}
-            <span>{visitorLinkCopied ? "Copied" : "Visitor link"}</span>
-          </button>}
-        </div>
-        <div className="topbar-right">
-          <div className="visitor-strip" aria-label={`${visitors.length} visitors`}>
-            {visitors.map((visitor) => (
-              <div
-                key={visitor.id}
-                className="visitor-avatar"
-                title={`${visitor.name}${mutedPlayers[visitor.id] ? " (muted)" : ""}`}
-              >
-                {visitor.name.trim().charAt(0).toUpperCase() || "V"}
-                {mutedPlayers[visitor.id] && <MicOff size={9} className="visitor-muted" />}
-              </div>
-            ))}
-          </div>
-          <button
-            className="drawer-toggle"
-            onClick={() => setSidebarOpen((open) => !open)}
-            aria-label={sidebarOpen ? "Close card lookup" : "Open card lookup"}
-            title={sidebarOpen ? "Close card lookup" : "Open card lookup"}
-          >
-            {sidebarOpen ? <PanelRightClose size={22} /> : <PanelRightOpen size={22} />}
-          </button>
-        </div>
-      </header>
-
       {controlsOpen && (
         <div
           className={controlsClosing ? "controls-overlay closing" : "controls-overlay"}
@@ -377,22 +323,82 @@ export default function Game({ session, onLeave }) {
         ))}
 
       <div className="main">
-        <div className="grid">
-          {tiles.map((t, i) => (
-            <VideoTile
-              key={t.id}
-              tile={t}
-              color={t.color || TILE_COLORS[i % TILE_COLORS.length]}
-              innerSide={i % 2 === 0 ? "right" : "left"}
-              flash={flash?.tileId === t.id ? flash : null}
-              onIdentify={identify}
-              onChooseCommander={chooseCommander}
-              onChangeLife={changeLife}
-            />
-          ))}
+        <div className="video-panel">
+          <div className="panel-topbar">
+            <button
+              className="drawer-toggle"
+              onClick={() => (controlsOpen ? closeControls() : setControlsOpen(true))}
+              aria-label={controlsOpen ? "Close controls" : "Open controls"}
+              title={controlsOpen ? "Close controls" : "Open controls"}
+            >
+              {controlsOpen ? <PanelLeftClose size={22} /> : <PanelLeftOpen size={22} />}
+            </button>
+            <span className="logo game-code" title="Lobby code">{session.code}</span>
+            {!isVisitor && <button
+              className={linkCopied ? "copy-link copied" : "copy-link"}
+              onClick={() => copyJoinLink(false)}
+              aria-label="Copy game link"
+              title={linkCopied ? "Link copied" : "Copy game link"}
+            >
+              {linkCopied ? <Check size={16} /> : <Link2 size={16} />}
+              <span>{linkCopied ? "Copied" : "Copy link"}</span>
+            </button>}
+            {!isVisitor && <button
+              className={visitorLinkCopied ? "copy-link copied" : "copy-link"}
+              onClick={() => copyJoinLink(true)}
+              aria-label="Copy visitor link"
+              title={visitorLinkCopied ? "Visitor link copied" : "Copy visitor link"}
+            >
+              {visitorLinkCopied ? <Check size={16} /> : <UserRound size={16} />}
+              <span>{visitorLinkCopied ? "Copied" : "Visitor link"}</span>
+            </button>}
+            <div className="panel-topbar-right">
+              <div className="visitor-strip" aria-label={`${visitors.length} visitors`}>
+                {visitors.map((visitor) => (
+                  <div
+                    key={visitor.id}
+                    className="visitor-avatar"
+                    title={`${visitor.name}${mutedPlayers[visitor.id] ? " (muted)" : ""}`}
+                  >
+                    {visitor.name.trim().charAt(0).toUpperCase() || "V"}
+                    {mutedPlayers[visitor.id] && <MicOff size={9} className="visitor-muted" />}
+                  </div>
+                ))}
+              </div>
+              {!sidebarOpen && (
+                <button
+                  className="drawer-toggle"
+                  onClick={() => setSidebarOpen(true)}
+                  aria-label="Open card lookup"
+                  title="Open card lookup"
+                >
+                  <PanelRightOpen size={22} />
+                </button>
+              )}
+            </div>
+          </div>
+          <div className="grid">
+            {tiles.map((t, i) => (
+              <VideoTile
+                key={t.id}
+                tile={t}
+                color={t.color || TILE_COLORS[i % TILE_COLORS.length]}
+                innerSide={i % 2 === 0 ? "right" : "left"}
+                flash={flash?.tileId === t.id ? flash : null}
+                onIdentify={identify}
+                onChooseCommander={chooseCommander}
+                onChangeLife={changeLife}
+              />
+            ))}
+          </div>
         </div>
         {sidebarOpen && (
-          <CardSidebar current={current} lookups={lookups} onPick={(m) => setCurrent({ matches: [m] })} />
+          <CardSidebar
+            current={current}
+            lookups={lookups}
+            onPick={(m) => setCurrent({ matches: [m] })}
+            onClose={() => setSidebarOpen(false)}
+          />
         )}
       </div>
     </div>

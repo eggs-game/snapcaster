@@ -1,4 +1,5 @@
 import React from "react";
+import { PanelRightClose } from "lucide-react";
 
 const CV_LABEL = {
   ready: "OpenCV ready",
@@ -7,7 +8,7 @@ const CV_LABEL = {
   unknown: "OpenCV status unknown",
 };
 
-export default function CardSidebar({ current, lookups, onPick }) {
+export default function CardSidebar({ current, lookups, onPick, onClose }) {
   const best = current?.matches?.[0];
   // Do not present a forced nearest neighbour as an identification. Real camera
   // scans can score around 190 even when the correct printing is ranked first,
@@ -16,7 +17,17 @@ export default function CardSidebar({ current, lookups, onPick }) {
   const showDiag = current && !current.loading && current.cvStatus !== undefined;
   return (
     <aside className="sidebar">
-      <h3>Card lookup</h3>
+      <div className="sidebar-head">
+        <h3>Card lookup</h3>
+        <button
+          className="drawer-toggle"
+          onClick={onClose}
+          aria-label="Close card lookup"
+          title="Close card lookup"
+        >
+          <PanelRightClose size={20} />
+        </button>
+      </div>
       {showDiag && (
         <div className="scan-diag">
           <span className={current.cvStatus === "ready" ? "diag ok" : "diag bad"}>
