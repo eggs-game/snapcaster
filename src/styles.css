@@ -147,7 +147,7 @@ body { background: var(--bg2); color: var(--text); font-family: Inter, system-ui
   to { transform: translateX(calc(-100% - 16px)); opacity: 0.5; }
 }
 .sidebar-head { display: flex; align-items: center; justify-content: space-between; }
-.sidebar-head-actions { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.sidebar-head-actions { display: flex; align-items: center; gap: 4px; min-width: 0; }
 /* Two half-turns with a content swap in between read as one full card flip. */
 .sidebar.flip-out { animation: sidebar-flip-out 0.18s ease-in forwards; }
 .sidebar.flip-in { animation: sidebar-flip-in 0.18s ease-out; }
