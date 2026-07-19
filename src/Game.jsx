@@ -29,6 +29,7 @@ export default function Game({ session, onLeave }) {
   const [current, setCurrent] = useState(null);
   const [flash, setFlash] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarClosing, setSidebarClosing] = useState(false);
   const [sidebarView, setSidebarView] = useState("lookup"); // "lookup" | "settings"
   const [linkCopied, setLinkCopied] = useState(false);
   const [visitorLinkCopied, setVisitorLinkCopied] = useState(false);
@@ -265,7 +266,10 @@ export default function Game({ session, onLeave }) {
               setCurrent({ matches: [cardOrError] });
               setLookups((l) => [...l.slice(-11), { by: session.name, card: cardOrError, at: Date.now() }]);
             }}
-            onClose={() => {
+            onClose={() => setSidebarClosing(true)}
+            closing={sidebarClosing}
+            onClosed={() => {
+              setSidebarClosing(false);
               setSidebarOpen(false);
               setSidebarView("lookup");
             }}

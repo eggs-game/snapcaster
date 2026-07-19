@@ -26,6 +26,8 @@ export default function CardSidebar({
   lookups,
   onPick,
   onClose,
+  closing,
+  onClosed,
   onSearch,
   view,
   onViewChange,
@@ -118,8 +120,13 @@ export default function CardSidebar({
         "sidebar",
         settings ? "settings-view" : "",
         flipPhase ? `flip-${flipPhase}` : "",
+        closing ? "slide-out" : "",
       ].filter(Boolean).join(" ")}
-      onAnimationEnd={() => {
+      onAnimationEnd={(event) => {
+        if (event.animationName === "sidebar-slide-out") {
+          onClosed?.();
+          return;
+        }
         if (flipPhase === "out") {
           setShownView(view);
           setFlipPhase("in");

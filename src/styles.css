@@ -140,6 +140,12 @@ body { background: var(--bg2); color: var(--text); font-family: Inter, system-ui
   from { transform: translateX(calc(-100% - 16px)); opacity: 0.5; }
   to { transform: translateX(0); opacity: 1; }
 }
+/* Closing keeps the sidebar mounted until this animation finishes. */
+.sidebar.slide-out { animation: sidebar-slide-out 0.22s ease forwards; }
+@keyframes sidebar-slide-out {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(calc(-100% - 16px)); opacity: 0.5; }
+}
 .sidebar-head { display: flex; align-items: center; justify-content: space-between; }
 .sidebar-head-actions { display: flex; align-items: center; gap: 6px; min-width: 0; }
 /* Two half-turns with a content swap in between read as one full card flip. */
