@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
   Check, Droplet, Flame, FlipVertical2, Link2, MicOff, MoreVertical,
-  PanelLeftOpen, Plus, Skull, Sun, TreeDeciduous, UserRound,
+  PanelLeft, Plus, Skull, Sun, TreeDeciduous, UserRound,
 } from "lucide-react";
 import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
 import { suggestCardNames } from "./cardSearch.js";
@@ -309,7 +309,7 @@ export default function Game({ session, onLeave }) {
                 aria-label="Open card lookup"
                 title="Open card lookup"
               >
-                <PanelLeftOpen size={20} />
+                <PanelLeft size={20} />
               </button>
             )}
             {editingLobbyName && !isVisitor ? (
