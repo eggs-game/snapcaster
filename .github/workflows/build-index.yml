@@ -10,13 +10,17 @@ on:
   schedule:
     - cron: "0 5 1 * *" # monthly refresh for new sets
 
+concurrency:
+  group: card-index
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 350
+    timeout-minutes: 360
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -27,9 +31,9 @@ jobs:
         run: |
           SCOPE="${{ github.event.inputs.scope || 'bulk' }}"
           if [ "$SCOPE" = "bulk" ]; then
-            python scripts/build_index.py --bulk default_cards
+            python scripts/build_index.py --bulk default_cards --workers 8
           else
-            python scripts/build_index.py --query "$SCOPE"
+            python scripts/build_index.py --query "$SCOPE" --workers 8
           fi
       - name: Commit index
         run: |

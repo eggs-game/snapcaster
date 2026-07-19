@@ -7,23 +7,36 @@ import { VEC_BYTES } from "./hash.js";
 import { createWorker, PSM } from "tesseract.js";
 
 let cards = null;
+let cardNames = null;
+let manifest = null;
 let loadPromise = null;
 
 // Lightweight index load, used only for the lobby's readiness banner/count.
 export function loadIndex() {
   if (loadPromise) return loadPromise;
   loadPromise = (async () => {
+    const manifestResponse = await fetch("/carddata/manifest.json");
+    if (manifestResponse.ok) {
+      manifest = await manifestResponse.json();
+      if (manifest.version === 2) {
+        const namesResponse = await fetch("/carddata/names.json");
+        if (!namesResponse.ok) throw new Error("Card name index is missing.");
+        cardNames = await namesResponse.json();
+        return manifest.count;
+      }
+    }
     const [hRes, cRes] = await Promise.all([fetch("/carddata/hashes.bin"), fetch("/carddata/cards.json")]);
     if (!hRes.ok || !cRes.ok) throw new Error("Card index not found — run the 'Build card index' GitHub Action, then redeploy.");
     const indexData = new Uint8Array(await hRes.arrayBuffer());
     cards = await cRes.json();
+    cardNames = [...new Set(cards.map((card) => card[0]))];
     if (indexData.length !== cards.length * VEC_BYTES) throw new Error("Card index is corrupted — rebuild it.");
     return cards.length;
   })();
   return loadPromise;
 }
 
-export function indexSize() { return cards ? cards.length : 0; }
+export function indexSize() { return manifest?.count || cards?.length || 0; }
 
 // Warm the worker (and thus OpenCV + the index inside it) ahead of the first
 // click, e.g. when a game screen mounts, so recognition is ready sooner.
@@ -44,7 +57,7 @@ function getWorker() {
     worker = new Worker(new URL("./recognizer.js", import.meta.url));
     worker.onmessage = (e) => {
       const {
-        id, matches, printingMatches, titleCandidates,
+        id, matches, printingMatches, titleCandidates, queryCandidates, shardedIndex,
         cardFound, cvStatus, candidatesTried, error,
       } = e.data || {};
       const p = pending.get(id);
@@ -56,6 +69,8 @@ function getWorker() {
         matches: matches || [],
         printing_matches: printingMatches || [],
         title_candidates: titleCandidates || [],
+        query_candidates: queryCandidates || [],
+        sharded_index: !!shardedIndex,
         card_found: !!cardFound,
         cv_status: cvStatus || "unknown",
         candidates_tried: candidatesTried || 0,
@@ -136,10 +151,9 @@ function orderedTokenSimilarity(observed, target) {
 
 function bestIndexedTitle(text) {
   const observed = normalizeTitle(text);
-  if (observed.length < 4 || !cards) return null;
-  const uniqueNames = new Set(cards.map((card) => card[0]));
+  if (observed.length < 4 || !cardNames) return null;
   let best = null;
-  for (const name of uniqueNames) {
+  for (const name of cardNames) {
     const target = normalizeTitle(name);
     let score;
     if (observed.includes(target)) score = 1;
@@ -153,6 +167,71 @@ function bestIndexedTitle(text) {
     if (!best || score > best.score) best = { name, score };
   }
   return best;
+}
+
+const shardCache = new Map();
+const POPCOUNT = new Uint8Array(256);
+for (let i = 0; i < 256; i++) POPCOUNT[i] = (i & 1) + POPCOUNT[i >> 1];
+
+function shardKey(name) {
+  const normalized = normalizeTitle(name);
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < normalized.length; i++) {
+    hash ^= normalized.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return (hash & 0xff).toString(16).padStart(2, "0");
+}
+
+function decodeHash(value) {
+  const binary = atob(value);
+  const output = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) output[i] = binary.charCodeAt(i);
+  return output;
+}
+
+async function loadShard(name) {
+  const key = shardKey(name);
+  if (!shardCache.has(key)) {
+    shardCache.set(key, fetch(`/carddata/shards/${key}.json`).then((response) => {
+      if (!response.ok) throw new Error(`Card shard ${key} is missing.`);
+      return response.json();
+    }));
+  }
+  return shardCache.get(key);
+}
+
+async function matchShardedPrinting(name, result, strategy) {
+  const shard = await loadShard(name);
+  const rows = shard.filter((row) => row[0] === name);
+  if (!rows.length) return null;
+  let querySets = (result.query_candidates || []).filter((candidate) => candidate.strategy === strategy);
+  if (!querySets.length) querySets = result.query_candidates || [];
+  let best = null;
+  for (const row of rows) {
+    const indexed = decodeHash(row[5]);
+    let distance = 0xffff;
+    for (const candidate of querySets) {
+      for (const query of candidate.vectors || []) {
+        let current = 0;
+        for (let i = 0; i < VEC_BYTES; i++) current += POPCOUNT[indexed[i] ^ query[i]];
+        if (current < distance) distance = current;
+      }
+    }
+    if (!best || distance < best.distance) best = { row, distance };
+  }
+  const [cardName, set, collectorNumber, id, face] = best.row;
+  const side = face === 1 ? "back" : "front";
+  return {
+    name: cardName,
+    set,
+    collector_number: collectorNumber,
+    image: `https://cards.scryfall.io/normal/${side}/${id[0]}/${id[1]}/${id}.jpg`,
+    scryfall_uri: `https://scryfall.com/card/${set}/${collectorNumber}`,
+    distance: best.distance,
+    confidence: Math.max(0, Math.min(1, (230 - best.distance) / 140)),
+    strategy: strategy || "ocr-title",
+  };
 }
 
 function cardFromIndex(name) {
@@ -177,8 +256,25 @@ function suppressUnsafeVisualFallback(result) {
   return result.card_found && bestDistance <= 170 ? result : { ...result, matches: [] };
 }
 
+async function applyVisualFallback(result) {
+  if (!result.sharded_index || !result.card_found) return suppressUnsafeVisualFallback(result);
+  try {
+    const fallback = await runVisualFallback(result.query_candidates);
+    const merged = {
+      ...result,
+      matches: fallback.matches,
+      printing_matches: fallback.printing_matches,
+    };
+    return (merged.matches?.[0]?.distance ?? Infinity) <= 140
+      ? merged
+      : { ...merged, matches: [] };
+  } catch (error) {
+    return { ...result, matches: [], visual_fallback_error: String(error?.message || error) };
+  }
+}
+
 async function applyTitleOCR(result) {
-  if (!result.title_candidates?.length) return suppressUnsafeVisualFallback(result);
+  if (!result.title_candidates?.length) return applyVisualFallback(result);
   try {
     const worker = await getOCRWorker();
     let bestRead = null;
@@ -210,7 +306,7 @@ async function applyTitleOCR(result) {
       ocr_strategy: bestRead?.strategy || "",
       title_score: title?.score || 0,
     };
-    if (!title) return suppressUnsafeVisualFallback(enriched);
+    if (!title) return applyVisualFallback(enriched);
     const normalized = normalizeTitle(title.name);
     const isShortSingleWord = !normalized.includes(" ") && normalized.length <= 8;
     // Short names such as Forest are easy accidental OCR matches and therefore
@@ -218,13 +314,15 @@ async function applyTitleOCR(result) {
     // as "Gaunt" or "Rarnpart".
     const requiredScore = isShortSingleWord ? 0.93 : 0.74;
     if (title.score < requiredScore || bestRead.confidence < 25) {
-      return suppressUnsafeVisualFallback(enriched);
+      return applyVisualFallback(enriched);
     }
-    const printing = (result.printing_matches || [])
-      .filter((match) => match.name === title.name)
-      .sort((a, b) => a.distance - b.distance)[0]
-      || cardFromIndex(title.name);
-    if (!printing) return suppressUnsafeVisualFallback(enriched);
+    const printing = result.sharded_index
+      ? await matchShardedPrinting(title.name, result, bestRead.strategy)
+      : (result.printing_matches || [])
+        .filter((match) => match.name === title.name)
+        .sort((a, b) => a.distance - b.distance)[0]
+        || cardFromIndex(title.name);
+    if (!printing) return applyVisualFallback(enriched);
     return {
       ...enriched,
       matches: [{
@@ -234,7 +332,7 @@ async function applyTitleOCR(result) {
       }],
     };
   } catch (error) {
-    return suppressUnsafeVisualFallback({ ...result, ocr_error: String(error?.message || error) });
+    return applyVisualFallback({ ...result, ocr_error: String(error?.message || error) });
   }
 }
 
@@ -248,6 +346,19 @@ function runOnWorker(bmp, point = { nx: 0.5, ny: 0.5 }) {
     }, IDENTIFY_TIMEOUT_MS);
     pending.set(id, { resolve, reject, timer });
     w.postMessage({ type: "identify", id, bmp, point }, [bmp]);
+  });
+}
+
+function runVisualFallback(queryCandidates) {
+  const w = getWorker();
+  const id = ++seq;
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      pending.delete(id);
+      reject(new Error("Visual fallback timed out. Please try again."));
+    }, 60000);
+    pending.set(id, { resolve, reject, timer });
+    w.postMessage({ type: "visual-fallback", id, queryCandidates });
   });
 }
 

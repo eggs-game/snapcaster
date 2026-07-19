@@ -4,7 +4,7 @@ A SpellTable-style web app for playing paper Magic: The Gathering remotely — w
 
 ## Why it beats SpellTable at recognition
 
-- **Every printing indexed** — built from Scryfall bulk data: all printings, alternate arts, showcase frames, promos.
+- **Every English paper printing indexed** — built from Scryfall bulk data: alternate arts, basic lands, showcase frames, promos, and Secret Lairs.
 - **High-res capture** — clicking a card on an opponent's video makes *their* browser photograph it from their local camera at full resolution and send the crop over a peer-to-peer channel. Recognition never runs on the compressed video stream.
 - **Low light** — every lookup is matched raw *and* contrast-normalized; best score wins.
 - **Tilted cameras and tapped cards** — the card outline is detected, perspective-corrected, and matched at all 4 rotations.
@@ -50,7 +50,7 @@ Open your URL, allow camera + mic, **Create game**, send the 4-letter code to up
 
 ## Notes
 
-- **First lookup is slower** (~10 MB of OpenCV + index loads in the background; cached after that).
+- **Fast at full scale:** the browser loads a compact name dictionary, then downloads only the small printing shard for the OCR-matched card. It never scans the complete 96,000+ printing index on each click.
 - **Strict NATs:** WebRTC is peer-to-peer; a small % of home networks need a TURN relay. Free option: [metered.ca TURN](https://www.metered.ca/tools/openrelay/) — add `VITE_TURN_URL`, `VITE_TURN_USER`, `VITE_TURN_PASS` env vars in Vercel and redeploy.
 - **New sets** are picked up by the monthly automatic index rebuild (or run the Action manually).
 - Card data and images © Wizards of the Coast, via [Scryfall](https://scryfall.com) under the WotC Fan Content Policy. Unofficial fan project.

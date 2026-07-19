@@ -221,11 +221,19 @@ function loadCV() {
 }
 
 // ---------- card index ----------
-let index = null, cards = null, indexPromise = null;
+let index = null, cards = null, manifest = null, shardedIndex = false, indexPromise = null;
 
 function loadIndex() {
   if (indexPromise) return indexPromise;
   indexPromise = (async () => {
+    const manifestResponse = await fetch("/carddata/manifest.json");
+    if (manifestResponse.ok) {
+      manifest = await manifestResponse.json();
+      if (manifest.version === 2) {
+        shardedIndex = true;
+        return manifest.count;
+      }
+    }
     const [h, c] = await Promise.all([fetch("/carddata/hashes.bin"), fetch("/carddata/cards.json")]);
     if (!h.ok || !c.ok) throw new Error("Card index not found");
     index = new Uint8Array(await h.arrayBuffer());
@@ -234,6 +242,19 @@ function loadIndex() {
     return cards.length;
   })();
   return indexPromise;
+}
+
+async function loadGlobalIndex() {
+  if (index && cards) return cards.length;
+  const [hashResponse, cardsResponse] = await Promise.all([
+    fetch("/carddata/hashes.bin"),
+    fetch("/carddata/cards.json"),
+  ]);
+  if (!hashResponse.ok || !cardsResponse.ok) throw new Error("Global fallback index not found");
+  index = new Uint8Array(await hashResponse.arrayBuffer());
+  cards = await cardsResponse.json();
+  if (index.length !== cards.length * VEC_BYTES) throw new Error("Global fallback index corrupted");
+  return cards.length;
 }
 
 function cardMeta(i, distance) {
@@ -564,16 +585,25 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   }
   if (bmp.close) bmp.close();
 
-  const n = cards.length;
+  const n = cards?.length || 0;
   const dists = new Uint16Array(n).fill(0xffff);
   const strategies = new Array(n).fill("none");
+  const queryCandidates = [];
   let candidatesTried = 0;
   let bestCandidateImage = null;
+  let bestCandidateStrategy = "";
   let bestCandidateDistance = 0xffff;
   for (const candidate of candidates) {
     candidatesTried++;
+    const variants = queryVariants(toGray(candidate.image));
+    queryCandidates.push({ strategy: candidate.strategy, vectors: variants });
+    if (!bestCandidateImage) {
+      bestCandidateImage = candidate.image;
+      bestCandidateStrategy = candidate.strategy;
+    }
+    if (!n) continue;
     const candidateDists = new Uint16Array(n).fill(0xffff);
-    for (const q of queryVariants(toGray(candidate.image))) hammingSearch(q, index, n, candidateDists);
+    for (const q of variants) hammingSearch(q, index, n, candidateDists);
     let candidateBest = 0xffff;
     for (let i = 0; i < n; i++) {
       if (candidateDists[i] < candidateBest) candidateBest = candidateDists[i];
@@ -585,6 +615,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     if (candidateBest < bestCandidateDistance) {
       bestCandidateDistance = candidateBest;
       bestCandidateImage = candidate.image;
+      bestCandidateStrategy = candidate.strategy;
     }
     // A distance this low is already a decisive match; avoid spending time on
     // weaker fallback candidates.
@@ -617,14 +648,60 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   if (bestCandidateImage && !preferredTitleCandidates.some((candidate) => candidate.image === bestCandidateImage)) {
     preferredTitleCandidates.push({
       image: bestCandidateImage,
-      strategy: strategies[top[0]?.i] || "visual-best",
+      strategy: bestCandidateStrategy || strategies[top[0]?.i] || "visual-best",
     });
   }
   const titleCandidates = await Promise.all(preferredTitleCandidates.map(async (candidate) => ({
     strategy: candidate.strategy,
     images: await Promise.all([0, 1, 2, 3].map((turns) => makeTitleImage(candidate.image, turns))),
   })));
-  return { matches, printingMatches, titleCandidates, cardFound, cvStatus, candidatesTried };
+  return {
+    matches, printingMatches, titleCandidates, queryCandidates,
+    cardFound, cvStatus, candidatesTried, shardedIndex,
+  };
+}
+
+async function visualFallback(queryCandidates) {
+  const n = await loadGlobalIndex();
+  const dists = new Uint16Array(n).fill(0xffff);
+  const strategies = new Array(n).fill("none");
+  let preferred = (queryCandidates || [])
+    .filter((candidate) => candidate.strategy === "full-frame" || candidate.strategy.startsWith("outline-"))
+    .slice(0, 2);
+  if (!preferred.length) preferred = (queryCandidates || []).slice(0, 1);
+  for (const candidate of preferred) {
+    const candidateDists = new Uint16Array(n).fill(0xffff);
+    for (const vector of candidate.vectors || []) {
+      hammingSearch(new Uint8Array(vector), index, n, candidateDists);
+    }
+    for (let i = 0; i < n; i++) {
+      if (candidateDists[i] < dists[i]) {
+        dists[i] = candidateDists[i];
+        strategies[i] = candidate.strategy;
+      }
+    }
+  }
+  const top = [];
+  for (let i = 0; i < n; i++) {
+    if (top.length < 20 || dists[i] < top[top.length - 1].d) {
+      top.push({ i, d: dists[i] });
+      top.sort((a, b) => a.d - b.d);
+      if (top.length > 20) top.pop();
+    }
+  }
+  const printingMatches = top.map((entry) => ({
+    ...cardMeta(entry.i, entry.d),
+    strategy: strategies[entry.i],
+  }));
+  const matches = [];
+  const names = new Set();
+  for (const match of printingMatches) {
+    if (names.has(match.name)) continue;
+    names.add(match.name);
+    matches.push(match);
+    if (matches.length === 15) break;
+  }
+  return { matches, printingMatches };
 }
 
 // Kick off loads as soon as the worker spins up.
@@ -632,13 +709,19 @@ loadIndex().catch(() => {});
 loadCV().catch(() => {});
 
 self.onmessage = async (e) => {
-  const { id, type, bmp, point } = e.data || {};
+  const { id, type, bmp, point, queryCandidates } = e.data || {};
   if (type === "identify") {
     try {
       const res = await identify(bmp, point);
       self.postMessage({ id, ...res });
     } catch (err) {
       if (bmp && bmp.close) bmp.close();
+      self.postMessage({ id, error: String((err && err.message) || err) });
+    }
+  } else if (type === "visual-fallback") {
+    try {
+      self.postMessage({ id, ...(await visualFallback(queryCandidates)) });
+    } catch (err) {
       self.postMessage({ id, error: String((err && err.message) || err) });
     }
   }

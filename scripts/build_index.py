@@ -1,29 +1,44 @@
 #!/usr/bin/env python3
-"""Build the browser card index from Scryfall into public/carddata/.
+"""Build a sharded browser index containing every English paper printing.
 
-Runs in GitHub Actions (see .github/workflows/build-index.yml) — no local
-setup needed. Outputs:
-  public/carddata/hashes.bin  raw uint8, N x 64 bytes (256-bit pHash + 256-bit dHash)
-  public/carddata/cards.json  [[name, set, collector_number, scryfall_id, face], ...]
+Outputs:
+  manifest.json          index version and counts
+  names.json             unique card names used by OCR fuzzy matching
+  shards/00..ff.json     metadata + visual hash, partitioned by card name
 
-Usage:
-  python scripts/build_index.py --bulk default_cards   # every printing (default)
-  python scripts/build_index.py --query "set:otj"      # quick test index
+Each shard row is:
+  [name, set, collector_number, scryfall_id, face, base64_hash]
+
+Existing shards (or the legacy cards.json/hashes.bin pair) are reused by
+Scryfall ID + face, so scheduled updates download only newly released artwork.
 """
-import argparse, io, json, os, sys, time
-import numpy as np
+import argparse
+import base64
+import concurrent.futures
+import io
+import json
+import os
+import shutil
+import sys
+import threading
+import time
+import unicodedata
+
 import cv2
+import numpy as np
 import requests
 from PIL import Image
 
 API = "https://api.scryfall.com"
-HEADERS = {"User-Agent": "Snapcaster/1.0 (fan project)", "Accept": "*/*"}
+HEADERS = {"User-Agent": "Snapcaster/2.0 (fan project)", "Accept": "*/*"}
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT = os.path.join(ROOT, "public", "carddata")
-CACHE = os.path.join(ROOT, ".cache")
+DEFAULT_OUT = os.path.join(ROOT, "public", "carddata")
+DEFAULT_CACHE = os.path.join(ROOT, ".cache")
 
 HASH_SIZE = 16
 CARD_W, CARD_H = 244, 340
+VEC_BYTES = 64
+SHARD_COUNT = 256
 
 
 def phash_bits(gray):
@@ -43,105 +58,224 @@ def compute_hashes(bgr):
     return np.concatenate([np.packbits(phash_bits(gray)), np.packbits(dhash_bits(gray))]).astype(np.uint8)
 
 
+def normalize_name(name):
+    value = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode().lower()
+    return " ".join("".join(ch if ch.isalnum() else " " for ch in value).split())
+
+
+def shard_key(name):
+    value = normalize_name(name).encode("utf-8")
+    result = 0x811C9DC5
+    for byte in value:
+        result ^= byte
+        result = (result * 0x01000193) & 0xFFFFFFFF
+    return f"{result & 0xFF:02x}"
+
+
 def iter_query_cards(query):
     url, params = f"{API}/cards/search", {"q": query, "unique": "prints"}
     while url:
-        r = requests.get(url, params=params, headers=HEADERS, timeout=30)
-        r.raise_for_status()
-        data = r.json()
+        response = requests.get(url, params=params, headers=HEADERS, timeout=30)
+        response.raise_for_status()
+        data = response.json()
         yield from data["data"]
         url, params = data.get("next_page"), None
         time.sleep(0.1)
 
 
-def iter_bulk_cards(bulk_type):
-    r = requests.get(f"{API}/bulk-data", headers=HEADERS, timeout=30)
-    r.raise_for_status()
-    entry = next(b for b in r.json()["data"] if b["type"] == bulk_type)
-    os.makedirs(CACHE, exist_ok=True)
-    path = os.path.join(CACHE, f"{bulk_type}.json")
+def iter_bulk_cards(bulk_type, cache_dir):
+    response = requests.get(f"{API}/bulk-data", headers=HEADERS, timeout=30)
+    response.raise_for_status()
+    entry = next(item for item in response.json()["data"] if item["type"] == bulk_type)
+    os.makedirs(cache_dir, exist_ok=True)
+    path = os.path.join(cache_dir, f"{bulk_type}-{entry['updated_at'][:10]}.json")
     if not os.path.exists(path):
         print(f"Downloading bulk metadata ({entry['size'] / 1e6:.0f} MB)...", flush=True)
-        with requests.get(entry["download_uri"], headers=HEADERS, stream=True, timeout=120) as resp:
-            resp.raise_for_status()
-            with open(path, "wb") as f:
-                for chunk in resp.iter_content(1 << 20):
-                    f.write(chunk)
-    with open(path, encoding="utf-8") as f:
-        yield from json.load(f)
+        with requests.get(entry["download_uri"], headers=HEADERS, stream=True, timeout=180) as download:
+            download.raise_for_status()
+            with open(path, "wb") as output:
+                for chunk in download.iter_content(1 << 20):
+                    output.write(chunk)
+    with open(path, encoding="utf-8") as source:
+        yield from json.load(source)
 
 
 def faces(card):
-    """Yield (face_index, image_url, display_name). face 0=front, 1=back."""
+    """Yield (face_index, image_url, display_name)."""
     if card.get("image_uris"):
-        u = card["image_uris"].get("small") or card["image_uris"].get("normal")
-        if u:
-            yield 0, u, card["name"]
+        url = card["image_uris"].get("small") or card["image_uris"].get("normal")
+        if url:
+            yield 0, url, card["name"]
         return
-    for i, f in enumerate(card.get("card_faces") or []):
-        if f.get("image_uris"):
-            u = f["image_uris"].get("small") or f["image_uris"].get("normal")
-            if u:
-                yield min(i, 1), u, f.get("name", card["name"])
+    for index, face in enumerate(card.get("card_faces") or []):
+        if face.get("image_uris"):
+            url = face["image_uris"].get("small") or face["image_uris"].get("normal")
+            if url:
+                yield min(index, 1), url, face.get("name", card["name"])
 
 
-def fetch_image(url, session):
-    r = session.get(url, headers=HEADERS, timeout=30)
-    r.raise_for_status()
-    img = Image.open(io.BytesIO(r.content)).convert("RGB")
-    bgr = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-    return cv2.resize(bgr, (CARD_W, CARD_H), interpolation=cv2.INTER_AREA)
+def load_existing(out_dir):
+    """Return {(scryfall_id, face): row} from v2 shards or legacy files."""
+    existing = {}
+    shard_dir = os.path.join(out_dir, "shards")
+    if os.path.isdir(shard_dir):
+        for filename in os.listdir(shard_dir):
+            if not filename.endswith(".json"):
+                continue
+            with open(os.path.join(shard_dir, filename), encoding="utf-8") as source:
+                for row in json.load(source):
+                    existing[(row[3], int(row[4]))] = row
+        return existing
 
+    cards_path = os.path.join(out_dir, "cards.json")
+    hashes_path = os.path.join(out_dir, "hashes.bin")
+    if os.path.exists(cards_path) and os.path.exists(hashes_path):
+        with open(cards_path, encoding="utf-8") as source:
+            cards = json.load(source)
+        hashes = np.fromfile(hashes_path, dtype=np.uint8)
+        if hashes.size == len(cards) * VEC_BYTES:
+            hashes = hashes.reshape((-1, VEC_BYTES))
+            for row, vector in zip(cards, hashes):
+                existing[(row[3], int(row[4]))] = [
+                    *row[:5], base64.b64encode(vector.tobytes()).decode("ascii")
+                ]
+    return existing
+
+
+class RateLimiter:
+    def __init__(self, requests_per_second=9):
+        self.interval = 1 / requests_per_second
+        self.next_at = 0.0
+        self.lock = threading.Lock()
+
+    def wait(self):
+        with self.lock:
+            now = time.monotonic()
+            delay = max(0, self.next_at - now)
+            self.next_at = max(now, self.next_at) + self.interval
+        if delay:
+            time.sleep(delay)
+
+
+def fetch_and_hash(task, limiter):
+    name, set_code, collector_number, card_id, face, url = task
+    session = requests.Session()
+    for attempt in range(4):
+        try:
+            limiter.wait()
+            response = session.get(url, headers=HEADERS, timeout=30)
+            response.raise_for_status()
+            image = Image.open(io.BytesIO(response.content)).convert("RGB")
+            bgr = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+            bgr = cv2.resize(bgr, (CARD_W, CARD_H), interpolation=cv2.INTER_AREA)
+            vector = compute_hashes(bgr)
+            return [name, set_code, collector_number, card_id, face,
+                    base64.b64encode(vector.tobytes()).decode("ascii")]
+        except Exception as error:
+            if attempt == 3:
+                return error
+            time.sleep(2 ** attempt)
+
+
+def write_index(rows, out_dir):
+    shards = {f"{index:02x}": [] for index in range(SHARD_COUNT)}
+    for row in rows:
+        shards[shard_key(row[0])].append(row)
+    for values in shards.values():
+        values.sort(key=lambda row: (normalize_name(row[0]), row[1], str(row[2]), row[3], row[4]))
+
+    os.makedirs(out_dir, exist_ok=True)
+    temp_dir = os.path.join(out_dir, "shards-next")
+    shutil.rmtree(temp_dir, ignore_errors=True)
+    os.makedirs(temp_dir)
+    for key, values in shards.items():
+        if values:
+            with open(os.path.join(temp_dir, f"{key}.json"), "w", encoding="utf-8") as output:
+                json.dump(values, output, separators=(",", ":"))
+
+    shard_dir = os.path.join(out_dir, "shards")
+    shutil.rmtree(shard_dir, ignore_errors=True)
+    os.replace(temp_dir, shard_dir)
+    names = sorted({row[0] for row in rows}, key=normalize_name)
+    with open(os.path.join(out_dir, "names.json"), "w", encoding="utf-8") as output:
+        json.dump(names, output, separators=(",", ":"))
+    with open(os.path.join(out_dir, "manifest.json"), "w", encoding="utf-8") as output:
+        json.dump({
+            "version": 2,
+            "count": len(rows),
+            "names": len(names),
+            "shards": SHARD_COUNT,
+            "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        }, output, separators=(",", ":"))
+
+    # Lazy visual fallback for cards whose title treatment is not OCR-friendly
+    # (some Secret Lairs in particular). The browser only downloads these files
+    # after title OCR fails; ordinary scans stay on the much smaller name shard.
+    ordered = sorted(rows, key=lambda row: (
+        normalize_name(row[0]), row[1], str(row[2]), row[3], row[4]
+    ))
+    with open(os.path.join(out_dir, "cards.json"), "w", encoding="utf-8") as output:
+        json.dump([row[:5] for row in ordered], output, separators=(",", ":"))
+    with open(os.path.join(out_dir, "hashes.bin"), "wb") as output:
+        for row in ordered:
+            output.write(base64.b64decode(row[5]))
 
 def main():
-    ap = argparse.ArgumentParser()
-    g = ap.add_mutually_exclusive_group()
-    g.add_argument("--query")
-    g.add_argument("--bulk")
-    ap.add_argument("--limit", type=int, default=0)
-    args = ap.parse_args()
+    parser = argparse.ArgumentParser()
+    scope = parser.add_mutually_exclusive_group()
+    scope.add_argument("--query")
+    scope.add_argument("--bulk")
+    parser.add_argument("--limit", type=int, default=0)
+    parser.add_argument("--workers", type=int, default=8)
+    parser.add_argument("--out", default=DEFAULT_OUT)
+    parser.add_argument("--cache", default=DEFAULT_CACHE)
+    args = parser.parse_args()
     if not args.query and not args.bulk:
         args.bulk = "default_cards"
 
-    cards_iter = iter_query_cards(args.query) if args.query else iter_bulk_cards(args.bulk)
-    session = requests.Session()
-
-    hashes, meta = [], []
-    n = fails = 0
-    t0 = time.time()
+    existing = load_existing(args.out)
+    cards_iter = iter_query_cards(args.query) if args.query else iter_bulk_cards(args.bulk, args.cache)
+    tasks, reused = [], []
+    card_count = 0
     for card in cards_iter:
-        if card.get("digital"):
-            continue  # skip Arena/MTGO-only printings
+        if card.get("digital") or "paper" not in (card.get("games") or []):
+            continue
         for face, url, name in faces(card):
-            for attempt in range(3):
-                try:
-                    bgr = fetch_image(url, session)
-                    hashes.append(compute_hashes(bgr))
-                    meta.append([name, card.get("set", ""), card.get("collector_number", ""),
-                                 card["id"], face])
-                    break
-                except Exception as e:
-                    if attempt == 2:
-                        fails += 1
-                        print(f"  ! {name}: {e}", file=sys.stderr)
-                    else:
-                        time.sleep(2)
-            time.sleep(0.075)  # Scryfall rate-limit courtesy (~13 req/s max)
-        n += 1
-        if n % 1000 == 0:
-            rate = n / (time.time() - t0)
-            print(f"  {n} cards, {len(meta)} faces, {rate:.1f} cards/s", flush=True)
-        if args.limit and n >= args.limit:
+            key = (card["id"], face)
+            if key in existing:
+                reused.append(existing[key])
+            else:
+                tasks.append((
+                    name, card.get("set", ""), card.get("collector_number", ""),
+                    card["id"], face, url,
+                ))
+        card_count += 1
+        if args.limit and card_count >= args.limit:
             break
 
-    if not hashes:
-        sys.exit("No cards indexed — check the query.")
+    print(f"Scope: {card_count} cards; reusing {len(reused)} faces; hashing {len(tasks)} new faces", flush=True)
+    limiter = RateLimiter()
+    added, failures = [], 0
+    started = time.time()
+    with concurrent.futures.ThreadPoolExecutor(max_workers=args.workers) as executor:
+        futures = [executor.submit(fetch_and_hash, task, limiter) for task in tasks]
+        for index, future in enumerate(concurrent.futures.as_completed(futures), 1):
+            result = future.result()
+            if isinstance(result, Exception):
+                failures += 1
+                print(f"  ! {result}", file=sys.stderr)
+            else:
+                added.append(result)
+            if index % 500 == 0:
+                rate = index / max(1, time.time() - started)
+                print(f"  {index}/{len(tasks)} new faces ({rate:.1f}/s), {failures} failures", flush=True)
 
-    os.makedirs(OUT, exist_ok=True)
-    np.stack(hashes).tofile(os.path.join(OUT, "hashes.bin"))
-    with open(os.path.join(OUT, "cards.json"), "w", encoding="utf-8") as f:
-        json.dump(meta, f, separators=(",", ":"))
-    print(f"Done: {len(meta)} card faces indexed ({fails} failures) -> public/carddata/")
+    rows = reused + added
+    if not rows:
+        sys.exit("No card faces indexed.")
+    write_index(rows, args.out)
+    print(f"Done: {len(rows)} faces, {len({row[0] for row in rows})} names, "
+          f"{failures} failures -> {args.out}", flush=True)
 
 
 if __name__ == "__main__":
