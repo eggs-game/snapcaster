@@ -187,7 +187,9 @@ export class GameConnection {
   }
 }
 
-// Full-res crop around normalized point from local camera.
+// Full-res crop around normalized point from local camera. Keep most of the
+// frame height: a card held close to the webcam can easily exceed the old 55%
+// crop and lose its top/bottom edges, making outline detection impossible.
 export async function captureLocalCrop(stream, nx, ny) {
   const track = stream?.getVideoTracks()[0];
   if (!track) throw new Error("no local video");
@@ -196,7 +198,7 @@ export async function captureLocalCrop(stream, nx, ny) {
   video.muted = true;
   await video.play();
   const w = video.videoWidth, h = video.videoHeight;
-  const side = Math.round(Math.min(w, h) * 0.55);
+  const side = Math.round(Math.min(w, h) * 0.9);
   const x0 = Math.max(0, Math.min(w - side, Math.round(nx * w) - side / 2));
   const y0 = Math.max(0, Math.min(h - side, Math.round(ny * h) - side / 2));
   const canvas = document.createElement("canvas");

@@ -356,11 +356,13 @@ function rectifyCard(srcImageData, corners) {
   return id;
 }
 
-// Center-crop fallback (no OpenCV) at card aspect ratio -> CARD_W x CARD_H.
-function centerCropImageData(bmp) {
+// Click-guided fallback at card aspect ratio -> CARD_W x CARD_H. Trying several
+// scales makes recognition useful even when glare, a sleeve, or a hand prevents
+// OpenCV from finding a closed four-sided contour.
+function centerCropImageData(bmp, scale = 0.9) {
   const w = bmp.width, h = bmp.height;
-  let ch = Math.round(h * 0.9), cw = Math.round((ch * CARD_W) / CARD_H);
-  if (cw > w) { cw = Math.round(w * 0.9); ch = Math.round((cw * CARD_H) / CARD_W); }
+  let ch = Math.round(h * scale), cw = Math.round((ch * CARD_W) / CARD_H);
+  if (cw > w) { cw = Math.round(w * scale); ch = Math.round((cw * CARD_H) / CARD_W); }
   const canvas = new OffscreenCanvas(CARD_W, CARD_H);
   const ctx = canvas.getContext("2d");
   ctx.drawImage(bmp, (w - cw) / 2, (h - ch) / 2, cw, ch, 0, 0, CARD_W, CARD_H);
@@ -417,9 +419,15 @@ async function identify(bmp) {
       console.warn("[snapcaster worker] outline detection failed", e);
     }
   }
-  // Always include a deterministic fallback. The best hash distance across all
-  // candidates wins, so a bad contour cannot override a better crop.
-  candidates.push({ image: centerCropImageData(bmp), strategy: "center-crop" });
+  // Always include click-centered crops at several sizes. The click is centered
+  // in the captured square, so one of these often approximates the card border
+  // even when no closed contour is available.
+  for (const scale of [0.9, 0.75, 0.6, 0.45, 0.35]) {
+    candidates.push({
+      image: centerCropImageData(bmp, scale),
+      strategy: `center-${Math.round(scale * 100)}`,
+    });
+  }
   if (bmp.close) bmp.close();
 
   const n = cards.length;
