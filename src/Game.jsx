@@ -1,5 +1,8 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import { PanelRightClose, PanelRightOpen } from "lucide-react";
+import {
+  Mic, MicOff, PanelLeftClose, PanelLeftOpen,
+  PanelRightClose, PanelRightOpen, Video, VideoOff,
+} from "lucide-react";
 import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
 import { identify as identifyCard, preload as preloadRecognition } from "./recognition/matcher.js";
 import CardSidebar from "./CardSidebar.jsx";
@@ -19,6 +22,7 @@ export default function Game({ session, onLeave }) {
   const [current, setCurrent] = useState(null);
   const [flash, setFlash] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [controlsOpen, setControlsOpen] = useState(false);
 
   useEffect(() => {
     // Spin up the recognition worker now so OpenCV compiles in the background
@@ -122,7 +126,17 @@ export default function Game({ session, onLeave }) {
   return (
     <div className="game">
       <header className="topbar">
-        <span className="logo">Snapcaster</span>
+        <div className="topbar-left">
+          <button
+            className="drawer-toggle"
+            onClick={() => setControlsOpen((open) => !open)}
+            aria-label={controlsOpen ? "Close controls" : "Open controls"}
+            title={controlsOpen ? "Close controls" : "Open controls"}
+          >
+            {controlsOpen ? <PanelLeftClose size={22} /> : <PanelLeftOpen size={22} />}
+          </button>
+          <span className="logo">Snapcaster</span>
+        </div>
         <button
           className="drawer-toggle"
           onClick={() => setSidebarOpen((open) => !open)}
@@ -132,6 +146,29 @@ export default function Game({ session, onLeave }) {
           {sidebarOpen ? <PanelRightClose size={22} /> : <PanelRightOpen size={22} />}
         </button>
       </header>
+
+      {controlsOpen && (
+        <div className="controls-overlay" onClick={() => setControlsOpen(false)}>
+          <aside className="controls-drawer" onClick={(e) => e.stopPropagation()}>
+            <h3>Controls</h3>
+            <button
+              className={camOn ? "control-row" : "control-row off"}
+              onClick={toggleCam}
+            >
+              {camOn ? <Video size={20} /> : <VideoOff size={20} />}
+              <span>{camOn ? "Camera on" : "Camera off"}</span>
+            </button>
+            <button
+              className={micOn ? "control-row" : "control-row off"}
+              onClick={toggleMic}
+            >
+              {micOn ? <Mic size={20} /> : <MicOff size={20} />}
+              <span>{micOn ? "Mic on" : "Mic muted"}</span>
+            </button>
+          </aside>
+        </div>
+      )}
+
       <div className="main">
         <div className="grid">
           {tiles.map((t, i) => (
