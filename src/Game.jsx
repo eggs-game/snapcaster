@@ -54,10 +54,12 @@ export default function Game({ session, onLeave }) {
     setTimeout(() => setFlash(null), 600);
     setCurrent({ loading: true });
     try {
+      // Captures are native-resolution crops centered on the clicked point
+      // (both local and remote), so the click is always at the crop center.
       const image = tileId === myId
-        ? await captureLocalFrame(conn.localStream)
+        ? await captureLocalFrame(conn.localStream, pt.nx, pt.ny)
         : await conn.requestRemoteCapture(tileId, pt.nx, pt.ny);
-      const data = await identifyCard(image, pt);
+      const data = await identifyCard(image, { nx: 0.5, ny: 0.5 });
       setCurrent({
         matches: data.matches || [],
         cardFound: data.card_found,

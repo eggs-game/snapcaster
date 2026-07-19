@@ -710,9 +710,16 @@ async function visualFallback(queryCandidates) {
   const n = await loadGlobalIndex();
   const dists = new Uint16Array(n).fill(0xffff);
   const strategies = new Array(n).fill("none");
-  let preferred = (queryCandidates || [])
+  // Search outline rectifications AND the click-centered crops. When outline
+  // detection latches onto a wrong quad (sleeve edge, playmat art), the
+  // click-centered crops are the only candidates that contain the real card.
+  const outlineCandidates = (queryCandidates || [])
     .filter((candidate) => candidate.strategy === "full-frame" || candidate.strategy.startsWith("outline-"))
     .slice(0, 2);
+  const centerCandidates = (queryCandidates || [])
+    .filter((candidate) => candidate.strategy.startsWith("center-"))
+    .slice(0, 3);
+  let preferred = [...outlineCandidates, ...centerCandidates];
   if (!preferred.length) preferred = (queryCandidates || []).slice(0, 1);
   for (const candidate of preferred) {
     const candidateDists = new Uint16Array(n).fill(0xffff);

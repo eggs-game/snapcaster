@@ -12,7 +12,7 @@ export default function CardSidebar({ current, lookups, onPick }) {
   // Do not present a forced nearest neighbour as an identification. Real camera
   // scans can score around 190 even when the correct printing is ranked first,
   // so show those as a clearly labeled possible match.
-  const top = best && (best.identified_by === "ocr-title" || best.distance <= 170) ? best : null;
+  const top = best && (best.identified_by === "ocr-title" || best.distance <= 195) ? best : null;
   const showDiag = current && !current.loading && current.cvStatus !== undefined;
   return (
     <aside className="sidebar">
@@ -45,7 +45,7 @@ export default function CardSidebar({ current, lookups, onPick }) {
       {current?.loading && <div className="lookup-status">Identifying…</div>}
       {current?.error && <div className="lookup-status error">{current.error}</div>}
       {current?.matches?.length === 0 && <div className="lookup-status">No match found. Try clicking closer to the card center.</div>}
-      {best && !top && <div className="lookup-status">No confident match. Hold the card steady, fill more of the video, and click its center.</div>}
+      {best && !top && <div className="lookup-status">Not certain — best guesses below. Click the right card to select it.</div>}
       {top && (
         <div className="card-hit">
           <img src={top.image} alt={top.name} />
@@ -63,11 +63,11 @@ export default function CardSidebar({ current, lookups, onPick }) {
           </div>
         </div>
       )}
-      {top && current?.matches?.length > 1 && (
+      {(top ? current?.matches?.length > 1 : !!best) && (
         <>
-          <h4>Not right? Alternatives:</h4>
+          <h4>{top ? "Not right? Alternatives:" : "Best guesses:"}</h4>
           <div className="alts">
-            {current.matches.slice(1).map((m, i) => (
+            {(top ? current.matches.slice(1) : current.matches).slice(0, 12).map((m, i) => (
               <img key={i} src={m.image} alt={m.name} title={`${m.name} (${m.set})`} onClick={() => onPick(m)} />
             ))}
           </div>

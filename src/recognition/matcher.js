@@ -256,9 +256,16 @@ function cardFromIndex(name) {
   };
 }
 
+// Real webcam scans of the CORRECT card commonly land at distance 170–205
+// (unrelated cards sit around 220+), so never discard the ranked list below
+// 210 — show it as ranked guesses and let the player click the right card.
+// Distances above that are genuine noise and would only mislead.
+const VISUAL_KEEP = 210;
+
 function suppressUnsafeVisualFallback(result) {
   const bestDistance = result.matches?.[0]?.distance ?? Infinity;
-  return result.card_found && bestDistance <= 170 ? result : { ...result, matches: [] };
+  const keep = bestDistance <= 170 || (result.card_found && bestDistance <= VISUAL_KEEP);
+  return keep ? result : { ...result, matches: [] };
 }
 
 async function applyVisualFallback(result) {
@@ -270,7 +277,7 @@ async function applyVisualFallback(result) {
       matches: fallback.matches,
       printing_matches: fallback.printing_matches,
     };
-    return (merged.matches?.[0]?.distance ?? Infinity) <= 140
+    return (merged.matches?.[0]?.distance ?? Infinity) <= VISUAL_KEEP
       ? merged
       : { ...merged, matches: [] };
   } catch (error) {

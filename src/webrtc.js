@@ -28,8 +28,11 @@ export class GameConnection {
   }
 
   async initMedia() {
+    // Ask for the camera's maximum resolution — recognition crops are taken
+    // from the raw local track, so every native pixel directly improves card
+    // identification (WebRTC scales the *sent* video down on its own).
     this.localStream = await navigator.mediaDevices.getUserMedia({
-      video: { width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } },
+      video: { width: { ideal: 3840 }, height: { ideal: 2160 }, frameRate: { ideal: 24 } },
       audio: { echoCancellation: true, noiseSuppression: true },
     });
     return this.localStream;
@@ -124,7 +127,7 @@ export class GameConnection {
       try { m = JSON.parse(e.data); } catch { return; }
       if (m.t === "cap-req") {
         try {
-          const image = await captureLocalFrame(this.localStream);
+          const image = await captureLocalFrame(this.localStream, m.nx, m.ny);
           this._sendChunked(peerId, { t: "cap-res", id: m.id }, image);
         } catch (err) {
           this._dcSend(peerId, { t: "cap-res", id: m.id, error: String(err) });
@@ -195,9 +198,13 @@ export class GameConnection {
   }
 }
 
-// Stable camera frame used for recognition. The click point is sent separately
-// so clicking different parts of one card never changes the source image.
-export async function captureLocalFrame(stream) {
+// Recognition capture: a native-resolution crop centered on the clicked point.
+// Never downscales — a card that fills 1/10th of a playmat frame keeps every
+// pixel the sensor recorded, which is what makes small-card OCR and hashing
+// possible. The clicked point always maps to the crop center (out-of-frame
+// areas pad with black), so downstream code can assume {nx:0.5, ny:0.5}.
+// Takes the sharpest of three frames to dodge motion blur and autofocus hunts.
+export async function captureLocalFrame(stream, nx = 0.5, ny = 0.5) {
   const track = stream?.getVideoTracks()[0];
   if (!track) throw new Error("no local video");
   const video = document.createElement("video");
@@ -206,15 +213,50 @@ export async function captureLocalFrame(stream) {
   await video.play();
   const w = video.videoWidth, h = video.videoHeight;
   if (!w || !h) throw new Error("camera frame is not ready");
-  // 1280px retains enough card detail while keeping remote data-channel
-  // transfers and OpenCV contour detection fast.
-  const scale = Math.min(1, 1280 / w);
-  const outW = Math.round(w * scale), outH = Math.round(h * scale);
-  const canvas = document.createElement("canvas");
-  canvas.width = outW; canvas.height = outH;
-  canvas.getContext("2d").drawImage(video, 0, 0, w, h, 0, 0, outW, outH);
+  const side = Math.round(Math.min(w, h) * 0.55);
+  const cx = Math.max(0, Math.min(1, nx)) * w;
+  const cy = Math.max(0, Math.min(1, ny)) * h;
+
+  const grab = () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = side; canvas.height = side;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, side, side);
+    ctx.drawImage(video, cx - side / 2, cy - side / 2, side, side, 0, 0, side, side);
+    return canvas;
+  };
+  const sharpness = (canvas) => {
+    // Variance of a simple gradient on a small gray thumbnail — enough to
+    // rank motion blur without noticeable cost.
+    const t = document.createElement("canvas");
+    t.width = 160; t.height = 160;
+    t.getContext("2d").drawImage(canvas, 0, 0, 160, 160);
+    const d = t.getContext("2d").getImageData(0, 0, 160, 160).data;
+    let sum = 0, sumSq = 0, count = 0;
+    for (let y = 1; y < 159; y++) {
+      for (let x = 1; x < 159; x++) {
+        const i = (y * 160 + x) * 4;
+        const g = (d[i] + d[i + 1] + d[i + 2]) / 3;
+        const gx = (d[i + 4] + d[i + 5] + d[i + 6]) / 3 - g;
+        const gy = (d[i + 640] + d[i + 641] + d[i + 642]) / 3 - g;
+        const e = gx * gx + gy * gy;
+        sum += e; sumSq += e * e; count++;
+      }
+    }
+    const mean = sum / count;
+    return sumSq / count - mean * mean;
+  };
+
+  let best = grab(), bestScore = sharpness(best);
+  for (let i = 0; i < 2; i++) {
+    await new Promise((r) => setTimeout(r, 120));
+    const next = grab();
+    const score = sharpness(next);
+    if (score > bestScore) { best = next; bestScore = score; }
+  }
   video.pause(); video.srcObject = null;
-  return canvas.toDataURL("image/jpeg", 0.86);
+  return best.toDataURL("image/jpeg", 0.9);
 }
 
 // Map click on an object-fit:cover video to normalized source coords.
