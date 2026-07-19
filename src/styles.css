@@ -132,7 +132,9 @@ body { background: var(--bg2); color: var(--text); font-family: Inter, system-ui
 /* Sidebar */
 .sidebar { width: 300px; background: var(--bg); padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; border: 1px solid #333a48; border-radius: 20px; box-shadow: 0 4px 18px rgba(0,0,0,0.35); }
 .sidebar-head { display: flex; align-items: center; justify-content: space-between; }
-.sidebar-head-actions { display: flex; align-items: center; gap: 2px; }
+.sidebar-head-actions { display: flex; align-items: center; gap: 10px; }
+.sidebar-head-actions .drawer-toggle { background: none; border: none; }
+.sidebar-head-actions .drawer-toggle:hover { color: var(--text); }
 /* Two half-turns with a content swap in between read as one full card flip. */
 .sidebar.flip-out { animation: sidebar-flip-out 0.18s ease-in forwards; }
 .sidebar.flip-in { animation: sidebar-flip-in 0.18s ease-out; }
