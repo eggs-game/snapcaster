@@ -14,6 +14,7 @@ export default function Game({ session, onLeave }) {
   const [lives, setLives] = useState({}); // id -> life
   const [commanders, setCommanders] = useState({}); // id -> card name
   const [colors, setColors] = useState({}); // id -> hex color
+  const [mutedPlayers, setMutedPlayers] = useState({}); // id -> bool
   const [streams, setStreams] = useState({});
   const [localStream, setLocalStream] = useState(null);
   const [error, setError] = useState(null);
@@ -46,6 +47,7 @@ export default function Game({ session, onLeave }) {
       onLife: (id, life) => setLives((l) => ({ ...l, [id]: life })),
       onCommander: (id, commander) => setCommanders((values) => ({ ...values, [id]: commander })),
       onColor: (id, color) => setColors((values) => ({ ...values, [id]: color })),
+      onMuted: (id, muted) => setMutedPlayers((values) => ({ ...values, [id]: muted })),
       onCardIdentified: (msg) => setLookups((l) => [...l.slice(-11), { by: msg.byName, card: msg.card, at: Date.now() }]),
       onError: setError,
     });
@@ -118,7 +120,13 @@ export default function Game({ session, onLeave }) {
     connRef.current?.setColor(color);
   };
 
-  const toggleMic = () => { connRef.current.toggleTrack("audio", !micOn); setMicOn(!micOn); };
+  const toggleMic = () => {
+    const next = !micOn;
+    connRef.current.toggleTrack("audio", next);
+    setMicOn(next);
+    setMutedPlayers((values) => ({ ...values, [myId]: !next }));
+    connRef.current?.setMuted(!next);
+  };
   const toggleCam = () => { connRef.current.toggleTrack("video", !camOn); setCamOn(!camOn); };
 
   if (error) {
@@ -136,6 +144,7 @@ export default function Game({ session, onLeave }) {
     life: lives[p.id] ?? 40,
     commander: commanders[p.id] || "",
     color: colors[p.id] || TILE_COLORS[i % TILE_COLORS.length],
+    muted: !!mutedPlayers[p.id],
     stream: p.id === myId ? localStream : streams[p.id],
     isMe: p.id === myId,
   }));
@@ -418,12 +427,18 @@ function CommanderBanner({ tile, onChoose }) {
   }, [draft, tile.commander]);
 
   const playerLabel = `${tile.name}${tile.isMe ? " (you)" : ""}`;
+  const playerRow = (
+    <span className="banner-player-row">
+      {tile.muted && <MicOff size={12} className="banner-muted" aria-label="Muted" />}
+      <span className="banner-player">{playerLabel}</span>
+    </span>
+  );
 
   if (!tile.isMe) {
     return (
       <div className="commander-banner">
         <div className="banner-stack">
-          <span className="banner-player">{playerLabel}</span>
+          {playerRow}
           <span className={tile.commander ? "commander-name" : "commander-name unset"}>
             {tile.commander || "Not selected"}
           </span>
@@ -442,7 +457,7 @@ function CommanderBanner({ tile, onChoose }) {
         title="Click to change commander"
       >
         <div className="banner-stack">
-          <span className="banner-player">{playerLabel}</span>
+          {playerRow}
           <span className="commander-name">{tile.commander}</span>
         </div>
         <ManaCost cost={manaCost} />

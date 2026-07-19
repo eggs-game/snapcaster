@@ -26,6 +26,7 @@ export class GameConnection {
     this.knownIds = new Set();
     this.commander = "";
     this.color = "";
+    this.muted = false;
   }
 
   async initMedia() {
@@ -77,6 +78,7 @@ export class GameConnection {
     this.h.onRoster?.(roster.slice(0, 4));
     if (this.commander) this.room?.send({ type: "commander", commander: this.commander });
     if (this.color) this.room?.send({ type: "color", color: this.color });
+    if (this.muted) this.room?.send({ type: "muted", muted: true });
   }
 
   async _onSignal(msg) {
@@ -98,6 +100,7 @@ export class GameConnection {
       case "life": this.h.onLife?.(msg.from, msg.life); break;
       case "commander": this.h.onCommander?.(msg.from, String(msg.commander || "").slice(0, 120)); break;
       case "color": this.h.onColor?.(msg.from, String(msg.color || "").slice(0, 20)); break;
+      case "muted": this.h.onMuted?.(msg.from, !!msg.muted); break;
       case "card-identified": this.h.onCardIdentified?.(msg); break;
     }
   }
@@ -190,6 +193,10 @@ export class GameConnection {
   setColor(color) {
     this.color = String(color || "").trim().slice(0, 20);
     this.room?.send({ type: "color", color: this.color });
+  }
+  setMuted(muted) {
+    this.muted = !!muted;
+    this.room?.send({ type: "muted", muted: this.muted });
   }
   announceCard(card, byName) { this.room?.send({ type: "card-identified", card, byName }); }
 
