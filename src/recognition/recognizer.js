@@ -467,6 +467,20 @@ function findCardQuads(srcImageData, click) {
     tryBin(bin);
     cv.bitwise_not(bin, bin);
     tryBin(bin);
+    // Low-contrast rescue: a white-bordered card against a light wall has
+    // almost no luminance edge, but the colorful art/frame pops in the
+    // saturation channel even then.
+    try {
+      const rgb = new cv.Mat(), hsv = new cv.Mat(), channels = new cv.MatVector();
+      cv.cvtColor(src, rgb, cv.COLOR_RGBA2RGB);
+      cv.cvtColor(rgb, hsv, cv.COLOR_RGB2HSV);
+      cv.split(hsv, channels);
+      const sat = channels.get(1);
+      cv.threshold(sat, bin, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU);
+      cv.morphologyEx(bin, bin, cv.MORPH_CLOSE, k5);
+      tryBin(bin);
+      sat.delete(); channels.delete(); hsv.delete(); rgb.delete();
+    } catch (e) { /* saturation pass is best-effort */ }
     kernel.delete(); k5.delete();
   } finally {
     src.delete(); gray.delete(); blur.delete(); bin.delete();
@@ -690,19 +704,21 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   }
   // Always include click-centered crops at several sizes. One often
   // approximates the card border even when no closed contour is available.
-  for (const scale of [0.9, 0.75, 0.6, 0.45, 0.35]) {
+  // The small scales matter for hand-held and playmat cards: a card ~1/8 of
+  // the frame needs a tight crop or the hash/color see mostly background.
+  for (const scale of [0.9, 0.75, 0.6, 0.45, 0.35, 0.27, 0.2]) {
     candidates.push({
       image: centerCropImageData(bmp, scale, normalizedPoint),
       strategy: `center-${Math.round(scale * 100)}`,
     });
   }
-  // Counter-rotated crops rescue tilted cards (a card lying at ~20-40° on the
-  // playmat) when no contour quad isolated it. 90° steps are already covered
-  // by the hash rotations, so ±20/±40 fills the gaps in between.
-  for (const angle of [20, -20, 40, -40]) {
+  // Counter-rotated crops rescue tilted cards (hand-held at ~20°, or lying at
+  // ~20-40° on the playmat) when no contour quad isolated it. 90° steps are
+  // already covered by the hash rotations, so ±20/±40 fills the gaps between.
+  for (const [angle, scale] of [[20, 0.6], [-20, 0.6], [20, 0.35], [-20, 0.35], [40, 0.6], [-40, 0.6]]) {
     candidates.push({
-      image: tiltCropImageData(bmp, angle, 0.6, normalizedPoint),
-      strategy: `tilt${angle}`,
+      image: tiltCropImageData(bmp, angle, scale, normalizedPoint),
+      strategy: `tilt${angle}@${Math.round(scale * 100)}`,
     });
   }
   if (bmp.close) bmp.close();
@@ -716,6 +732,14 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   const n = cards?.length || 0;
   const dists = new Uint16Array(n).fill(0xffff);
   const useV3 = n > 0 && (colorIndex || artIndex);
+  // Global art-hash-only ranking over card-shaped candidates. When occlusion
+  // or color cast poisons the gray ranking, the art region alone can still
+  // shortlist the right card for ORB verification.
+  const artGlobal = useV3 && artIndex ? new Uint16Array(n).fill(0xffff) : null;
+  const artGlobalStrategies = new Set([
+    "full-frame", "outline-1", "outline-2", "center-45", "center-35", "center-27",
+    "tilt20@35", "tilt-20@35",
+  ]);
   // Combined gray+art+color ranking score (v3). Gray distances stay in `dists`
   // for the calibrated display/keep gates.
   const rank = useV3 ? new Float64Array(n).fill(Infinity) : null;
@@ -757,6 +781,16 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
         artVecs = [];
         let img = gray;
         for (let r = 0; r < 4; r++) { artVecs.push(artPHash(img)); img = rotate90(img); }
+      }
+      if (artVecs && artGlobal && artGlobalStrategies.has(candidate.strategy)) {
+        for (let i = 0; i < n; i++) {
+          const off = i * ART_BYTES;
+          for (const av of artVecs) {
+            let d = 0;
+            for (let b = 0; b < ART_BYTES; b++) d += POPCOUNT[artIndex[off + b] ^ av[b]];
+            if (d < artGlobal[i]) artGlobal[i] = d;
+          }
+        }
       }
       const colorSig = colorIndex ? colorSignature(candidate.image) : null;
       for (let i = 0; i < n; i++) {
@@ -819,17 +853,41 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     matches.push(match);
     if (matches.length === 24) break;
   }
+  // Union in the best pure-art-hash names the combined ranking missed, so ORB
+  // verification can rescue cards whose gray/color ranking was poisoned by
+  // occlusion (fingers), color cast, or a loose crop.
+  if (artGlobal) {
+    const artTop = [];
+    for (let i = 0; i < n; i++) {
+      if (artTop.length < 12 || artGlobal[i] < artTop[artTop.length - 1].d) {
+        artTop.push({ i, d: artGlobal[i] });
+        artTop.sort((a, b) => a.d - b.d);
+        if (artTop.length > 12) artTop.pop();
+      }
+    }
+    for (const t of artTop) {
+      if (t.d === 0xffff) continue;
+      const meta = cardMeta(t.i, dists[t.i]);
+      if (names.has(meta.name)) continue;
+      names.add(meta.name);
+      matches.push({ ...meta, strategy: "art-global" });
+      if (matches.length >= 36) break;
+    }
+  }
   // Stage C: verify the top hash guesses against the real card images by
   // matching art keypoints. A decisive art match settles identity outright.
   let matchesOut = matches;
   let artBest = null, artChecked = 0, artDecisive = false;
   if (cvReady && matches.length && bestCandidateImage) {
     try {
-      // Verify against two differently-produced crops: a bad best-crop guess
-      // shouldn't sink the whole verification.
-      const secondQuery = (candidates.find((c) => c.strategy === "center-60" && c.image !== bestCandidateImage)
-        || candidates.find((c) => c.image !== bestCandidateImage))?.image;
-      const queryImages = secondQuery ? [bestCandidateImage, secondQuery] : [bestCandidateImage];
+      // Verify against differently-produced crops (best guess + a mid and a
+      // tight click-centered crop): a bad best-crop guess shouldn't sink the
+      // whole verification, and hand-held cards live in the tight crops.
+      const queryImages = [
+        bestCandidateImage,
+        candidates.find((c) => c.strategy === "center-45")?.image,
+        candidates.find((c) => c.strategy === "center-27")?.image,
+      ].filter((img, i, arr) => img && arr.indexOf(img) === i);
       const verified = await verifyTopMatches(matches, queryImages);
       matchesOut = verified.matches;
       artBest = verified.artBest;
@@ -977,7 +1035,7 @@ function colorSimilarity(a, b) {
 }
 
 async function verifyTopMatches(matches, queryImages) {
-  const shortlist = matches.slice(0, 24);
+  const shortlist = matches.slice(0, 36);
   const refs = await Promise.all(shortlist.map((m) => fetchReference(m.scryfall_id, m.face || 0)));
   const queryFeats = queryImages.map((img) => orbFeatures(img, 500));
   const querySig = colorSignature(queryImages[0]);
@@ -1025,7 +1083,7 @@ async function verifyTopMatches(matches, queryImages) {
     best.confidence = Math.max(best.confidence || 0, Math.min(1, best.art_inliers / 40));
   }
   return {
-    matches: [...ranked, ...matches.slice(24)],
+    matches: [...ranked, ...matches.slice(36)],
     artBest: best ? {
       name: best.name,
       inliers: best.art_inliers || 0,
