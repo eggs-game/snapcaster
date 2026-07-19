@@ -4,7 +4,10 @@ import { loadIndex } from "./recognition/matcher.js";
 
 export default function Lobby({ onStart }) {
   const [name, setName] = useState(localStorage.getItem("sc-name") || "");
-  const [code, setCode] = useState("");
+  const [code, setCode] = useState(() => {
+    const fromUrl = new URLSearchParams(window.location.search).get("code") || "";
+    return fromUrl.toUpperCase().slice(0, 4);
+  });
   const [indexStatus, setIndexStatus] = useState("loading");
   const [indexCount, setIndexCount] = useState(0);
 

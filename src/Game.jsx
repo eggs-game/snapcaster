@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
-  FlipHorizontal2, Mic, MicOff, MoreVertical, PanelLeftClose, PanelLeftOpen,
-  PanelRightClose, PanelRightOpen, Video, VideoOff, X,
+  Check, FlipHorizontal2, Link2, Mic, MicOff, MoreVertical,
+  PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, Video, VideoOff, X,
 } from "lucide-react";
 import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
 import { identify as identifyCard, preload as preloadRecognition } from "./recognition/matcher.js";
@@ -26,6 +26,7 @@ export default function Game({ session, onLeave }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [controlsOpen, setControlsOpen] = useState(false);
   const [controlsClosing, setControlsClosing] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   // Play the slide-out animation before unmounting the drawer.
   const closeControls = useCallback(() => {
@@ -166,6 +167,31 @@ export default function Game({ session, onLeave }) {
             {controlsOpen ? <PanelLeftClose size={22} /> : <PanelLeftOpen size={22} />}
           </button>
           <span className="logo">Snapcaster</span>
+          <span className="game-code" title="Lobby code">{session.code}</span>
+          <button
+            className={linkCopied ? "copy-link copied" : "copy-link"}
+            onClick={async () => {
+              const url = `${window.location.origin}${window.location.pathname}?code=${session.code}`;
+              try {
+                await navigator.clipboard.writeText(url);
+              } catch {
+                // Fallback for older browsers / denied clipboard permission.
+                const input = document.createElement("input");
+                input.value = url;
+                document.body.appendChild(input);
+                input.select();
+                document.execCommand("copy");
+                input.remove();
+              }
+              setLinkCopied(true);
+              setTimeout(() => setLinkCopied(false), 1600);
+            }}
+            aria-label="Copy game link"
+            title={linkCopied ? "Link copied" : "Copy game link"}
+          >
+            {linkCopied ? <Check size={16} /> : <Link2 size={16} />}
+            <span>{linkCopied ? "Copied" : "Copy link"}</span>
+          </button>
         </div>
         <button
           className="drawer-toggle"
