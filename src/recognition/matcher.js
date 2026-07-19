@@ -278,6 +278,16 @@ async function applyVisualFallback(result) {
   }
 }
 
+// Object URL of the title strip the best OCR read actually saw, shown in the
+// sidebar so bad reads are diagnosable at a glance. Previous URL is revoked on
+// each new lookup to avoid leaking blobs.
+let lastOcrDebugUrl = null;
+function ocrDebugUrl(blob) {
+  if (lastOcrDebugUrl) { URL.revokeObjectURL(lastOcrDebugUrl); lastOcrDebugUrl = null; }
+  if (blob) lastOcrDebugUrl = URL.createObjectURL(blob);
+  return lastOcrDebugUrl || "";
+}
+
 async function applyTitleOCR(result) {
   if (!result.title_candidates?.length) return applyVisualFallback(result);
   try {
@@ -294,6 +304,7 @@ async function applyTitleOCR(result) {
           confidence: data.confidence || 0,
           rotation,
           strategy: candidate.strategy,
+          image: candidate.images[rotation],
         };
         if (!bestRead || (title?.score || 0) > (bestRead.title?.score || 0)
           || ((title?.score || 0) === (bestRead.title?.score || 0) && read.confidence > bestRead.confidence)) {
@@ -309,6 +320,7 @@ async function applyTitleOCR(result) {
       ocr_confidence: bestRead?.confidence || 0,
       ocr_rotation: (bestRead?.rotation || 0) * 90,
       ocr_strategy: bestRead?.strategy || "",
+      ocr_image: ocrDebugUrl(bestRead?.image),
       title_score: title?.score || 0,
     };
     if (!title) return applyVisualFallback(enriched);

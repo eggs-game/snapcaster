@@ -31,6 +31,10 @@ export default function CardSidebar({ current, lookups, onPick }) {
             </span>
           )}
           {current.ocrError && <span className="diag bad">Title OCR unavailable</span>}
+          {current.ocrImage && (
+            <img className="ocr-strip" src={current.ocrImage} alt="What the title reader saw"
+                 title="What the title reader saw" />
+          )}
           {best && (
             <span className={best.distance <= 90 ? "diag ok" : best.distance <= 215 ? "diag iffy" : "diag bad"}>
               Best distance: {best.distance} via {best.strategy || "unknown"} ({current.candidatesTried || 1} tried)

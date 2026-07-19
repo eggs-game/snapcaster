@@ -64,6 +64,7 @@ export default function Game({ session, onLeave }) {
         ocrText: data.ocr_text,
         ocrConfidence: data.ocr_confidence,
         ocrRotation: data.ocr_rotation,
+        ocrImage: data.ocr_image,
         titleScore: data.title_score,
         ocrError: data.ocr_error,
       });
