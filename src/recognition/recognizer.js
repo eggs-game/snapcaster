@@ -399,18 +399,38 @@ function bitmapToImageData(bmp) {
   return ctx.getImageData(0, 0, bmp.width, bmp.height);
 }
 
-async function makeTitleImage(cardImage) {
+async function makeTitleImage(cardImage, turns = 0) {
   const source = new OffscreenCanvas(cardImage.width, cardImage.height);
   source.getContext("2d").putImageData(cardImage, 0, 0);
+  let oriented = source;
+  if (turns) {
+    const sideways = turns % 2 === 1;
+    oriented = new OffscreenCanvas(
+      sideways ? cardImage.height : cardImage.width,
+      sideways ? cardImage.width : cardImage.height,
+    );
+    const rotate = oriented.getContext("2d");
+    if (turns === 1) {
+      rotate.translate(oriented.width, 0);
+      rotate.rotate(Math.PI / 2);
+    } else if (turns === 2) {
+      rotate.translate(oriented.width, oriented.height);
+      rotate.rotate(Math.PI);
+    } else {
+      rotate.translate(0, oriented.height);
+      rotate.rotate(-Math.PI / 2);
+    }
+    rotate.drawImage(source, 0, 0);
+  }
   const canvas = new OffscreenCanvas(1000, 140);
   const ctx = canvas.getContext("2d");
   ctx.fillStyle = "white";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   // Exclude the mana-cost area on the right; it otherwise becomes OCR noise.
   ctx.drawImage(
-    source,
-    cardImage.width * 0.04, cardImage.height * 0.025,
-    cardImage.width * 0.76, cardImage.height * 0.1,
+    oriented,
+    oriented.width * 0.04, oriented.height * 0.025,
+    oriented.width * 0.76, oriented.height * 0.1,
     10, 10, 980, 120,
   );
   const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -528,8 +548,10 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     matches.push(match);
     if (matches.length === 15) break;
   }
-  const titleImage = bestCandidateImage ? await makeTitleImage(bestCandidateImage) : null;
-  return { matches, printingMatches, titleImage, cardFound, cvStatus, candidatesTried };
+  const titleImages = bestCandidateImage
+    ? await Promise.all([0, 1, 2, 3].map((turns) => makeTitleImage(bestCandidateImage, turns)))
+    : [];
+  return { matches, printingMatches, titleImages, cardFound, cvStatus, candidatesTried };
 }
 
 // Kick off loads as soon as the worker spins up.

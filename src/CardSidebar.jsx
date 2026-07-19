@@ -12,7 +12,7 @@ export default function CardSidebar({ current, lookups, onPick }) {
   // Do not present a forced nearest neighbour as an identification. Real camera
   // scans can score around 190 even when the correct printing is ranked first,
   // so show those as a clearly labeled possible match.
-  const top = best && (best.identified_by === "ocr-title" || best.distance <= 215) ? best : null;
+  const top = best && (best.identified_by === "ocr-title" || best.distance <= 170) ? best : null;
   const showDiag = current && !current.loading && current.cvStatus !== undefined;
   return (
     <aside className="sidebar">
@@ -27,7 +27,7 @@ export default function CardSidebar({ current, lookups, onPick }) {
           </span>
           {current.ocrText && (
             <span className={best?.identified_by === "ocr-title" ? "diag ok" : "diag iffy"}>
-              Title read: {current.ocrText}
+              Title read: {current.ocrText}{current.ocrRotation ? ` (${current.ocrRotation}°)` : ""}
             </span>
           )}
           {current.ocrError && <span className="diag bad">Title OCR unavailable</span>}
@@ -59,7 +59,7 @@ export default function CardSidebar({ current, lookups, onPick }) {
           </div>
         </div>
       )}
-      {current?.matches?.length > 1 && (
+      {top && current?.matches?.length > 1 && (
         <>
           <h4>Not right? Alternatives:</h4>
           <div className="alts">

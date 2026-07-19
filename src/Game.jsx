@@ -63,11 +63,12 @@ export default function Game({ session, onLeave }) {
         candidatesTried: data.candidates_tried,
         ocrText: data.ocr_text,
         ocrConfidence: data.ocr_confidence,
+        ocrRotation: data.ocr_rotation,
         titleScore: data.title_score,
         ocrError: data.ocr_error,
       });
       const top = data.matches?.[0];
-      if (top && top.confidence > 0.2) {
+      if (top && (top.identified_by === "ocr-title" || top.distance <= 170)) {
         conn.announceCard(top, session.name);
         setLookups((l) => [...l.slice(-11), { by: session.name, card: top, at: Date.now() }]);
       }

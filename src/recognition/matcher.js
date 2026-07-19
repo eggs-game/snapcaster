@@ -44,7 +44,7 @@ function getWorker() {
     worker = new Worker(new URL("./recognizer.js", import.meta.url));
     worker.onmessage = (e) => {
       const {
-        id, matches, printingMatches, titleImage,
+        id, matches, printingMatches, titleImages,
         cardFound, cvStatus, candidatesTried, error,
       } = e.data || {};
       const p = pending.get(id);
@@ -55,7 +55,7 @@ function getWorker() {
       else p.resolve({
         matches: matches || [],
         printing_matches: printingMatches || [],
-        title_image: titleImage || null,
+        title_images: titleImages || [],
         card_found: !!cardFound,
         cv_status: cvStatus || "unknown",
         candidates_tried: candidatesTried || 0,
@@ -173,20 +173,41 @@ function cardFromIndex(name) {
 }
 
 async function applyTitleOCR(result) {
-  if (!result.title_image) return result;
+  if (!result.title_images?.length) return result;
   try {
     const worker = await getOCRWorker();
-    const { data } = await worker.recognize(result.title_image);
-    const title = bestIndexedTitle(data.text);
+    let bestRead = null;
+    for (let rotation = 0; rotation < result.title_images.length; rotation++) {
+      const { data } = await worker.recognize(result.title_images[rotation]);
+      const title = bestIndexedTitle(data.text);
+      const read = {
+        title,
+        text: String(data.text || "").trim(),
+        confidence: data.confidence || 0,
+        rotation,
+      };
+      if (!bestRead || (title?.score || 0) > (bestRead.title?.score || 0)
+        || ((title?.score || 0) === (bestRead.title?.score || 0) && read.confidence > bestRead.confidence)) {
+        bestRead = read;
+      }
+      if ((title?.score || 0) >= 0.96 && read.confidence >= 45) break;
+    }
+    const title = bestRead?.title;
     const enriched = {
       ...result,
-      ocr_text: String(data.text || "").trim(),
-      ocr_confidence: data.confidence || 0,
+      ocr_text: bestRead?.text || "",
+      ocr_confidence: bestRead?.confidence || 0,
+      ocr_rotation: (bestRead?.rotation || 0) * 90,
       title_score: title?.score || 0,
     };
-    // A fuzzy score of 0.72 allows common camera substitutions such as
-    // "Rarnpart" while remaining far above unrelated card titles.
-    if (!title || title.score < 0.72) return enriched;
+    if (!title) return enriched;
+    const normalized = normalizeTitle(title.name);
+    const isShortSingleWord = !normalized.includes(" ") && normalized.length <= 8;
+    // Short names such as Forest are easy accidental OCR matches and therefore
+    // require near-exact text. Longer names tolerate camera substitutions such
+    // as "Gaunt" or "Rarnpart".
+    const requiredScore = isShortSingleWord ? 0.93 : 0.74;
+    if (title.score < requiredScore || bestRead.confidence < 25) return enriched;
     const printing = (result.printing_matches || [])
       .filter((match) => match.name === title.name)
       .sort((a, b) => a.distance - b.distance)[0]
