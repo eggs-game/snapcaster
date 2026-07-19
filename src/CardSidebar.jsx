@@ -89,7 +89,7 @@ export default function CardSidebar({ current, lookups, onPick, onClose, onSearc
   return (
     <aside className="sidebar">
       <div className="sidebar-head">
-        <h3>Card lookup</h3>
+        <span className="logo">Snapcaster</span>
         <div className="sidebar-head-actions">
           <button
             className="drawer-toggle"
