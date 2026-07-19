@@ -18,11 +18,12 @@ export const makeCode = () =>
 
 /**
  * Join a room channel.
- * handlers: onRoster(list) — [{id, name, joinedAt}] sorted by joinedAt
+ * handlers: onRoster(list) — [{id, name, joinedAt, role}] sorted by joinedAt
  *           onMessage(msg) — broadcast messages addressed to us (or everyone)
  * returns { myId, send(msg, to?), leave() }
  */
-export async function joinRoom(code, name, { onRoster, onMessage }) {
+export async function joinRoom(code, name, role, { onRoster, onMessage }) {
+  const safeRole = role === "visitor" ? "visitor" : "player";
   const myId = crypto.randomUUID().slice(0, 8);
   const joinedAt = Date.now();
   const ch = client().channel(`room-${code}`, {
@@ -32,7 +33,12 @@ export async function joinRoom(code, name, { onRoster, onMessage }) {
   ch.on("presence", { event: "sync" }, () => {
     const state = ch.presenceState();
     const roster = Object.entries(state)
-      .map(([id, metas]) => ({ id, name: metas[0]?.name || "Player", joinedAt: metas[0]?.joinedAt || 0 }))
+      .map(([id, metas]) => ({
+        id,
+        name: metas[0]?.name || "Player",
+        joinedAt: metas[0]?.joinedAt || 0,
+        role: metas[0]?.role === "visitor" ? "visitor" : "player",
+      }))
       .sort((a, b) => a.joinedAt - b.joinedAt);
     onRoster(roster);
   });
@@ -46,7 +52,7 @@ export async function joinRoom(code, name, { onRoster, onMessage }) {
   await new Promise((resolve, reject) => {
     ch.subscribe(async (status) => {
       if (status === "SUBSCRIBED") {
-        await ch.track({ name, joinedAt });
+        await ch.track({ name, joinedAt, role: safeRole });
         resolve();
       } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
         reject(new Error("Could not connect to game server (check Supabase config)"));
