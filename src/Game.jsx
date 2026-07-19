@@ -531,17 +531,20 @@ function CommanderBanner({ tile, onChoose, flipped, onToggleFlip }) {
     );
   }
 
-  // Once set, show the commander as overlay text (click to change).
-  if (tile.commander && !editing) {
+  // Overlay text state (click to add or change). The input only appears
+  // while actively editing.
+  if (!editing) {
     return (
       <div
         className="commander-banner commander-set"
         onClick={() => setEditing(true)}
-        title="Click to change commander"
+        title={tile.commander ? "Click to change commander" : "Click to add commander"}
       >
         <div className="banner-stack">
           {playerRow}
-          <span className="commander-name">{tile.commander}</span>
+          <span className={tile.commander ? "commander-name" : "commander-name unset"}>
+            {tile.commander || "Add commander"}
+          </span>
         </div>
         <BannerRight cost={manaCost} flipped={flipped} onToggleFlip={onToggleFlip} />
       </div>
@@ -566,6 +569,11 @@ function CommanderBanner({ tile, onChoose, flipped, onToggleFlip }) {
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              if (suggestions.length) setSuggestions([]);
+              else setEditing(false);
+              return;
+            }
             if (!suggestions.length) return;
             if (event.key === "ArrowDown") {
               event.preventDefault();
@@ -573,14 +581,13 @@ function CommanderBanner({ tile, onChoose, flipped, onToggleFlip }) {
             } else if (event.key === "ArrowUp") {
               event.preventDefault();
               setHighlight((i) => (i <= 0 ? suggestions.length - 1 : i - 1));
-            } else if (event.key === "Escape") {
-              setSuggestions([]);
             }
           }}
+          onBlur={() => setEditing(false)}
           placeholder="Add commander"
           aria-label="Add commander"
           autoComplete="off"
-          autoFocus={editing}
+          autoFocus
         />
         {suggestions.length > 0 && (
           <ul className="commander-suggest">
