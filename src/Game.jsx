@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
   Check, Droplet, Flame, FlipVertical2, Link2, MicOff, MoreVertical,
-  Search, Settings, Skull, Sun, TreeDeciduous, UserRound,
+  Plus, Search, Settings, Skull, Sun, TreeDeciduous, UserRound,
 } from "lucide-react";
 import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
 import { suggestCardNames } from "./cardSearch.js";
@@ -648,6 +648,7 @@ function CommanderBanner({ tile, onChoose, flipped, onToggleFlip }) {
         {nameRow}
         <div className="banner-row">
           <span className={tile.commander ? "commander-name" : "commander-name unset"}>
+            {!tile.commander && <Plus size={15} />}
             {tile.commander || "Add commander"}
           </span>
           <ManaCost cost={manaCost} />
