@@ -160,8 +160,15 @@ function bestIndexedTitle(text) {
     // read. Tiny names ("Ow", "Fog", "X") also substring-match into unrelated
     // text too easily, so only 4+ char names get the includes shortcut.
     if (!target) continue;
+    // 1-3 letter names ("Ow", "Fog", "X") match stray OCR tokens far too
+    // easily even through the token-similarity path — require the entire read
+    // to be exactly that name.
+    if (target.length < 4) {
+      if (observed === target && (!best || best.score < 1)) best = { name, score: 1 };
+      continue;
+    }
     let score;
-    if (target.length >= 4 && observed.includes(target)) score = 1;
+    if (observed.includes(target)) score = 1;
     else {
       const wholeLine = 1 - editDistance(observed, target) / Math.max(observed.length, target.length);
       // OCR can repeat or hallucinate words around mana symbols and foil glare.
@@ -363,11 +370,12 @@ async function applyTitleOCR(result) {
     };
     if (!title) return applyVisualFallback(enriched);
     const normalized = normalizeTitle(title.name);
-    const isShortSingleWord = !normalized.includes(" ") && normalized.length <= 8;
-    // Short names such as Forest are easy accidental OCR matches and therefore
-    // require near-exact text. Longer names tolerate camera substitutions such
-    // as "Gaunt" or "Rarnpart".
-    const requiredScore = isShortSingleWord ? 0.93 : 0.74;
+    // Acceptance scales with how much evidence the name can carry: garbage
+    // reads like "men ow" trivially reach high scores against tiny names
+    // ("Ow"), and "at mr a pon" scored 0.75 against "A-Town". Short names must
+    // be read near-exactly; only genuinely long names may tolerate the fuzzy
+    // camera substitutions ("Gaunt from the Rarnpart").
+    const requiredScore = normalized.length >= 12 ? 0.74 : normalized.length >= 8 ? 0.88 : 0.95;
     if (title.score < requiredScore || bestRead.confidence < 25) {
       return applyVisualFallback(enriched);
     }
