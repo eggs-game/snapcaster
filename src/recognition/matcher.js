@@ -271,11 +271,14 @@ const VISUAL_KEEP = 210;
 
 function suppressUnsafeVisualFallback(result) {
   const bestDistance = result.matches?.[0]?.distance ?? Infinity;
-  const keep = bestDistance <= 170 || (result.card_found && bestDistance <= VISUAL_KEEP);
-  return keep ? result : { ...result, matches: [] };
+  return bestDistance <= VISUAL_KEEP ? result : { ...result, matches: [] };
 }
 
 async function applyVisualFallback(result) {
+  // The worker now ranks every candidate (outline, center, tilt) against the
+  // full printing index, so a populated list is already the best available —
+  // the legacy re-search below only samples a subset of candidates.
+  if (result.matches?.length) return suppressUnsafeVisualFallback(result);
   if (!result.sharded_index || !result.card_found) return suppressUnsafeVisualFallback(result);
   try {
     const fallback = await runVisualFallback(result.query_candidates);

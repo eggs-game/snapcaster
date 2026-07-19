@@ -496,6 +496,28 @@ function bitmapToImageData(bmp) {
   return ctx.getImageData(0, 0, bmp.width, bmp.height);
 }
 
+// Click-centered crop counter-rotated by angleDeg. Tilted cards on busy
+// backgrounds often produce no clean contour quad, and plain hash matching
+// only tolerates a few degrees plus exact 90° steps — counter-rotating the
+// crop hands the matcher an upright card anyway.
+function tiltCropImageData(bmp, angleDeg, scale, point) {
+  const w = bmp.width, h = bmp.height;
+  let ch = Math.round(h * scale), cw = Math.round((ch * CARD_W) / CARD_H);
+  if (cw > w) { cw = Math.round(w * scale); ch = Math.round((cw * CARD_H) / CARD_W); }
+  const outScale = Math.max(1, Math.min(OCR_MAX_W, cw) / CARD_W);
+  const ow = Math.round(CARD_W * outScale), oh = Math.round(CARD_H * outScale);
+  const cx = Math.max(cw / 2, Math.min(w - cw / 2, point.nx * w));
+  const cy = Math.max(ch / 2, Math.min(h - ch / 2, point.ny * h));
+  const canvas = new OffscreenCanvas(ow, oh);
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, ow, oh);
+  ctx.translate(ow / 2, oh / 2);
+  ctx.rotate((-angleDeg * Math.PI) / 180);
+  ctx.drawImage(bmp, cx - cw / 2, cy - ch / 2, cw, ch, -ow / 2, -oh / 2, ow, oh);
+  return ctx.getImageData(0, 0, ow, oh);
+}
+
 async function makeTitleImage(cardImage, turns = 0, mode = "plain") {
   const source = new OffscreenCanvas(cardImage.width, cardImage.height);
   source.getContext("2d").putImageData(cardImage, 0, 0);
@@ -625,8 +647,23 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       strategy: `center-${Math.round(scale * 100)}`,
     });
   }
+  // Counter-rotated crops rescue tilted cards (a card lying at ~20-40° on the
+  // playmat) when no contour quad isolated it. 90° steps are already covered
+  // by the hash rotations, so ±20/±40 fills the gaps in between.
+  for (const angle of [20, -20, 40, -40]) {
+    candidates.push({
+      image: tiltCropImageData(bmp, angle, 0.6, normalizedPoint),
+      strategy: `tilt${angle}`,
+    });
+  }
   if (bmp.close) bmp.close();
 
+  // Rank every candidate against the full printing index. The sharded (v2)
+  // format ships hashes.bin too — without this load the initial ranking ran
+  // against nothing and recognition depended entirely on OCR.
+  if (shardedIndex && !index) {
+    try { await loadGlobalIndex(); } catch (e) { console.warn("[snapcaster worker] global index unavailable", e); }
+  }
   const n = cards?.length || 0;
   const dists = new Uint16Array(n).fill(0xffff);
   const strategies = new Array(n).fill("none");
@@ -661,7 +698,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     }
     // A distance this low is already a decisive match; avoid spending time on
     // weaker fallback candidates.
-    if (candidateBest <= 45) break;
+    if (candidateBest <= 60) break;
   }
 
   // Keep enough printing-level candidates to deduplicate by card name below.
@@ -756,8 +793,9 @@ async function visualFallback(queryCandidates) {
   return { matches, printingMatches };
 }
 
-// Kick off loads as soon as the worker spins up.
-loadIndex().catch(() => {});
+// Kick off loads as soon as the worker spins up — including the full hash
+// index (7MB) that the per-click candidate ranking runs against.
+loadIndex().then(() => { if (shardedIndex) loadGlobalIndex().catch(() => {}); }).catch(() => {});
 loadCV().catch(() => {});
 
 self.onmessage = async (e) => {
