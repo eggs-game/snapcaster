@@ -121,10 +121,11 @@ export default function Game({ session, onLeave }) {
     <div className="game">
       <div className="main">
         <div className="grid">
-          {tiles.map((t) => (
+          {tiles.map((t, i) => (
             <VideoTile
               key={t.id}
               tile={t}
+              color={TILE_COLORS[i % TILE_COLORS.length]}
               flash={flash?.tileId === t.id ? flash : null}
               onIdentify={identify}
               onChooseCommander={chooseCommander}
@@ -138,16 +139,25 @@ export default function Game({ session, onLeave }) {
   );
 }
 
-function VideoTile({ tile, onIdentify, onChooseCommander, flash }) {
+// One accent color per seat: yellow, blue, green, red.
+const TILE_COLORS = ["#d4a94e", "#5b9bd5", "#7bc47f", "#c0504d"];
+
+function VideoTile({ tile, color, onIdentify, onChooseCommander, flash }) {
   const videoRef = useRef(null);
   useEffect(() => {
     if (videoRef.current && tile.stream) videoRef.current.srcObject = tile.stream;
   }, [tile.stream]);
 
-  if (tile.empty) return <div className="tile empty"><span>Waiting for player…</span></div>;
+  if (tile.empty) {
+    return (
+      <div className="tile empty" style={{ borderColor: color }}>
+        <span>Waiting for player…</span>
+      </div>
+    );
+  }
 
   return (
-    <div className="tile">
+    <div className="tile" style={{ borderColor: color }}>
       <CommanderBanner tile={tile} onChoose={onChooseCommander} />
       <div
         className="video-wrap"

@@ -31,7 +31,7 @@ header { display: flex; align-items: center; gap: 18px; padding: 8px 14px; backg
 
 /* Video grid */
 .grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 6px; padding: 6px; min-width: 0; }
-.tile { position: relative; display: flex; flex-direction: column; background: #000; border-radius: 8px; overflow: hidden; }
+.tile { position: relative; display: flex; flex-direction: column; background: #000; border: 3px solid #333a48; border-radius: 20px; overflow: hidden; }
 .video-wrap { position: relative; flex: 1; min-height: 0; cursor: crosshair; }
 .tile video { display: block; width: 100%; height: 100%; object-fit: cover; }
 .tile.empty { display: flex; align-items: center; justify-content: center; color: var(--dim); background: var(--panel); cursor: default; }
