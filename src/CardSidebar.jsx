@@ -12,7 +12,7 @@ export default function CardSidebar({ current, lookups, onPick }) {
   // Do not present a forced nearest neighbour as an identification. Real camera
   // scans can score around 190 even when the correct printing is ranked first,
   // so show those as a clearly labeled possible match.
-  const top = best && (best.identified_by === "ocr-title" || best.distance <= 195) ? best : null;
+  const top = best && (best.identified_by === "ocr-title" || best.identified_by === "art-match" || best.distance <= 195) ? best : null;
   const showDiag = current && !current.loading && current.cvStatus !== undefined;
   return (
     <aside className="sidebar">
@@ -40,6 +40,11 @@ export default function CardSidebar({ current, lookups, onPick }) {
               Best distance: {best.distance} via {best.strategy || "unknown"} ({current.candidatesTried || 1} tried)
             </span>
           )}
+          {current.artChecked > 0 && current.artBest && (
+            <span className={current.artBest.inliers >= 16 ? "diag ok" : current.artBest.inliers >= 8 ? "diag iffy" : "diag bad"}>
+              Art check: {current.artBest.inliers} keypoints agree on {current.artBest.name} ({current.artChecked} compared)
+            </span>
+          )}
         </div>
       )}
       {current?.loading && <div className="lookup-status">Identifying…</div>}
@@ -54,9 +59,11 @@ export default function CardSidebar({ current, lookups, onPick }) {
             <span>{top.set_name || top.set?.toUpperCase()} · #{top.collector_number}</span>
             {top.confidence !== undefined && (
               <span className={top.confidence > 0.5 ? "conf good" : "conf iffy"}>
-                {top.identified_by === "ocr-title"
-                  ? `Title match · ${Math.round((current.titleScore || 0) * 100)}%`
-                  : top.confidence > 0.5 ? `${Math.round(top.confidence * 100)}% match` : "Possible match"}
+                {top.identified_by === "art-match"
+                  ? `Art match · ${top.art_inliers} keypoints`
+                  : top.identified_by === "ocr-title"
+                    ? `Title match · ${Math.round((current.titleScore || 0) * 100)}%`
+                    : top.confidence > 0.5 ? `${Math.round(top.confidence * 100)}% match` : "Possible match"}
               </span>
             )}
             {top.scryfall_uri && <a href={top.scryfall_uri} target="_blank" rel="noreferrer">View on Scryfall</a>}

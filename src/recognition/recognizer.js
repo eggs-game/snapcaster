@@ -266,6 +266,7 @@ function cardMeta(i, distance) {
   const side = face === 1 ? "back" : "front";
   return {
     name, set, collector_number: cn,
+    scryfall_id: id, face,
     image: `https://cards.scryfall.io/normal/${side}/${id[0]}/${id[1]}/${id}.jpg`,
     scryfall_uri: `https://scryfall.com/card/${set}/${cn}`,
     distance,
@@ -721,6 +722,22 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     matches.push(match);
     if (matches.length === 15) break;
   }
+  // Stage C: verify the top hash guesses against the real card images by
+  // matching art keypoints. A decisive art match settles identity outright.
+  let matchesOut = matches;
+  let artBest = null, artChecked = 0, artDecisive = false;
+  if (cvReady && matches.length && bestCandidateImage) {
+    try {
+      const verified = await verifyTopMatches(matches, bestCandidateImage);
+      matchesOut = verified.matches;
+      artBest = verified.artBest;
+      artChecked = verified.artChecked;
+      artDecisive = verified.artDecisive;
+    } catch (e) {
+      console.warn("[snapcaster worker] art verification failed", e);
+    }
+  }
+
   const preferredTitleCandidates = candidates
     .filter((candidate) => candidate.strategy === "full-frame" || candidate.strategy.startsWith("outline-"))
     .slice(0, 8);
@@ -738,8 +755,122 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     imagesFlat: await Promise.all([0, 1, 2, 3].map((turns) => makeTitleImage(candidate.image, turns, "flat"))),
   })));
   return {
-    matches, printingMatches, titleCandidates, queryCandidates,
+    matches: matchesOut, printingMatches, titleCandidates, queryCandidates,
     cardFound, cvStatus, candidatesTried, shardedIndex,
+    artBest, artChecked, artDecisive,
+  };
+}
+
+// ---------- Stage C: reference verification via ORB art keypoints ----------
+// "Compare the art to the other art": fetch the real Scryfall images for the
+// top hash guesses and geometrically match keypoints between the query crop
+// and each reference. Rotation/scale/perspective-invariant and far more
+// decisive than hash distance — a correct card typically produces 20-80
+// agreeing keypoints, a wrong one under 10.
+const refCache = new Map(); // "id/face" -> Promise<ImageData|null>
+
+function fetchReference(id, face) {
+  const key = `${id}/${face}`;
+  if (!refCache.has(key)) {
+    if (refCache.size > 400) refCache.delete(refCache.keys().next().value);
+    refCache.set(key, (async () => {
+      const side = face === 1 ? "back" : "front";
+      const resp = await fetch(`https://cards.scryfall.io/small/${side}/${id[0]}/${id[1]}/${id}.jpg`);
+      if (!resp.ok) throw new Error("ref fetch failed");
+      const bmp = await createImageBitmap(await resp.blob());
+      const canvas = new OffscreenCanvas(CARD_W, CARD_H);
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(bmp, 0, 0, CARD_W, CARD_H);
+      if (bmp.close) bmp.close();
+      return ctx.getImageData(0, 0, CARD_W, CARD_H);
+    })().catch(() => null));
+  }
+  return refCache.get(key);
+}
+
+function orbFeatures(imageData, nfeatures) {
+  const cv = self.cv;
+  const src = cv.matFromImageData(imageData);
+  const gray = new cv.Mat();
+  const mask = new cv.Mat();
+  const kp = new cv.KeyPointVector();
+  const desc = new cv.Mat();
+  const orb = new cv.ORB(nfeatures);
+  try {
+    cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+    orb.detectAndCompute(gray, mask, kp, desc);
+  } finally {
+    src.delete(); gray.delete(); mask.delete(); orb.delete();
+  }
+  return { kp, desc };
+}
+
+function orbScore(query, ref) {
+  const cv = self.cv;
+  if (!query.desc.rows || !ref.desc.rows) return 0;
+  const bf = new cv.BFMatcher(cv.NORM_HAMMING, false);
+  const knn = new cv.DMatchVectorVector();
+  let inliers = 0;
+  try {
+    bf.knnMatch(query.desc, ref.desc, knn, 2);
+    const qPts = [], rPts = [];
+    for (let i = 0; i < knn.size(); i++) {
+      const pair = knn.get(i);
+      if (pair.size() >= 2) {
+        const m = pair.get(0), n = pair.get(1);
+        if (m.distance < 0.75 * n.distance) {
+          const qp = query.kp.get(m.queryIdx).pt, rp = ref.kp.get(m.trainIdx).pt;
+          qPts.push(qp.x, qp.y); rPts.push(rp.x, rp.y);
+        }
+      }
+    }
+    const good = qPts.length / 2;
+    if (good >= 8 && typeof cv.findHomography === "function") {
+      const qm = cv.matFromArray(good, 1, cv.CV_32FC2, qPts);
+      const rm = cv.matFromArray(good, 1, cv.CV_32FC2, rPts);
+      const hmask = new cv.Mat();
+      const H = cv.findHomography(qm, rm, cv.RANSAC, 5, hmask);
+      for (let i = 0; i < hmask.rows; i++) inliers += hmask.data[i];
+      qm.delete(); rm.delete(); hmask.delete(); if (H) H.delete();
+    } else {
+      inliers = good;
+    }
+  } finally {
+    bf.delete(); knn.delete();
+  }
+  return inliers;
+}
+
+async function verifyTopMatches(matches, queryImage) {
+  const shortlist = matches.slice(0, 12);
+  const refs = await Promise.all(shortlist.map((m) => fetchReference(m.scryfall_id, m.face || 0)));
+  const query = orbFeatures(queryImage, 500);
+  try {
+    for (let i = 0; i < shortlist.length; i++) {
+      if (!refs[i]) { shortlist[i].art_inliers = 0; continue; }
+      const rf = orbFeatures(refs[i], 300);
+      try {
+        shortlist[i].art_inliers = orbScore(query, rf);
+      } finally {
+        rf.kp.delete(); rf.desc.delete();
+      }
+    }
+  } finally {
+    query.kp.delete(); query.desc.delete();
+  }
+  const ranked = [...shortlist].sort((a, b) => (b.art_inliers || 0) - (a.art_inliers || 0) || a.distance - b.distance);
+  const best = ranked[0], second = ranked[1];
+  const decisive = (best?.art_inliers || 0) >= 16
+    && (best.art_inliers || 0) >= 1.5 * ((second?.art_inliers || 0) + 1);
+  if (decisive) {
+    best.identified_by = "art-match";
+    best.confidence = Math.max(best.confidence || 0, Math.min(1, best.art_inliers / 40));
+  }
+  return {
+    matches: [...ranked, ...matches.slice(12)],
+    artBest: best ? { name: best.name, inliers: best.art_inliers || 0 } : null,
+    artChecked: shortlist.length,
+    artDecisive: decisive,
   };
 }
 

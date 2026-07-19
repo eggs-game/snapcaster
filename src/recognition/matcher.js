@@ -58,7 +58,7 @@ function getWorker() {
     worker.onmessage = (e) => {
       const {
         id, matches, printingMatches, titleCandidates, queryCandidates, shardedIndex,
-        cardFound, cvStatus, candidatesTried, error,
+        cardFound, cvStatus, candidatesTried, artBest, artChecked, artDecisive, error,
       } = e.data || {};
       const p = pending.get(id);
       if (!p) return;
@@ -74,6 +74,9 @@ function getWorker() {
         card_found: !!cardFound,
         cv_status: cvStatus || "unknown",
         candidates_tried: candidatesTried || 0,
+        art_best: artBest || null,
+        art_checked: artChecked || 0,
+        art_decisive: !!artDecisive,
       });
     };
     worker.onerror = (e) => {
@@ -430,7 +433,10 @@ function runVisualFallback(queryCandidates) {
 
 export async function identify(imageDataUrl, point) {
   const bmp = await dataUrlToBitmap(imageDataUrl);
-  return applyTitleOCR(await runOnWorker(bmp, point));
+  const result = await runOnWorker(bmp, point);
+  // A decisive art-keypoint match settles identity — skip the slower OCR pass.
+  if (result.art_decisive && result.matches?.[0]?.identified_by === "art-match") return result;
+  return applyTitleOCR(result);
 }
 
 // Console debug hook: `await window.__scIdentifyUrl("<card image url>")`
