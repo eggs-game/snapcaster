@@ -31,9 +31,15 @@ header { display: flex; align-items: center; gap: 18px; padding: 8px 14px; backg
 
 /* Video grid */
 .grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 6px; padding: 6px; min-width: 0; }
-.tile { position: relative; background: #000; border-radius: 8px; overflow: hidden; cursor: crosshair; }
-.tile video { width: 100%; height: 100%; object-fit: cover; }
+.tile { position: relative; display: flex; flex-direction: column; background: #000; border-radius: 8px; overflow: hidden; }
+.video-wrap { position: relative; flex: 1; min-height: 0; cursor: crosshair; }
+.tile video { display: block; width: 100%; height: 100%; object-fit: cover; }
 .tile.empty { display: flex; align-items: center; justify-content: center; color: var(--dim); background: var(--panel); cursor: default; }
+.commander-banner { position: absolute; z-index: 2; top: 0; left: 0; right: 0; min-height: 40px; display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: rgba(18, 21, 28, 0.68); border-bottom: 1px solid rgba(255,255,255,0.13); backdrop-filter: blur(8px); font-size: 0.84rem; }
+.commander-name { min-width: 0; overflow: hidden; color: var(--text); font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+.commander-name.unset { color: var(--dim); font-weight: 400; font-style: italic; }
+.commander-picker input { min-width: 80px; flex: 1; background: #151922; border: 1px solid #3a4353; border-radius: 5px; color: var(--text); padding: 5px 7px; }
+.commander-picker input:focus { border-color: var(--accent); outline: none; }
 .tile-bar { position: absolute; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-between; padding: 6px 10px; background: linear-gradient(transparent, rgba(0,0,0,0.75)); font-size: 0.9rem; }
 .life { color: var(--accent); font-weight: 700; }
 .click-flash { position: absolute; width: 44px; height: 44px; margin: -22px 0 0 -22px; border: 3px solid var(--accent); border-radius: 50%; animation: flash 0.6s ease-out forwards; pointer-events: none; }

@@ -15,7 +15,8 @@ const CHUNK = 12000; // chars per data-channel chunk
 
 export class GameConnection {
   constructor(handlers) {
-    // handlers: onRoster, onRemoteStream, onPeerLeft, onLife, onCardIdentified, onError
+    // handlers: onRoster, onRemoteStream, onPeerLeft, onLife,
+    // onCommander, onCardIdentified, onError
     this.h = handlers;
     this.peers = new Map();     // peerId -> {pc, dc, chunks: Map}
     this.pending = new Map();   // requestId -> {resolve, reject, timer}
@@ -23,6 +24,7 @@ export class GameConnection {
     this.room = null;
     this.myId = null;
     this.knownIds = new Set();
+    this.commander = "";
   }
 
   async initMedia() {
@@ -69,6 +71,7 @@ export class GameConnection {
       if (me && r.joinedAt < me.joinedAt) this._makeOffer(r.id);
     }
     this.h.onRoster?.(roster.slice(0, 4));
+    if (this.commander) this.room?.send({ type: "commander", commander: this.commander });
   }
 
   async _onSignal(msg) {
@@ -88,6 +91,7 @@ export class GameConnection {
         try { await this.peers.get(msg.from)?.pc.addIceCandidate(msg.candidate); } catch { /* ignore */ }
         break;
       case "life": this.h.onLife?.(msg.from, msg.life); break;
+      case "commander": this.h.onCommander?.(msg.from, String(msg.commander || "").slice(0, 120)); break;
       case "card-identified": this.h.onCardIdentified?.(msg); break;
     }
   }
@@ -173,6 +177,10 @@ export class GameConnection {
   }
 
   setLife(life) { this.room?.send({ type: "life", life }); }
+  setCommander(commander) {
+    this.commander = String(commander || "").trim().slice(0, 120);
+    this.room?.send({ type: "commander", commander: this.commander });
+  }
   announceCard(card, byName) { this.room?.send({ type: "card-identified", card, byName }); }
 
   toggleTrack(kind, enabled) {

@@ -8,6 +8,7 @@ export default function Game({ session, onLeave }) {
   const [myId, setMyId] = useState(null);
   const [roster, setRoster] = useState([]);
   const [lives, setLives] = useState({}); // id -> life
+  const [commanders, setCommanders] = useState({}); // id -> card name
   const [streams, setStreams] = useState({});
   const [localStream, setLocalStream] = useState(null);
   const [error, setError] = useState(null);
@@ -26,6 +27,7 @@ export default function Game({ session, onLeave }) {
       onRemoteStream: (id, stream) => setStreams((s) => ({ ...s, [id]: stream })),
       onPeerLeft: (id) => setStreams((s) => { const c = { ...s }; delete c[id]; return c; }),
       onLife: (id, life) => setLives((l) => ({ ...l, [id]: life })),
+      onCommander: (id, commander) => setCommanders((values) => ({ ...values, [id]: commander })),
       onCardIdentified: (msg) => setLookups((l) => [...l.slice(-11), { by: msg.byName, card: msg.card, at: Date.now() }]),
       onError: setError,
     });
@@ -84,6 +86,11 @@ export default function Game({ session, onLeave }) {
     connRef.current.setLife(life);
   };
 
+  const chooseCommander = (commander) => {
+    setCommanders((values) => ({ ...values, [myId]: commander }));
+    connRef.current?.setCommander(commander);
+  };
+
   const toggleMic = () => { connRef.current.toggleTrack("audio", !micOn); setMicOn(!micOn); };
   const toggleCam = () => { connRef.current.toggleTrack("video", !camOn); setCamOn(!camOn); };
 
@@ -100,6 +107,7 @@ export default function Game({ session, onLeave }) {
   const tiles = roster.map((p) => ({
     ...p,
     life: lives[p.id] ?? 40,
+    commander: commanders[p.id] || "",
     stream: p.id === myId ? localStream : streams[p.id],
     isMe: p.id === myId,
   }));
@@ -121,7 +129,13 @@ export default function Game({ session, onLeave }) {
       <div className="main">
         <div className="grid">
           {tiles.map((t) => (
-            <VideoTile key={t.id} tile={t} flash={flash?.tileId === t.id ? flash : null} onIdentify={identify} />
+            <VideoTile
+              key={t.id}
+              tile={t}
+              flash={flash?.tileId === t.id ? flash : null}
+              onIdentify={identify}
+              onChooseCommander={chooseCommander}
+            />
           ))}
         </div>
         <CardSidebar current={current} lookups={lookups} onPick={(m) => setCurrent({ matches: [m] })} />
@@ -131,7 +145,7 @@ export default function Game({ session, onLeave }) {
   );
 }
 
-function VideoTile({ tile, onIdentify, flash }) {
+function VideoTile({ tile, onIdentify, onChooseCommander, flash }) {
   const videoRef = useRef(null);
   useEffect(() => {
     if (videoRef.current && tile.stream) videoRef.current.srcObject = tile.stream;
@@ -140,13 +154,84 @@ function VideoTile({ tile, onIdentify, flash }) {
   if (tile.empty) return <div className="tile empty"><span>Waiting for player…</span></div>;
 
   return (
-    <div className="tile" onClick={(e) => videoRef.current && onIdentify(tile.id, videoRef.current, e.clientX, e.clientY)}>
-      <video ref={videoRef} autoPlay playsInline muted={tile.isMe} />
-      {flash && <div className="click-flash" style={{ left: flash.x, top: flash.y }} />}
-      <div className="tile-bar">
-        <span className="pname">{tile.name}{tile.isMe ? " (you)" : ""}</span>
-        <span className="life">{tile.life} ❤</span>
+    <div className="tile">
+      <CommanderBanner tile={tile} onChoose={onChooseCommander} />
+      <div
+        className="video-wrap"
+        onClick={(e) => videoRef.current && onIdentify(tile.id, videoRef.current, e.clientX, e.clientY)}
+      >
+        <video ref={videoRef} autoPlay playsInline muted={tile.isMe} />
+        {flash && <div className="click-flash" style={{ left: flash.x, top: flash.y }} />}
+        <div className="tile-bar">
+          <span className="pname">{tile.name}{tile.isMe ? " (you)" : ""}</span>
+          <span className="life">{tile.life} ❤</span>
+        </div>
       </div>
     </div>
+  );
+}
+
+function CommanderBanner({ tile, onChoose }) {
+  const [draft, setDraft] = useState(tile.commander);
+  const [suggestions, setSuggestions] = useState([]);
+
+  useEffect(() => setDraft(tile.commander), [tile.commander]);
+  useEffect(() => {
+    const query = draft.trim();
+    if (query.length < 2 || query === tile.commander) {
+      setSuggestions([]);
+      return undefined;
+    }
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        const response = await fetch(`https://api.scryfall.com/cards/autocomplete?q=${encodeURIComponent(query)}`, {
+          signal: controller.signal,
+        });
+        if (response.ok) setSuggestions((await response.json()).data || []);
+      } catch (error) {
+        if (error.name !== "AbortError") setSuggestions([]);
+      }
+    }, 200);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [draft, tile.commander]);
+
+  if (!tile.isMe) {
+    return (
+      <div className="commander-banner">
+        <span className={tile.commander ? "commander-name" : "commander-name unset"}>
+          {tile.commander || "Not selected"}
+        </span>
+      </div>
+    );
+  }
+
+  const submit = (event) => {
+    event.preventDefault();
+    const commander = draft.trim();
+    if (commander) onChoose(commander);
+  };
+  return (
+    <form className="commander-banner commander-picker" onSubmit={submit}>
+      <input
+        id={`commander-${tile.id}`}
+        list={`commander-options-${tile.id}`}
+        value={draft}
+        onChange={(event) => {
+          const value = event.target.value;
+          setDraft(value);
+          if (suggestions.includes(value)) onChoose(value);
+        }}
+        placeholder="Add commander"
+        aria-label="Add commander"
+        autoComplete="off"
+      />
+      <datalist id={`commander-options-${tile.id}`}>
+        {suggestions.map((name) => <option value={name} key={name} />)}
+      </datalist>
+    </form>
   );
 }
