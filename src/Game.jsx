@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
-  Check, FlipVertical2, Link2, Mic, MicOff, MoreVertical, UserRound,
-  PanelLeftClose, PanelLeftOpen, PanelRightOpen, Video, VideoOff, X,
+  Check, Droplet, Flame, FlipVertical2, Link2, Mic, MicOff, MoreVertical,
+  PanelLeftClose, PanelLeftOpen, PanelRightOpen, Skull, Sun, TreeDeciduous,
+  UserRound, Video, VideoOff, X,
 } from "lucide-react";
 import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
 import { identify as identifyCard, preload as preloadRecognition } from "./recognition/matcher.js";
@@ -498,79 +499,42 @@ function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, onCh
   );
 }
 
-// Simplified, flat mana symbols: classic pip colors with minimal glyphs.
+// Flat mana pips: classic colors with filled Lucide icons.
 const MANA_INK = "#171114";
 const MANA_BG = {
   W: "#f6f2dc", U: "#bcd7ea", B: "#c6bcb6", R: "#e8997c", G: "#a9c9a4", C: "#cdc4be",
 };
-
-function ManaGlyph({ sym }) {
-  switch (sym) {
-    case "W": // sun
-      return (
-        <g stroke={MANA_INK} strokeWidth="1.3" strokeLinecap="round">
-          <circle cx="8" cy="8" r="2.4" fill={MANA_INK} stroke="none" />
-          <path d="M8 2.6v2M8 11.4v2M2.6 8h2M11.4 8h2M4.2 4.2l1.4 1.4M10.4 10.4l1.4 1.4M11.8 4.2l-1.4 1.4M5.6 10.4l-1.4 1.4" />
-        </g>
-      );
-    case "U": // water drop
-      return (
-        <path
-          fill={MANA_INK}
-          d="M8 2.8c-2 2.9-3.1 4.6-3.1 6.3a3.1 3.1 0 0 0 6.2 0c0-1.7-1.1-3.4-3.1-6.3Z"
-        />
-      );
-    case "B": // skull
-      return (
-        <g>
-          <path
-            fill={MANA_INK}
-            d="M8 3a3.9 3.9 0 0 1 3.9 3.9c0 1.5-.8 2.5-1.7 3.1v2.6H5.8V10c-.9-.6-1.7-1.6-1.7-3.1A3.9 3.9 0 0 1 8 3Z"
-          />
-          <circle cx="6.6" cy="6.9" r="1" fill={MANA_BG.B} />
-          <circle cx="9.4" cy="6.9" r="1" fill={MANA_BG.B} />
-        </g>
-      );
-    case "R": // flame
-      return (
-        <path
-          fill={MANA_INK}
-          d="M8.2 2.8c.3 1.6 1.2 2.7 2.1 3.8.7.9 1.1 1.7 1.1 2.7a3.4 3.4 0 0 1-6.8 0c0-1.3.7-2.2 1.3-3.1.3.6.7 1 1.2 1.2-.4-1.6-.1-3.1 1.1-4.6Z"
-        />
-      );
-    case "G": // tree
-      return (
-        <g fill={MANA_INK}>
-          <path d="M8 2.8 11.6 9H4.4L8 2.8Z" />
-          <rect x="7.2" y="8.6" width="1.6" height="4" rx="0.4" />
-        </g>
-      );
-    default: // generic cost or unusual pip: show the label
-      return (
-        <text x="8" y="11.3" textAnchor="middle" fontSize="8.5" fontWeight="700" fill={MANA_INK}>
-          {sym.replace("/", "")}
-        </text>
-      );
-  }
-}
+const MANA_ICON = { W: Sun, U: Droplet, B: Skull, R: Flame, G: TreeDeciduous };
 
 function ManaCost({ cost }) {
   if (!cost) return null;
   const symbols = [...cost.matchAll(/\{([^}]+)\}/g)].map((m) => m[1]);
   return (
     <span className="mana-cost">
-      {symbols.map((sym, i) => (
-        <svg
-          key={`${sym}-${i}`}
-          className="mana-symbol"
-          viewBox="0 0 16 16"
-          role="img"
-          aria-label={`{${sym}}`}
-        >
-          <circle cx="8" cy="8" r="8" fill={MANA_BG[sym] || MANA_BG.C} />
-          <ManaGlyph sym={sym} />
-        </svg>
-      ))}
+      {symbols.map((sym, i) => {
+        const Icon = MANA_ICON[sym];
+        return (
+          <span
+            key={`${sym}-${i}`}
+            className="mana-symbol"
+            style={{ background: MANA_BG[sym] || MANA_BG.C }}
+            role="img"
+            aria-label={`{${sym}}`}
+          >
+            {Icon ? (
+              <Icon
+                size={10}
+                fill={MANA_INK}
+                // The skull's eye/nose cutouts only read if stroked in the pip color.
+                color={sym === "B" ? MANA_BG.B : MANA_INK}
+                strokeWidth={sym === "B" ? 2 : 1.5}
+              />
+            ) : (
+              <span className="mana-num">{sym.replace("/", "")}</span>
+            )}
+          </span>
+        );
+      })}
     </span>
   );
 }

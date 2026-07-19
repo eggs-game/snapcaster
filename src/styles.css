@@ -95,7 +95,8 @@ body { background: var(--bg2); color: var(--text); font-family: Inter, system-ui
 .commander-set { cursor: pointer; }
 .commander-set:hover .commander-name { color: var(--accent); }
 .mana-cost { flex: none; display: flex; align-items: center; gap: 3px; }
-.mana-symbol { width: 16px; height: 16px; border-radius: 50%; }
+.mana-symbol { width: 16px; height: 16px; border-radius: 50%; display: grid; place-items: center; }
+.mana-num { font-size: 9px; font-weight: 700; line-height: 1; color: #171114; }
 .banner-right { position: relative; flex: none; margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; cursor: default; }
 .menu-btn { display: flex; align-items: center; justify-content: center; padding: 1px; background: none; border: none; border-radius: 6px; color: var(--dim); cursor: pointer; }
 .menu-btn:hover { color: var(--text); background: rgba(255,255,255,0.12); }
