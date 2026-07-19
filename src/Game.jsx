@@ -56,7 +56,7 @@ export default function Game({ session, onLeave }) {
         ? await captureLocalCrop(conn.localStream, pt.nx, pt.ny)
         : await conn.requestRemoteCapture(tileId, pt.nx, pt.ny);
       const data = await identifyCard(image);
-      setCurrent({ matches: data.matches || [] });
+      setCurrent({ matches: data.matches || [], cardFound: data.card_found, cvStatus: data.cv_status });
       const top = data.matches?.[0];
       if (top && top.confidence > 0.35) {
         conn.announceCard(top, session.name);

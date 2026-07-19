@@ -1,10 +1,33 @@
 import React from "react";
 
+const CV_LABEL = {
+  ready: "OpenCV ready",
+  loading: "OpenCV still loading…",
+  failed: "OpenCV failed to load",
+  unknown: "OpenCV status unknown",
+};
+
 export default function CardSidebar({ current, lookups, onPick }) {
   const top = current?.matches?.[0];
+  const showDiag = current && !current.loading && current.cvStatus !== undefined;
   return (
     <aside className="sidebar">
       <h3>Card lookup</h3>
+      {showDiag && (
+        <div className="scan-diag">
+          <span className={current.cvStatus === "ready" ? "diag ok" : "diag bad"}>
+            {CV_LABEL[current.cvStatus] || CV_LABEL.unknown}
+          </span>
+          <span className={current.cardFound ? "diag ok" : "diag bad"}>
+            {current.cardFound ? "Card outline detected" : "No outline — using center crop"}
+          </span>
+          {top && (
+            <span className={top.distance <= 90 ? "diag ok" : top.distance <= 142 ? "diag iffy" : "diag bad"}>
+              Best distance: {top.distance} (lower = better; ~5 is ideal)
+            </span>
+          )}
+        </div>
+      )}
       {current?.loading && <div className="lookup-status">Identifying…</div>}
       {current?.error && <div className="lookup-status error">{current.error}</div>}
       {current?.matches?.length === 0 && <div className="lookup-status">No match found. Try clicking closer to the card center.</div>}

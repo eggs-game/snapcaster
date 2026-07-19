@@ -150,6 +150,7 @@ function hammingSearch(query, index, nCards, distsOut) {
 
 // ---------- OpenCV loading (in-worker, non-blocking to the main thread) ----------
 let cvReady = false;
+let cvStatus = "loading"; // "loading" | "ready" | "failed"
 let cvPromise = null;
 
 function loadCV() {
@@ -167,6 +168,7 @@ function loadCV() {
     const start = Date.now();
     const done = () => {
       cvReady = true;
+      cvStatus = "ready";
       console.log("[snapcaster worker] OpenCV ready");
       resolve(self.cv);
     };
@@ -184,6 +186,7 @@ function loadCV() {
       poll();
     }
   });
+  cvPromise.catch(() => { cvStatus = "failed"; });
   return cvPromise;
 }
 
@@ -350,7 +353,7 @@ async function identify(bmp) {
       if (top.length > 5) top.pop();
     }
   }
-  return { matches: top.map((t) => cardMeta(t.i, t.d)), cardFound };
+  return { matches: top.map((t) => cardMeta(t.i, t.d)), cardFound, cvStatus };
 }
 
 // Kick off loads as soon as the worker spins up.

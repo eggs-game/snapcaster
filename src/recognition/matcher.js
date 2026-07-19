@@ -40,12 +40,12 @@ function getWorker() {
   if (!worker) {
     worker = new Worker(new URL("./recognizer.js", import.meta.url));
     worker.onmessage = (e) => {
-      const { id, matches, cardFound, error } = e.data || {};
+      const { id, matches, cardFound, cvStatus, error } = e.data || {};
       const p = pending.get(id);
       if (!p) return;
       pending.delete(id);
       if (error) p.reject(new Error(error));
-      else p.resolve({ matches: matches || [], card_found: !!cardFound });
+      else p.resolve({ matches: matches || [], card_found: !!cardFound, cv_status: cvStatus || "unknown" });
     };
     worker.onerror = (e) => {
       const err = new Error(e.message || "recognition worker crashed");

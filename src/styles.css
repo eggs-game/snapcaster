@@ -50,6 +50,12 @@ header { display: flex; align-items: center; gap: 18px; padding: 8px 14px; backg
 .card-meta a { color: var(--accent); }
 .conf.good { color: #7bc47f !important; }
 .conf.iffy { color: #d4a94e !important; }
+.scan-diag { display: flex; flex-direction: column; gap: 3px; padding: 8px 10px; background: rgba(0,0,0,0.25); border-radius: 8px; font-size: 0.78rem; }
+.scan-diag .diag { display: flex; align-items: center; gap: 6px; }
+.scan-diag .diag::before { content: "●"; font-size: 0.7rem; }
+.scan-diag .diag.ok { color: #7bc47f; }
+.scan-diag .diag.iffy { color: #d4a94e; }
+.scan-diag .diag.bad { color: #e0736b; }
 .alts { display: flex; gap: 6px; flex-wrap: wrap; }
 .alts img { width: 62px; border-radius: 4px; cursor: pointer; }
 .alts img:hover { outline: 2px solid var(--accent); }
