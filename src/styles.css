@@ -115,7 +115,8 @@ header { display: flex; align-items: center; gap: 18px; padding: 8px 14px; }
 @keyframes flash { from { transform: scale(0.4); opacity: 1; } to { transform: scale(1.4); opacity: 0; } }
 
 /* Sidebar */
-.sidebar { width: 300px; background: var(--bg); padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin: 6px 6px 6px 0; border: 1px solid #333a48; border-radius: 20px; box-shadow: 0 4px 18px rgba(0,0,0,0.35); }
+/* 2px left margin + the grid's 6px right margin = 8px between the panels. */
+.sidebar { width: 300px; background: var(--bg); padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin: 6px 6px 6px 2px; border: 1px solid #333a48; border-radius: 20px; box-shadow: 0 4px 18px rgba(0,0,0,0.35); }
 .sidebar h3 { font-size: 0.95rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.06em; }
 .sidebar h4 { font-size: 0.85rem; color: var(--dim); }
 .lookup-status { color: var(--dim); font-size: 0.9rem; }
