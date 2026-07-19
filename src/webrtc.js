@@ -124,6 +124,16 @@ export class GameConnection {
 
   _onRoster(roster) {
     this.roster = roster;
+    // Presence can sync before our own track has propagated, giving a roster
+    // that lists existing members but not us. Deciding offers from such a
+    // snapshot marks every existing peer as "known" without ever offering to
+    // them — they would never get our connection (visitors saw no video at
+    // all). Render the roster, but defer connection decisions until a sync
+    // that includes us arrives.
+    if (this.myId && !roster.some((r) => r.id === this.myId)) {
+      this.h.onRoster?.(roster);
+      return;
+    }
     const players = roster.filter((r) => r.role !== "visitor");
     const visitors = roster.filter((r) => r.role === "visitor");
     if (this.role === "player" && players.length > 4) {
