@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { isConfigured, makeCode } from "./signaling.js";
-import { preload, loadIndex } from "./recognition/matcher.js";
+import { loadIndex } from "./recognition/matcher.js";
 
 export default function Lobby({ onStart }) {
   const [name, setName] = useState(localStorage.getItem("sc-name") || "");
@@ -9,7 +9,9 @@ export default function Lobby({ onStart }) {
   const [indexCount, setIndexCount] = useState(0);
 
   useEffect(() => {
-    preload();
+    // Load only the lightweight card index here. OpenCV (~10 MB WASM) is loaded
+    // lazily on the first in-game card identification so it never freezes the
+    // lobby's main thread while the player is typing their name.
     loadIndex()
       .then((n) => { setIndexCount(n); setIndexStatus("ok"); })
       .catch(() => setIndexStatus("missing"));
