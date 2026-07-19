@@ -397,6 +397,14 @@ export default function Game({ session, onLeave }) {
             current={current}
             lookups={lookups}
             onPick={(m) => setCurrent({ matches: [m] })}
+            onSearch={(cardOrError) => {
+              if (cardOrError.error) {
+                setCurrent({ error: cardOrError.error });
+                return;
+              }
+              setCurrent({ matches: [cardOrError] });
+              setLookups((l) => [...l.slice(-11), { by: session.name, card: cardOrError, at: Date.now() }]);
+            }}
             onClose={() => setSidebarOpen(false)}
           />
         )}

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { PanelRightClose } from "lucide-react";
 
 const CV_LABEL = {
@@ -8,12 +8,87 @@ const CV_LABEL = {
   unknown: "OpenCV status unknown",
 };
 
-export default function CardSidebar({ current, lookups, onPick, onClose }) {
+function cardFromScryfall(card) {
+  const face = card.card_faces?.[0];
+  return {
+    name: card.name,
+    set: card.set,
+    set_name: card.set_name,
+    collector_number: card.collector_number,
+    scryfall_id: card.id,
+    face: 0,
+    image: face?.image_uris?.normal || card.image_uris?.normal || "",
+    scryfall_uri: card.scryfall_uri,
+    confidence: 1,
+    identified_by: "search",
+    distance: 0,
+  };
+}
+
+export default function CardSidebar({ current, lookups, onPick, onClose, onSearch }) {
+  const [query, setQuery] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [highlight, setHighlight] = useState(-1);
+  const [searching, setSearching] = useState(false);
+
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 2) {
+      setSuggestions([]);
+      setHighlight(-1);
+      return undefined;
+    }
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        const response = await fetch(
+          `https://api.scryfall.com/cards/autocomplete?q=${encodeURIComponent(q)}`,
+          { signal: controller.signal },
+        );
+        if (!response.ok) return;
+        setSuggestions((await response.json()).data || []);
+        setHighlight(-1);
+      } catch (error) {
+        if (error.name !== "AbortError") setSuggestions([]);
+      }
+    }, 200);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [query]);
+
+  const lookupName = async (name) => {
+    const cardName = name.trim();
+    if (!cardName) return;
+    setSearching(true);
+    setSuggestions([]);
+    setQuery(cardName);
+    try {
+      const response = await fetch(
+        `https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(cardName)}`,
+      );
+      if (!response.ok) throw new Error("Card not found");
+      const card = cardFromScryfall(await response.json());
+      onSearch?.(card);
+      setQuery("");
+    } catch (error) {
+      onSearch?.({ error: String(error.message || error) });
+    } finally {
+      setSearching(false);
+    }
+  };
+
   const best = current?.matches?.[0];
   // Do not present a forced nearest neighbour as an identification. Real camera
   // scans can score around 190 even when the correct printing is ranked first,
   // so show those as a clearly labeled possible match.
-  const top = best && (best.identified_by === "ocr-title" || best.identified_by === "art-match" || best.distance <= 195) ? best : null;
+  const top = best && (
+    best.identified_by === "ocr-title"
+    || best.identified_by === "art-match"
+    || best.identified_by === "search"
+    || best.distance <= 195
+  ) ? best : null;
   const showDiag = current && !current.loading && current.cvStatus !== undefined;
   return (
     <aside className="sidebar">
@@ -28,6 +103,55 @@ export default function CardSidebar({ current, lookups, onPick, onClose }) {
           <PanelRightClose size={20} />
         </button>
       </div>
+
+      <div className="sidebar-search">
+        <input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              setSuggestions([]);
+              return;
+            }
+            if (event.key === "ArrowDown" && suggestions.length) {
+              event.preventDefault();
+              setHighlight((i) => (i + 1) % suggestions.length);
+              return;
+            }
+            if (event.key === "ArrowUp" && suggestions.length) {
+              event.preventDefault();
+              setHighlight((i) => (i <= 0 ? suggestions.length - 1 : i - 1));
+              return;
+            }
+            if (event.key === "Enter") {
+              event.preventDefault();
+              lookupName(highlight >= 0 ? suggestions[highlight] : query);
+            }
+          }}
+          placeholder="Search for a card"
+          aria-label="Search for a card"
+          autoComplete="off"
+          disabled={searching}
+        />
+        {suggestions.length > 0 && (
+          <ul className="sidebar-suggest">
+            {suggestions.map((name, i) => (
+              <li
+                key={name}
+                className={i === highlight ? "active" : ""}
+                onMouseEnter={() => setHighlight(i)}
+                onMouseDown={(event) => {
+                  event.preventDefault();
+                  lookupName(name);
+                }}
+              >
+                {name}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
       {showDiag && (
         <div className="scan-diag">
           <span className={current.cvStatus === "ready" ? "diag ok" : "diag bad"}>
@@ -46,7 +170,7 @@ export default function CardSidebar({ current, lookups, onPick, onClose }) {
             <img className="ocr-strip" src={current.ocrImage} alt="What the title reader saw"
                  title="What the title reader saw" />
           )}
-          {best && (
+          {best && best.identified_by !== "search" && (
             <span className={best.distance <= 90 ? "diag ok" : best.distance <= 215 ? "diag iffy" : "diag bad"}>
               Best distance: {best.distance} via {best.strategy || "unknown"} ({current.candidatesTried || 1} tried)
             </span>
@@ -58,7 +182,7 @@ export default function CardSidebar({ current, lookups, onPick, onClose }) {
           )}
         </div>
       )}
-      {current?.loading && <div className="lookup-status">Identifying…</div>}
+      {(current?.loading || searching) && <div className="lookup-status">Identifying…</div>}
       {current?.error && <div className="lookup-status error">{current.error}</div>}
       {current?.matches?.length === 0 && <div className="lookup-status">No match found. Try clicking closer to the card center.</div>}
       {best && !top && <div className="lookup-status">Not certain — best guesses below. Click the right card to select it.</div>}
@@ -74,7 +198,9 @@ export default function CardSidebar({ current, lookups, onPick, onClose }) {
                   ? `Art match · ${top.art_inliers} keypoints`
                   : top.identified_by === "ocr-title"
                     ? `Title match · ${Math.round((current.titleScore || 0) * 100)}%`
-                    : top.confidence > 0.5 ? `${Math.round(top.confidence * 100)}% match` : "Possible match"}
+                    : top.identified_by === "search"
+                      ? "Manual search"
+                      : top.confidence > 0.5 ? `${Math.round(top.confidence * 100)}% match` : "Possible match"}
               </span>
             )}
             {top.scryfall_uri && <a href={top.scryfall_uri} target="_blank" rel="noreferrer">View on Scryfall</a>}
@@ -91,7 +217,7 @@ export default function CardSidebar({ current, lookups, onPick, onClose }) {
           </div>
         </>
       )}
-      {!current && <div className="lookup-status">Click a card on any video feed to look it up.</div>}
+      {!current && !searching && <div className="lookup-status">Click a card on any video feed, or search by name.</div>}
 
       <h3>Recent lookups</h3>
       <ul className="lookups">
