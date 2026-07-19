@@ -353,7 +353,7 @@ export default function Game({ session, onLeave }) {
               aria-label="Copy game link"
               title={linkCopied ? "Link copied" : "Copy game link"}
             >
-              {linkCopied ? <Check size={16} /> : <Link2 size={16} />}
+              {linkCopied ? <Check size={20} /> : <Link2 size={20} />}
               <span>{linkCopied ? "Copied" : "Copy link"}</span>
             </button>}
             {!isVisitor && <button
@@ -362,7 +362,7 @@ export default function Game({ session, onLeave }) {
               aria-label="Copy visitor link"
               title={visitorLinkCopied ? "Visitor link copied" : "Copy visitor link"}
             >
-              {visitorLinkCopied ? <Check size={16} /> : <UserRound size={16} />}
+              {visitorLinkCopied ? <Check size={20} /> : <UserRound size={20} />}
               <span>{visitorLinkCopied ? "Copied" : "Visitor link"}</span>
             </button>}
             <div className="panel-topbar-right">
