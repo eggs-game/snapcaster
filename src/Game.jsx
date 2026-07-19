@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
   Check, Droplet, Flame, FlipVertical2, Link2, MicOff, MoreVertical,
-  Plus, Search, Settings, Skull, Sun, TreeDeciduous, UserRound,
+  Plus, Search, Skull, Sun, TreeDeciduous, UserRound,
 } from "lucide-react";
 import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
 import { suggestCardNames } from "./cardSearch.js";
@@ -301,19 +301,6 @@ export default function Game({ session, onLeave }) {
                 title="Open card lookup"
               >
                 <Search size={22} />
-              </button>
-            )}
-            {!sidebarOpen && (
-              <button
-                className="drawer-toggle"
-                onClick={() => {
-                  setSidebarView("settings");
-                  setSidebarOpen(true);
-                }}
-                aria-label="Open settings"
-                title="Open settings"
-              >
-                <Settings size={22} />
               </button>
             )}
             {editingLobbyName && !isVisitor ? (
