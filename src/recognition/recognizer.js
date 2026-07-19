@@ -250,9 +250,17 @@ function cardMeta(i, distance) {
 
 // ---------- OpenCV card outline detection + perspective rectify ----------
 function orderCorners(pts) {
-  const bySum = [...pts].sort((a, b) => a.x + a.y - (b.x + b.y));
-  const byDiff = [...pts].sort((a, b) => a.y - a.x - (b.y - b.x));
-  return [bySum[0], byDiff[0], bySum[3], byDiff[3]];
+  const cx = pts.reduce((sum, p) => sum + p.x, 0) / pts.length;
+  const cy = pts.reduce((sum, p) => sum + p.y, 0) / pts.length;
+  // Cyclic angle ordering remains valid for diamonds and strongly foreshortened
+  // trapezoids; sum/difference corner heuristics can duplicate or swap corners.
+  const ordered = [...pts].sort(
+    (a, b) => Math.atan2(a.y - cy, a.x - cx) - Math.atan2(b.y - cy, b.x - cx),
+  );
+  const start = ordered.reduce((best, p, i) => (
+    p.y < ordered[best].y || (p.y === ordered[best].y && p.x < ordered[best].x) ? i : best
+  ), 0);
+  return [...ordered.slice(start), ...ordered.slice(0, start)];
 }
 
 function pointInQuad(point, corners) {
@@ -270,9 +278,20 @@ function pointInQuad(point, corners) {
 function quadGeometry(pts, imageWidth, imageHeight, area, click) {
   const [tl, tr, br, bl] = orderCorners(pts);
   const corners = [tl, tr, br, bl];
-  const width = (Math.hypot(tr.x - tl.x, tr.y - tl.y) + Math.hypot(br.x - bl.x, br.y - bl.y)) / 2;
-  const height = (Math.hypot(bl.x - tl.x, bl.y - tl.y) + Math.hypot(br.x - tr.x, br.y - tr.y)) / 2;
+  const sides = corners.map((p, i) => {
+    const next = corners[(i + 1) % corners.length];
+    return Math.hypot(next.x - p.x, next.y - p.y);
+  });
+  const width = (sides[0] + sides[2]) / 2;
+  const height = (sides[1] + sides[3]) / 2;
   const aspect = Math.max(width, height) / Math.max(1, Math.min(width, height));
+  const minEdge = Math.min(...sides);
+  const oppositeBalance = (Math.min(sides[0], sides[2]) / Math.max(sides[0], sides[2]))
+    * (Math.min(sides[1], sides[3]) / Math.max(sides[1], sides[3]));
+  const quadArea = Math.abs(corners.reduce((sum, p, i) => {
+    const next = corners[(i + 1) % corners.length];
+    return sum + p.x * next.y - next.x * p.y;
+  }, 0) / 2);
   const cx = pts.reduce((sum, p) => sum + p.x, 0) / 4;
   const cy = pts.reduce((sum, p) => sum + p.y, 0) / 4;
   const centerDistance = Math.hypot(
@@ -281,10 +300,16 @@ function quadGeometry(pts, imageWidth, imageHeight, area, click) {
   );
   // A Magic card is 1.39:1. Permit perspective distortion but strongly prefer
   // card-like, centered contours because the capture is centered on the click.
-  const aspectFit = Math.max(0.15, 1 - Math.abs(aspect - CARD_H / CARD_W));
+  const aspectFit = Math.max(0.12, 1 - Math.abs(aspect - CARD_H / CARD_W) * 0.55);
   const centerFit = Math.max(0.2, 1 - centerDistance * 2);
   const containsClick = pointInQuad(click, corners);
-  return { corners, aspect, containsClick, score: area * aspectFit * centerFit };
+  const valid = minEdge >= Math.min(imageWidth, imageHeight) * 0.018
+    && quadArea >= imageWidth * imageHeight * 0.003
+    && oppositeBalance >= 0.08;
+  return {
+    corners, aspect, containsClick, valid,
+    score: area * aspectFit * centerFit * Math.max(0.25, oppositeBalance),
+  };
 }
 
 function findCardQuads(srcImageData, click) {
@@ -308,7 +333,7 @@ function findCardQuads(srcImageData, click) {
         if (area > imgArea * 0.004 && area < imgArea * 0.98) {
           const addPoints = (pts) => {
             const geometry = quadGeometry(pts, srcImageData.width, srcImageData.height, area, click);
-            if (geometry.aspect >= 1.12 && geometry.aspect <= 2.0) {
+            if (geometry.valid && geometry.aspect >= 1.0 && geometry.aspect <= 3.4) {
               const key = geometry.corners.map((p) => `${Math.round(p.x / 8)},${Math.round(p.y / 8)}`).join("|");
               if (!seen.has(key)) {
                 seen.add(key);
@@ -354,15 +379,19 @@ function findCardQuads(srcImageData, click) {
       }
       contours.delete(); hier.delete();
     };
-    cv.Canny(blur, bin, 30, 120);
     const kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(3, 3));
-    cv.dilate(bin, bin, kernel);
-    tryBin(bin);
+    for (const [low, high] of [[15, 60], [30, 120], [60, 180]]) {
+      cv.Canny(blur, bin, low, high);
+      cv.dilate(bin, bin, kernel);
+      tryBin(bin);
+    }
     cv.adaptiveThreshold(blur, bin, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, 31, 5);
     const k5 = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(5, 5));
     cv.morphologyEx(bin, bin, cv.MORPH_CLOSE, k5);
     tryBin(bin);
     cv.threshold(blur, bin, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU);
+    tryBin(bin);
+    cv.bitwise_not(bin, bin);
     tryBin(bin);
     kernel.delete(); k5.delete();
   } finally {
@@ -371,7 +400,10 @@ function findCardQuads(srcImageData, click) {
   const containing = results.filter((result) => result.containsClick);
   const pool = containing.length ? containing : results;
   pool.sort((a, b) => b.score - a.score);
-  return pool.slice(0, 3).map((result) => result.corners);
+  // Perspective can create several strong inner-frame and minimum-rectangle
+  // candidates. Keep enough alternatives for title OCR to identify the true
+  // outer card rather than committing to the first geometric guess.
+  return pool.slice(0, 8).map((result) => result.corners);
 }
 
 function matToImageData(mat) {
@@ -579,10 +611,20 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     matches.push(match);
     if (matches.length === 15) break;
   }
-  const titleImages = bestCandidateImage
-    ? await Promise.all([0, 1, 2, 3].map((turns) => makeTitleImage(bestCandidateImage, turns)))
-    : [];
-  return { matches, printingMatches, titleImages, cardFound, cvStatus, candidatesTried };
+  const preferredTitleCandidates = candidates
+    .filter((candidate) => candidate.strategy === "full-frame" || candidate.strategy.startsWith("outline-"))
+    .slice(0, 8);
+  if (bestCandidateImage && !preferredTitleCandidates.some((candidate) => candidate.image === bestCandidateImage)) {
+    preferredTitleCandidates.push({
+      image: bestCandidateImage,
+      strategy: strategies[top[0]?.i] || "visual-best",
+    });
+  }
+  const titleCandidates = await Promise.all(preferredTitleCandidates.map(async (candidate) => ({
+    strategy: candidate.strategy,
+    images: await Promise.all([0, 1, 2, 3].map((turns) => makeTitleImage(candidate.image, turns))),
+  })));
+  return { matches, printingMatches, titleCandidates, cardFound, cvStatus, candidatesTried };
 }
 
 // Kick off loads as soon as the worker spins up.

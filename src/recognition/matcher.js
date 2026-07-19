@@ -44,7 +44,7 @@ function getWorker() {
     worker = new Worker(new URL("./recognizer.js", import.meta.url));
     worker.onmessage = (e) => {
       const {
-        id, matches, printingMatches, titleImages,
+        id, matches, printingMatches, titleCandidates,
         cardFound, cvStatus, candidatesTried, error,
       } = e.data || {};
       const p = pending.get(id);
@@ -55,7 +55,7 @@ function getWorker() {
       else p.resolve({
         matches: matches || [],
         printing_matches: printingMatches || [],
-        title_images: titleImages || [],
+        title_candidates: titleCandidates || [],
         card_found: !!cardFound,
         cv_status: cvStatus || "unknown",
         candidates_tried: candidatesTried || 0,
@@ -178,24 +178,28 @@ function suppressUnsafeVisualFallback(result) {
 }
 
 async function applyTitleOCR(result) {
-  if (!result.title_images?.length) return suppressUnsafeVisualFallback(result);
+  if (!result.title_candidates?.length) return suppressUnsafeVisualFallback(result);
   try {
     const worker = await getOCRWorker();
     let bestRead = null;
-    for (let rotation = 0; rotation < result.title_images.length; rotation++) {
-      const { data } = await worker.recognize(result.title_images[rotation]);
-      const title = bestIndexedTitle(data.text);
-      const read = {
-        title,
-        text: String(data.text || "").trim(),
-        confidence: data.confidence || 0,
-        rotation,
-      };
-      if (!bestRead || (title?.score || 0) > (bestRead.title?.score || 0)
-        || ((title?.score || 0) === (bestRead.title?.score || 0) && read.confidence > bestRead.confidence)) {
-        bestRead = read;
+    search:
+    for (const candidate of result.title_candidates) {
+      for (let rotation = 0; rotation < candidate.images.length; rotation++) {
+        const { data } = await worker.recognize(candidate.images[rotation]);
+        const title = bestIndexedTitle(data.text);
+        const read = {
+          title,
+          text: String(data.text || "").trim(),
+          confidence: data.confidence || 0,
+          rotation,
+          strategy: candidate.strategy,
+        };
+        if (!bestRead || (title?.score || 0) > (bestRead.title?.score || 0)
+          || ((title?.score || 0) === (bestRead.title?.score || 0) && read.confidence > bestRead.confidence)) {
+          bestRead = read;
+        }
+        if ((title?.score || 0) >= 0.96 && read.confidence >= 45) break search;
       }
-      if ((title?.score || 0) >= 0.96 && read.confidence >= 45) break;
     }
     const title = bestRead?.title;
     const enriched = {
@@ -203,6 +207,7 @@ async function applyTitleOCR(result) {
       ocr_text: bestRead?.text || "",
       ocr_confidence: bestRead?.confidence || 0,
       ocr_rotation: (bestRead?.rotation || 0) * 90,
+      ocr_strategy: bestRead?.strategy || "",
       title_score: title?.score || 0,
     };
     if (!title) return suppressUnsafeVisualFallback(enriched);
