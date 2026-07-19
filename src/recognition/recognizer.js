@@ -299,17 +299,14 @@ function findCardQuads(srcImageData, click) {
     const imgArea = srcImageData.width * srcImageData.height;
     const tryBin = (mat) => {
       const contours = new cv.MatVector(), hier = new cv.Mat();
-      cv.findContours(mat, contours, hier, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+      // RETR_LIST keeps inner card/frame borders even when the outer edge
+      // visually merges with a hand, hair, sleeve, or playmat.
+      cv.findContours(mat, contours, hier, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE);
       for (let i = 0; i < contours.size(); i++) {
         const c = contours.get(i);
         const area = cv.contourArea(c);
-        if (area > imgArea * 0.01 && area < imgArea * 0.98) {
-          const peri = cv.arcLength(c, true);
-          const approx = new cv.Mat();
-          cv.approxPolyDP(c, approx, 0.03 * peri, true);
-          if (approx.rows === 4 && cv.isContourConvex(approx)) {
-            const pts = [];
-            for (let r = 0; r < 4; r++) pts.push({ x: approx.data32S[r * 2], y: approx.data32S[r * 2 + 1] });
+        if (area > imgArea * 0.004 && area < imgArea * 0.98) {
+          const addPoints = (pts) => {
             const geometry = quadGeometry(pts, srcImageData.width, srcImageData.height, area, click);
             if (geometry.aspect >= 1.12 && geometry.aspect <= 2.0) {
               const key = geometry.corners.map((p) => `${Math.round(p.x / 8)},${Math.round(p.y / 8)}`).join("|");
@@ -318,8 +315,40 @@ function findCardQuads(srcImageData, click) {
                 results.push(geometry);
               }
             }
+          };
+          const hull = new cv.Mat();
+          cv.convexHull(c, hull);
+          for (const shape of [c, hull]) {
+            const peri = cv.arcLength(shape, true);
+            for (const epsilon of [0.02, 0.04, 0.06]) {
+              const approx = new cv.Mat();
+              cv.approxPolyDP(shape, approx, epsilon * peri, true);
+              if (approx.rows === 4 && cv.isContourConvex(approx)) {
+                const pts = [];
+                for (let r = 0; r < 4; r++) {
+                  pts.push({ x: approx.data32S[r * 2], y: approx.data32S[r * 2 + 1] });
+                }
+                addPoints(pts);
+              }
+              approx.delete();
+            }
           }
-          approx.delete();
+          // A noisy or partially occluded card may never approximate to exactly
+          // four vertices. Its minimum-area rectangle is still a useful card
+          // candidate, especially because the user clicked inside it.
+          const rect = cv.minAreaRect(hull);
+          if (rect?.size?.width > 0 && rect?.size?.height > 0) {
+            const angle = rect.angle * Math.PI / 180;
+            const ux = { x: Math.cos(angle) * rect.size.width / 2, y: Math.sin(angle) * rect.size.width / 2 };
+            const vx = { x: -Math.sin(angle) * rect.size.height / 2, y: Math.cos(angle) * rect.size.height / 2 };
+            addPoints([
+              { x: rect.center.x - ux.x - vx.x, y: rect.center.y - ux.y - vx.y },
+              { x: rect.center.x + ux.x - vx.x, y: rect.center.y + ux.y - vx.y },
+              { x: rect.center.x + ux.x + vx.x, y: rect.center.y + ux.y + vx.y },
+              { x: rect.center.x - ux.x + vx.x, y: rect.center.y - ux.y + vx.y },
+            ]);
+          }
+          hull.delete();
         }
         c.delete();
       }
@@ -332,6 +361,8 @@ function findCardQuads(srcImageData, click) {
     cv.adaptiveThreshold(blur, bin, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, 31, 5);
     const k5 = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(5, 5));
     cv.morphologyEx(bin, bin, cv.MORPH_CLOSE, k5);
+    tryBin(bin);
+    cv.threshold(blur, bin, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU);
     tryBin(bin);
     kernel.delete(); k5.delete();
   } finally {

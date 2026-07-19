@@ -172,8 +172,13 @@ function cardFromIndex(name) {
   };
 }
 
+function suppressUnsafeVisualFallback(result) {
+  const bestDistance = result.matches?.[0]?.distance ?? Infinity;
+  return result.card_found && bestDistance <= 170 ? result : { ...result, matches: [] };
+}
+
 async function applyTitleOCR(result) {
-  if (!result.title_images?.length) return result;
+  if (!result.title_images?.length) return suppressUnsafeVisualFallback(result);
   try {
     const worker = await getOCRWorker();
     let bestRead = null;
@@ -200,19 +205,21 @@ async function applyTitleOCR(result) {
       ocr_rotation: (bestRead?.rotation || 0) * 90,
       title_score: title?.score || 0,
     };
-    if (!title) return enriched;
+    if (!title) return suppressUnsafeVisualFallback(enriched);
     const normalized = normalizeTitle(title.name);
     const isShortSingleWord = !normalized.includes(" ") && normalized.length <= 8;
     // Short names such as Forest are easy accidental OCR matches and therefore
     // require near-exact text. Longer names tolerate camera substitutions such
     // as "Gaunt" or "Rarnpart".
     const requiredScore = isShortSingleWord ? 0.93 : 0.74;
-    if (title.score < requiredScore || bestRead.confidence < 25) return enriched;
+    if (title.score < requiredScore || bestRead.confidence < 25) {
+      return suppressUnsafeVisualFallback(enriched);
+    }
     const printing = (result.printing_matches || [])
       .filter((match) => match.name === title.name)
       .sort((a, b) => a.distance - b.distance)[0]
       || cardFromIndex(title.name);
-    if (!printing) return enriched;
+    if (!printing) return suppressUnsafeVisualFallback(enriched);
     return {
       ...enriched,
       matches: [{
@@ -222,7 +229,7 @@ async function applyTitleOCR(result) {
       }],
     };
   } catch (error) {
-    return { ...result, ocr_error: String(error?.message || error) };
+    return suppressUnsafeVisualFallback({ ...result, ocr_error: String(error?.message || error) });
   }
 }
 
