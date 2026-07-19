@@ -41,8 +41,8 @@ export default function CardSidebar({ current, lookups, onPick }) {
             </span>
           )}
           {current.artChecked > 0 && current.artBest && (
-            <span className={current.artBest.inliers >= 16 ? "diag ok" : current.artBest.inliers >= 8 ? "diag iffy" : "diag bad"}>
-              Art check: {current.artBest.inliers} keypoints agree on {current.artBest.name} ({current.artChecked} compared)
+            <span className={current.artBest.inliers >= 16 ? "diag ok" : current.artBest.color >= 22 ? "diag iffy" : "diag bad"}>
+              Art check: {current.artBest.inliers} keypoints{current.artBest.weak ? " (weak)" : ""}, color {current.artBest.color}% on {current.artBest.name} ({current.artChecked} compared)
             </span>
           )}
         </div>

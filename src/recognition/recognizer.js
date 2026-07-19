@@ -728,7 +728,12 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   let artBest = null, artChecked = 0, artDecisive = false;
   if (cvReady && matches.length && bestCandidateImage) {
     try {
-      const verified = await verifyTopMatches(matches, bestCandidateImage);
+      // Verify against two differently-produced crops: a bad best-crop guess
+      // shouldn't sink the whole verification.
+      const secondQuery = (candidates.find((c) => c.strategy === "center-60" && c.image !== bestCandidateImage)
+        || candidates.find((c) => c.image !== bestCandidateImage))?.image;
+      const queryImages = secondQuery ? [bestCandidateImage, secondQuery] : [bestCandidateImage];
+      const verified = await verifyTopMatches(matches, queryImages);
       matchesOut = verified.matches;
       artBest = verified.artBest;
       artChecked = verified.artChecked;
@@ -841,34 +846,95 @@ function orbScore(query, ref) {
   return inliers;
 }
 
-async function verifyTopMatches(matches, queryImage) {
-  const shortlist = matches.slice(0, 12);
+// Saturation-weighted hue histogram (12 buckets + 1 neutral) over the card
+// area. The single most human clue: a blue card must never lose to a red one.
+function colorSignature(imageData) {
+  const { data, width, height } = imageData;
+  const hist = new Float32Array(13);
+  const x0 = Math.floor(width * 0.1), x1 = Math.ceil(width * 0.9);
+  const y0 = Math.floor(height * 0.08), y1 = Math.ceil(height * 0.92);
+  for (let y = y0; y < y1; y += 2) {
+    for (let x = x0; x < x1; x += 2) {
+      const i = (y * width + x) * 4;
+      const r = data[i] / 255, g = data[i + 1] / 255, b = data[i + 2] / 255;
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
+      const s = max ? (max - min) / max : 0;
+      if (s < 0.18 || max < 0.12) { hist[12] += 0.5; continue; }
+      let h;
+      if (max === r) h = ((g - b) / (max - min) + 6) % 6;
+      else if (max === g) h = (b - r) / (max - min) + 2;
+      else h = (r - g) / (max - min) + 4;
+      hist[Math.min(11, Math.floor(h * 2))] += s;
+    }
+  }
+  let sum = 0;
+  for (const v of hist) sum += v;
+  if (sum) for (let i = 0; i < hist.length; i++) hist[i] /= sum;
+  return hist;
+}
+
+function colorSimilarity(a, b) {
+  let s = 0;
+  for (let i = 0; i < a.length; i++) s += Math.min(a[i], b[i]);
+  return s;
+}
+
+async function verifyTopMatches(matches, queryImages) {
+  const shortlist = matches.slice(0, 24);
   const refs = await Promise.all(shortlist.map((m) => fetchReference(m.scryfall_id, m.face || 0)));
-  const query = orbFeatures(queryImage, 500);
+  const queryFeats = queryImages.map((img) => orbFeatures(img, 500));
+  const querySig = colorSignature(queryImages[0]);
   try {
     for (let i = 0; i < shortlist.length; i++) {
-      if (!refs[i]) { shortlist[i].art_inliers = 0; continue; }
+      if (!refs[i]) { shortlist[i].art_inliers = 0; shortlist[i].color_sim = 0; continue; }
       const rf = orbFeatures(refs[i], 300);
       try {
-        shortlist[i].art_inliers = orbScore(query, rf);
+        let inliers = 0;
+        for (const qf of queryFeats) inliers = Math.max(inliers, orbScore(qf, rf));
+        shortlist[i].art_inliers = inliers;
       } finally {
         rf.kp.delete(); rf.desc.delete();
       }
+      shortlist[i].color_sim = colorSimilarity(querySig, colorSignature(refs[i]));
     }
   } finally {
-    query.kp.delete(); query.desc.delete();
+    for (const qf of queryFeats) { qf.kp.delete(); qf.desc.delete(); }
   }
-  const ranked = [...shortlist].sort((a, b) => (b.art_inliers || 0) - (a.art_inliers || 0) || a.distance - b.distance);
+  const maxInliers = Math.max(...shortlist.map((m) => m.art_inliers || 0), 0);
+  // Coarse color agreement bands: same color identity, plausible, or clashing.
+  const colorBand = (m) => ((m.color_sim || 0) >= 0.45 ? 2 : (m.color_sim || 0) >= 0.22 ? 1 : 0);
+  let ranked;
+  if (maxInliers >= 12) {
+    // Keypoints carry real signal — rank by them, color as tiebreak, and let a
+    // color clash veto a thin keypoint lead.
+    ranked = [...shortlist].sort((a, b) => (b.art_inliers || 0) - (a.art_inliers || 0)
+      || (b.color_sim || 0) - (a.color_sim || 0) || a.distance - b.distance);
+    if (ranked.length > 1 && colorBand(ranked[0]) === 0 && colorBand(ranked[1]) > 0
+      && (ranked[0].art_inliers || 0) < 1.5 * (ranked[1].art_inliers || 0)) {
+      [ranked[0], ranked[1]] = [ranked[1], ranked[0]];
+    }
+  } else {
+    // Keypoints are noise at this capture quality (e.g. 6 matches everywhere).
+    // Do NOT reorder by them — rank by color agreement, then hash distance, so
+    // a red reference can never surface for a blue card.
+    ranked = [...shortlist].sort((a, b) => colorBand(b) - colorBand(a) || a.distance - b.distance);
+  }
   const best = ranked[0], second = ranked[1];
   const decisive = (best?.art_inliers || 0) >= 16
+    && (best?.color_sim || 0) >= 0.22
     && (best.art_inliers || 0) >= 1.5 * ((second?.art_inliers || 0) + 1);
   if (decisive) {
     best.identified_by = "art-match";
     best.confidence = Math.max(best.confidence || 0, Math.min(1, best.art_inliers / 40));
   }
   return {
-    matches: [...ranked, ...matches.slice(12)],
-    artBest: best ? { name: best.name, inliers: best.art_inliers || 0 } : null,
+    matches: [...ranked, ...matches.slice(24)],
+    artBest: best ? {
+      name: best.name,
+      inliers: best.art_inliers || 0,
+      color: Math.round((best.color_sim || 0) * 100),
+      weak: maxInliers < 12,
+    } : null,
     artChecked: shortlist.length,
     artDecisive: decisive,
   };
