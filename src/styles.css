@@ -91,7 +91,7 @@ body { background: var(--bg2); color: var(--text); font-family: Inter, system-ui
 .controls button { background: var(--panel2); color: var(--text); border: none; border-radius: 6px; padding: 7px 12px; cursor: pointer; }
 .controls button.off { background: var(--danger); }
 .controls button.leave { background: #3a2325; }
-.main { flex: 1; display: flex; gap: 8px; padding: 8px; min-height: 0; }
+.main { flex: 1; display: flex; gap: 16px; padding: 8px; min-height: 0; }
 
 /* Video panel: rounded container holding the in-panel top bar + the grid. */
 /* Concentric corners: video 8px + 4px tile border = 12px tile radius,
@@ -153,7 +153,7 @@ body { background: var(--bg2); color: var(--text); font-family: Inter, system-ui
   animation: sidebar-slide-in 0.34s cubic-bezier(0.22, 1, 0.36, 1);
 }
 @keyframes sidebar-slide-in {
-  from { margin-left: -308px; opacity: 0; }
+  from { margin-left: -316px; opacity: 0; }
   to { margin-left: 0; opacity: 1; }
 }
 /* Closing keeps the sidebar mounted until this animation finishes. */
@@ -163,7 +163,7 @@ body { background: var(--bg2); color: var(--text); font-family: Inter, system-ui
 }
 @keyframes sidebar-slide-out {
   from { margin-left: 0; opacity: 1; }
-  to { margin-left: -308px; opacity: 0; }
+  to { margin-left: -316px; opacity: 0; }
 }
 .sidebar-head { display: flex; align-items: center; justify-content: space-between; }
 .sidebar-head-actions { display: flex; align-items: center; gap: 4px; min-width: 0; }
