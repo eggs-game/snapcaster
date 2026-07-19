@@ -166,8 +166,7 @@ export default function Game({ session, onLeave }) {
           >
             {controlsOpen ? <PanelLeftClose size={22} /> : <PanelLeftOpen size={22} />}
           </button>
-          <span className="logo">Snapcaster</span>
-          <span className="game-code" title="Lobby code">{session.code}</span>
+          <span className="logo" title="Lobby code">{session.code}</span>
           <button
             className={linkCopied ? "copy-link copied" : "copy-link"}
             onClick={async () => {

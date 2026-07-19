@@ -25,8 +25,7 @@ header { display: flex; align-items: center; gap: 18px; padding: 8px 14px; }
 .topbar-left { display: flex; align-items: center; gap: 10px; }
 .drawer-toggle { display: flex; align-items: center; justify-content: center; padding: 6px; background: transparent; border: none; border-radius: 8px; color: var(--text); cursor: pointer; }
 .drawer-toggle:hover { background: var(--panel2); color: var(--accent); }
-.logo { color: var(--accent); font-weight: 800; }
-.game-code { letter-spacing: 0.22em; color: var(--accent); font-weight: 700; font-size: 0.92rem; }
+.logo { color: var(--accent); font-weight: 800; letter-spacing: 0.22em; }
 .copy-link { display: flex; align-items: center; gap: 6px; padding: 5px 10px; background: var(--panel2); border: 1px solid #333a48; border-radius: 8px; color: var(--dim); font-family: inherit; font-size: 0.8rem; cursor: pointer; }
 .copy-link:hover { color: var(--text); border-color: var(--accent); }
 .copy-link.copied { color: var(--accent); border-color: var(--accent); }
