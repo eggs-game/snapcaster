@@ -12,7 +12,7 @@ export default function CardSidebar({ current, lookups, onPick }) {
   // Do not present a forced nearest neighbour as an identification. Real camera
   // scans can score around 190 even when the correct printing is ranked first,
   // so show those as a clearly labeled possible match.
-  const top = best && best.distance <= 215 ? best : null;
+  const top = best && (best.identified_by === "ocr-title" || best.distance <= 215) ? best : null;
   const showDiag = current && !current.loading && current.cvStatus !== undefined;
   return (
     <aside className="sidebar">
@@ -25,6 +25,12 @@ export default function CardSidebar({ current, lookups, onPick }) {
           <span className={current.cardFound ? "diag ok" : "diag bad"}>
             {current.cardFound ? "Card outline detected" : "No outline — using center crop"}
           </span>
+          {current.ocrText && (
+            <span className={best?.identified_by === "ocr-title" ? "diag ok" : "diag iffy"}>
+              Title read: {current.ocrText}
+            </span>
+          )}
+          {current.ocrError && <span className="diag bad">Title OCR unavailable</span>}
           {best && (
             <span className={best.distance <= 90 ? "diag ok" : best.distance <= 215 ? "diag iffy" : "diag bad"}>
               Best distance: {best.distance} via {best.strategy || "unknown"} ({current.candidatesTried || 1} tried)
@@ -44,7 +50,9 @@ export default function CardSidebar({ current, lookups, onPick }) {
             <span>{top.set_name || top.set?.toUpperCase()} · #{top.collector_number}</span>
             {top.confidence !== undefined && (
               <span className={top.confidence > 0.5 ? "conf good" : "conf iffy"}>
-                {top.confidence > 0.5 ? `${Math.round(top.confidence * 100)}% match` : "Possible match"}
+                {top.identified_by === "ocr-title"
+                  ? `Title match · ${Math.round((current.titleScore || 0) * 100)}%`
+                  : top.confidence > 0.5 ? `${Math.round(top.confidence * 100)}% match` : "Possible match"}
               </span>
             )}
             {top.scryfall_uri && <a href={top.scryfall_uri} target="_blank" rel="noreferrer">View on Scryfall</a>}

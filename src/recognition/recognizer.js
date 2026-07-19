@@ -399,6 +399,29 @@ function bitmapToImageData(bmp) {
   return ctx.getImageData(0, 0, bmp.width, bmp.height);
 }
 
+async function makeTitleImage(cardImage) {
+  const source = new OffscreenCanvas(cardImage.width, cardImage.height);
+  source.getContext("2d").putImageData(cardImage, 0, 0);
+  const canvas = new OffscreenCanvas(1000, 140);
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "white";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // Exclude the mana-cost area on the right; it otherwise becomes OCR noise.
+  ctx.drawImage(
+    source,
+    cardImage.width * 0.04, cardImage.height * 0.025,
+    cardImage.width * 0.76, cardImage.height * 0.1,
+    10, 10, 980, 120,
+  );
+  const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  for (let p = 0; p < pixels.data.length; p += 4) {
+    const gray = 0.299 * pixels.data[p] + 0.587 * pixels.data[p + 1] + 0.114 * pixels.data[p + 2];
+    pixels.data[p] = pixels.data[p + 1] = pixels.data[p + 2] = gray;
+  }
+  ctx.putImageData(pixels, 0, 0);
+  return canvas.convertToBlob({ type: "image/png" });
+}
+
 // Resolve when OpenCV becomes ready, or after `ms` — whichever comes first.
 // Keeps loading in the background so later scans get the accurate pipeline.
 function waitForCV(ms) {
@@ -462,6 +485,8 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   const dists = new Uint16Array(n).fill(0xffff);
   const strategies = new Array(n).fill("none");
   let candidatesTried = 0;
+  let bestCandidateImage = null;
+  let bestCandidateDistance = 0xffff;
   for (const candidate of candidates) {
     candidatesTried++;
     const candidateDists = new Uint16Array(n).fill(0xffff);
@@ -473,6 +498,10 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
         dists[i] = candidateDists[i];
         strategies[i] = candidate.strategy;
       }
+    }
+    if (candidateBest < bestCandidateDistance) {
+      bestCandidateDistance = candidateBest;
+      bestCandidateImage = candidate.image;
     }
     // A distance this low is already a decisive match; avoid spending time on
     // weaker fallback candidates.
@@ -490,16 +519,17 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       if (top.length > 20) top.pop();
     }
   }
+  const printingMatches = top.map((t) => ({ ...cardMeta(t.i, t.d), strategy: strategies[t.i] }));
   const matches = [];
   const names = new Set();
-  for (const t of top) {
-    const match = { ...cardMeta(t.i, t.d), strategy: strategies[t.i] };
+  for (const match of printingMatches) {
     if (names.has(match.name)) continue;
     names.add(match.name);
     matches.push(match);
-    if (matches.length === 5) break;
+    if (matches.length === 15) break;
   }
-  return { matches, cardFound, cvStatus, candidatesTried };
+  const titleImage = bestCandidateImage ? await makeTitleImage(bestCandidateImage) : null;
+  return { matches, printingMatches, titleImage, cardFound, cvStatus, candidatesTried };
 }
 
 // Kick off loads as soon as the worker spins up.

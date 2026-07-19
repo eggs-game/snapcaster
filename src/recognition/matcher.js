@@ -4,6 +4,7 @@
 // This module only: (1) loads the index once for the lobby's "N printings" banner,
 // and (2) captures crops and relays them to the worker.
 import { VEC_BYTES } from "./hash.js";
+import { createWorker, PSM } from "tesseract.js";
 
 let cards = null;
 let loadPromise = null;
@@ -28,6 +29,7 @@ export function indexSize() { return cards ? cards.length : 0; }
 // click, e.g. when a game screen mounts, so recognition is ready sooner.
 export function preload() {
   getWorker();
+  getOCRWorker().catch(() => {});
   return loadIndex();
 }
 
@@ -41,7 +43,10 @@ function getWorker() {
   if (!worker) {
     worker = new Worker(new URL("./recognizer.js", import.meta.url));
     worker.onmessage = (e) => {
-      const { id, matches, cardFound, cvStatus, candidatesTried, error } = e.data || {};
+      const {
+        id, matches, printingMatches, titleImage,
+        cardFound, cvStatus, candidatesTried, error,
+      } = e.data || {};
       const p = pending.get(id);
       if (!p) return;
       pending.delete(id);
@@ -49,6 +54,8 @@ function getWorker() {
       if (error) p.reject(new Error(error));
       else p.resolve({
         matches: matches || [],
+        printing_matches: printingMatches || [],
+        title_image: titleImage || null,
         card_found: !!cardFound,
         cv_status: cvStatus || "unknown",
         candidates_tried: candidatesTried || 0,
@@ -71,6 +78,133 @@ async function dataUrlToBitmap(dataUrl) {
   return await createImageBitmap(blob);
 }
 
+let ocrWorkerPromise = null;
+
+function getOCRWorker() {
+  if (!ocrWorkerPromise) {
+    ocrWorkerPromise = createWorker("eng").then(async (worker) => {
+      await worker.setParameters({
+        tessedit_pageseg_mode: PSM.SINGLE_LINE,
+        tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz '-,",
+      });
+      return worker;
+    });
+  }
+  return ocrWorkerPromise;
+}
+
+function normalizeTitle(value) {
+  return String(value || "")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function editDistance(a, b) {
+  const prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    let diagonal = prev[0];
+    prev[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const above = prev[j];
+      prev[j] = Math.min(prev[j] + 1, prev[j - 1] + 1, diagonal + (a[i - 1] === b[j - 1] ? 0 : 1));
+      diagonal = above;
+    }
+  }
+  return prev[b.length];
+}
+
+function orderedTokenSimilarity(observed, target) {
+  const sourceWords = observed.split(" ").filter(Boolean);
+  const targetWords = target.split(" ").filter(Boolean);
+  if (!sourceWords.length || !targetWords.length) return 0;
+  const previous = new Float32Array(sourceWords.length + 1);
+  for (const targetWord of targetWords) {
+    const current = new Float32Array(sourceWords.length + 1);
+    for (let j = 1; j <= sourceWords.length; j++) {
+      const sourceWord = sourceWords[j - 1];
+      const wordScore = 1 - editDistance(sourceWord, targetWord)
+        / Math.max(sourceWord.length, targetWord.length);
+      current[j] = Math.max(current[j - 1], previous[j - 1] + wordScore);
+    }
+    previous.set(current);
+  }
+  return previous[sourceWords.length] / targetWords.length;
+}
+
+function bestIndexedTitle(text) {
+  const observed = normalizeTitle(text);
+  if (observed.length < 4 || !cards) return null;
+  const uniqueNames = new Set(cards.map((card) => card[0]));
+  let best = null;
+  for (const name of uniqueNames) {
+    const target = normalizeTitle(name);
+    let score;
+    if (observed.includes(target)) score = 1;
+    else {
+      const wholeLine = 1 - editDistance(observed, target) / Math.max(observed.length, target.length);
+      // OCR can repeat or hallucinate words around mana symbols and foil glare.
+      // Match title words in order while allowing unrelated OCR tokens between
+      // them: "Gaunt from ... the Rampart" still identifies Taunt correctly.
+      score = Math.max(wholeLine, orderedTokenSimilarity(observed, target));
+    }
+    if (!best || score > best.score) best = { name, score };
+  }
+  return best;
+}
+
+function cardFromIndex(name) {
+  const row = cards?.find((card) => card[0] === name);
+  if (!row) return null;
+  const [cardName, set, collectorNumber, id, face] = row;
+  const side = face === 1 ? "back" : "front";
+  return {
+    name: cardName,
+    set,
+    collector_number: collectorNumber,
+    image: `https://cards.scryfall.io/normal/${side}/${id[0]}/${id[1]}/${id}.jpg`,
+    scryfall_uri: `https://scryfall.com/card/${set}/${collectorNumber}`,
+    distance: 230,
+    confidence: 0,
+    strategy: "ocr-title",
+  };
+}
+
+async function applyTitleOCR(result) {
+  if (!result.title_image) return result;
+  try {
+    const worker = await getOCRWorker();
+    const { data } = await worker.recognize(result.title_image);
+    const title = bestIndexedTitle(data.text);
+    const enriched = {
+      ...result,
+      ocr_text: String(data.text || "").trim(),
+      ocr_confidence: data.confidence || 0,
+      title_score: title?.score || 0,
+    };
+    // A fuzzy score of 0.72 allows common camera substitutions such as
+    // "Rarnpart" while remaining far above unrelated card titles.
+    if (!title || title.score < 0.72) return enriched;
+    const printing = (result.printing_matches || [])
+      .filter((match) => match.name === title.name)
+      .sort((a, b) => a.distance - b.distance)[0]
+      || cardFromIndex(title.name);
+    if (!printing) return enriched;
+    return {
+      ...enriched,
+      matches: [{
+        ...printing,
+        confidence: Math.max(printing.confidence || 0, title.score),
+        identified_by: "ocr-title",
+      }],
+    };
+  } catch (error) {
+    return { ...result, ocr_error: String(error?.message || error) };
+  }
+}
+
 function runOnWorker(bmp, point = { nx: 0.5, ny: 0.5 }) {
   const w = getWorker();
   const id = ++seq;
@@ -86,7 +220,7 @@ function runOnWorker(bmp, point = { nx: 0.5, ny: 0.5 }) {
 
 export async function identify(imageDataUrl, point) {
   const bmp = await dataUrlToBitmap(imageDataUrl);
-  return runOnWorker(bmp, point);
+  return applyTitleOCR(await runOnWorker(bmp, point));
 }
 
 // Console debug hook: `await window.__scIdentifyUrl("<card image url>")`
@@ -101,7 +235,7 @@ if (typeof window !== "undefined") {
       i.src = url;
     });
     const bmp = await createImageBitmap(img);
-    const r = await runOnWorker(bmp, point);
+    const r = await applyTitleOCR(await runOnWorker(bmp, point));
     console.log("[snapcaster] __scIdentifyUrl top matches:", r.matches.map((m) => `${m.name} (d=${m.distance}, conf=${m.confidence.toFixed(2)})`));
     return r;
   };

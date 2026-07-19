@@ -61,6 +61,10 @@ export default function Game({ session, onLeave }) {
         cardFound: data.card_found,
         cvStatus: data.cv_status,
         candidatesTried: data.candidates_tried,
+        ocrText: data.ocr_text,
+        ocrConfidence: data.ocr_confidence,
+        titleScore: data.title_score,
+        ocrError: data.ocr_error,
       });
       const top = data.matches?.[0];
       if (top && top.confidence > 0.2) {
