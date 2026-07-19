@@ -525,12 +525,11 @@ function ManaCost({ cost }) {
   );
 }
 
-// Right edge of the banner: three-dot video-options menu stacked above the
-// commander's mana symbols.
-function BannerRight({ cost, flipped, onToggleFlip }) {
+// Three-dot video-options menu on the banner's first row.
+function TileMenu({ flipped, onToggleFlip }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="banner-right" onClick={(e) => e.stopPropagation()}>
+    <div className="banner-menu" onClick={(e) => e.stopPropagation()}>
       <button
         className="menu-btn"
         onClick={() => setOpen((o) => !o)}
@@ -539,7 +538,6 @@ function BannerRight({ cost, flipped, onToggleFlip }) {
       >
         <MoreVertical size={15} />
       </button>
-      <ManaCost cost={cost} />
       {open && (
         <div className="tile-menu">
           <button
@@ -617,16 +615,23 @@ function CommanderBanner({ tile, onChoose, flipped, onToggleFlip }) {
     </span>
   );
 
+  const nameRow = (
+    <div className="banner-row">
+      {playerRow}
+      <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} />
+    </div>
+  );
+
   if (!tile.isMe) {
     return (
       <div className="commander-banner">
-        <div className="banner-stack">
-          {playerRow}
+        {nameRow}
+        <div className="banner-row">
           <span className={tile.commander ? "commander-name" : "commander-name unset"}>
             {tile.commander || "Not selected"}
           </span>
+          <ManaCost cost={manaCost} />
         </div>
-        <BannerRight cost={manaCost} flipped={flipped} onToggleFlip={onToggleFlip} />
       </div>
     );
   }
@@ -640,13 +645,13 @@ function CommanderBanner({ tile, onChoose, flipped, onToggleFlip }) {
         onClick={() => setEditing(true)}
         title={tile.commander ? "Click to change commander" : "Click to add commander"}
       >
-        <div className="banner-stack">
-          {playerRow}
+        {nameRow}
+        <div className="banner-row">
           <span className={tile.commander ? "commander-name" : "commander-name unset"}>
             {tile.commander || "Add commander"}
           </span>
+          <ManaCost cost={manaCost} />
         </div>
-        <BannerRight cost={manaCost} flipped={flipped} onToggleFlip={onToggleFlip} />
       </div>
     );
   }
@@ -663,6 +668,7 @@ function CommanderBanner({ tile, onChoose, flipped, onToggleFlip }) {
   };
   return (
     <form className="commander-banner commander-picker" onSubmit={submit}>
+      {nameRow}
       <div className="commander-search">
         <input
           id={`commander-${tile.id}`}
@@ -708,7 +714,6 @@ function CommanderBanner({ tile, onChoose, flipped, onToggleFlip }) {
           </ul>
         )}
       </div>
-      <BannerRight cost="" flipped={flipped} onToggleFlip={onToggleFlip} />
     </form>
   );
 }
