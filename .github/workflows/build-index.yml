@@ -1,6 +1,11 @@
 name: Build card index
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/build_index.py"
+      - ".github/workflows/build-index.yml"
   workflow_dispatch:
     inputs:
       scope:
