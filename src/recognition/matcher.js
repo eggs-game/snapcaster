@@ -89,6 +89,58 @@ export async function identify(imageDataUrl, point) {
   return runOnWorker(bmp, point);
 }
 
+// Merge several nearby camera frames. A name must appear in a majority of
+// frames before it is allowed into the result list; this removes unstable
+// one-frame nearest neighbours caused by glare, autofocus, and motion.
+export function combineRecognitionResults(results) {
+  const valid = results.filter(Boolean);
+  if (!valid.length) return { matches: [], card_found: false, cv_status: "unknown", scan_count: 0 };
+
+  const byName = new Map();
+  valid.forEach((result, frameIndex) => {
+    (result.matches || []).forEach((match, rank) => {
+      let entry = byName.get(match.name);
+      if (!entry) {
+        entry = { frames: new Set(), rankScore: 0, distanceSum: 0, best: match };
+        byName.set(match.name, entry);
+      }
+      if (entry.frames.has(frameIndex)) return;
+      entry.frames.add(frameIndex);
+      entry.rankScore += Math.max(1, 5 - rank);
+      entry.distanceSum += match.distance;
+      if (match.distance < entry.best.distance) entry.best = match;
+    });
+  });
+
+  const requiredFrames = Math.floor(valid.length / 2) + 1;
+  const stable = [...byName.values()]
+    .filter((entry) => entry.frames.size >= requiredFrames)
+    .map((entry) => {
+      const distance = Math.round(entry.distanceSum / entry.frames.size);
+      return {
+        ...entry.best,
+        distance,
+        confidence: Math.max(0, Math.min(1, (230 - distance) / 140)),
+        consensus: entry.frames.size,
+      };
+    })
+    .sort((a, b) => {
+      const ea = byName.get(a.name), eb = byName.get(b.name);
+      return eb.frames.size - ea.frames.size
+        || eb.rankScore - ea.rankScore
+        || a.distance - b.distance;
+    })
+    .slice(0, 5);
+
+  return {
+    matches: stable,
+    card_found: valid.filter((result) => result.card_found).length >= requiredFrames,
+    cv_status: valid.every((result) => result.cv_status === "ready") ? "ready" : valid[0].cv_status,
+    candidates_tried: Math.max(...valid.map((result) => result.candidates_tried || 0)),
+    scan_count: valid.length,
+  };
+}
+
 // Console debug hook: `await window.__scIdentifyUrl("<card image url>")`
 // runs a full recognition on a fetched image (no camera needed).
 if (typeof window !== "undefined") {
