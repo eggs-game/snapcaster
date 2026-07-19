@@ -155,8 +155,13 @@ function bestIndexedTitle(text) {
   let best = null;
   for (const name of cardNames) {
     const target = normalizeTitle(name);
+    // Joke cards like Unhinged's "_____" normalize to an empty string, and
+    // "anything".includes("") is always true — it would perfect-score every
+    // read. Tiny names ("Ow", "Fog", "X") also substring-match into unrelated
+    // text too easily, so only 4+ char names get the includes shortcut.
+    if (!target) continue;
     let score;
-    if (observed.includes(target)) score = 1;
+    if (target.length >= 4 && observed.includes(target)) score = 1;
     else {
       const wholeLine = 1 - editDistance(observed, target) / Math.max(observed.length, target.length);
       // OCR can repeat or hallucinate words around mana symbols and foil glare.
