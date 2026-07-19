@@ -62,6 +62,8 @@ export default function CardSidebar({
   // Card-flip between views: rotate to the edge, swap content, rotate back.
   const [shownView, setShownView] = useState(view);
   const [flipPhase, setFlipPhase] = useState(null); // "out" | "in" | null
+  // One-shot open slide; cleared after it finishes so flips don't re-trigger it.
+  const [entering, setEntering] = useState(true);
   const settings = shownView === "settings";
 
   useEffect(() => {
@@ -132,19 +134,30 @@ export default function CardSidebar({
       className={[
         "sidebar",
         settings ? "settings-view" : "",
+        entering && !closing ? "slide-in" : "",
         flipPhase ? `flip-${flipPhase}` : "",
         closing ? "slide-out" : "",
       ].filter(Boolean).join(" ")}
       onAnimationEnd={(event) => {
-        if (event.animationName === "sidebar-slide-out") {
+        // Ignore bubbled animationend from children (icons, etc.).
+        if (event.target !== event.currentTarget) return;
+        const name = event.animationName;
+        if (name === "sidebar-slide-in") {
+          setEntering(false);
+          return;
+        }
+        if (name === "sidebar-slide-out") {
           onClosed?.();
           return;
         }
-        if (flipPhase === "out") {
+        if (name === "sidebar-flip-out" && flipPhase === "out") {
           setShownView(view);
           setFlipPhase("in");
-        } else if (flipPhase === "in") {
-          setFlipPhase(view !== shownView ? "out" : null);
+          return;
+        }
+        if (name === "sidebar-flip-in" && flipPhase === "in") {
+          // Pending view changes are picked up by the useEffect above.
+          setFlipPhase(null);
         }
       }}
     >
