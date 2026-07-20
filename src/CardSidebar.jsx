@@ -61,18 +61,26 @@ export default function CardSidebar({
   visitorLinkCopied,
   onCopyPlayerLink,
   onCopyVisitorLink,
+  lobbyName,
+  onRenameLobby,
 }) {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [highlight, setHighlight] = useState(-1);
   const [searching, setSearching] = useState(false);
   const [lookupTab, setLookupTab] = useState("cards");
+  const [editingLobbyName, setEditingLobbyName] = useState(false);
+  const [lobbyNameDraft, setLobbyNameDraft] = useState(lobbyName || "Untitled game");
   // Card-flip between views: rotate to the edge, swap content, rotate back.
   const [shownView, setShownView] = useState(view);
   const [flipPhase, setFlipPhase] = useState(null); // "out" | "in" | null
   // One-shot open slide; cleared after it finishes so flips don't re-trigger it.
   const [entering, setEntering] = useState(true);
   const settings = shownView === "settings";
+
+  useEffect(() => {
+    if (!editingLobbyName) setLobbyNameDraft(lobbyName || "Untitled game");
+  }, [lobbyName, editingLobbyName]);
 
   useEffect(() => {
     if (view !== shownView && !flipPhase) setFlipPhase("out");
@@ -310,6 +318,39 @@ export default function CardSidebar({
         </div>
       ) : (
         <>
+          {editingLobbyName && !isVisitor ? (
+            <form
+              className="sidebar-game-name-edit"
+              onSubmit={(event) => {
+                event.preventDefault();
+                onRenameLobby?.(lobbyNameDraft);
+                setEditingLobbyName(false);
+              }}
+            >
+              <input
+                value={lobbyNameDraft}
+                onChange={(event) => setLobbyNameDraft(event.target.value)}
+                onBlur={() => {
+                  onRenameLobby?.(lobbyNameDraft || lobbyName || "Untitled game");
+                  setEditingLobbyName(false);
+                }}
+                maxLength={48}
+                aria-label="Game name"
+                autoFocus
+              />
+            </form>
+          ) : (
+            <button
+              type="button"
+              className={isVisitor ? "sidebar-game-name readonly" : "sidebar-game-name"}
+              title={isVisitor ? lobbyName : "Click to rename game"}
+              onClick={() => {
+                if (!isVisitor) setEditingLobbyName(true);
+              }}
+            >
+              {lobbyName || "Untitled game"}
+            </button>
+          )}
           <div className="lookup-tabs" role="group" aria-label="Card sidebar view">
             {[
               ["cards", "Cards"],

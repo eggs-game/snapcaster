@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
-  Droplet, Flame, FlipVertical2, MicOff, MoreVertical,
-  PanelLeft, Plus, Skull, Sun, TreeDeciduous,
+  FlipVertical2, MicOff, MoreVertical, PanelLeft,
 } from "lucide-react";
 import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
 import { suggestCardNames } from "./cardSearch.js";
@@ -20,8 +19,6 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const [streams, setStreams] = useState({});
   const [localStream, setLocalStream] = useState(null);
   const [lobbyName, setLobbyName] = useState(() => session.lobbyName || "");
-  const [editingLobbyName, setEditingLobbyName] = useState(false);
-  const [lobbyNameDraft, setLobbyNameDraft] = useState(() => session.lobbyName || "");
   const [error, setError] = useState(null);
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(true);
@@ -30,6 +27,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const [flash, setFlash] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [sidebarClosing, setSidebarClosing] = useState(false);
+  const [edgeTabY, setEdgeTabY] = useState(null);
   const [sidebarView, setSidebarView] = useState("lookup"); // "lookup" | "settings"
   const [linkCopied, setLinkCopied] = useState(false);
   const [visitorLinkCopied, setVisitorLinkCopied] = useState(false);
@@ -48,10 +46,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       onRemoteStream: (id, stream) => setStreams((s) => ({ ...s, [id]: stream })),
       onPeerLeft: (id) => setStreams((s) => { const c = { ...s }; delete c[id]; return c; }),
       onLife: (id, life) => setLives((l) => ({ ...l, [id]: life })),
-      onLobbyName: (name) => {
-        setLobbyName(name);
-        setLobbyNameDraft(name);
-      },
+      onLobbyName: setLobbyName,
       onCommander: (id, commander) => setCommanders((values) => ({ ...values, [id]: commander })),
       onColor: (id, color) => setColors((values) => ({ ...values, [id]: color })),
       onMuted: (id, muted) => setMutedPlayers((values) => ({ ...values, [id]: muted })),
@@ -77,7 +72,6 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
         if (!isVisitor && session.lobbyName) {
           conn.setLobbyName(session.lobbyName);
           setLobbyName(session.lobbyName);
-          setLobbyNameDraft(session.lobbyName);
         }
       } catch (e) {
         setError(String(e.message || e));
@@ -155,8 +149,6 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     const name = next.trim().slice(0, 48);
     if (!name) return;
     setLobbyName(name);
-    setLobbyNameDraft(name);
-    setEditingLobbyName(false);
     connRef.current?.setLobbyName(name);
   };
 
@@ -305,62 +297,35 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
             visitorLinkCopied={visitorLinkCopied}
             onCopyPlayerLink={() => copyJoinLink(false)}
             onCopyVisitorLink={() => copyJoinLink(true)}
+            lobbyName={lobbyName || "Untitled game"}
+            onRenameLobby={chooseLobbyName}
           />
         )}
         <div className="video-panel">
-          <div className="panel-topbar">
-            {/* Always in the layout so the lobby name doesn't jump when the
-                sidebar closes and this control reappears. */}
-            <button
-              className={[
-                "drawer-toggle",
-                "panel-toggle",
-                sidebarOpen && !sidebarClosing ? "panel-toggle-away" : "",
-              ].filter(Boolean).join(" ")}
-              onClick={() => {
-                if (sidebarOpen) return;
-                setSidebarView("lookup");
-                setSidebarOpen(true);
+          {!sidebarOpen && (
+            <div
+              className="sidebar-edge-zone"
+              onPointerMove={(event) => {
+                const rect = event.currentTarget.getBoundingClientRect();
+                setEdgeTabY(Math.max(34, Math.min(rect.height - 34, event.clientY - rect.top)));
               }}
-              aria-label="Open card lookup"
-              title="Open card lookup"
-              aria-hidden={sidebarOpen && !sidebarClosing}
-              tabIndex={sidebarOpen && !sidebarClosing ? -1 : 0}
             >
-              <PanelLeft size={18} />
-            </button>
-            {editingLobbyName && !isVisitor ? (
-              <form
-                className="lobby-name-edit"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  chooseLobbyName(lobbyNameDraft);
-                }}
-              >
-                <input
-                  value={lobbyNameDraft}
-                  onChange={(e) => setLobbyNameDraft(e.target.value)}
-                  onBlur={() => chooseLobbyName(lobbyNameDraft || lobbyName || "Untitled game")}
-                  maxLength={48}
-                  autoFocus
-                  aria-label="Lobby name"
-                />
-              </form>
-            ) : (
               <button
-                type="button"
-                className="logo lobby-name"
-                title={isVisitor ? `Lobby code ${session.code}` : `Click to rename · code ${session.code}`}
+                className="sidebar-edge-tab"
+                style={{ top: edgeTabY == null ? "50%" : `${edgeTabY}px` }}
                 onClick={() => {
-                  if (isVisitor) return;
-                  setLobbyNameDraft(lobbyName || "Untitled game");
-                  setEditingLobbyName(true);
+                  setSidebarView("lookup");
+                  setSidebarOpen(true);
                 }}
+                aria-label="Open card panel"
+                title="Open card panel"
               >
-                {lobbyName || "Untitled game"}
+                <PanelLeft size={18} />
               </button>
-            )}
-            <div className="panel-topbar-right">
+            </div>
+          )}
+          {visitors.length > 0 && (
+            <div className="video-visitor-overlay">
               <div className="visitor-strip" aria-label={`${visitors.length} visitors`}>
                 {visitors.map((visitor) => (
                   <div
@@ -374,7 +339,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
                 ))}
               </div>
             </div>
-          </div>
+          )}
           <div className="grid">
             {tiles.map((t, i) => (
               <VideoTile
@@ -568,12 +533,11 @@ function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, onCh
   );
 }
 
-// Flat mana pips: classic colors with filled Lucide icons.
-const MANA_INK = "#171114";
+// Small, unadorned pips keep the commander's colors visible without competing
+// with the name in the compact video overlay.
 const MANA_BG = {
   W: "#f6f2dc", U: "#bcd7ea", B: "#c6bcb6", R: "#e8997c", G: "#a9c9a4", C: "#cdc4be",
 };
-const MANA_ICON = { W: Sun, U: Droplet, B: Skull, R: Flame, G: TreeDeciduous };
 
 function ManaCost({ cost }) {
   if (!cost) return null;
@@ -581,7 +545,6 @@ function ManaCost({ cost }) {
   return (
     <span className="mana-cost">
       {symbols.map((sym, i) => {
-        const Icon = MANA_ICON[sym];
         return (
           <span
             key={`${sym}-${i}`}
@@ -589,19 +552,7 @@ function ManaCost({ cost }) {
             style={{ background: MANA_BG[sym] || MANA_BG.C }}
             role="img"
             aria-label={`{${sym}}`}
-          >
-            {Icon ? (
-              <Icon
-                size={10}
-                fill={MANA_INK}
-                // The skull's eye/nose cutouts only read if stroked in the pip color.
-                color={sym === "B" ? MANA_BG.B : MANA_INK}
-                strokeWidth={sym === "B" ? 2 : 1.5}
-              />
-            ) : (
-              <span className="mana-num">{sym.replace("/", "")}</span>
-            )}
-          </span>
+          />
         );
       })}
     </span>
@@ -699,15 +650,15 @@ function CommanderBanner({ tile, onChoose, flipped, onToggleFlip }) {
   );
 
   const nameRow = (
-    <div className="banner-row">
+    <div className="banner-row banner-name-row">
       {playerRow}
-      <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} />
     </div>
   );
 
   if (!tile.isMe) {
     return (
       <div className="commander-banner">
+        <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} />
         {nameRow}
         <div className="banner-row">
           <span className={tile.commander ? "commander-name" : "commander-name unset"}>
@@ -728,10 +679,10 @@ function CommanderBanner({ tile, onChoose, flipped, onToggleFlip }) {
         onClick={() => setEditing(true)}
         title={tile.commander ? "Click to change commander" : "Click to add commander"}
       >
+        <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} />
         {nameRow}
         <div className="banner-row">
           <span className={tile.commander ? "commander-name" : "commander-name unset"}>
-            {!tile.commander && <Plus size={18} />}
             {tile.commander || "Add commander"}
           </span>
           <ManaCost cost={manaCost} />
@@ -752,6 +703,7 @@ function CommanderBanner({ tile, onChoose, flipped, onToggleFlip }) {
   };
   return (
     <form className="commander-banner commander-picker" onSubmit={submit}>
+      <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} />
       {nameRow}
       <div className="commander-search">
         <input
