@@ -26,12 +26,17 @@ are comparable across recognition changes over time.
 
 ## How to run
 
+The benchmark assets live in `public/snaptest/` and are served at
+`/snaptest/…` on the deployed site.
+
 1. Open `https://snapcaster.vercel.app/?debug=1` and hard-refresh (so
    `window.__scIdentifyUrl` is available and you're on the latest build).
-2. Paste `public/snaptest/runner.js` into the DevTools console.
-3. Run:
+2. Load the runner and the card set, then run — paste into the DevTools console:
    ```js
-   fetch('/public/snaptest/cards.json').then(r => r.json()).then(c => SNAPTEST.run(c));
+   await import('/snaptest/runner.js').catch(async () => (0, eval)(await (await fetch('/snaptest/runner.js')).text()));
+   const cards = await (await fetch('/snaptest/cards.json')).json();
+   const summary = await SNAPTEST.run(cards);   // add { start, end } to run a slice
+   console.log(summary);
    ```
 4. Live progress is in `window.__snap` (`done`, `correct`, `liveAcc`). The
    promise resolves with the summary; it's also on `window.__snap.summary`.
