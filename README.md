@@ -84,6 +84,11 @@ is deployed and verified in production.
     unquoted-safe only — card names containing quotes/apostrophes break it.
     Use Scryfall regex syntax instead, e.g. `name:/offer.you.can/`.
 
+### Design system
+
+- UI headings and labels use sentence case; do not style interface copy in all
+  caps. Functional values such as room codes may remain uppercase.
+
 ### Card recognition pipeline (src/recognition/ + src/webrtc.js)
 
 A click on any video runs these stages in order; the sidebar shows per-stage

@@ -17,7 +17,7 @@ const MAX_VISITORS = 8; // peer-to-peer video fan-out is not an unlimited broadc
 export class GameConnection {
   constructor(handlers) {
     // handlers: onRoster, onRemoteStream, onPeerLeft, onLife,
-    // onCommander, onColor, onCardIdentified, onError
+    // onCommander, onColor, onCardIdentified, onChat, onActivePlayer, onError
     this.h = handlers;
     this.peers = new Map();     // peerId -> {pc, dc, chunks: Map}
     this.pending = new Map();   // requestId -> {resolve, reject, timer}
@@ -30,6 +30,7 @@ export class GameConnection {
     this.muted = false;
     this.life = 40;
     this.lobbyName = "";
+    this.activePlayerId = "";
     this.role = "player";
     this.roster = [];
     this.videoDeviceId = "";
@@ -178,6 +179,7 @@ export class GameConnection {
       if (this.lobbyName) this.room?.send({ type: "lobby-name", lobbyName: this.lobbyName });
       if (this.commander) this.room?.send({ type: "commander", commander: this.commander });
       if (this.color) this.room?.send({ type: "color", color: this.color });
+      if (this.activePlayerId) this.room?.send({ type: "active-player", playerId: this.activePlayerId });
     }
     if (this.muted) this.room?.send({ type: "muted", muted: true });
   }
@@ -218,6 +220,24 @@ export class GameConnection {
       case "muted": this.h.onMuted?.(msg.from, !!msg.muted); break;
       case "card-identified":
         if (senderRole !== "visitor") this.h.onCardIdentified?.(msg);
+        break;
+      case "chat": {
+        const text = String(msg.text || "").trim().slice(0, 500);
+        if (!text) break;
+        const sender = this.roster.find((member) => member.id === msg.from);
+        this.h.onChat?.({
+          from: msg.from,
+          name: sender?.name || (senderRole === "visitor" ? "Visitor" : "Player"),
+          text,
+          at: Number(msg.at) || Date.now(),
+        });
+        break;
+      }
+      case "active-player":
+        if (senderRole !== "visitor") {
+          this.activePlayerId = String(msg.playerId || "").slice(0, 40);
+          this.h.onActivePlayer?.(this.activePlayerId);
+        }
         break;
     }
   }
@@ -332,6 +352,18 @@ export class GameConnection {
   announceCard(card, byName) {
     if (this.role === "visitor") return;
     this.room?.send({ type: "card-identified", card, byName });
+  }
+  sendChat(text, at = Date.now()) {
+    const message = String(text || "").trim().slice(0, 500);
+    if (!message) return;
+    this.room?.send({ type: "chat", text: message, at });
+  }
+  setActivePlayer(playerId) {
+    if (this.role === "visitor") return;
+    this.activePlayerId = String(playerId || "").slice(0, 40);
+    if (this.activePlayerId) {
+      this.room?.send({ type: "active-player", playerId: this.activePlayerId });
+    }
   }
 
   toggleTrack(kind, enabled) {

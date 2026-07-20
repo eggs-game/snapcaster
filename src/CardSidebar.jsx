@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   ArrowLeft, ArrowUpRight, Link2, Mic, MicOff, PanelLeft, Search,
-  Settings, UserPlus, UserRound, Video, VideoOff,
+  Send, Settings, UserPlus, UserRound, Video, VideoOff,
 } from "lucide-react";
 import { suggestCardNames } from "./cardSearch.js";
 
@@ -33,6 +33,10 @@ function cardFromScryfall(card) {
 export default function CardSidebar({
   current,
   lookups,
+  lifeEvents,
+  chatMessages,
+  currentUserId,
+  onSendChat,
   onPick,
   onClose,
   closing,
@@ -52,6 +56,8 @@ export default function CardSidebar({
   tileColors,
   themePreference,
   onThemePreferenceChange,
+  videoLayout,
+  onVideoLayoutChange,
   onToggleCam,
   onToggleMic,
   onChooseCamera,
@@ -71,12 +77,15 @@ export default function CardSidebar({
   const [lookupTab, setLookupTab] = useState("cards");
   const [editingLobbyName, setEditingLobbyName] = useState(false);
   const [lobbyNameDraft, setLobbyNameDraft] = useState(lobbyName || "Untitled game");
+  const [chatDraft, setChatDraft] = useState("");
   // Card-flip between views: rotate to the edge, swap content, rotate back.
   const [shownView, setShownView] = useState(view);
   const [flipPhase, setFlipPhase] = useState(null); // "out" | "in" | null
   // One-shot open slide; cleared after it finishes so flips don't re-trigger it.
   const [entering, setEntering] = useState(true);
   const settings = shownView === "settings";
+  const logEntries = [...(lifeEvents || [])].sort((a, b) => (b.at || 0) - (a.at || 0));
+  const recentCards = [...(lookups || [])].reverse();
 
   useEffect(() => {
     if (!editingLobbyName) setLobbyNameDraft(lobbyName || "Untitled game");
@@ -150,6 +159,7 @@ export default function CardSidebar({
       className={[
         "sidebar",
         settings ? "settings-view" : "",
+        !settings && lookupTab === "chat" ? "chat-view" : "",
         entering && !closing ? "slide-in" : "",
         flipPhase ? `flip-${flipPhase}` : "",
         closing ? "slide-out" : "",
@@ -224,6 +234,25 @@ export default function CardSidebar({
 
       {settings ? (
         <div className="sidebar-settings">
+          <fieldset className="theme-field">
+            <legend className="color-label">Game view</legend>
+            <div className="view-options">
+              {[
+                ["tiles", "Tile"],
+                ["follow", "Active"],
+                ["hero", "Hero"],
+              ].map(([option, label]) => (
+                <button
+                  key={option}
+                  type="button"
+                  aria-pressed={videoLayout === option}
+                  onClick={() => onVideoLayoutChange(option)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </fieldset>
           <fieldset className="theme-field">
             <legend className="color-label">Appearance</legend>
             <div className="theme-options">
@@ -355,6 +384,7 @@ export default function CardSidebar({
             {[
               ["cards", "Cards"],
               ["log", "Log"],
+              ["chat", "Chat"],
             ].map(([option, label]) => (
               <button
                 key={option}
@@ -449,6 +479,28 @@ export default function CardSidebar({
                 ))}
               </div>
             )}
+            <section className="recent-cards" aria-labelledby="recent-cards-title">
+              <h3 id="recent-cards-title">Recent</h3>
+              {recentCards.length ? (
+                <div className="recent-card-list">
+                  {recentCards.map((entry, index) => (
+                    <button
+                      type="button"
+                      className="recent-card-row"
+                      key={`${entry.at || 0}-${entry.card?.scryfall_id || entry.card?.name || index}-${index}`}
+                      onClick={() => onPick(entry.card)}
+                    >
+                      {entry.card?.image && <img src={entry.card.image} alt="" />}
+                      <span className="recent-card-copy">
+                        <strong>{entry.card?.name}</strong>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="recent-empty">Looked-up and identified cards will appear here.</p>
+              )}
+            </section>
             {debugMode && current && !current.loading && (
               <div className="scan-debug">
                 <span>{CV_LABEL[current.cvStatus] || CV_LABEL.unknown}</span>
@@ -474,28 +526,73 @@ export default function CardSidebar({
                 )}
               </div>
             )}
-          </> : (
+          </> : lookupTab === "log" ? (
             <div className="lookup-log">
-              {!lookups?.length ? (
-                <p className="lookup-status">Identified cards will appear here.</p>
+              {!logEntries.length ? (
+                <p className="lookup-status">Life total changes will appear here.</p>
               ) : (
                 <ul className="lookups">
-                  {[...(lookups || [])].reverse().map((entry, index) => (
+                  {logEntries.map((entry) => (
                     <li
-                      key={`${entry.at || 0}-${index}`}
-                      onClick={() => {
-                        onPick(entry.card);
-                        setLookupTab("cards");
-                      }}
+                      key={`life-${entry.id}`}
+                      className="life-log-entry"
                     >
-                      <span className="log-card-name">{entry.card?.name}</span>
+                      <span className={entry.delta > 0 ? "log-life-change gained" : "log-life-change lost"}>
+                        {entry.player} {entry.delta > 0 ? "gained" : "lost"} {Math.abs(entry.delta)} life
+                      </span>
                       <span className="log-detail">
-                        {entry.by} · {entry.at ? new Date(entry.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "Now"}
+                        {entry.previous} → {entry.life} · {new Date(entry.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
                       </span>
                     </li>
                   ))}
                 </ul>
               )}
+            </div>
+          ) : (
+            <div className="chat-panel">
+              <div className="chat-messages" aria-live="polite">
+                {chatMessages?.length ? chatMessages.map((message) => (
+                  <div
+                    className={message.from === currentUserId ? "chat-message mine" : "chat-message"}
+                    key={message.id}
+                  >
+                    <div className="chat-message-meta">
+                      <strong>{message.from === currentUserId ? "You" : message.name}</strong>
+                      <span>{new Date(message.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</span>
+                    </div>
+                    <p>{message.text}</p>
+                  </div>
+                )) : (
+                  <p className="chat-empty">Messages from players and visitors will appear here.</p>
+                )}
+              </div>
+              <form
+                className="chat-compose"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  if (!chatDraft.trim()) return;
+                  onSendChat?.(chatDraft);
+                  setChatDraft("");
+                }}
+              >
+                <textarea
+                  value={chatDraft}
+                  onChange={(event) => setChatDraft(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && !event.shiftKey) {
+                      event.preventDefault();
+                      event.currentTarget.form?.requestSubmit();
+                    }
+                  }}
+                  placeholder="Message everyone"
+                  aria-label="Chat message"
+                  maxLength={500}
+                  rows={1}
+                />
+                <button type="submit" aria-label="Send message" disabled={!chatDraft.trim()}>
+                  <Send size={17} />
+                </button>
+              </form>
             </div>
           )}
         </>

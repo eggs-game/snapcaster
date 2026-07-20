@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
-  FlipVertical2, MicOff, MoreVertical, PanelLeft,
+  FlipVertical2, MicOff, MoreVertical, PanelLeft, SkipForward,
 } from "lucide-react";
 import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
 import { suggestCardNames } from "./cardSearch.js";
@@ -10,6 +10,10 @@ import CardSidebar from "./CardSidebar.jsx";
 export default function Game({ session, onLeave, themePreference, onThemePreferenceChange }) {
   const isVisitor = session.role === "visitor";
   const connRef = useRef(null);
+  const rosterRef = useRef([]);
+  const livesRef = useRef({});
+  const lifeLogIdRef = useRef(0);
+  const chatIdRef = useRef(0);
   const [myId, setMyId] = useState(null);
   const [roster, setRoster] = useState([]);
   const [lives, setLives] = useState({}); // id -> life
@@ -23,6 +27,18 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(true);
   const [lookups, setLookups] = useState([]);
+  const [lifeEvents, setLifeEvents] = useState([]);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [activePlayerId, setActivePlayerId] = useState("");
+  const [videoLayout, setVideoLayout] = useState(() => {
+    try {
+      const saved = localStorage.getItem("snapcaster-video-layout");
+      return ["tiles", "follow", "hero"].includes(saved) ? saved : "tiles";
+    } catch {
+      return "tiles";
+    }
+  });
+  const [heroPlayerId, setHeroPlayerId] = useState("");
   const [current, setCurrent] = useState(null);
   const [flash, setFlash] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -42,15 +58,38 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     // (off the main thread) while the player sets up their camera and cards.
     preloadRecognition();
     const conn = new GameConnection({
-      onRoster: setRoster,
+      onRoster: (nextRoster) => {
+        rosterRef.current = nextRoster;
+        setRoster(nextRoster);
+      },
       onRemoteStream: (id, stream) => setStreams((s) => ({ ...s, [id]: stream })),
       onPeerLeft: (id) => setStreams((s) => { const c = { ...s }; delete c[id]; return c; }),
-      onLife: (id, life) => setLives((l) => ({ ...l, [id]: life })),
+      onLife: (id, life) => {
+        const previous = livesRef.current[id];
+        livesRef.current = { ...livesRef.current, [id]: life };
+        setLives((values) => ({ ...values, [id]: life }));
+        // The first value received is state synchronization, not a change.
+        if (previous == null || previous === life) return;
+        const player = rosterRef.current.find((member) => member.id === id)?.name || "Player";
+        setLifeEvents((events) => [...events.slice(-49), {
+          id: ++lifeLogIdRef.current,
+          player,
+          previous,
+          life,
+          delta: life - previous,
+          at: Date.now(),
+        }]);
+      },
       onLobbyName: setLobbyName,
       onCommander: (id, commander) => setCommanders((values) => ({ ...values, [id]: commander })),
       onColor: (id, color) => setColors((values) => ({ ...values, [id]: color })),
       onMuted: (id, muted) => setMutedPlayers((values) => ({ ...values, [id]: muted })),
       onCardIdentified: (msg) => setLookups((l) => [...l.slice(-11), { by: msg.byName, card: msg.card, at: Date.now() }]),
+      onChat: (message) => setChatMessages((messages) => [...messages.slice(-99), {
+        ...message,
+        id: `remote-${message.from}-${message.at}-${++chatIdRef.current}`,
+      }]),
+      onActivePlayer: setActivePlayerId,
       onError: setError,
     });
     connRef.current = conn;
@@ -90,6 +129,18 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       conn.close();
     };
   }, [isVisitor, session.code, session.name, session.videoDeviceId, session.audioDeviceId]);
+
+  // The first seated player establishes the opening turn. If the active
+  // player leaves, the first remaining seat establishes the replacement.
+  useEffect(() => {
+    if (isVisitor || !myId) return;
+    const playerIds = roster.filter((member) => member.role !== "visitor").map((member) => member.id);
+    if (!playerIds.length) return;
+    if ((!activePlayerId || !playerIds.includes(activePlayerId)) && playerIds[0] === myId) {
+      setActivePlayerId(playerIds[0]);
+      connRef.current?.setActivePlayer(playerIds[0]);
+    }
+  }, [activePlayerId, isVisitor, myId, roster]);
 
   // captureClientY lets flipped tiles pass the reflected point for capture
   // while the click flash stays where the player actually clicked.
@@ -139,10 +190,64 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
 
   const changeLife = (delta) => {
     if (isVisitor) return;
-    const life = (lives[myId] ?? 40) + delta;
+    const previous = livesRef.current[myId] ?? lives[myId] ?? 40;
+    const life = previous + delta;
+    livesRef.current = { ...livesRef.current, [myId]: life };
     setLives((l) => ({ ...l, [myId]: life }));
+    setLifeEvents((events) => [...events.slice(-49), {
+      id: ++lifeLogIdRef.current,
+      player: session.name,
+      previous,
+      life,
+      delta,
+      at: Date.now(),
+    }]);
     connRef.current.setLife(life);
   };
+
+  const sendChat = (value) => {
+    const text = String(value || "").trim().slice(0, 500);
+    if (!text || !myId) return;
+    const at = Date.now();
+    setChatMessages((messages) => [...messages.slice(-99), {
+      id: `local-${myId}-${at}-${++chatIdRef.current}`,
+      from: myId,
+      name: session.name,
+      text,
+      at,
+    }]);
+    connRef.current?.sendChat(text, at);
+  };
+
+  const passTurn = useCallback(() => {
+    if (isVisitor) return;
+    const playerIds = roster.filter((member) => member.role !== "visitor").map((member) => member.id);
+    if (!playerIds.length) return;
+    const currentId = activePlayerId || playerIds[0];
+    if (currentId !== myId) return;
+    const nextId = playerIds[(playerIds.indexOf(currentId) + 1) % playerIds.length];
+    setActivePlayerId(nextId);
+    connRef.current?.setActivePlayer(nextId);
+  }, [activePlayerId, isVisitor, myId, roster]);
+
+  useEffect(() => {
+    const onKeyDown = (event) => {
+      if ((event.code !== "Space" && event.key !== " ") || event.repeat) return;
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      const target = event.target;
+      if (
+        target instanceof HTMLElement
+        && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))
+      ) return;
+      const playerIds = roster.filter((member) => member.role !== "visitor").map((member) => member.id);
+      const currentId = activePlayerId || playerIds[0];
+      if (isVisitor || !myId || currentId !== myId) return;
+      event.preventDefault();
+      passTurn();
+    };
+    window.addEventListener("keydown", onKeyDown, { capture: true });
+    return () => window.removeEventListener("keydown", onKeyDown, { capture: true });
+  }, [activePlayerId, isVisitor, myId, passTurn, roster]);
 
   const chooseLobbyName = (next) => {
     if (isVisitor) return;
@@ -162,6 +267,12 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     if (isVisitor) return;
     setColors((values) => ({ ...values, [myId]: color }));
     connRef.current?.setColor(color);
+  };
+
+  const chooseVideoLayout = (layout) => {
+    const next = ["tiles", "follow", "hero"].includes(layout) ? layout : "tiles";
+    setVideoLayout(next);
+    try { localStorage.setItem("snapcaster-video-layout", next); } catch { /* preference remains in memory */ }
   };
 
   const toggleMic = () => {
@@ -233,6 +344,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
 
   const players = roster.filter((p) => p.role !== "visitor").slice(0, 4);
   const visitors = roster.filter((p) => p.role === "visitor");
+  const resolvedActivePlayerId = activePlayerId || players[0]?.id || "";
   const tiles = players.map((p, i) => ({
     ...p,
     life: lives[p.id] ?? 40,
@@ -241,8 +353,18 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     muted: !!mutedPlayers[p.id],
     stream: p.id === myId ? localStream : streams[p.id],
     isMe: p.id === myId,
+    activeTurn: p.id === resolvedActivePlayerId,
   }));
   while (tiles.length < 4) tiles.push({ id: `empty-${tiles.length}`, empty: true });
+  const resolvedHeroPlayerId = tiles.some((tile) => !tile.empty && tile.id === heroPlayerId)
+    ? heroPlayerId
+    : resolvedActivePlayerId;
+  const heroTile = tiles.find((tile) => tile.id === resolvedHeroPlayerId) || tiles[0];
+  const visibleTiles = videoLayout === "follow"
+    ? [tiles.find((tile) => tile.id === resolvedActivePlayerId) || tiles[0]]
+    : videoLayout === "hero"
+      ? [heroTile, ...tiles.filter((tile) => tile.id !== heroTile.id)]
+      : tiles;
   const myColor = colors[myId] || TILE_COLORS[Math.max(0, players.findIndex((p) => p.id === myId))] || TILE_COLORS[0];
 
   return (
@@ -252,12 +374,21 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
         .map((visitor) => (
           <RemoteAudio key={visitor.id} stream={streams[visitor.id]} />
         ))}
+      {videoLayout === "follow" && players
+        .filter((player) => player.id !== resolvedActivePlayerId && player.id !== myId && streams[player.id])
+        .map((player) => (
+          <RemoteAudio key={`follow-audio-${player.id}`} stream={streams[player.id]} />
+        ))}
 
       <div className="main">
         {sidebarOpen && (
           <CardSidebar
             current={current}
             lookups={lookups}
+            lifeEvents={lifeEvents}
+            chatMessages={chatMessages}
+            currentUserId={myId}
+            onSendChat={sendChat}
             onPick={(m) => setCurrent({ matches: [m] })}
             onSearch={(cardOrError) => {
               if (cardOrError.error) {
@@ -288,6 +419,8 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
             tileColors={TILE_COLORS}
             themePreference={themePreference}
             onThemePreferenceChange={onThemePreferenceChange}
+            videoLayout={videoLayout}
+            onVideoLayoutChange={chooseVideoLayout}
             onToggleCam={toggleCam}
             onToggleMic={toggleMic}
             onChooseCamera={chooseCamera}
@@ -340,17 +473,22 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
               </div>
             </div>
           )}
-          <div className="grid">
-            {tiles.map((t, i) => (
+          <div className={videoLayout === "follow" ? "grid follow-active" : videoLayout === "hero" ? "grid hero-view" : "grid"}>
+            {visibleTiles.map((t, i) => (
               <VideoTile
                 key={t.id}
                 tile={t}
                 color={t.color || TILE_COLORS[i % TILE_COLORS.length]}
-                innerSide={i % 2 === 0 ? "right" : "left"}
+                innerSide={videoLayout === "follow" || i % 2 === 0 ? "right" : "left"}
                 flash={flash?.tileId === t.id ? flash : null}
                 onIdentify={identify}
                 onChooseCommander={chooseCommander}
                 onChangeLife={changeLife}
+                onPassTurn={passTurn}
+                heroRole={videoLayout === "hero" ? (i === 0 ? "main" : "thumbnail") : ""}
+                onSelectHero={() => {
+                  if (!t.empty) setHeroPlayerId(t.id);
+                }}
               />
             ))}
           </div>
@@ -461,7 +599,7 @@ const TILE_COLORS = [
   "#3f8fd2", "#38b8cf", "#31957e", "#58a75c", "#a6b94a", "#7c8796",
 ];
 
-function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, onChangeLife, flash }) {
+function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, onChangeLife, onPassTurn, heroRole, onSelectHero, flash }) {
   const videoRef = useRef(null);
   const [flipped, setFlipped] = useState(false);
   const speaking = useSpeaking(tile.stream, tile.muted);
@@ -471,7 +609,7 @@ function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, onCh
 
   if (tile.empty) {
     return (
-      <div className="tile empty" style={{ borderColor: color }}>
+      <div className={`tile empty${heroRole === "thumbnail" ? " hero-thumbnail" : heroRole === "main" ? " hero-main" : ""}`} style={{ borderColor: color }}>
         <span>Waiting for player…</span>
       </div>
     );
@@ -479,12 +617,22 @@ function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, onCh
 
   return (
     <div
-      className={`tile${speaking ? " speaking" : ""}`}
+      className={`tile${tile.activeTurn ? " active-turn" : ""}${heroRole === "thumbnail" ? " hero-thumbnail" : heroRole === "main" ? " hero-main" : ""}`}
       style={{ borderColor: color, "--speaker-color": color }}
     >
+      {heroRole === "thumbnail" && (
+        <button
+          type="button"
+          className="hero-thumbnail-hit"
+          onClick={onSelectHero}
+          aria-label={`Make ${tile.name} the hero view`}
+        />
+      )}
       <CommanderBanner
         tile={tile}
         onChoose={onChooseCommander}
+        speaking={speaking}
+        onPassTurn={onPassTurn}
         flipped={flipped}
         onToggleFlip={() => setFlipped((f) => !f)}
       />
@@ -560,7 +708,7 @@ function ManaCost({ cost }) {
 }
 
 // Three-dot video-options menu on the banner's first row.
-function TileMenu({ flipped, onToggleFlip }) {
+function TileMenu({ flipped, onToggleFlip, canPassTurn, onPassTurn }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="banner-menu" onClick={(e) => e.stopPropagation()}>
@@ -584,13 +732,25 @@ function TileMenu({ flipped, onToggleFlip }) {
             <FlipVertical2 size={18} />
             <span>{flipped ? "Unflip video" : "Flip video"}</span>
           </button>
+          {canPassTurn && (
+            <button
+              type="button"
+              onClick={() => {
+                onPassTurn?.();
+                setOpen(false);
+              }}
+            >
+              <SkipForward size={18} />
+              <span>Pass turn</span>
+            </button>
+          )}
         </div>
       )}
     </div>
   );
 }
 
-function CommanderBanner({ tile, onChoose, flipped, onToggleFlip }) {
+function CommanderBanner({ tile, onChoose, speaking, onPassTurn, flipped, onToggleFlip }) {
   const [draft, setDraft] = useState(tile.commander);
   const [suggestions, setSuggestions] = useState([]);
   const [highlight, setHighlight] = useState(-1);
@@ -646,6 +806,11 @@ function CommanderBanner({ tile, onChoose, flipped, onToggleFlip }) {
     <span className="banner-player-row">
       {tile.muted && <MicOff size={18} className="banner-muted" aria-label="Muted" />}
       <span className="banner-player">{playerLabel}</span>
+      {speaking && (
+        <span className="speaking-meter" role="img" aria-label="Speaking">
+          <i /><i /><i /><i /><i />
+        </span>
+      )}
     </span>
   );
 
@@ -679,7 +844,7 @@ function CommanderBanner({ tile, onChoose, flipped, onToggleFlip }) {
         onClick={() => setEditing(true)}
         title={tile.commander ? "Click to change commander" : "Click to add commander"}
       >
-        <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} />
+        <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canPassTurn={tile.activeTurn} onPassTurn={onPassTurn} />
         {nameRow}
         <div className="banner-row">
           <span className={tile.commander ? "commander-name" : "commander-name unset"}>
@@ -703,7 +868,7 @@ function CommanderBanner({ tile, onChoose, flipped, onToggleFlip }) {
   };
   return (
     <form className="commander-banner commander-picker" onSubmit={submit}>
-      <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} />
+      <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canPassTurn={tile.activeTurn} onPassTurn={onPassTurn} />
       {nameRow}
       <div className="commander-search">
         <input
