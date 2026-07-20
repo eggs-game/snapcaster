@@ -4,7 +4,7 @@ import App from "./App.jsx";
 import SnapTest from "./SnapTest.jsx";
 import "./styles.css";
 
-const BUILD = "ocr-corroborate-15 (short OCR names need visual backup)";
+const BUILD = "speed-16 (lazy strips, seed shortlist, orb trim, ocr pool)";
 window.__SNAP_BUILD = BUILD;
 console.log(`%c[snapcaster] build: ${BUILD}`, "color:#0a0;font-weight:bold");
 

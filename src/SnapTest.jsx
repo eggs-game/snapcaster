@@ -98,6 +98,7 @@ export default function SnapTest() {
           throw e;
         }
         rec.ms = Math.round(performance.now() - t0);
+        rec.stages = data.stage_ms || null;
         const top = data.matches && data.matches[0];
         rec.top = top && top.name;
         rec.by = top && top.identified_by;
@@ -138,6 +139,16 @@ export default function SnapTest() {
     sum.errorsByStage = Object.fromEntries(
       Object.entries(byStage).map(([k, v]) => [k, v.length]),
     );
+    // Mean per-pipeline-stage timing (prep = crops/outline, rank = 110k hash
+    // scan, orb = art verification, ocr = tesseract) — points speed work at
+    // the actual hotspot rather than guesses.
+    const stageKeys = ["prep", "rank", "orb", "ocr", "total"];
+    const withStages = okList.filter((r) => r.stages);
+    sum.stageAvgMs = {};
+    for (const k of stageKeys) {
+      const vals = withStages.map((r) => r.stages[k]).filter((v) => typeof v === "number");
+      if (vals.length) sum.stageAvgMs[k] = Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
+    }
     setResults(acc);
     setSummary(sum);
     setStatus(cancelRef.current ? "idle" : "done");
@@ -217,6 +228,16 @@ export default function SnapTest() {
               <Stat label="2nd-half acc" value={`${(summary.secondHalfAcc * 100).toFixed(1)}%`} />
               {summary.peakHeapMB ? <Stat label="Peak memory" value={`${summary.peakHeapMB} MB`} /> : null}
             </div>
+            {summary.stageAvgMs && Object.keys(summary.stageAvgMs).length > 0 && (
+              <div style={{ marginTop: 16 }}>
+                <div style={S.breakTitle}>Avg time per stage</div>
+                <div style={S.errStageRow}>
+                  {Object.entries(summary.stageAvgMs).map(([k, v]) => (
+                    <span key={k} style={S.errStagePill}>{k}: <b>{(v / 1000).toFixed(2)}s</b></span>
+                  ))}
+                </div>
+              </div>
+            )}
             <div style={S.breakRow}>
               <Breakdown title="By rotation" data={summary.byRotation} />
               <Breakdown title="By occlusion" data={summary.byOcclusion} />

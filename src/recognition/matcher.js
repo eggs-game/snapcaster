@@ -57,18 +57,21 @@ function getWorker() {
     worker = new Worker(new URL("./recognizer.js", import.meta.url));
     worker.onmessage = (e) => {
       const {
-        id, matches, printingMatches, titleCandidates, queryCandidates, shardedIndex,
-        cardFound, cvStatus, candidatesTried, artBest, artChecked, artDecisive, error,
+        id, matches, printingMatches, titleCandidates, titleCount, queryCandidates,
+        shardedIndex, cardFound, cvStatus, candidatesTried, artBest, artChecked,
+        artDecisive, stageMs, error,
       } = e.data || {};
       const p = pending.get(id);
       if (!p) return;
       pending.delete(id);
       clearTimeout(p.timer);
       if (error) p.reject(new Error(error));
+      else if (p.kind === "title-strips") p.resolve(titleCandidates || []);
       else p.resolve({
+        scan_id: id,
         matches: matches || [],
         printing_matches: printingMatches || [],
-        title_candidates: titleCandidates || [],
+        title_count: titleCount || 0,
         query_candidates: queryCandidates || [],
         sharded_index: !!shardedIndex,
         card_found: !!cardFound,
@@ -77,6 +80,7 @@ function getWorker() {
         art_best: artBest || null,
         art_checked: artChecked || 0,
         art_decisive: !!artDecisive,
+        stage_ms: stageMs || {},
       });
     };
     worker.onerror = (e) => {
@@ -96,19 +100,33 @@ async function dataUrlToBitmap(dataUrl) {
   return await createImageBitmap(blob);
 }
 
-let ocrWorkerPromise = null;
+// OCR runs in a small pool of tesseract workers so title reads execute in
+// parallel waves — the sequential 24-attempt loop was the slow tail on cards
+// without a decisive art match. Worker 0 is warmed by preload(); the second
+// spins up on first OCR use.
+const OCR_POOL_SIZE = 2;
+const ocrPool = [];
+
+function makeOCRWorker() {
+  return createWorker("eng").then(async (worker) => {
+    await worker.setParameters({
+      tessedit_pageseg_mode: PSM.SINGLE_LINE,
+      tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz '-,",
+    });
+    return worker;
+  });
+}
 
 function getOCRWorker() {
-  if (!ocrWorkerPromise) {
-    ocrWorkerPromise = createWorker("eng").then(async (worker) => {
-      await worker.setParameters({
-        tessedit_pageseg_mode: PSM.SINGLE_LINE,
-        tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz '-,",
-      });
-      return worker;
-    });
+  if (!ocrPool[0]) ocrPool[0] = makeOCRWorker();
+  return ocrPool[0];
+}
+
+function getOCRPool() {
+  for (let i = 0; i < OCR_POOL_SIZE; i++) {
+    if (!ocrPool[i]) ocrPool[i] = makeOCRWorker();
   }
-  return ocrWorkerPromise;
+  return Promise.all(ocrPool);
 }
 
 function normalizeTitle(value) {
@@ -314,22 +332,25 @@ function ocrDebugUrl(blob) {
 }
 
 async function applyTitleOCR(result) {
-  if (!result.title_candidates?.length) return applyVisualFallback(result);
+  if (!result.title_count) return applyVisualFallback(result);
   try {
-    const worker = await getOCRWorker();
+    // Title strips are rendered on demand by the worker (a decisive art match
+    // never reaches this point, so the happy path no longer pays for them).
+    const titleCandidates = await runTitleStrips(result.scan_id);
+    if (!titleCandidates.length) return applyVisualFallback(result);
+    const pool = await getOCRPool();
     let bestRead = null;
     const reads = [];
-    const runRead = async (image, rotation, strategy, flat) => {
-      const { data } = await worker.recognize(image);
+    const evaluateRead = (data, attempt) => {
       const title = bestIndexedTitle(data.text);
       const read = {
         title,
         text: String(data.text || "").trim(),
         confidence: data.confidence || 0,
-        rotation,
-        strategy,
-        image,
-        flat,
+        rotation: attempt.rotation,
+        strategy: attempt.strategy,
+        image: attempt.image,
+        flat: attempt.flat,
       };
       reads.push(read);
       if (!bestRead || (title?.score || 0) > (bestRead.title?.score || 0)
@@ -338,12 +359,27 @@ async function applyTitleOCR(result) {
       }
       return (title?.score || 0) >= 0.96 && read.confidence >= 45;
     };
+    // Reads run in parallel waves across the OCR pool. Waves preserve the
+    // early-exit: each wave's results are evaluated in priority order and the
+    // search stops as soon as any read is decisive.
+    const runWaves = async (list) => {
+      for (let w = 0; w < list.length; w += pool.length) {
+        const chunk = list.slice(w, w + pool.length);
+        const datas = await Promise.all(chunk.map((a, j) => pool[j % pool.length].recognize(a.image)));
+        let hit = false;
+        for (let k = 0; k < chunk.length; k++) {
+          if (evaluateRead(datas[k].data, chunk[k])) hit = true;
+        }
+        if (hit) return true;
+      }
+      return false;
+    };
     // Cards are usually upright in frame, so try every candidate upright (then
     // upside-down for players across the table) before the sideways rotations,
     // instead of burning 4 rotations on one candidate at a time.
     const attempts = [];
     for (const rotation of [0, 2, 1, 3]) {
-      for (const candidate of result.title_candidates) {
+      for (const candidate of titleCandidates) {
         if (candidate.images?.[rotation]) {
           attempts.push({
             image: candidate.images[rotation],
@@ -354,16 +390,13 @@ async function applyTitleOCR(result) {
         }
       }
     }
-    search:
-    for (const attempt of attempts.slice(0, 24)) {
-      if (await runRead(attempt.image, attempt.rotation, attempt.strategy, attempt.flat)) break search;
-    }
+    await runWaves(attempts.slice(0, 24));
     // Full-art and showcase basics can move the name bar to the bottom of the
     // frame. Only pay for these OCR reads when normal title-strip OCR failed.
     if ((bestRead?.title?.score || 0) < 0.82) {
       const bottomAttempts = [];
       for (const rotation of [0, 2, 1, 3]) {
-        for (const candidate of result.title_candidates.slice(0, 4)) {
+        for (const candidate of titleCandidates.slice(0, 4)) {
           if (candidate.imagesBottom?.[rotation]) {
             bottomAttempts.push({
               image: candidate.imagesBottom[rotation],
@@ -374,20 +407,17 @@ async function applyTitleOCR(result) {
           }
         }
       }
-      for (const attempt of bottomAttempts.slice(0, 12)) {
-        if (await runRead(attempt.image, attempt.rotation, attempt.strategy, attempt.flat)) break;
-      }
+      await runWaves(bottomAttempts.slice(0, 12));
     }
     // Glare / low-light retry: if nothing read convincingly, re-run the most
     // promising reads on their illumination-flattened strips.
     if ((bestRead?.title?.score || 0) < 0.82) {
       const promising = [...reads]
         .sort((a, b) => (b.title?.score || 0) - (a.title?.score || 0) || b.confidence - a.confidence)
-        .slice(0, 3);
-      for (const read of promising) {
-        if (!read.flat) continue;
-        if (await runRead(read.flat, read.rotation, `${read.strategy}+flat`, null)) break;
-      }
+        .slice(0, 3)
+        .filter((read) => read.flat)
+        .map((read) => ({ image: read.flat, flat: null, rotation: read.rotation, strategy: `${read.strategy}+flat` }));
+      await runWaves(promising);
     }
     const title = bestRead?.title;
     const enriched = {
@@ -463,16 +493,37 @@ function runVisualFallback(queryCandidates) {
   });
 }
 
+// Ask the worker to render the OCR title strips for scan `scanId` (kept
+// in-worker until the next scan). Resolves to the titleCandidates array.
+function runTitleStrips(scanId) {
+  const w = getWorker();
+  const id = ++seq;
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      pending.delete(id);
+      reject(new Error("Title strip rendering timed out."));
+    }, 20000);
+    pending.set(id, { resolve, reject, timer, kind: "title-strips" });
+    w.postMessage({ type: "title-strips", id, scanId });
+  });
+}
+
 // A decisive art-keypoint match settles identity — skip the slower OCR pass
 // (which could otherwise override 200 agreeing keypoints with a fuzzy title).
 async function finishIdentify(result) {
   if (result.art_decisive && result.matches?.[0]?.identified_by === "art-match") return result;
-  return applyTitleOCR(result);
+  const t0 = performance.now();
+  const out = await applyTitleOCR(result);
+  out.stage_ms = { ...(result.stage_ms || {}), ...(out.stage_ms || {}), ocr: Math.round(performance.now() - t0) };
+  return out;
 }
 
 export async function identify(imageDataUrl, point) {
+  const t0 = performance.now();
   const bmp = await dataUrlToBitmap(imageDataUrl);
-  return finishIdentify(await runOnWorker(bmp, point));
+  const out = await finishIdentify(await runOnWorker(bmp, point));
+  out.stage_ms = { ...(out.stage_ms || {}), total: Math.round(performance.now() - t0) };
+  return out;
 }
 
 // Console debug hook: `await window.__scIdentifyUrl("<card image url>")`

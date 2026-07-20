@@ -679,6 +679,15 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   // panel reports the real status so the user knows to retry in a moment.
   await waitForCV(15000);
 
+  // Per-stage wall-clock timing, surfaced through SNAPTEST/?debug=1 so speed
+  // work is guided by measurements instead of guesses.
+  const stage = { t: performance.now(), ms: {} };
+  const mark = (key) => {
+    const now = performance.now();
+    stage.ms[key] = Math.round((stage.ms[key] || 0) + (now - stage.t));
+    stage.t = now;
+  };
+
   const candidates = [];
   let cardFound = false;
   const nx = Number(point?.nx), ny = Number(point?.ny);
@@ -761,27 +770,78 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   let bestCandidateImage = null;
   let bestCandidateStrategy = "";
   let bestCandidateDistance = 0xffff;
-  for (const candidate of candidates) {
-    candidatesTried++;
+  // Prepare every candidate's hashes (cheap). The expensive full-index scans
+  // below are limited to a few diverse SEED crops; scoring all ~27 crops
+  // against 110k cards (8 hash variants each) was the dominant per-scan cost.
+  const prepared = candidates.map((candidate) => {
     // White-balance the crop so a warm/cool room cast doesn't bias the
     // grayscale hash or the color signature toward mis-tinted cards.
     const wbImage = whiteBalance(candidate.image);
     const gray = toGray(wbImage);
     const variants = queryVariants(gray);
     queryCandidates.push({ strategy: candidate.strategy, vectors: variants });
-    if (!bestCandidateImage) {
-      bestCandidateImage = candidate.image;
-      bestCandidateStrategy = candidate.strategy;
+    return { candidate, wbImage, gray, variants };
+  });
+  if (prepared.length) {
+    bestCandidateImage = prepared[0].candidate.image;
+    bestCandidateStrategy = prepared[0].candidate.strategy;
+  }
+  mark("prep");
+
+  const artVecsFor = (gray) => {
+    if (!(useV3 && artIndex)) return null;
+    const v = [];
+    let img = gray;
+    for (let r = 0; r < 4; r++) { v.push(artPHash(img)); img = rotate90(img); }
+    return v;
+  };
+  const combineScore = (grayDist, idx, artVecs, colorSig) => {
+    let score = grayDist;
+    if (artVecs) {
+      let artDist = 0xffff;
+      const off = idx * ART_BYTES;
+      for (const av of artVecs) {
+        let d = 0;
+        for (let b = 0; b < ART_BYTES; b++) d += POPCOUNT[artIndex[off + b] ^ av[b]];
+        if (d < artDist) artDist = d;
+      }
+      score += artDist * 1.8; // 256-bit art hash weighted near the 512-bit gray hash
     }
-    if (!n) continue;
+    if (colorSig) {
+      let sim = 0;
+      const off = idx * COLOR_BYTES;
+      for (let b = 0; b < COLOR_BYTES; b++) sim += Math.min(colorSig[b], colorIndex[off + b] / 255);
+      score += (1 - Math.min(1, sim)) * 150; // color clash pushes a printing far down
+    }
+    return score;
+  };
+
+  // Coarse-to-fine: diverse, well-isolated seed crops get the full 110k scan
+  // and define a shortlist (every card any seed brought into contention); the
+  // remaining ~20 crops only refine that shortlist. A decisive seed (gray
+  // distance <= 60) short-circuits everything.
+  const SEED_PRIORITY = ["full-frame", "outline-1", "outline-2", "center-45",
+    "center-27", "tilt20@60", "tilt-20@60", "off0,-11"];
+  const seedIdx = new Set();
+  for (const s of SEED_PRIORITY) {
+    const i = prepared.findIndex((p, pi) => !seedIdx.has(pi) && p.candidate.strategy === s);
+    if (i >= 0) seedIdx.add(i);
+    if (seedIdx.size >= 6) break;
+  }
+  for (let i = 0; i < prepared.length && seedIdx.size < 5; i++) seedIdx.add(i);
+
+  // Full-index scoring of one seed crop; updates dists/rank/artGlobal and the
+  // best-candidate tracking. Returns the crop's best gray distance.
+  const scoreFull = (p) => {
+    candidatesTried++;
     const candidateDists = new Uint16Array(n).fill(0xffff);
-    for (const q of variants) hammingSearch(q, index, n, candidateDists);
+    for (const q of p.variants) hammingSearch(q, index, n, candidateDists);
     let candidateBest = 0xffff;
     for (let i = 0; i < n; i++) {
       if (candidateDists[i] < candidateBest) candidateBest = candidateDists[i];
       if (candidateDists[i] < dists[i]) {
         dists[i] = candidateDists[i];
-        if (!useV3) strategies[i] = candidate.strategy;
+        if (!useV3) strategies[i] = p.candidate.strategy;
       }
     }
     if (useV3) {
@@ -791,13 +851,8 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       for (let i = 0; i < n; i++) counts[candidateDists[i] <= 512 ? candidateDists[i] : 512]++;
       let cutoff = 0, cumulative = 0;
       while (cutoff < 512 && cumulative + counts[cutoff] < 400) { cumulative += counts[cutoff]; cutoff++; }
-      let artVecs = null;
-      if (artIndex) {
-        artVecs = [];
-        let img = gray;
-        for (let r = 0; r < 4; r++) { artVecs.push(artPHash(img)); img = rotate90(img); }
-      }
-      if (artVecs && artGlobal && artGlobalStrategies.has(candidate.strategy)) {
+      const artVecs = artVecsFor(p.gray);
+      if (artVecs && artGlobal && artGlobalStrategies.has(p.candidate.strategy)) {
         for (let i = 0; i < n; i++) {
           const off = i * ART_BYTES;
           for (const av of artVecs) {
@@ -807,41 +862,69 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
           }
         }
       }
-      const colorSig = colorIndex ? colorSignature(wbImage) : null;
+      const colorSig = colorIndex ? colorSignature(p.wbImage) : null;
       for (let i = 0; i < n; i++) {
         if (candidateDists[i] > cutoff) continue;
-        let score = candidateDists[i];
-        if (artVecs) {
-          let artDist = 0xffff;
-          const off = i * ART_BYTES;
-          for (const av of artVecs) {
-            let d = 0;
-            for (let b = 0; b < ART_BYTES; b++) d += POPCOUNT[artIndex[off + b] ^ av[b]];
-            if (d < artDist) artDist = d;
-          }
-          score += artDist * 1.8; // 256-bit art hash weighted near the 512-bit gray hash
-        }
-        if (colorSig) {
-          let sim = 0;
-          const off = i * COLOR_BYTES;
-          for (let b = 0; b < COLOR_BYTES; b++) sim += Math.min(colorSig[b], colorIndex[off + b] / 255);
-          score += (1 - Math.min(1, sim)) * 150; // color clash pushes a printing far down
-        }
-        if (score < rank[i]) {
-          rank[i] = score;
-          strategies[i] = candidate.strategy;
-        }
+        const score = combineScore(candidateDists[i], i, artVecs, colorSig);
+        if (score < rank[i]) { rank[i] = score; strategies[i] = p.candidate.strategy; }
       }
     }
     if (candidateBest < bestCandidateDistance) {
       bestCandidateDistance = candidateBest;
-      bestCandidateImage = candidate.image;
-      bestCandidateStrategy = candidate.strategy;
+      bestCandidateImage = p.candidate.image;
+      bestCandidateStrategy = p.candidate.strategy;
     }
-    // A distance this low is already a decisive match; avoid spending time on
-    // weaker fallback candidates.
-    if (candidateBest <= 60) break;
+    return candidateBest;
+  };
+
+  if (n) {
+    let decisive = false;
+    for (const i of seedIdx) {
+      if (scoreFull(prepared[i]) <= 60) { decisive = true; break; }
+    }
+    if (!decisive) {
+      // Shortlist = every printing a seed brought into contention (finite
+      // combined rank under v3, or the gray-closest 4000 under v2).
+      let shortlist;
+      if (useV3) {
+        shortlist = [];
+        for (let i = 0; i < n; i++) if (rank[i] < Infinity) shortlist.push(i);
+      } else {
+        shortlist = Array.from({ length: n }, (_, i) => i)
+          .sort((a, b) => dists[a] - dists[b]).slice(0, 4000);
+      }
+      for (let pi = 0; pi < prepared.length; pi++) {
+        if (seedIdx.has(pi)) continue;
+        const p = prepared[pi];
+        candidatesTried++;
+        const artVecs = artVecsFor(p.gray);
+        const colorSig = (useV3 && colorIndex) ? colorSignature(p.wbImage) : null;
+        let candidateBest = 0xffff;
+        for (const idx of shortlist) {
+          let d = 0xffff;
+          const off = idx * VEC_BYTES;
+          for (const q of p.variants) {
+            let dd = 0;
+            for (let b = 0; b < VEC_BYTES; b++) dd += POPCOUNT[index[off + b] ^ q[b]];
+            if (dd < d) d = dd;
+          }
+          if (d < candidateBest) candidateBest = d;
+          if (d < dists[idx]) { dists[idx] = d; if (!useV3) strategies[idx] = p.candidate.strategy; }
+          if (useV3) {
+            const score = combineScore(d, idx, artVecs, colorSig);
+            if (score < rank[idx]) { rank[idx] = score; strategies[idx] = p.candidate.strategy; }
+          }
+        }
+        if (candidateBest < bestCandidateDistance) {
+          bestCandidateDistance = candidateBest;
+          bestCandidateImage = p.candidate.image;
+          bestCandidateStrategy = p.candidate.strategy;
+        }
+        if (candidateBest <= 60) break;
+      }
+    }
   }
+  mark("rank");
   const rankArr = rank || dists;
 
   // Keep a deep printing-level pool. Basic lands and heavily reprinted cards
@@ -914,15 +997,21 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     try {
       // Feed ORB pure-card crops. Outline rectifications exclude the skin/hair
       // background that was drowning the keypoint matches (weak 0-4 inliers on
-      // every real scan); the best-ranked crop and a couple tight/offset crops
-      // back them up when no clean outline was found.
-      const queryImages = [
-        ...candidates.filter((c) => c.strategy.startsWith("outline-")).slice(0, 2).map((c) => c.image),
-        bestCandidateImage,
-        candidates.find((c) => c.strategy === "off0,-11")?.image,
-        candidates.find((c) => c.strategy === "center-27")?.image,
-      ].filter((img, i, arr) => img && arr.indexOf(img) === i).slice(0, 4);
+      // every real scan). When the best candidate IS a clean outline/full-frame
+      // crop, two queries suffice — halving keypoint matching; the backup
+      // offset/tight crops only earn their cost when no outline isolated it.
       const cardShaped = bestCandidateStrategy === "full-frame" || bestCandidateStrategy.startsWith("outline-");
+      const queryImages = (cardShaped
+        ? [
+          ...candidates.filter((c) => c.strategy.startsWith("outline-")).slice(0, 2).map((c) => c.image),
+          bestCandidateImage,
+        ]
+        : [
+          bestCandidateImage,
+          candidates.find((c) => c.strategy === "off0,-11")?.image,
+          candidates.find((c) => c.strategy === "center-27")?.image,
+        ]
+      ).filter((img, i, arr) => img && arr.indexOf(img) === i).slice(0, cardShaped ? 2 : 3);
       const verified = await verifyTopMatches(verificationCandidates, queryImages, cardShaped);
       // Keep the result UI compact after printing-level verification. The best
       // verified treatment wins for each name, and a decisive exact artwork
@@ -940,7 +1029,12 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       console.warn("[snapcaster worker] art verification failed", e);
     }
   }
+  mark("orb");
 
+  // Title strips are now generated LAZILY (see the "title-strips" message):
+  // a decisive art match skips OCR entirely, and eagerly rendering ~100 strip
+  // PNGs cost ~1s on every scan whether or not OCR ever ran. The candidate
+  // images are kept in-worker (titleSource) until the next scan replaces them.
   const preferredTitleCandidates = candidates
     .filter((candidate) => candidate.strategy === "full-frame" || candidate.strategy.startsWith("outline-"))
     .slice(0, 8);
@@ -950,7 +1044,19 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       strategy: bestCandidateStrategy || strategies[top[0]?.i] || "visual-best",
     });
   }
-  const titleCandidates = await Promise.all(preferredTitleCandidates.map(async (candidate, index) => ({
+  return {
+    matches: matchesOut, printingMatches, queryCandidates,
+    titleSource: preferredTitleCandidates,
+    titleCount: preferredTitleCandidates.length,
+    cardFound, cvStatus, candidatesTried, shardedIndex,
+    artBest, artChecked, artDecisive, stageMs: stage.ms,
+  };
+}
+
+// Render the OCR title strips for the most recent scan on demand. Kept out of
+// identify() so the happy path (decisive art match) never pays for them.
+async function makeTitleStrips(titleSource) {
+  return Promise.all(titleSource.map(async (candidate, index) => ({
     strategy: candidate.strategy,
     images: await Promise.all([0, 1, 2, 3].map((turns) => makeTitleImage(candidate.image, turns, "plain"))),
     // Illumination-flattened variants, used by the main thread as a retry when
@@ -965,11 +1071,6 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       ? await Promise.all([0, 1, 2, 3].map((turns) => makeTitleImage(candidate.image, turns, "flat", "bottom")))
       : [],
   })));
-  return {
-    matches: matchesOut, printingMatches, titleCandidates, queryCandidates,
-    cardFound, cvStatus, candidatesTried, shardedIndex,
-    artBest, artChecked, artDecisive,
-  };
 }
 
 // ---------- Stage C: reference verification via ORB art keypoints ----------
@@ -1154,11 +1255,12 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped) {
   const querySig = colorSignature(wbQuery);
   const queryRing = queryIsCardShaped ? ringSignature(wbQuery) : null;
   try {
+    let lead = 0, second = 0;
     for (let i = 0; i < shortlist.length; i++) {
       if (!refs[i]) { shortlist[i].art_inliers = 0; shortlist[i].color_sim = 0; continue; }
       const rf = orbFeatures(refs[i], 300);
+      let inliers = 0;
       try {
-        let inliers = 0;
         for (const qf of queryFeats) inliers = Math.max(inliers, orbScore(qf, rf));
         shortlist[i].art_inliers = inliers;
       } finally {
@@ -1166,6 +1268,11 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped) {
       }
       shortlist[i].color_sim = colorSimilarity(querySig, colorSignature(refs[i]));
       if (queryRing) shortlist[i].ring_sim = colorSimilarity(queryRing, ringSignature(refs[i]));
+      if (inliers > lead) { second = lead; lead = inliers; }
+      else if (inliers > second) second = inliers;
+      // Early stop: after the top-ranked references, an overwhelming keypoint
+      // leader can't be displaced by lower-ranked cards — skip the rest.
+      if (i >= 9 && lead >= 28 && lead >= 2 * (second + 1)) break;
     }
   } finally {
     for (const qf of queryFeats) { qf.kp.delete(); qf.desc.delete(); }
@@ -1271,14 +1378,27 @@ async function visualFallback(queryCandidates) {
 loadIndex().then(() => { if (shardedIndex) loadGlobalIndex().catch(() => {}); }).catch(() => {});
 loadCV().catch(() => {});
 
+// Candidate images for the latest scan, retained so title strips can be
+// rendered on demand. Only the newest scan is kept (bounded memory).
+let lastTitleSource = { scanId: null, candidates: [] };
+
 self.onmessage = async (e) => {
-  const { id, type, bmp, point, queryCandidates } = e.data || {};
+  const { id, type, bmp, point, queryCandidates, scanId } = e.data || {};
   if (type === "identify") {
     try {
       const res = await identify(bmp, point);
+      lastTitleSource = { scanId: id, candidates: res.titleSource || [] };
+      delete res.titleSource; // ImageData payloads stay in-worker
       self.postMessage({ id, ...res });
     } catch (err) {
       if (bmp && bmp.close) bmp.close();
+      self.postMessage({ id, error: String((err && err.message) || err) });
+    }
+  } else if (type === "title-strips") {
+    try {
+      const source = lastTitleSource.scanId === scanId ? lastTitleSource.candidates : [];
+      self.postMessage({ id, titleCandidates: await makeTitleStrips(source) });
+    } catch (err) {
       self.postMessage({ id, error: String((err && err.message) || err) });
     }
   } else if (type === "visual-fallback") {
