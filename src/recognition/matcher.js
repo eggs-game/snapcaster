@@ -358,6 +358,26 @@ async function applyTitleOCR(result) {
     for (const attempt of attempts.slice(0, 24)) {
       if (await runRead(attempt.image, attempt.rotation, attempt.strategy, attempt.flat)) break search;
     }
+    // Full-art and showcase basics can move the name bar to the bottom of the
+    // frame. Only pay for these OCR reads when normal title-strip OCR failed.
+    if ((bestRead?.title?.score || 0) < 0.82) {
+      const bottomAttempts = [];
+      for (const rotation of [0, 2, 1, 3]) {
+        for (const candidate of result.title_candidates.slice(0, 4)) {
+          if (candidate.imagesBottom?.[rotation]) {
+            bottomAttempts.push({
+              image: candidate.imagesBottom[rotation],
+              flat: candidate.imagesBottomFlat?.[rotation],
+              rotation,
+              strategy: `${candidate.strategy}:bottom`,
+            });
+          }
+        }
+      }
+      for (const attempt of bottomAttempts.slice(0, 12)) {
+        if (await runRead(attempt.image, attempt.rotation, attempt.strategy, attempt.flat)) break;
+      }
+    }
     // Glare / low-light retry: if nothing read convincingly, re-run the most
     // promising reads on their illumination-flattened strips.
     if ((bestRead?.title?.score || 0) < 0.82) {

@@ -581,7 +581,7 @@ function tiltCropImageData(bmp, angleDeg, scale, point) {
   return ctx.getImageData(0, 0, ow, oh);
 }
 
-async function makeTitleImage(cardImage, turns = 0, mode = "plain") {
+async function makeTitleImage(cardImage, turns = 0, mode = "plain", placement = "top") {
   const source = new OffscreenCanvas(cardImage.width, cardImage.height);
   source.getContext("2d").putImageData(cardImage, 0, 0);
   let oriented = source;
@@ -608,11 +608,15 @@ async function makeTitleImage(cardImage, turns = 0, mode = "plain") {
   const ctx = canvas.getContext("2d");
   ctx.fillStyle = "white";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  // Exclude the mana-cost area on the right; it otherwise becomes OCR noise.
+  // Most cards put their name at the top. Showcase/full-art basics (including
+  // SNC metropolis lands) can put it in a narrow bar near the bottom instead.
+  // Exclude the right-side mana/symbol area in either treatment.
+  const titleY = placement === "bottom" ? 0.82 : 0.025;
+  const titleH = placement === "bottom" ? 0.115 : 0.1;
   ctx.drawImage(
     oriented,
-    oriented.width * 0.04, oriented.height * 0.025,
-    oriented.width * 0.76, oriented.height * 0.1,
+    oriented.width * 0.04, oriented.height * titleY,
+    oriented.width * 0.76, oriented.height * titleH,
     10, 10, 980, 120,
   );
   const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -840,17 +844,17 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   }
   const rankArr = rank || dists;
 
-  // Keep enough printing-level candidates to deduplicate by card name below.
-  // Every printing still competes independently; the best-matching artwork for
-  // a card becomes the result shown to the user. Selection uses the combined
-  // gray+art+color rank when v3 tables are loaded; reported distance stays the
-  // calibrated gray hash distance.
+  // Keep a deep printing-level pool. Basic lands and heavily reprinted cards
+  // can have hundreds of distinct treatments (Mountain currently has 800+),
+  // so collapsing by name before art verification discards the exact artwork.
+  // Selection uses the combined gray+art+color rank when v3 tables are loaded;
+  // reported distance stays the calibrated gray hash distance.
   const top = [];
   for (let i = 0; i < n; i++) {
-    if (top.length < 30 || rankArr[i] < top[top.length - 1].r) {
+    if (top.length < 72 || rankArr[i] < top[top.length - 1].r) {
       top.push({ i, r: rankArr[i] });
       top.sort((a, b) => a.r - b.r);
-      if (top.length > 30) top.pop();
+      if (top.length > 72) top.pop();
     }
   }
   const printingMatches = top
@@ -864,9 +868,22 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     matches.push(match);
     if (matches.length === 24) break;
   }
-  // Union in the best pure-art-hash names the combined ranking missed, so ORB
-  // verification can rescue cards whose gray/color ranking was poisoned by
-  // occlusion (fingers), color cast, or a loose crop.
+  // Build a printing-level ORB shortlist: 24 combined-rank printings plus 12
+  // pure-art printings. Deliberately do not deduplicate by name here; different
+  // Mountain artworks must each get a chance to match geometrically.
+  const verificationCandidates = [];
+  const verificationIds = new Set();
+  const addVerification = (match) => {
+    const key = `${match.scryfall_id}:${match.face || 0}`;
+    if (verificationIds.has(key) || verificationCandidates.length >= 36) return;
+    verificationIds.add(key);
+    verificationCandidates.push(match);
+  };
+  for (const match of printingMatches.slice(0, 24)) addVerification(match);
+
+  // Union in the best pure-art-hash printings the combined ranking missed, so
+  // ORB can rescue artwork whose gray/color rank was poisoned by blur,
+  // occlusion, color cast, or a loose crop.
   if (artGlobal) {
     const artTop = [];
     for (let i = 0; i < n; i++) {
@@ -879,17 +896,21 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     for (const t of artTop) {
       if (t.d === 0xffff) continue;
       const meta = cardMeta(t.i, dists[t.i]);
+      addVerification({ ...meta, strategy: "art-global" });
       if (names.has(meta.name)) continue;
       names.add(meta.name);
       matches.push({ ...meta, strategy: "art-global" });
       if (matches.length >= 36) break;
     }
   }
+  // v2/grayscale fallback, or duplicate art candidates, may leave spare ORB
+  // slots. Fill them from the deeper combined pool without name deduplication.
+  for (const match of printingMatches.slice(24)) addVerification(match);
   // Stage C: verify the top hash guesses against the real card images by
   // matching art keypoints. A decisive art match settles identity outright.
   let matchesOut = matches;
   let artBest = null, artChecked = 0, artDecisive = false;
-  if (cvReady && matches.length && bestCandidateImage) {
+  if (cvReady && verificationCandidates.length && bestCandidateImage) {
     try {
       // Feed ORB pure-card crops. Outline rectifications exclude the skin/hair
       // background that was drowning the keypoint matches (weak 0-4 inliers on
@@ -902,8 +923,16 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
         candidates.find((c) => c.strategy === "center-27")?.image,
       ].filter((img, i, arr) => img && arr.indexOf(img) === i).slice(0, 4);
       const cardShaped = bestCandidateStrategy === "full-frame" || bestCandidateStrategy.startsWith("outline-");
-      const verified = await verifyTopMatches(matches, queryImages, cardShaped);
-      matchesOut = verified.matches;
+      const verified = await verifyTopMatches(verificationCandidates, queryImages, cardShaped);
+      // Keep the result UI compact after printing-level verification. The best
+      // verified treatment wins for each name, and a decisive exact artwork
+      // remains first.
+      const verifiedNames = new Set();
+      matchesOut = verified.matches.filter((match) => {
+        if (verifiedNames.has(match.name)) return false;
+        verifiedNames.add(match.name);
+        return true;
+      }).slice(0, 36);
       artBest = verified.artBest;
       artChecked = verified.artChecked;
       artDecisive = verified.artDecisive;
@@ -921,12 +950,20 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       strategy: bestCandidateStrategy || strategies[top[0]?.i] || "visual-best",
     });
   }
-  const titleCandidates = await Promise.all(preferredTitleCandidates.map(async (candidate) => ({
+  const titleCandidates = await Promise.all(preferredTitleCandidates.map(async (candidate, index) => ({
     strategy: candidate.strategy,
     images: await Promise.all([0, 1, 2, 3].map((turns) => makeTitleImage(candidate.image, turns, "plain"))),
     // Illumination-flattened variants, used by the main thread as a retry when
     // the plain reads score poorly (glare, dim rooms, hotspot lighting).
     imagesFlat: await Promise.all([0, 1, 2, 3].map((turns) => makeTitleImage(candidate.image, turns, "flat"))),
+    // Alternate/full-art treatments sometimes move the name bar to the bottom.
+    // These are tried only when ordinary top-title OCR is weak.
+    imagesBottom: index < 4
+      ? await Promise.all([0, 1, 2, 3].map((turns) => makeTitleImage(candidate.image, turns, "plain", "bottom")))
+      : [],
+    imagesBottomFlat: index < 4
+      ? await Promise.all([0, 1, 2, 3].map((turns) => makeTitleImage(candidate.image, turns, "flat", "bottom")))
+      : [],
   })));
   return {
     matches: matchesOut, printingMatches, titleCandidates, queryCandidates,
