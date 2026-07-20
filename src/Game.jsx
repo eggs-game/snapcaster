@@ -419,37 +419,67 @@ function RemoteAudio({ stream }) {
   return <audio ref={ref} autoPlay playsInline />;
 }
 
+let speakerAudioContext = null;
+
+function getSpeakerAudioContext() {
+  if (speakerAudioContext) return speakerAudioContext;
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContext) return null;
+  speakerAudioContext = new AudioContext();
+
+  // Safari and Chromium can suspend Web Audio when the game finishes joining
+  // after the original button click. Resume on the next interaction as well as
+  // immediately, so level detection never stays silently paused.
+  const resume = () => {
+    if (speakerAudioContext?.state === "suspended") speakerAudioContext.resume().catch(() => {});
+  };
+  window.addEventListener("pointerdown", resume, { capture: true });
+  window.addEventListener("keydown", resume, { capture: true });
+  document.addEventListener("visibilitychange", resume);
+  resume();
+  return speakerAudioContext;
+}
+
 // Watch a stream's microphone level without routing any extra audio. A short
 // release delay keeps the indicator steady across natural gaps between words.
 function useSpeaking(stream, disabled = false) {
   const [speaking, setSpeaking] = useState(false);
 
   useEffect(() => {
-    if (!stream || disabled || !stream.getAudioTracks().some((track) => track.enabled)) {
+    const audioTrack = stream?.getAudioTracks?.()[0];
+    if (!stream || !audioTrack || disabled) {
       setSpeaking(false);
       return undefined;
     }
 
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContext) return undefined;
-    const context = new AudioContext();
+    const context = getSpeakerAudioContext();
+    if (!context) return undefined;
     const source = context.createMediaStreamSource(stream);
     const analyser = context.createAnalyser();
-    analyser.fftSize = 512;
-    analyser.smoothingTimeConstant = 0.55;
+    analyser.fftSize = 1024;
+    analyser.smoothingTimeConstant = 0.35;
     source.connect(analyser);
 
     const samples = new Float32Array(analyser.fftSize);
     let frame = 0;
     let lastVoiceAt = 0;
     let active = false;
+    let noiseFloor = 0.004;
     const update = () => {
       analyser.getFloatTimeDomainData(samples);
       let energy = 0;
       for (let i = 0; i < samples.length; i++) energy += samples[i] * samples[i];
       const rms = Math.sqrt(energy / samples.length);
       const now = performance.now();
-      if (rms > 0.035) lastVoiceAt = now;
+      // Learn the room's quiet level, but only while the signal is near it so
+      // normal speech does not teach the threshold to ignore the speaker.
+      if (rms < Math.max(0.012, noiseFloor * 2.2)) {
+        noiseFloor = noiseFloor * 0.96 + rms * 0.04;
+      }
+      const voiceThreshold = Math.max(0.007, noiseFloor * 2.6);
+      if (audioTrack.enabled && audioTrack.readyState === "live" && rms > voiceThreshold) {
+        lastVoiceAt = now;
+      }
       const next = now - lastVoiceAt < 360;
       if (next !== active) {
         active = next;
@@ -457,14 +487,13 @@ function useSpeaking(stream, disabled = false) {
       }
       frame = requestAnimationFrame(update);
     };
-    context.resume().catch(() => {});
+    if (context.state === "suspended") context.resume().catch(() => {});
     frame = requestAnimationFrame(update);
 
     return () => {
       cancelAnimationFrame(frame);
       source.disconnect();
       analyser.disconnect();
-      context.close().catch(() => {});
     };
   }, [stream, disabled]);
 
