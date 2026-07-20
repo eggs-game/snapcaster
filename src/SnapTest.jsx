@@ -27,36 +27,51 @@ export default function SnapTest() {
     cancelRef.current = false;
     const set = cards.slice(0, size);
     const acc = [];
+    let correct = 0, peakHeapMB = 0, keptMissImgs = 0;
     setResults([]); setSummary(null); setProgress({ done: 0, correct: 0 });
     setStatus("running");
     for (let i = 0; i < set.length; i++) {
       if (cancelRef.current) break;
       const card = set[i];
       const rec = { i, name: card.name, id: card.id, ok: false, err: null, ms: 0 };
+      let degradedUrl = null;
       try {
         const img = await loadImage(scryfallImageUrl(card.id));
         const deg = degrade(img, i);
         rec.rotationClass = deg.rotationClass;
         rec.occ = deg.occ;
-        rec.degraded = deg.url;
+        degradedUrl = deg.url;
         const t0 = performance.now();
-        const data = await identifyCard(deg.url, { nx: 0.5, ny: 0.5 });
+        const data = await identifyCard(degradedUrl, { nx: 0.5, ny: 0.5 });
         rec.ms = Math.round(performance.now() - t0);
         const top = data.matches && data.matches[0];
         rec.top = top && top.name;
         rec.by = top && top.identified_by;
-        rec.topImage = top && top.image;
         rec.ok = rec.top === card.name;
+        // Only KEEP the heavy degraded data-URL (~80KB) for a capped set of
+        // misses (for the gallery). Hoarding all 1000 was ~80MB and starved the
+        // tab, corrupting later canvas/bitmap ops — the real cause of the
+        // long-run accuracy collapse.
+        if (!rec.ok && keptMissImgs < 60) { rec.degraded = degradedUrl; rec.topImage = top && top.image; keptMissImgs++; }
       } catch (e) {
         rec.err = String((e && e.message) || e);
       }
+      if (rec.ok) correct++;
       acc.push(rec);
-      // Update live counters every card; the heavy results table renders at the end.
-      setProgress({ done: acc.length, correct: acc.filter((r) => r.ok).length });
+      if (performance.memory) peakHeapMB = Math.max(peakHeapMB, Math.round(performance.memory.usedJSHeapSize / 1e6));
+      setProgress({ done: acc.length, correct });
       await new Promise((r) => setTimeout(r, 0));
     }
+    const sum = summarize(acc);
+    // Half-split accuracy directly reveals time/resource degradation.
+    const okList = acc.filter((r) => !r.err);
+    const half = Math.floor(okList.length / 2);
+    const halfAcc = (arr) => (arr.length ? +(arr.filter((r) => r.ok).length / arr.length).toFixed(3) : 0);
+    sum.firstHalfAcc = halfAcc(okList.slice(0, half));
+    sum.secondHalfAcc = halfAcc(okList.slice(half));
+    sum.peakHeapMB = peakHeapMB;
     setResults(acc);
-    setSummary(summarize(acc));
+    setSummary(sum);
     setStatus(cancelRef.current ? "idle" : "done");
   };
 
@@ -120,6 +135,11 @@ export default function SnapTest() {
               <Stat label="Errors" value={summary.errors} />
               <Stat label="Avg time" value={`${(summary.avgMs / 1000).toFixed(1)}s`} />
               <Stat label="Median" value={`${(summary.medianMs / 1000).toFixed(1)}s`} />
+            </div>
+            <div style={{ ...S.statRow, marginTop: 14 }}>
+              <Stat label="1st-half acc" value={`${(summary.firstHalfAcc * 100).toFixed(1)}%`} />
+              <Stat label="2nd-half acc" value={`${(summary.secondHalfAcc * 100).toFixed(1)}%`} />
+              {summary.peakHeapMB ? <Stat label="Peak memory" value={`${summary.peakHeapMB} MB`} /> : null}
             </div>
             <div style={S.breakRow}>
               <Breakdown title="By rotation" data={summary.byRotation} />
