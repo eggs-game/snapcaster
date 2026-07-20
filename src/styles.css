@@ -41,6 +41,10 @@ body { background: var(--bg2); color: var(--text); font-family: Inter, system-ui
 /* Icon-only drawer toggles: plain icons, no boxed chrome. */
 .drawer-toggle { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; flex: none; padding: 0; background: none; border: none; border-radius: 8px; color: var(--dim); cursor: pointer; }
 .drawer-toggle:hover { color: var(--text); }
+/* Topbar open-control stays mounted; fade instead of mount/unmount so the
+   lobby name doesn't stutter sideways. */
+.panel-toggle { transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+.panel-toggle-away { opacity: 0; pointer-events: none; }
 .logo { color: var(--text); font-weight: 600; }
 .lobby-name {
   background: none; border: none; padding: 0; font: inherit; color: var(--text); font-size: 15px; font-weight: 600;
@@ -147,18 +151,17 @@ body { background: var(--bg2); color: var(--text); font-family: Inter, system-ui
   display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--border);
   border-radius: 12px;
 }
-/* One-shot open animation — must not live on the base class, or finishing a
-   settings flip re-applies slide-in and looks like a second flip. */
+/* One-shot open: ease-out so it decelerates into place. */
 .sidebar.slide-in {
-  animation: sidebar-slide-in 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: sidebar-slide-in 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 @keyframes sidebar-slide-in {
   from { margin-left: -316px; opacity: 0; }
   to { margin-left: 0; opacity: 1; }
 }
-/* Closing keeps the sidebar mounted until this animation finishes. */
+/* Close: ease-in so it accelerates away. Keeps the node mounted until end. */
 .sidebar.slide-out {
-  animation: sidebar-slide-out 0.34s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: sidebar-slide-out 0.2s cubic-bezier(0.7, 0, 0.84, 0) forwards;
   pointer-events: none;
 }
 @keyframes sidebar-slide-out {

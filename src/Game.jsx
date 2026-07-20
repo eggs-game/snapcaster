@@ -299,19 +299,26 @@ export default function Game({ session, onLeave }) {
         )}
         <div className="video-panel">
           <div className="panel-topbar">
-            {!sidebarOpen && (
-              <button
-                className="drawer-toggle"
-                onClick={() => {
-                  setSidebarView("lookup");
-                  setSidebarOpen(true);
-                }}
-                aria-label="Open card lookup"
-                title="Open card lookup"
-              >
-                <PanelLeft size={20} />
-              </button>
-            )}
+            {/* Always in the layout so the lobby name doesn't jump when the
+                sidebar closes and this control reappears. */}
+            <button
+              className={[
+                "drawer-toggle",
+                "panel-toggle",
+                sidebarOpen && !sidebarClosing ? "panel-toggle-away" : "",
+              ].filter(Boolean).join(" ")}
+              onClick={() => {
+                if (sidebarOpen) return;
+                setSidebarView("lookup");
+                setSidebarOpen(true);
+              }}
+              aria-label="Open card lookup"
+              title="Open card lookup"
+              aria-hidden={sidebarOpen && !sidebarClosing}
+              tabIndex={sidebarOpen && !sidebarClosing ? -1 : 0}
+            >
+              <PanelLeft size={20} />
+            </button>
             {editingLobbyName && !isVisitor ? (
               <form
                 className="lobby-name-edit"
