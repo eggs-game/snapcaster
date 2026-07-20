@@ -875,7 +875,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   const verificationIds = new Set();
   const addVerification = (match) => {
     const key = `${match.scryfall_id}:${match.face || 0}`;
-    if (verificationIds.has(key) || verificationCandidates.length >= 36) return;
+    if (verificationIds.has(key) || verificationCandidates.length >= 24) return;
     verificationIds.add(key);
     verificationCandidates.push(match);
   };
@@ -1003,27 +1003,15 @@ function orbFeatures(imageData, nfeatures) {
   const cv = self.cv;
   const src = cv.matFromImageData(imageData);
   const gray = new cv.Mat();
-  const eq = new cv.Mat();
   const mask = new cv.Mat();
   const kp = new cv.KeyPointVector();
   const desc = new cv.Mat();
-  // Lower FAST threshold (default 20 -> 8) and more pyramid levels so soft,
-  // small webcam captures still yield keypoints; CLAHE lifts local contrast in
-  // dim/low-detail art. scaleFactor 1.2, WTA_K 2, HARRIS, patch 31, fastThr 8.
-  const orb = new cv.ORB(nfeatures, 1.2, 10, 31, 0, 2, cv.ORB_HARRIS_SCORE, 31, 8);
-  let clahe = null;
+  const orb = new cv.ORB(nfeatures);
   try {
     cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
-    let input = gray;
-    try {
-      clahe = cv.createCLAHE ? cv.createCLAHE(3, new cv.Size(8, 8)) : new cv.CLAHE(3, new cv.Size(8, 8));
-      clahe.apply(gray, eq);
-      input = eq;
-    } catch (e) { input = gray; } // CLAHE binding unavailable — use plain gray
-    orb.detectAndCompute(input, mask, kp, desc);
+    orb.detectAndCompute(gray, mask, kp, desc);
   } finally {
-    src.delete(); gray.delete(); eq.delete(); mask.delete(); orb.delete();
-    if (clahe && clahe.delete) clahe.delete();
+    src.delete(); gray.delete(); mask.delete(); orb.delete();
   }
   return { kp, desc };
 }
@@ -1157,7 +1145,7 @@ function ringSignature(imageData) {
 }
 
 async function verifyTopMatches(matches, queryImages, queryIsCardShaped) {
-  const shortlist = matches.slice(0, 36);
+  const shortlist = matches.slice(0, 24);
   const refs = await Promise.all(shortlist.map((m) => fetchReference(m.scryfall_id, m.face || 0)));
   const queryFeats = queryImages.map((img) => orbFeatures(img, 500));
   // References are neutral Scryfall scans, so neutralize the query's room cast
@@ -1216,7 +1204,7 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped) {
     best.confidence = Math.max(best.confidence || 0, Math.min(1, best.art_inliers / 40));
   }
   return {
-    matches: [...ranked, ...matches.slice(36)],
+    matches: [...ranked, ...matches.slice(24)],
     artBest: best ? {
       name: best.name,
       inliers: best.art_inliers || 0,
