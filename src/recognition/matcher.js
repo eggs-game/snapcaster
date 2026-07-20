@@ -407,7 +407,14 @@ async function applyTitleOCR(result) {
     // be read near-exactly; only genuinely long names may tolerate the fuzzy
     // camera substitutions ("Gaunt from the Rarnpart").
     const requiredScore = normalized.length >= 12 ? 0.74 : normalized.length >= 8 ? 0.88 : 0.95;
-    if (title.score < requiredScore || bestRead.confidence < 25) {
+    // Short names are easy for a garbage OCR read to hit by chance ("Wall",
+    // "Rats" conjured from noise on an occluded/upside-down card). For names
+    // under 8 chars, only trust the read if the visual pipeline also had that
+    // card in contention — otherwise the OCR and the artwork disagree, so fall
+    // back to the visual match instead of confidently showing the wrong card.
+    const short = normalized.length < 8;
+    const corroborated = (result.matches || []).some((m) => m.name === title.name);
+    if (title.score < requiredScore || bestRead.confidence < 25 || (short && !corroborated)) {
       return applyVisualFallback(enriched);
     }
     const printing = result.sharded_index
