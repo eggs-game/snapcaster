@@ -8,7 +8,7 @@ import { suggestCardNames } from "./cardSearch.js";
 import { identify as identifyCard, preload as preloadRecognition } from "./recognition/matcher.js";
 import CardSidebar from "./CardSidebar.jsx";
 
-export default function Game({ session, onLeave }) {
+export default function Game({ session, onLeave, themePreference, onThemePreferenceChange }) {
   const isVisitor = session.role === "visitor";
   const connRef = useRef(null);
   const [myId, setMyId] = useState(null);
@@ -290,6 +290,8 @@ export default function Game({ session, onLeave }) {
             deviceError={deviceError}
             myColor={myColor}
             tileColors={TILE_COLORS}
+            themePreference={themePreference}
+            onThemePreferenceChange={onThemePreferenceChange}
             onToggleCam={toggleCam}
             onToggleMic={toggleMic}
             onChooseCamera={chooseCamera}
@@ -418,7 +420,10 @@ function RemoteAudio({ stream }) {
 }
 
 // Seat accent palette: yellow, blue, green, red.
-const TILE_COLORS = ["#d4a94e", "#5b9bd5", "#7bc47f", "#c0504d"];
+const TILE_COLORS = [
+  "#d7ac3f", "#e67e3c", "#d95757", "#d45b9b", "#a66bdd", "#626bc9",
+  "#3f8fd2", "#38b8cf", "#31957e", "#58a75c", "#a6b94a", "#7c8796",
+];
 
 function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, onChangeLife, flash }) {
   const videoRef = useRef(null);

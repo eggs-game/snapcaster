@@ -49,6 +49,8 @@ export default function CardSidebar({
   deviceError,
   myColor,
   tileColors,
+  themePreference,
+  onThemePreferenceChange,
   onToggleCam,
   onToggleMic,
   onChooseCamera,
@@ -198,6 +200,21 @@ export default function CardSidebar({
 
       {settings ? (
         <div className="sidebar-settings">
+          <fieldset className="theme-field">
+            <legend className="color-label">Appearance</legend>
+            <div className="theme-options">
+              {["light", "dark", "system"].map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  aria-pressed={themePreference === option}
+                  onClick={() => onThemePreferenceChange(option)}
+                >
+                  {option[0].toUpperCase() + option.slice(1)}
+                </button>
+              ))}
+            </div>
+          </fieldset>
           {isVisitor && (
             <p className="visitor-note">
               You joined as a visitor. You can listen, speak, and look up cards.
