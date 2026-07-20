@@ -2,11 +2,16 @@ import React, { useEffect, useRef, useState } from "react";
 import { identify as identifyCard, preload } from "./recognition/matcher.js";
 import { degrade, loadImage, scryfallImageUrl, summarize } from "./snaptest/degrade.js";
 
-const SIZES = [50, 200, 1000];
+const MODES = {
+  random200: { label: "Random 200 (new each run)", size: 200 },
+  fixed200: { label: "Fixed 200 (regression)", size: 200 },
+  fixed1000: { label: "Fixed 1000 (regression)", size: 1000 },
+};
 
 export default function SnapTest() {
-  const [cards, setCards] = useState(null);
-  const [size, setSize] = useState(200);
+  const [cards, setCards] = useState(null);        // frozen benchmark set
+  const [indexCards, setIndexCards] = useState(null); // full 110k index (lazy)
+  const [mode, setMode] = useState("random200");
   const [status, setStatus] = useState("idle"); // idle | running | done | error
   const [progress, setProgress] = useState({ done: 0, correct: 0 });
   const [results, setResults] = useState([]);
@@ -22,10 +27,39 @@ export default function SnapTest() {
       .catch(() => setStatus("error"));
   }, []);
 
+  // The full card index (array rows: [name,set,cn,id,face]); loaded on demand
+  // for random sampling. It's the same file the recognizer uses, so it's cached.
+  const loadIndexCards = async () => {
+    if (indexCards) return indexCards;
+    const rows = await (await fetch("/carddata/cards.json")).json();
+    const fronts = rows.filter((r) => r[4] === 0).map((r) => ({ id: r[3], name: r[0] }));
+    setIndexCards(fronts);
+    return fronts;
+  };
+
+  // Build the run set: a fresh random sample from the whole index, or a slice
+  // of the frozen benchmark for regression comparisons.
+  const buildRunSet = async () => {
+    if (mode === "random200") {
+      const pool = await loadIndexCards();
+      const picked = [];
+      const seen = new Set();
+      while (picked.length < 200 && seen.size < pool.length) {
+        const j = (Math.random() * pool.length) | 0;
+        if (seen.has(j)) continue;
+        seen.add(j);
+        picked.push(pool[j]);
+      }
+      return picked;
+    }
+    return cards.slice(0, MODES[mode].size);
+  };
+
   const run = async () => {
-    if (!cards) return;
     cancelRef.current = false;
-    const set = cards.slice(0, size);
+    let set;
+    try { set = await buildRunSet(); } catch { setStatus("error"); return; }
+    if (!set || !set.length) return;
     const acc = [];
     let correct = 0, peakHeapMB = 0, keptMissImgs = 0;
     setResults([]); setSummary(null); setProgress({ done: 0, correct: 0 });
@@ -78,7 +112,7 @@ export default function SnapTest() {
   const stop = () => { cancelRef.current = true; };
 
   const copyResults = () => {
-    const payload = { build: window.__SNAP_BUILD || "unknown", size, summary, misses: results.filter((r) => !r.ok && !r.err).map((r) => ({ name: r.name, got: r.top, by: r.by, rot: r.rotationClass, occ: r.occ })) };
+    const payload = { build: window.__SNAP_BUILD || "unknown", mode, summary, misses: results.filter((r) => !r.ok && !r.err).map((r) => ({ name: r.name, got: r.top, by: r.by, rot: r.rotationClass, occ: r.occ })) };
     navigator.clipboard.writeText(JSON.stringify(payload, null, 2)).then(() => {
       setCopied(true); setTimeout(() => setCopied(false), 1500);
     });
@@ -94,16 +128,18 @@ export default function SnapTest() {
       <div style={S.wrap}>
         <h1 style={S.h1}>SNAPTEST</h1>
         <p style={S.sub}>
-          Frozen benchmark: {cards ? cards.length : "…"} cards, each degraded (small, blurry,
-          sideways, upside-down, fingers, dice) deterministically. Ground truth is in-index, so
-          every miss is a real recognition failure.
+          Each card is degraded (small, blurry, sideways, upside-down, fingers, dice) and
+          identified; a miss means the top match was the wrong card. <b>Random 200</b> draws a
+          fresh sample from the full {indexCards ? indexCards.length.toLocaleString() : "110k"}-card
+          index every run — good for discovering new failure cases. <b>Fixed</b> sets always use
+          the same cards, for measuring whether a change helped or regressed.
         </p>
 
         <div style={S.controls}>
           <label style={S.label}>
-            Cards:&nbsp;
-            <select value={size} onChange={(e) => setSize(Number(e.target.value))} disabled={running} style={S.select}>
-              {SIZES.map((n) => <option key={n} value={n}>{n}</option>)}
+            Sample:&nbsp;
+            <select value={mode} onChange={(e) => setMode(e.target.value)} disabled={running} style={S.select}>
+              {Object.entries(MODES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
             </select>
           </label>
           {!running
@@ -115,13 +151,13 @@ export default function SnapTest() {
         {(running || progress.done > 0) && (
           <div style={S.progressCard}>
             <div style={S.progressRow}>
-              <b>{progress.done}</b> / {size} scanned
+              <b>{progress.done}</b> / {MODES[mode].size} scanned
               <span style={S.spacer} />
               live accuracy <b style={{ color: liveAcc >= 0.9 ? "#3aa76d" : liveAcc >= 0.75 ? "#c99a3a" : "#c0504d" }}>
                 {(liveAcc * 100).toFixed(1)}%
               </b>
             </div>
-            <div style={S.bar}><div style={{ ...S.barFill, width: `${(progress.done / size) * 100}%` }} /></div>
+            <div style={S.bar}><div style={{ ...S.barFill, width: `${(progress.done / MODES[mode].size) * 100}%` }} /></div>
             {running && <div style={S.hint}>Running in this browser… ~5s/card on a normal machine. Leave the tab focused.</div>}
           </div>
         )}
