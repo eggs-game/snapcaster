@@ -653,28 +653,92 @@ export default function CardSidebar({
 }
 
 function DicePanel({ lastRoll, onRoll }) {
-  const [sides, setSides] = useState(20);
+  const [selectedSides, setSelectedSides] = useState(lastRoll?.sides || 20);
+  const diceOptions = Array.from({ length: 19 }, (_, index) => index + 2);
   return (
     <div className="dice-panel">
-      <p>Choose a die from d2 through d20. Results are shared with everyone and added to Log.</p>
-      <label className="device-field dice-type-field">
-        <span className="color-label">Die</span>
-        <select value={sides} onChange={(event) => setSides(Number(event.target.value))}>
-          {Array.from({ length: 19 }, (_, index) => index + 2).map((option) => (
-            <option key={option} value={option}>d{option}</option>
-          ))}
-        </select>
-      </label>
+      <p>Choose a die to roll. Results are shared with everyone and added to Log.</p>
       <div className="dice-result" key={lastRoll?.id || "empty"}>
         <Dices size={28} />
         <strong>{lastRoll?.value || "—"}</strong>
         <span>{lastRoll ? `d${lastRoll.sides || 20} · ${lastRoll.name} · ${new Date(lastRoll.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}` : "No rolls yet"}</span>
       </div>
-      <button type="button" className="dice-roll-button" onClick={() => onRoll?.(sides)}>
-        <Dices size={18} />
-        <span>Roll d{sides}</span>
-      </button>
+      <div className="dice-option-grid" aria-label="Choose a die to roll">
+        {diceOptions.map((sides) => (
+          <button
+            type="button"
+            className={selectedSides === sides ? "dice-option selected" : "dice-option"}
+            key={sides}
+            onClick={() => {
+              setSelectedSides(sides);
+              onRoll?.(sides);
+            }}
+            aria-label={`Roll d${sides}`}
+          >
+            <DieOutline sides={sides} />
+            <span>d{sides}</span>
+          </button>
+        ))}
+        <span className="dice-option-spacer" aria-hidden="true" />
+        <span className="dice-option-spacer" aria-hidden="true" />
+      </div>
     </div>
+  );
+}
+
+function DieOutline({ sides }) {
+  const common = { fill: "none", stroke: "currentColor", strokeWidth: 1.6, strokeLinecap: "round", strokeLinejoin: "round" };
+  if (sides === 2) {
+    return <svg className="die-outline" viewBox="0 0 48 48" aria-hidden="true"><ellipse {...common} cx="24" cy="24" rx="17" ry="15" /><path {...common} d="M7 22v5c0 8 7.6 14 17 14s17-6 17-14v-5" /></svg>;
+  }
+  if (sides === 4) {
+    return <svg className="die-outline" viewBox="0 0 48 48" aria-hidden="true"><path {...common} d="M24 5 43 40H5L24 5Z M24 5v23M5 40l19-12 19 12" /></svg>;
+  }
+  if (sides === 6) {
+    return <svg className="die-outline" viewBox="0 0 48 48" aria-hidden="true"><path {...common} d="m24 5 17 10v20L24 44 7 34V14L24 5Z M7 14l17 10 17-9M24 24v20" /></svg>;
+  }
+  if (sides === 8) {
+    return <svg className="die-outline" viewBox="0 0 48 48" aria-hidden="true"><path {...common} d="m24 4 18 20-18 20L6 24 24 4Z M6 24h36M24 4 14 24l10 20M24 4l10 20-10 20" /></svg>;
+  }
+  if (sides === 10) {
+    return <svg className="die-outline" viewBox="0 0 48 48" aria-hidden="true"><path {...common} d="m24 4 16 12 3 17-19 11L5 33l3-17L24 4Z M24 4v21M8 16l16 9 16-9M5 33l19-8 19 8M24 25v19" /></svg>;
+  }
+  if (sides === 12) {
+    return <svg className="die-outline" viewBox="0 0 48 48" aria-hidden="true"><path {...common} d="m15 5 18 1 11 14-5 18-16 6L7 35 5 17 15 5Z M17 15l14-1 8 11-5 12-14 2-10-9 2-11 5-4Z M15 5l2 10M33 6l-2 8M44 20l-5 5M39 38l-5-1M23 44l-3-5M7 35l3-5M5 17l7 2" /></svg>;
+  }
+  if (sides === 20) {
+    return (
+      <svg className="die-outline" viewBox="0 0 48 48" aria-hidden="true">
+        <path {...common} strokeWidth="2" d="M24 3 43 15v20L24 45 5 35V15L24 3Z" />
+        <path {...common} strokeWidth="2" d="M24 3 14 18h20L24 3ZM5 15l9 3M43 15l-9 3M14 18l10 18 10-18M5 35l19 1 19-1M24 36v9" />
+      </svg>
+    );
+  }
+
+  // Less-common die sizes use a faceted trapezohedral construction. The belt
+  // gains facets with the die size while staying legible at icon scale.
+  const facetCount = Math.max(3, Math.min(8, Math.ceil(sides / 3)));
+  const belt = Array.from({ length: facetCount }, (_, index) => {
+    const angle = Math.PI + (index * Math.PI * 2) / facetCount;
+    return {
+      x: 24 + Math.cos(angle) * 19,
+      y: 24 + Math.sin(angle) * 8,
+    };
+  });
+  const beltPoints = belt.map((point) => `${point.x},${point.y}`).join(" ");
+  const facets = belt.flatMap((point, index) => {
+    const next = belt[(index + 1) % belt.length];
+    return [
+      <line key={`top-${index}`} {...common} x1="24" y1="4" x2={point.x} y2={point.y} />,
+      <line key={`bottom-${index}`} {...common} x1="24" y1="44" x2={next.x} y2={next.y} />,
+    ];
+  });
+  return (
+    <svg className="die-outline" viewBox="0 0 48 48" aria-hidden="true">
+      <polygon {...common} points={beltPoints} />
+      {facets}
+      <path {...common} d="M24 4 43 24 24 44 5 24 24 4Z" />
+    </svg>
   );
 }
 
