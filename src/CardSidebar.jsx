@@ -170,7 +170,7 @@ export default function CardSidebar({
               aria-label="Back to card lookup"
               title="Back to card lookup"
             >
-              <ArrowLeft size={20} />
+              <ArrowLeft size={18} />
             </button>
             <span className="logo">Settings</span>
           </>
@@ -182,7 +182,7 @@ export default function CardSidebar({
               aria-label="Close card lookup"
               title="Close card lookup"
             >
-              <PanelLeft size={20} />
+              <PanelLeft size={18} />
             </button>
             <button
               className="drawer-toggle"
@@ -190,7 +190,7 @@ export default function CardSidebar({
               aria-label="Open settings"
               title="Open settings"
             >
-              <Settings size={20} />
+              <Settings size={18} />
             </button>
           </div>
         )}
@@ -210,7 +210,7 @@ export default function CardSidebar({
                 className={camOn ? "control-row" : "control-row off"}
                 onClick={onToggleCam}
               >
-                {camOn ? <Video size={20} /> : <VideoOff size={20} />}
+                {camOn ? <Video size={18} /> : <VideoOff size={18} />}
                 <span>{camOn ? "Camera on" : "Camera off"}</span>
               </button>
               <label className="device-field">
@@ -236,7 +236,7 @@ export default function CardSidebar({
             className={micOn ? "control-row" : "control-row off"}
             onClick={onToggleMic}
           >
-            {micOn ? <Mic size={20} /> : <MicOff size={20} />}
+            {micOn ? <Mic size={18} /> : <MicOff size={18} />}
             <span>{micOn ? "Mic on" : "Mic muted"}</span>
           </button>
           <label className="device-field">
@@ -278,7 +278,7 @@ export default function CardSidebar({
       ) : (
         <>
           <div className="sidebar-search">
-            <Search size={16} className="search-icon" aria-hidden="true" />
+            <Search size={18} className="search-icon" aria-hidden="true" />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
@@ -344,7 +344,7 @@ export default function CardSidebar({
                     aria-label="View on Scryfall"
                     title="View on Scryfall"
                   >
-                    <ArrowUpRight size={16} />
+                    <ArrowUpRight size={18} />
                   </a>
                 )}
               </div>

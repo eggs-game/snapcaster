@@ -317,7 +317,7 @@ export default function Game({ session, onLeave }) {
               aria-hidden={sidebarOpen && !sidebarClosing}
               tabIndex={sidebarOpen && !sidebarClosing ? -1 : 0}
             >
-              <PanelLeft size={20} />
+              <PanelLeft size={18} />
             </button>
             {editingLobbyName && !isVisitor ? (
               <form
@@ -356,7 +356,7 @@ export default function Game({ session, onLeave }) {
               aria-label="Copy game link"
               title={linkCopied ? "Link copied" : "Copy game link"}
             >
-              {linkCopied ? <Check size={20} /> : <Link2 size={20} />}
+              {linkCopied ? <Check size={18} /> : <Link2 size={18} />}
               <span>{linkCopied ? "Copied" : "Copy link"}</span>
             </button>}
             {!isVisitor && <button
@@ -365,7 +365,7 @@ export default function Game({ session, onLeave }) {
               aria-label="Copy visitor link"
               title={visitorLinkCopied ? "Visitor link copied" : "Copy visitor link"}
             >
-              {visitorLinkCopied ? <Check size={20} /> : <UserRound size={20} />}
+              {visitorLinkCopied ? <Check size={18} /> : <UserRound size={18} />}
               <span>{visitorLinkCopied ? "Copied" : "Visitor link"}</span>
             </button>}
             <div className="panel-topbar-right">
@@ -539,7 +539,7 @@ function TileMenu({ flipped, onToggleFlip }) {
         aria-label="Video options"
         title="Video options"
       >
-        <MoreVertical size={15} />
+        <MoreVertical size={18} />
       </button>
       {open && (
         <div className="tile-menu">
@@ -550,7 +550,7 @@ function TileMenu({ flipped, onToggleFlip }) {
               setOpen(false);
             }}
           >
-            <FlipVertical2 size={15} />
+            <FlipVertical2 size={18} />
             <span>{flipped ? "Unflip video" : "Flip video"}</span>
           </button>
         </div>
@@ -613,7 +613,7 @@ function CommanderBanner({ tile, onChoose, flipped, onToggleFlip }) {
   const playerLabel = `${tile.name}${tile.isMe ? " (you)" : ""}`;
   const playerRow = (
     <span className="banner-player-row">
-      {tile.muted && <MicOff size={12} className="banner-muted" aria-label="Muted" />}
+      {tile.muted && <MicOff size={18} className="banner-muted" aria-label="Muted" />}
       <span className="banner-player">{playerLabel}</span>
     </span>
   );
@@ -651,7 +651,7 @@ function CommanderBanner({ tile, onChoose, flipped, onToggleFlip }) {
         {nameRow}
         <div className="banner-row">
           <span className={tile.commander ? "commander-name" : "commander-name unset"}>
-            {!tile.commander && <Plus size={15} />}
+            {!tile.commander && <Plus size={18} />}
             {tile.commander || "Add commander"}
           </span>
           <ManaCost cost={manaCost} />
