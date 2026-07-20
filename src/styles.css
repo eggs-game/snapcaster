@@ -38,9 +38,10 @@ body { background: var(--bg2); color: var(--text); font-family: Inter, system-ui
 .visitor-strip { display: flex; align-items: center; gap: 5px; max-width: 280px; overflow-x: auto; }
 .visitor-avatar { position: relative; width: 28px; height: 28px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 50%; background: var(--panel2); color: var(--text); font-size: 0.75rem; font-weight: 700; }
 .visitor-muted { position: absolute; right: -3px; bottom: -2px; padding: 2px; box-sizing: content-box; border-radius: 50%; background: var(--danger); color: #fff; }
-/* Icon-only drawer toggles: plain icons, no boxed chrome. */
-.drawer-toggle { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; flex: none; padding: 0; background: none; border: none; border-radius: 8px; color: var(--dim); cursor: pointer; }
-.drawer-toggle:hover { color: var(--text); }
+/* Icon-only toolbar controls share a 36px target and reveal their rounded
+   hit area on hover. */
+.drawer-toggle { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; flex: none; padding: 0; background: none; border: none; border-radius: 8px; color: var(--dim); cursor: pointer; transition: background-color 0.15s ease, color 0.15s ease; }
+.drawer-toggle:hover { color: var(--text); background: var(--panel2); }
 /* Topbar open-control: collapse fully when the sidebar is open so there's no
    blank slot; expand/fade in sync with the sidebar close so the lobby name
    eases over instead of jumping. */
@@ -77,7 +78,7 @@ body { background: var(--bg2); color: var(--text); font-family: Inter, system-ui
 }
 .lobby-name-edit input:focus { outline: none; }
 .game-code { letter-spacing: 0.22em; }
-.copy-link { display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; color: var(--dim); font-family: inherit; font-size: 15px; font-weight: 400; cursor: pointer; }
+.copy-link { display: flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; color: var(--dim); font-family: inherit; font-size: 15px; font-weight: 400; cursor: pointer; }
 .copy-link:hover { color: var(--text); border-color: var(--text); }
 .copy-link.copied { color: var(--text); border-color: var(--text); }
 .controls-overlay { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,0.45); animation: overlay-in 0.2s ease; }
@@ -145,7 +146,7 @@ body { background: var(--bg2); color: var(--text); font-family: Inter, system-ui
 .mana-symbol { width: 16px; height: 16px; border-radius: 50%; display: grid; place-items: center; }
 .mana-num { font-size: 9px; font-weight: 700; line-height: 1; color: #171114; }
 .banner-menu { position: relative; flex: none; cursor: default; }
-.menu-btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; background: none; border: none; border-radius: 8px; color: var(--dim); cursor: pointer; }
+.menu-btn { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; background: none; border: none; border-radius: 8px; color: var(--dim); cursor: pointer; }
 .menu-btn:hover { color: var(--text); background: rgba(255,255,255,0.12); }
 .tile-menu { position: absolute; top: 36px; right: 0; z-index: 5; min-width: 180px; padding: 5px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.55); }
 .tile-menu button { display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 9px; background: none; border: none; border-radius: 6px; color: var(--text); font-family: inherit; font-size: 15px; text-align: left; cursor: pointer; }
@@ -165,9 +166,13 @@ body { background: var(--bg2); color: var(--text); font-family: Inter, system-ui
 /* Opens/closes by sliding while freeing layout space so the video panel
    expands/contracts with the motion instead of snapping at the end. */
 .sidebar {
-  width: 300px; flex: none; background: var(--bg); padding: 14px; overflow-y: auto;
-  display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--border);
+  width: 300px; flex: none; padding: 14px; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 10px; border: 1px solid transparent;
   border-radius: 12px;
+  background:
+    linear-gradient(var(--bg), var(--bg)) padding-box,
+    linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.055) 44%, rgba(255,255,255,0.025)) border-box;
+  box-shadow: 5px 0 18px rgba(0,0,0,0.22), 1px 0 0 rgba(255,255,255,0.025);
 }
 /* One-shot open: ease-out so it decelerates into place. */
 .sidebar.slide-in {
