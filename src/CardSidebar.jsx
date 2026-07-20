@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
-  ArrowLeft, ArrowUpRight, Mic, MicOff, PanelLeft, Search, Settings, Video, VideoOff,
+  ArrowLeft, ArrowUpRight, Link2, Mic, MicOff, PanelLeft, Search,
+  Settings, UserPlus, UserRound, Video, VideoOff,
 } from "lucide-react";
 import { suggestCardNames } from "./cardSearch.js";
 
@@ -56,11 +57,16 @@ export default function CardSidebar({
   onChooseCamera,
   onChooseMic,
   onChooseColor,
+  linkCopied,
+  visitorLinkCopied,
+  onCopyPlayerLink,
+  onCopyVisitorLink,
 }) {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [highlight, setHighlight] = useState(-1);
   const [searching, setSearching] = useState(false);
+  const [lookupTab, setLookupTab] = useState("cards");
   // Card-flip between views: rotate to the edge, swap content, rotate back.
   const [shownView, setShownView] = useState(view);
   const [flipPhase, setFlipPhase] = useState(null); // "out" | "in" | null
@@ -177,24 +183,34 @@ export default function CardSidebar({
             <span className="logo">Settings</span>
           </>
         ) : (
-          <div className="sidebar-head-actions">
-            <button
-              className="drawer-toggle"
-              onClick={onClose}
-              aria-label="Close card lookup"
-              title="Close card lookup"
-            >
-              <PanelLeft size={18} />
-            </button>
-            <button
-              className="drawer-toggle"
-              onClick={() => onViewChange("settings")}
-              aria-label="Open settings"
-              title="Open settings"
-            >
-              <Settings size={18} />
-            </button>
-          </div>
+          <>
+            <div className="sidebar-head-actions">
+              <button
+                className="drawer-toggle"
+                onClick={onClose}
+                aria-label="Close card lookup"
+                title="Close card lookup"
+              >
+                <PanelLeft size={18} />
+              </button>
+              {!isVisitor && (
+                <ShareMenu
+                  linkCopied={linkCopied}
+                  visitorLinkCopied={visitorLinkCopied}
+                  onCopyPlayerLink={onCopyPlayerLink}
+                  onCopyVisitorLink={onCopyVisitorLink}
+                />
+              )}
+              <button
+                className="drawer-toggle"
+                onClick={() => onViewChange("settings")}
+                aria-label="Open settings"
+                title="Open settings"
+              >
+                <Settings size={18} />
+              </button>
+            </div>
+          </>
         )}
       </div>
 
@@ -294,7 +310,24 @@ export default function CardSidebar({
         </div>
       ) : (
         <>
-          <div className="sidebar-search">
+          <div className="lookup-tabs" role="group" aria-label="Card sidebar view">
+            {[
+              ["cards", "Cards"],
+              ["log", "Log"],
+            ].map(([option, label]) => (
+              <button
+                key={option}
+                type="button"
+                aria-pressed={lookupTab === option}
+                onClick={() => setLookupTab(option)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {lookupTab === "cards" ? <>
+            <div className="sidebar-search">
             <Search size={18} className="search-icon" aria-hidden="true" />
             <input
               value={query}
@@ -341,74 +374,135 @@ export default function CardSidebar({
                 ))}
               </ul>
             )}
-          </div>
+            </div>
 
-          {(current?.loading || searching) && <div className="lookup-status">Identifying…</div>}
-          {current?.error && <div className="lookup-status error">{current.error}</div>}
-          {current?.matches?.length === 0 && <div className="lookup-status">No match found. Try clicking closer to the card center.</div>}
-          {best && !top && <div className="lookup-status">No confident match. Try clicking closer to the card center.</div>}
-          {top && (
-            <div className="card-hit">
-              <img src={top.image} alt={top.name} />
-              <div className="card-meta">
-                <b>{top.name}</b>
-                {top.scryfall_uri && (
-                  <a
-                    className="scryfall-link"
-                    href={top.scryfall_uri}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label="View on Scryfall"
-                    title="View on Scryfall"
-                  >
-                    <ArrowUpRight size={18} />
-                  </a>
+            {(current?.loading || searching) && <div className="lookup-status">Identifying…</div>}
+            {current?.error && <div className="lookup-status error">{current.error}</div>}
+            {current?.matches?.length === 0 && <div className="lookup-status">No match found. Try clicking closer to the card center.</div>}
+            {best && !top && <div className="lookup-status">No confident match. Try clicking closer to the card center.</div>}
+            {top && (
+              <div className="card-hit">
+                <img src={top.image} alt={top.name} />
+                <div className="card-meta">
+                  <b>{top.name}</b>
+                  {top.scryfall_uri && (
+                    <a
+                      className="scryfall-link"
+                      href={top.scryfall_uri}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label="View on Scryfall"
+                      title="View on Scryfall"
+                    >
+                      <ArrowUpRight size={18} />
+                    </a>
+                  )}
+                </div>
+                {!decisive && <span className="match-qualifier">Possible match — not certain</span>}
+              </div>
+            )}
+            {best && !decisive && current?.matches?.length > 1 && (
+              <div className="alts" aria-label="Other possible matches">
+                {current.matches.slice(top ? 1 : 0, top ? 9 : 8).map((m, i) => (
+                  <img key={i} src={m.image} alt={m.name} title={`${m.name} (${m.set})`} onClick={() => onPick(m)} />
+                ))}
+              </div>
+            )}
+            {debugMode && current && !current.loading && (
+              <div className="scan-debug">
+                <span>{CV_LABEL[current.cvStatus] || CV_LABEL.unknown}</span>
+                <span>{current.cardFound ? "Card outline detected" : "No outline — using crops"}</span>
+                {current.cameraRes && <span>Camera: {current.cameraRes}</span>}
+                {best && (
+                  <span>
+                    Best: d{best.distance} via {best.strategy || "?"} ({current.candidatesTried || 1} tried)
+                  </span>
+                )}
+                {current.artBest && (
+                  <span>
+                    Art: {current.artBest.inliers} kp{current.artBest.weak ? " (weak)" : ""}, color {current.artBest.color}% on {current.artBest.name} ({current.artChecked} compared)
+                  </span>
+                )}
+                {current.ocrText && <span>Title read: {current.ocrText}</span>}
+                {current.ocrImage && <img className="debug-strip" src={current.ocrImage} alt="OCR strip" />}
+                {current.captureImage && (
+                  <>
+                    <span>Capture sent to recognizer:</span>
+                    <img className="debug-capture" src={current.captureImage} alt="Recognition capture" />
+                  </>
                 )}
               </div>
-              {!decisive && <span className="match-qualifier">Possible match — not certain</span>}
-            </div>
-          )}
-          {best && !decisive && current?.matches?.length > 1 && (
-            <div className="alts" aria-label="Other possible matches">
-              {current.matches.slice(top ? 1 : 0, top ? 9 : 8).map((m, i) => (
-                <img key={i} src={m.image} alt={m.name} title={`${m.name} (${m.set})`} onClick={() => onPick(m)} />
-              ))}
-            </div>
-          )}
-          {debugMode && current && !current.loading && (
-            <div className="scan-debug">
-              <span>{CV_LABEL[current.cvStatus] || CV_LABEL.unknown}</span>
-              <span>{current.cardFound ? "Card outline detected" : "No outline — using crops"}</span>
-              {current.cameraRes && <span>Camera: {current.cameraRes}</span>}
-              {best && (
-                <span>
-                  Best: d{best.distance} via {best.strategy || "?"} ({current.candidatesTried || 1} tried)
-                </span>
-              )}
-              {current.artBest && (
-                <span>
-                  Art: {current.artBest.inliers} kp{current.artBest.weak ? " (weak)" : ""}, color {current.artBest.color}% on {current.artBest.name} ({current.artChecked} compared)
-                </span>
-              )}
-              {current.ocrText && <span>Title read: {current.ocrText}</span>}
-              {current.ocrImage && <img className="debug-strip" src={current.ocrImage} alt="OCR strip" />}
-              {current.captureImage && (
-                <>
-                  <span>Capture sent to recognizer:</span>
-                  <img className="debug-capture" src={current.captureImage} alt="Recognition capture" />
-                </>
+            )}
+          </> : (
+            <div className="lookup-log">
+              {!lookups?.length ? (
+                <p className="lookup-status">Identified cards will appear here.</p>
+              ) : (
+                <ul className="lookups">
+                  {[...(lookups || [])].reverse().map((entry, index) => (
+                    <li
+                      key={`${entry.at || 0}-${index}`}
+                      onClick={() => {
+                        onPick(entry.card);
+                        setLookupTab("cards");
+                      }}
+                    >
+                      <span className="log-card-name">{entry.card?.name}</span>
+                      <span className="log-detail">
+                        {entry.by} · {entry.at ? new Date(entry.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "Now"}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               )}
             </div>
           )}
-          <ul className="lookups">
-            {[...(lookups || [])].reverse().map((l, i) => (
-              <li key={i} onClick={() => onPick(l.card)}>
-                <b>{l.card?.name}</b> <span className="by">by {l.by}</span>
-              </li>
-            ))}
-          </ul>
         </>
       )}
     </aside>
+  );
+}
+
+function ShareMenu({ linkCopied, visitorLinkCopied, onCopyPlayerLink, onCopyVisitorLink }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div
+      className="sidebar-share-wrap"
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
+      }}
+    >
+      <button
+        className="drawer-toggle"
+        type="button"
+        aria-label="Invite players"
+        aria-expanded={open}
+        aria-haspopup="menu"
+        title={linkCopied || visitorLinkCopied ? "Invite link copied" : "Invite players"}
+        onClick={() => setOpen((value) => !value)}
+      >
+        <UserPlus size={18} />
+      </button>
+      {open && (
+        <div className="share-menu" role="menu">
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => { onCopyPlayerLink?.(); setOpen(false); }}
+          >
+            <Link2 size={17} />
+            <span><b>Player link</b><small>Join with a seat</small></span>
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => { onCopyVisitorLink?.(); setOpen(false); }}
+          >
+            <UserRound size={17} />
+            <span><b>Visitor link</b><small>Voice and card lookup only</small></span>
+          </button>
+        </div>
+      )}
+    </div>
   );
 }

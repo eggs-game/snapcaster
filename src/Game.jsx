@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
-  Check, Droplet, Flame, FlipVertical2, Link2, MicOff, MoreVertical,
-  PanelLeft, Plus, Skull, Sun, TreeDeciduous, UserRound,
+  Droplet, Flame, FlipVertical2, MicOff, MoreVertical,
+  PanelLeft, Plus, Skull, Sun, TreeDeciduous,
 } from "lucide-react";
 import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
 import { suggestCardNames } from "./cardSearch.js";
@@ -61,7 +61,11 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     connRef.current = conn;
     (async () => {
       try {
-        const stream = await conn.initMedia({ audioOnly: isVisitor });
+        const stream = await conn.initMedia({
+          audioOnly: isVisitor,
+          videoDeviceId: session.videoDeviceId,
+          audioDeviceId: session.audioDeviceId,
+        });
         setLocalStream(stream);
         setVideoDeviceId(conn.videoDeviceId);
         setAudioDeviceId(conn.audioDeviceId);
@@ -91,7 +95,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       navigator.mediaDevices?.removeEventListener?.("devicechange", onDeviceChange);
       conn.close();
     };
-  }, [isVisitor, session.code, session.name]);
+  }, [isVisitor, session.code, session.name, session.videoDeviceId, session.audioDeviceId]);
 
   // captureClientY lets flipped tiles pass the reflected point for capture
   // while the click flash stays where the player actually clicked.
@@ -297,6 +301,10 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
             onChooseCamera={chooseCamera}
             onChooseMic={chooseMic}
             onChooseColor={chooseColor}
+            linkCopied={linkCopied}
+            visitorLinkCopied={visitorLinkCopied}
+            onCopyPlayerLink={() => copyJoinLink(false)}
+            onCopyVisitorLink={() => copyJoinLink(true)}
           />
         )}
         <div className="video-panel">
@@ -352,24 +360,6 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
                 {lobbyName || "Untitled game"}
               </button>
             )}
-            {!isVisitor && <button
-              className={linkCopied ? "copy-link copied" : "copy-link"}
-              onClick={() => copyJoinLink(false)}
-              aria-label="Copy game link"
-              title={linkCopied ? "Link copied" : "Copy game link"}
-            >
-              {linkCopied ? <Check size={18} /> : <Link2 size={18} />}
-              <span>{linkCopied ? "Copied" : "Copy link"}</span>
-            </button>}
-            {!isVisitor && <button
-              className={visitorLinkCopied ? "copy-link copied" : "copy-link"}
-              onClick={() => copyJoinLink(true)}
-              aria-label="Copy visitor link"
-              title={visitorLinkCopied ? "Visitor link copied" : "Copy visitor link"}
-            >
-              {visitorLinkCopied ? <Check size={18} /> : <UserRound size={18} />}
-              <span>{visitorLinkCopied ? "Copied" : "Visitor link"}</span>
-            </button>}
             <div className="panel-topbar-right">
               <div className="visitor-strip" aria-label={`${visitors.length} visitors`}>
                 {visitors.map((visitor) => (

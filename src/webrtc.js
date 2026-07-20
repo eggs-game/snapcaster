@@ -36,15 +36,22 @@ export class GameConnection {
     this.audioDeviceId = "";
   }
 
-  async initMedia({ audioOnly = false } = {}) {
+  async initMedia({ audioOnly = false, videoDeviceId = "", audioDeviceId = "" } = {}) {
     // Ask for the camera's maximum resolution — recognition crops are taken
     // from the raw local track, so every native pixel directly improves card
     // identification (WebRTC scales the *sent* video down on its own).
     this.localStream = await navigator.mediaDevices.getUserMedia({
       video: audioOnly
         ? false
-        : { width: { ideal: 3840 }, height: { ideal: 2160 }, frameRate: { ideal: 24 } },
-      audio: { echoCancellation: true, noiseSuppression: true },
+        : {
+          ...(videoDeviceId ? { deviceId: { exact: videoDeviceId } } : {}),
+          width: { ideal: 3840 }, height: { ideal: 2160 }, frameRate: { ideal: 24 },
+        },
+      audio: {
+        ...(audioDeviceId ? { deviceId: { exact: audioDeviceId } } : {}),
+        echoCancellation: true,
+        noiseSuppression: true,
+      },
     });
     this.videoDeviceId = this.localStream.getVideoTracks()[0]?.getSettings?.().deviceId || "";
     this.audioDeviceId = this.localStream.getAudioTracks()[0]?.getSettings?.().deviceId || "";

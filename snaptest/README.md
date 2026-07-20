@@ -11,7 +11,7 @@ are comparable across recognition changes over time.
   colors, types, lands, and tokens. Because they're sampled from the index,
   ground truth is always in-index — every miss is a real recognition failure,
   not a coverage gap.
-- **Deterministic degradations** (seeded per card in `runner.js`) simulating a
+- **Deterministic degradations** (seeded per card in `public/snaptest/runner.js`) simulating a
   webcam pointed at a playmat:
   - **small** — card is 28–56% of the frame height
   - **blurry** — 0.4–1.5px blur
@@ -28,10 +28,10 @@ are comparable across recognition changes over time.
 
 1. Open `https://snapcaster.vercel.app/?debug=1` and hard-refresh (so
    `window.__scIdentifyUrl` is available and you're on the latest build).
-2. Paste `runner.js` into the DevTools console.
+2. Paste `public/snaptest/runner.js` into the DevTools console.
 3. Run:
    ```js
-   fetch('/snaptest/cards.json').then(r => r.json()).then(c => SNAPTEST.run(c));
+   fetch('/public/snaptest/cards.json').then(r => r.json()).then(c => SNAPTEST.run(c));
    ```
 4. Live progress is in `window.__snap` (`done`, `correct`, `liveAcc`). The
    promise resolves with the summary; it's also on `window.__snap.summary`.
