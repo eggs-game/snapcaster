@@ -14,6 +14,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const livesRef = useRef({});
   const lifeLogIdRef = useRef(0);
   const chatIdRef = useRef(0);
+  const diceLogIdRef = useRef(0);
   const [myId, setMyId] = useState(null);
   const [roster, setRoster] = useState([]);
   const [lives, setLives] = useState({}); // id -> life
@@ -29,7 +30,10 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const [lookups, setLookups] = useState([]);
   const [lifeEvents, setLifeEvents] = useState([]);
   const [chatMessages, setChatMessages] = useState([]);
+  const [diceRolls, setDiceRolls] = useState([]);
   const [activePlayerId, setActivePlayerId] = useState("");
+  const [poisonCounters, setPoisonCounters] = useState({});
+  const [commanderDamage, setCommanderDamage] = useState({});
   const [videoLayout, setVideoLayout] = useState(() => {
     try {
       const saved = localStorage.getItem("snapcaster-video-layout");
@@ -47,6 +51,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const [sidebarView, setSidebarView] = useState("lookup"); // "lookup" | "settings"
   const [linkCopied, setLinkCopied] = useState(false);
   const [visitorLinkCopied, setVisitorLinkCopied] = useState(false);
+  const [gameCodeCopied, setGameCodeCopied] = useState(false);
   const [cameras, setCameras] = useState([]);
   const [mics, setMics] = useState([]);
   const [videoDeviceId, setVideoDeviceId] = useState("");
@@ -90,6 +95,15 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
         id: `remote-${message.from}-${message.at}-${++chatIdRef.current}`,
       }]),
       onActivePlayer: setActivePlayerId,
+      onPoison: (id, value) => setPoisonCounters((values) => ({ ...values, [id]: value })),
+      onCommanderDamage: (victimId, attackerId, value) => setCommanderDamage((values) => ({
+        ...values,
+        [victimId]: { ...(values[victimId] || {}), [attackerId]: value },
+      })),
+      onDiceRoll: (roll) => setDiceRolls((rolls) => [...rolls.slice(-49), {
+        ...roll,
+        id: `remote-${roll.from}-${roll.at}-${++diceLogIdRef.current}`,
+      }]),
       onError: setError,
     });
     connRef.current = conn;
@@ -219,6 +233,22 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     connRef.current?.sendChat(text, at);
   };
 
+  const rollDie = (requestedSides) => {
+    if (!myId) return;
+    const sides = Math.max(2, Math.min(20, Number(requestedSides) || 20));
+    const value = Math.floor(Math.random() * sides) + 1;
+    const at = Date.now();
+    setDiceRolls((rolls) => [...rolls.slice(-49), {
+      id: `local-${myId}-${at}-${++diceLogIdRef.current}`,
+      from: myId,
+      name: session.name,
+      value,
+      sides,
+      at,
+    }]);
+    connRef.current?.sendDiceRoll(value, sides, at);
+  };
+
   const passTurn = useCallback(() => {
     if (isVisitor) return;
     const playerIds = roster.filter((member) => member.role !== "visitor").map((member) => member.id);
@@ -275,6 +305,23 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     try { localStorage.setItem("snapcaster-video-layout", next); } catch { /* preference remains in memory */ }
   };
 
+  const changePoison = (delta) => {
+    if (isVisitor || !myId) return;
+    const value = Math.max(0, Math.min(99, (poisonCounters[myId] || 0) + delta));
+    setPoisonCounters((values) => ({ ...values, [myId]: value }));
+    connRef.current?.setPoison(value);
+  };
+
+  const changeCommanderDamage = (attackerId, delta) => {
+    if (isVisitor || !myId || !attackerId || attackerId === myId) return;
+    const value = Math.max(0, Math.min(99, (commanderDamage[myId]?.[attackerId] || 0) + delta));
+    setCommanderDamage((values) => ({
+      ...values,
+      [myId]: { ...(values[myId] || {}), [attackerId]: value },
+    }));
+    connRef.current?.setCommanderDamage(attackerId, value);
+  };
+
   const toggleMic = () => {
     const next = !micOn;
     connRef.current.toggleTrack("audio", next);
@@ -312,24 +359,38 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     }
   };
 
-  const copyJoinLink = async (visitor = false) => {
+  const makeJoinLink = (visitor = false) => {
     const url = new URL(window.location.href);
     url.search = "";
     url.searchParams.set("code", session.code);
     if (visitor) url.searchParams.set("visitor", "1");
+    return url.toString();
+  };
+
+  const copyText = async (value) => {
     try {
-      await navigator.clipboard.writeText(url.toString());
+      await navigator.clipboard.writeText(value);
     } catch {
       const input = document.createElement("input");
-      input.value = url.toString();
+      input.value = value;
       document.body.appendChild(input);
       input.select();
       document.execCommand("copy");
       input.remove();
     }
+  };
+
+  const copyJoinLink = async (visitor = false) => {
+    await copyText(makeJoinLink(visitor));
     const setter = visitor ? setVisitorLinkCopied : setLinkCopied;
     setter(true);
     setTimeout(() => setter(false), 1600);
+  };
+
+  const copyGameCode = async () => {
+    await copyText(session.code);
+    setGameCodeCopied(true);
+    setTimeout(() => setGameCodeCopied(false), 1600);
   };
 
   if (error) {
@@ -345,6 +406,15 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const players = roster.filter((p) => p.role !== "visitor").slice(0, 4);
   const visitors = roster.filter((p) => p.role === "visitor");
   const resolvedActivePlayerId = activePlayerId || players[0]?.id || "";
+  const counterPlayers = [...players]
+    .sort((a, b) => Number(b.id === myId) - Number(a.id === myId))
+    .map((player) => ({
+      ...player,
+      isMe: player.id === myId,
+      commander: commanders[player.id] || "",
+      poison: poisonCounters[player.id] || 0,
+      commanderDamage: commanderDamage[player.id] || {},
+    }));
   const tiles = players.map((p, i) => ({
     ...p,
     life: lives[p.id] ?? 40,
@@ -386,9 +456,11 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
             current={current}
             lookups={lookups}
             lifeEvents={lifeEvents}
+            diceRolls={diceRolls}
             chatMessages={chatMessages}
             currentUserId={myId}
             onSendChat={sendChat}
+            onRollDie={rollDie}
             onPick={(m) => setCurrent({ matches: [m] })}
             onSearch={(cardOrError) => {
               if (cardOrError.error) {
@@ -421,6 +493,9 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
             onThemePreferenceChange={onThemePreferenceChange}
             videoLayout={videoLayout}
             onVideoLayoutChange={chooseVideoLayout}
+            counterPlayers={counterPlayers}
+            onChangePoison={changePoison}
+            onChangeCommanderDamage={changeCommanderDamage}
             onToggleCam={toggleCam}
             onToggleMic={toggleMic}
             onChooseCamera={chooseCamera}
@@ -428,8 +503,13 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
             onChooseColor={chooseColor}
             linkCopied={linkCopied}
             visitorLinkCopied={visitorLinkCopied}
+            gameCodeCopied={gameCodeCopied}
+            gameCode={session.code}
+            playerLink={makeJoinLink(false)}
+            visitorLink={makeJoinLink(true)}
             onCopyPlayerLink={() => copyJoinLink(false)}
             onCopyVisitorLink={() => copyJoinLink(true)}
+            onCopyGameCode={copyGameCode}
             lobbyName={lobbyName || "Untitled game"}
             onRenameLobby={chooseLobbyName}
           />

@@ -88,6 +88,10 @@ is deployed and verified in production.
 
 - UI headings and labels use sentence case; do not style interface copy in all
   caps. Functional values such as room codes may remain uppercase.
+- Panel forms reuse the Settings field pattern: 14px regular secondary labels,
+  8px label-to-control spacing, 34px controls, 8px corner radii, and the shared
+  surface, border, focus, and disabled tokens. Do not create bespoke field
+  treatments for individual panels.
 
 ### Card recognition pipeline (src/recognition/ + src/webrtc.js)
 

@@ -31,6 +31,8 @@ export class GameConnection {
     this.life = 40;
     this.lobbyName = "";
     this.activePlayerId = "";
+    this.poison = 0;
+    this.commanderDamage = {};
     this.role = "player";
     this.roster = [];
     this.videoDeviceId = "";
@@ -180,6 +182,10 @@ export class GameConnection {
       if (this.commander) this.room?.send({ type: "commander", commander: this.commander });
       if (this.color) this.room?.send({ type: "color", color: this.color });
       if (this.activePlayerId) this.room?.send({ type: "active-player", playerId: this.activePlayerId });
+      if (this.poison) this.room?.send({ type: "poison", value: this.poison });
+      for (const [attackerId, value] of Object.entries(this.commanderDamage)) {
+        if (value) this.room?.send({ type: "commander-damage", attackerId, value });
+      }
     }
     if (this.muted) this.room?.send({ type: "muted", muted: true });
   }
@@ -239,6 +245,36 @@ export class GameConnection {
           this.h.onActivePlayer?.(this.activePlayerId);
         }
         break;
+      case "poison":
+        if (senderRole !== "visitor") {
+          this.h.onPoison?.(msg.from, Math.max(0, Math.min(99, Number(msg.value) || 0)));
+        }
+        break;
+      case "commander-damage":
+        if (senderRole !== "visitor") {
+          const attackerId = String(msg.attackerId || "").slice(0, 40);
+          if (attackerId) {
+            this.h.onCommanderDamage?.(
+              msg.from,
+              attackerId,
+              Math.max(0, Math.min(99, Number(msg.value) || 0)),
+            );
+          }
+        }
+        break;
+      case "dice-roll": {
+        const sides = Math.max(2, Math.min(20, Number(msg.sides) || 20));
+        const value = Math.max(1, Math.min(sides, Number(msg.value) || 1));
+        const sender = this.roster.find((member) => member.id === msg.from);
+        this.h.onDiceRoll?.({
+          from: msg.from,
+          name: sender?.name || (senderRole === "visitor" ? "Visitor" : "Player"),
+          value,
+          sides,
+          at: Number(msg.at) || Date.now(),
+        });
+        break;
+      }
     }
   }
 
@@ -364,6 +400,24 @@ export class GameConnection {
     if (this.activePlayerId) {
       this.room?.send({ type: "active-player", playerId: this.activePlayerId });
     }
+  }
+  setPoison(value) {
+    if (this.role === "visitor") return;
+    this.poison = Math.max(0, Math.min(99, Number(value) || 0));
+    this.room?.send({ type: "poison", value: this.poison });
+  }
+  setCommanderDamage(attackerId, value) {
+    if (this.role === "visitor") return;
+    const safeAttackerId = String(attackerId || "").slice(0, 40);
+    if (!safeAttackerId) return;
+    const safeValue = Math.max(0, Math.min(99, Number(value) || 0));
+    this.commanderDamage = { ...this.commanderDamage, [safeAttackerId]: safeValue };
+    this.room?.send({ type: "commander-damage", attackerId: safeAttackerId, value: safeValue });
+  }
+  sendDiceRoll(value, sides = 20, at = Date.now()) {
+    const safeSides = Math.max(2, Math.min(20, Number(sides) || 20));
+    const roll = Math.max(1, Math.min(safeSides, Number(value) || 1));
+    this.room?.send({ type: "dice-roll", value: roll, sides: safeSides, at });
   }
 
   toggleTrack(kind, enabled) {

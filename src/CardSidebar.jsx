@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
-  ArrowLeft, ArrowUpRight, Link2, Mic, MicOff, PanelLeft, Search,
-  Send, Settings, UserPlus, UserRound, Video, VideoOff,
+  ArrowLeft, ArrowUpRight, Copy, Dices, Link2, Mic, MicOff, PanelLeft, Search,
+  Send, Settings, Swords, UserPlus, UserRound, Video, VideoOff,
 } from "lucide-react";
 import { suggestCardNames } from "./cardSearch.js";
 
@@ -34,9 +34,11 @@ export default function CardSidebar({
   current,
   lookups,
   lifeEvents,
+  diceRolls,
   chatMessages,
   currentUserId,
   onSendChat,
+  onRollDie,
   onPick,
   onClose,
   closing,
@@ -58,6 +60,9 @@ export default function CardSidebar({
   onThemePreferenceChange,
   videoLayout,
   onVideoLayoutChange,
+  counterPlayers,
+  onChangePoison,
+  onChangeCommanderDamage,
   onToggleCam,
   onToggleMic,
   onChooseCamera,
@@ -65,8 +70,13 @@ export default function CardSidebar({
   onChooseColor,
   linkCopied,
   visitorLinkCopied,
+  gameCodeCopied,
+  gameCode,
+  playerLink,
+  visitorLink,
   onCopyPlayerLink,
   onCopyVisitorLink,
+  onCopyGameCode,
   lobbyName,
   onRenameLobby,
 }) {
@@ -78,22 +88,21 @@ export default function CardSidebar({
   const [editingLobbyName, setEditingLobbyName] = useState(false);
   const [lobbyNameDraft, setLobbyNameDraft] = useState(lobbyName || "Untitled game");
   const [chatDraft, setChatDraft] = useState("");
-  // Card-flip between views: rotate to the edge, swap content, rotate back.
-  const [shownView, setShownView] = useState(view);
-  const [flipPhase, setFlipPhase] = useState(null); // "out" | "in" | null
-  // One-shot open slide; cleared after it finishes so flips don't re-trigger it.
+  // One-shot open slide; cleared after the panel settles into place.
   const [entering, setEntering] = useState(true);
-  const settings = shownView === "settings";
-  const logEntries = [...(lifeEvents || [])].sort((a, b) => (b.at || 0) - (a.at || 0));
+  const settings = view === "settings";
+  const counters = view === "counters";
+  const invite = view === "invite";
+  const dice = view === "dice";
+  const logEntries = [
+    ...(lifeEvents || []).map((entry) => ({ ...entry, type: "life" })),
+    ...(diceRolls || []).map((entry) => ({ ...entry, type: "dice" })),
+  ].sort((a, b) => (b.at || 0) - (a.at || 0));
   const recentCards = [...(lookups || [])].reverse();
 
   useEffect(() => {
     if (!editingLobbyName) setLobbyNameDraft(lobbyName || "Untitled game");
   }, [lobbyName, editingLobbyName]);
-
-  useEffect(() => {
-    if (view !== shownView && !flipPhase) setFlipPhase("out");
-  }, [view, shownView, flipPhase]);
 
   useEffect(() => {
     const q = query.trim();
@@ -159,9 +168,11 @@ export default function CardSidebar({
       className={[
         "sidebar",
         settings ? "settings-view" : "",
+        counters ? "counters-view" : "",
+        invite ? "invite-view" : "",
+        dice ? "dice-view" : "",
         !settings && lookupTab === "chat" ? "chat-view" : "",
         entering && !closing ? "slide-in" : "",
-        flipPhase ? `flip-${flipPhase}` : "",
         closing ? "slide-out" : "",
       ].filter(Boolean).join(" ")}
       onAnimationEnd={(event) => {
@@ -176,19 +187,10 @@ export default function CardSidebar({
           onClosed?.();
           return;
         }
-        if (name === "sidebar-flip-out" && flipPhase === "out") {
-          setShownView(view);
-          setFlipPhase("in");
-          return;
-        }
-        if (name === "sidebar-flip-in" && flipPhase === "in") {
-          // Pending view changes are picked up by the useEffect above.
-          setFlipPhase(null);
-        }
       }}
     >
       <div className="sidebar-head">
-        {settings ? (
+        {settings || counters || invite || dice ? (
           <>
             <button
               className="drawer-toggle"
@@ -198,7 +200,7 @@ export default function CardSidebar({
             >
               <ArrowLeft size={18} />
             </button>
-            <span className="logo">Settings</span>
+            <span className="logo">{settings ? "Settings" : counters ? "Counters" : invite ? "Invite" : "Dice"}</span>
           </>
         ) : (
           <>
@@ -212,13 +214,31 @@ export default function CardSidebar({
                 <PanelLeft size={18} />
               </button>
               {!isVisitor && (
-                <ShareMenu
-                  linkCopied={linkCopied}
-                  visitorLinkCopied={visitorLinkCopied}
-                  onCopyPlayerLink={onCopyPlayerLink}
-                  onCopyVisitorLink={onCopyVisitorLink}
-                />
+                <button
+                  className="drawer-toggle"
+                  onClick={() => onViewChange("invite")}
+                  aria-label="Invite players"
+                  title="Invite players"
+                >
+                  <UserPlus size={18} />
+                </button>
               )}
+              <button
+                className="drawer-toggle"
+                onClick={() => onViewChange("counters")}
+                aria-label="Open combat counters"
+                title="Combat counters"
+              >
+                <Swords size={18} />
+              </button>
+              <button
+                className="drawer-toggle"
+                onClick={() => onViewChange("dice")}
+                aria-label="Open dice roller"
+                title="Dice roller"
+              >
+                <Dices size={18} />
+              </button>
               <button
                 className="drawer-toggle"
                 onClick={() => onViewChange("settings")}
@@ -345,6 +365,26 @@ export default function CardSidebar({
             </div>
           )}
         </div>
+      ) : counters ? (
+        <CounterPanel
+          players={counterPlayers || []}
+          onChangePoison={onChangePoison}
+          onChangeCommanderDamage={onChangeCommanderDamage}
+        />
+      ) : invite ? (
+        <InvitePanel
+          gameCode={gameCode}
+          playerLink={playerLink}
+          visitorLink={visitorLink}
+          gameCodeCopied={gameCodeCopied}
+          linkCopied={linkCopied}
+          visitorLinkCopied={visitorLinkCopied}
+          onCopyGameCode={onCopyGameCode}
+          onCopyPlayerLink={onCopyPlayerLink}
+          onCopyVisitorLink={onCopyVisitorLink}
+        />
+      ) : dice ? (
+        <DicePanel lastRoll={diceRolls?.[diceRolls.length - 1]} onRoll={onRollDie} />
       ) : (
         <>
           {editingLobbyName && !isVisitor ? (
@@ -529,20 +569,31 @@ export default function CardSidebar({
           </> : lookupTab === "log" ? (
             <div className="lookup-log">
               {!logEntries.length ? (
-                <p className="lookup-status">Life total changes will appear here.</p>
+                <p className="lookup-status">Life changes and dice rolls will appear here.</p>
               ) : (
                 <ul className="lookups">
                   {logEntries.map((entry) => (
                     <li
-                      key={`life-${entry.id}`}
-                      className="life-log-entry"
+                      key={`${entry.type}-${entry.id}`}
+                      className={entry.type === "dice" ? "dice-log-entry" : "life-log-entry"}
                     >
-                      <span className={entry.delta > 0 ? "log-life-change gained" : "log-life-change lost"}>
-                        {entry.player} {entry.delta > 0 ? "gained" : "lost"} {Math.abs(entry.delta)} life
-                      </span>
-                      <span className="log-detail">
-                        {entry.previous} → {entry.life} · {new Date(entry.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
-                      </span>
+                      {entry.type === "dice" ? (
+                        <>
+                          <span className="log-dice-roll">{entry.name} rolled a {entry.value}</span>
+                          <span className="log-detail">
+                            d{entry.sides || 20} · {new Date(entry.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <span className={entry.delta > 0 ? "log-life-change gained" : "log-life-change lost"}>
+                            {entry.player} {entry.delta > 0 ? "gained" : "lost"} {Math.abs(entry.delta)} life
+                          </span>
+                          <span className="log-detail">
+                            {entry.previous} → {entry.life} · {new Date(entry.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                          </span>
+                        </>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -601,46 +652,159 @@ export default function CardSidebar({
   );
 }
 
-function ShareMenu({ linkCopied, visitorLinkCopied, onCopyPlayerLink, onCopyVisitorLink }) {
-  const [open, setOpen] = useState(false);
+function DicePanel({ lastRoll, onRoll }) {
+  const [sides, setSides] = useState(20);
   return (
-    <div
-      className="sidebar-share-wrap"
-      onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
-      }}
-    >
-      <button
-        className="drawer-toggle"
-        type="button"
-        aria-label="Invite players"
-        aria-expanded={open}
-        aria-haspopup="menu"
-        title={linkCopied || visitorLinkCopied ? "Invite link copied" : "Invite players"}
-        onClick={() => setOpen((value) => !value)}
-      >
-        <UserPlus size={18} />
+    <div className="dice-panel">
+      <p>Choose a die from d2 through d20. Results are shared with everyone and added to Log.</p>
+      <label className="device-field dice-type-field">
+        <span className="color-label">Die</span>
+        <select value={sides} onChange={(event) => setSides(Number(event.target.value))}>
+          {Array.from({ length: 19 }, (_, index) => index + 2).map((option) => (
+            <option key={option} value={option}>d{option}</option>
+          ))}
+        </select>
+      </label>
+      <div className="dice-result" key={lastRoll?.id || "empty"}>
+        <Dices size={28} />
+        <strong>{lastRoll?.value || "—"}</strong>
+        <span>{lastRoll ? `d${lastRoll.sides || 20} · ${lastRoll.name} · ${new Date(lastRoll.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}` : "No rolls yet"}</span>
+      </div>
+      <button type="button" className="dice-roll-button" onClick={() => onRoll?.(sides)}>
+        <Dices size={18} />
+        <span>Roll d{sides}</span>
       </button>
-      {open && (
-        <div className="share-menu" role="menu">
-          <button
-            type="button"
-            role="menuitem"
-            onClick={() => { onCopyPlayerLink?.(); setOpen(false); }}
-          >
-            <Link2 size={17} />
-            <span><b>Player link</b><small>Join with a seat</small></span>
-          </button>
-          <button
-            type="button"
-            role="menuitem"
-            onClick={() => { onCopyVisitorLink?.(); setOpen(false); }}
-          >
-            <UserRound size={17} />
-            <span><b>Visitor link</b><small>Voice and card lookup only</small></span>
-          </button>
-        </div>
-      )}
     </div>
+  );
+}
+
+function CounterPanel({ players, onChangePoison, onChangeCommanderDamage }) {
+  if (!players.length) {
+    return <p className="counter-empty">Player counters will appear when someone joins the game.</p>;
+  }
+
+  return (
+    <div className="counter-panel">
+      {players.map((player) => {
+        const opponents = players.filter((opponent) => opponent.id !== player.id);
+        return (
+          <section className="counter-player" key={player.id}>
+            <div className="counter-player-head">
+              <h3>{player.isMe ? "Your counters" : player.name}</h3>
+              {!player.isMe && <span>Read only</span>}
+            </div>
+            <div className="counter-row">
+              <span className="counter-label">
+                <strong>Poison</strong>
+                <small>10 loses the game</small>
+              </span>
+              <CounterStepper
+                value={player.poison}
+                lethal={player.poison >= 10}
+                editable={player.isMe}
+                label={`${player.name} poison counters`}
+                onDecrease={() => onChangePoison?.(-1)}
+                onIncrease={() => onChangePoison?.(1)}
+              />
+            </div>
+            <div className="commander-damage-list">
+              <span className="counter-subheading">Commander damage received</span>
+              {opponents.length ? opponents.map((opponent) => {
+                const value = player.commanderDamage?.[opponent.id] || 0;
+                const label = opponent.commander || `${opponent.name}'s commander`;
+                return (
+                  <div className="counter-row commander-damage-row" key={opponent.id}>
+                    <span className="counter-label">
+                      <strong>{label}</strong>
+                      {opponent.commander && <small>{opponent.name}</small>}
+                    </span>
+                    <CounterStepper
+                      value={value}
+                      lethal={value >= 21}
+                      editable={player.isMe}
+                      label={`${label} damage to ${player.name}`}
+                      onDecrease={() => onChangeCommanderDamage?.(opponent.id, -1)}
+                      onIncrease={() => onChangeCommanderDamage?.(opponent.id, 1)}
+                    />
+                  </div>
+                );
+              }) : (
+                <p className="counter-note">Other commanders will appear here.</p>
+              )}
+            </div>
+          </section>
+        );
+      })}
+    </div>
+  );
+}
+
+function CounterStepper({ value, lethal, editable, label, onDecrease, onIncrease }) {
+  return (
+    <div className={lethal ? "counter-stepper lethal" : "counter-stepper"} aria-label={label}>
+      {editable && <button type="button" onClick={onDecrease} aria-label={`Decrease ${label}`}>−</button>}
+      <strong>{value}</strong>
+      {editable && <button type="button" onClick={onIncrease} aria-label={`Increase ${label}`}>+</button>}
+    </div>
+  );
+}
+
+function InvitePanel({
+  gameCode,
+  playerLink,
+  visitorLink,
+  gameCodeCopied,
+  linkCopied,
+  visitorLinkCopied,
+  onCopyGameCode,
+  onCopyPlayerLink,
+  onCopyVisitorLink,
+}) {
+  return (
+    <div className="invite-panel">
+      <p className="invite-intro">Share the game code or send a direct link.</p>
+      <InviteField
+        label="Game code"
+        detail="Enter from the Snapcaster home page"
+        value={gameCode}
+        copied={gameCodeCopied}
+        onCopy={onCopyGameCode}
+        code
+      />
+      <InviteField
+        icon={<Link2 size={16} />}
+        label="Player link"
+        detail="Join with a seat, camera, and microphone"
+        value={playerLink}
+        copied={linkCopied}
+        onCopy={onCopyPlayerLink}
+      />
+      <InviteField
+        icon={<UserRound size={16} />}
+        label="Visitor link"
+        detail="Listen, speak, chat, and look up cards"
+        value={visitorLink}
+        copied={visitorLinkCopied}
+        onCopy={onCopyVisitorLink}
+      />
+    </div>
+  );
+}
+
+function InviteField({ icon, label, detail, value, copied, onCopy, code = false }) {
+  return (
+    <section className="invite-field">
+      <div className="invite-field-head">
+        <span>{icon}{label}</span>
+        <small>{detail}</small>
+      </div>
+      <div className="invite-value-row">
+        <input className={code ? "invite-value code-value" : "invite-value"} value={value || ""} readOnly aria-label={label} />
+        <button type="button" onClick={onCopy} aria-label={`Copy ${label.toLowerCase()}`}>
+          <Copy size={16} />
+          <span>{copied ? "Copied" : "Copy"}</span>
+        </button>
+      </div>
+    </section>
   );
 }

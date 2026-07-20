@@ -435,16 +435,10 @@ input::placeholder { color: var(--text-tertiary); opacity: 1; }
 }
 .sidebar-head { display: flex; align-items: center; justify-content: space-between; }
 .sidebar-head-actions { display: flex; align-items: center; gap: 0; min-width: 0; }
-/* Two half-turns with a content swap in between read as one full card flip. */
-.sidebar.flip-out { animation: sidebar-flip-out 0.18s ease-in forwards; }
-.sidebar.flip-in { animation: sidebar-flip-in 0.18s ease-out; }
-@keyframes sidebar-flip-out {
-  from { transform: perspective(1400px) rotateY(0); }
-  to { transform: perspective(1400px) rotateY(-90deg); }
-}
-@keyframes sidebar-flip-in {
-  from { transform: perspective(1400px) rotateY(90deg); }
-  to { transform: perspective(1400px) rotateY(0); }
+.sidebar > *:not(.sidebar-head) { animation: sidebar-view-in 0.14s ease-out; }
+@keyframes sidebar-view-in {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .sidebar-settings { display: flex; flex-direction: column; gap: 0; padding-top: var(--space-5); }
 .theme-field { min-width: 0; margin: 0 0 var(--space-5); padding: 0; border: 0; }
@@ -465,21 +459,14 @@ input::placeholder { color: var(--text-tertiary); opacity: 1; }
   letter-spacing: inherit;
   text-transform: none;
 }
-.sidebar.settings-view .sidebar-head { gap: 8px; }
-.sidebar.settings-view .logo { flex: 1; }
+.sidebar.settings-view .sidebar-head, .sidebar.counters-view .sidebar-head, .sidebar.invite-view .sidebar-head, .sidebar.dice-view .sidebar-head { gap: 8px; justify-content: flex-start; }
+.sidebar.settings-view .logo, .sidebar.counters-view .logo, .sidebar.invite-view .logo, .sidebar.dice-view .logo { flex: 1; }
 .sidebar-game-name { align-self: flex-start; width: auto; max-width: 100%; margin: 4px 0 2px; padding: 0; overflow: hidden; appearance: none; border: 0; background: transparent; color: var(--text-primary); font-family: inherit; font-size: 16px; font-weight: 400; line-height: 1.3; text-align: left; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
 .sidebar-game-name:hover:not(.readonly) { color: var(--text-secondary); }
 .sidebar-game-name.readonly { cursor: default; }
 .sidebar-game-name-edit { padding-top: 2px; }
 .sidebar-game-name-edit input { width: 100%; height: 28px; padding: 0 7px; border: 1px solid var(--focus-border); border-radius: 6px; background: var(--input); color: var(--text-primary); font-family: inherit; font-size: 16px; font-weight: 400; text-align: left; box-shadow: 0 0 0 3px var(--focus-ring), inset 0 1px 2px var(--inset-shadow); }
 .sidebar-game-name-edit input:focus { outline: none; }
-.sidebar-share-wrap { position: relative; }
-.share-menu { position: absolute; top: calc(100% + 5px); left: 0; z-index: 12; width: 210px; padding: 5px; border: 1px solid var(--border-default); border-radius: 12px; background: var(--overlay-bg); -webkit-backdrop-filter: blur(18px) saturate(var(--glass-saturation)); backdrop-filter: blur(18px) saturate(var(--glass-saturation)); box-shadow: inset 0 1px 0 var(--glass-highlight), var(--overlay-shadow); }
-.share-menu button { width: 100%; display: flex; align-items: center; gap: 9px; padding: 8px 9px; border: 0; border-radius: 7px; background: transparent; color: var(--text-secondary); font-family: inherit; text-align: left; cursor: pointer; }
-.share-menu button:hover { background: var(--secondary-hover); color: var(--text-primary); }
-.share-menu button > span { display: flex; flex-direction: column; min-width: 0; }
-.share-menu b { color: var(--text-primary); font-size: var(--text-sm); font-weight: 500; }
-.share-menu small { color: var(--text-tertiary); font-size: var(--text-xs); }
 .lookup-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; height: var(--input-height); min-height: var(--input-height); flex: none; padding: 2px; margin-top: 8px; border: 1px solid var(--border-default); border-radius: 8px; background: var(--input); }
 .lookup-tabs button { border: 0; border-radius: 6px; background: transparent; color: var(--text-secondary); font-family: inherit; font-size: var(--text-sm); font-weight: 400; cursor: pointer; }
 .lookup-tabs button:hover { background: var(--bg-hover); color: var(--text-primary); }
@@ -530,10 +517,12 @@ input::placeholder { color: var(--text-tertiary); opacity: 1; }
 .lookup-log { margin-top: 8px; }
 .lookup-log .lookups li { display: flex; flex-direction: column; gap: 1px; padding: 8px 10px; }
 .lookup-log .lookups li.life-log-entry { cursor: default; }
-.lookup-log .lookups li.life-log-entry:hover { background: var(--bg-surface-raised); }
+.lookup-log .lookups li.dice-log-entry { cursor: default; }
+.lookup-log .lookups li.life-log-entry:hover, .lookup-log .lookups li.dice-log-entry:hover { background: var(--bg-surface-raised); }
 .log-life-change { color: var(--text-primary); }
 .log-life-change.gained { color: var(--success-text); }
 .log-life-change.lost { color: var(--danger-text); }
+.log-dice-roll { color: var(--text-primary); }
 .log-detail { color: var(--text-tertiary); font-size: var(--text-xs); }
 .lookups .by { color: var(--dim); }
 .sidebar.chat-view { overflow: hidden; }
@@ -555,6 +544,47 @@ input::placeholder { color: var(--text-tertiary); opacity: 1; }
 .chat-compose button { display: grid; place-items: center; flex: none; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 50%; background: var(--text-primary); color: var(--text-inverse); cursor: pointer; }
 .chat-compose button:hover:not(:disabled) { background: var(--text-secondary); }
 .chat-compose button:disabled { color: var(--text-disabled); background: var(--disabled-bg); cursor: default; }
+.counter-panel { display: flex; flex-direction: column; gap: 12px; padding-top: 10px; }
+.counter-player { padding: 10px; border: 1px solid var(--border-subtle); border-radius: 10px; background: var(--bg-surface); }
+.counter-player-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.counter-player-head h3 { margin: 0; color: var(--text-primary); }
+.counter-player-head > span { flex: none; color: var(--text-tertiary); font-size: var(--text-xs); }
+.counter-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 34px; }
+.counter-label { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.counter-label strong { overflow: hidden; color: var(--text-primary); font-size: var(--text-sm); font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+.counter-label small, .counter-note, .counter-empty { color: var(--text-tertiary); font-size: var(--text-xs); }
+.counter-subheading { display: block; margin: 12px 0 5px; color: var(--text-secondary); font-size: var(--text-sm); }
+.commander-damage-list { border-top: 1px solid var(--divider); }
+.commander-damage-row + .commander-damage-row { margin-top: 5px; }
+.counter-stepper { display: grid; grid-template-columns: 28px minmax(28px, auto) 28px; align-items: center; flex: none; min-height: 28px; border: 1px solid var(--border-default); border-radius: 8px; background: var(--input); overflow: hidden; }
+.counter-stepper:has(> strong:only-child) { grid-template-columns: minmax(34px, auto); }
+.counter-stepper > strong { min-width: 28px; padding: 0 4px; color: var(--text-primary); font-size: var(--text-md); font-weight: 600; text-align: center; font-variant-numeric: tabular-nums; }
+.counter-stepper button { width: 28px; height: 28px; padding: 0; border: 0; background: transparent; color: var(--text-secondary); font-family: inherit; font-size: 18px; cursor: pointer; }
+.counter-stepper button:hover { background: var(--bg-hover); color: var(--text-primary); }
+.counter-stepper.lethal { border-color: var(--danger-border); background: var(--danger-bg); }
+.counter-stepper.lethal > strong { color: var(--danger-text); }
+.counter-empty { padding-top: 10px; line-height: 1.4; }
+.invite-panel { display: flex; flex-direction: column; gap: var(--space-5); padding-top: 10px; }
+.invite-intro { color: var(--text-secondary); font-size: var(--text-sm); line-height: 1.45; }
+.invite-field { display: flex; flex-direction: column; gap: var(--space-2); }
+.invite-field-head { display: flex; flex-direction: column; gap: 2px; }
+.invite-field-head > span { display: flex; align-items: center; gap: 6px; color: var(--text-secondary); font-size: var(--text-md); font-weight: 400; }
+.invite-field-head small { color: var(--text-tertiary); font-size: var(--text-xs); line-height: 1.35; }
+.invite-value-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; }
+.invite-value { width: 100%; min-width: 0; height: var(--input-height); padding: 0 10px; overflow: hidden; border: 1px solid var(--border-default); border-radius: 8px; background: var(--bg-surface-raised); color: var(--text-primary); font-family: var(--font-mono); font-size: var(--text-xs); text-overflow: ellipsis; white-space: nowrap; }
+.invite-value.code-value { color: var(--text-primary); font-size: var(--text-md); font-weight: 600; letter-spacing: 0.18em; }
+.invite-value:focus { outline: none; border-color: var(--focus-border); box-shadow: 0 0 0 3px var(--focus-ring); }
+.invite-value-row button { display: flex; align-items: center; justify-content: center; gap: 5px; height: var(--input-height); min-width: 74px; padding: 0 9px; border: 1px solid var(--border-default); border-radius: 8px; background: var(--bg-surface-raised); color: var(--text-primary); font-family: inherit; font-size: var(--text-sm); cursor: pointer; }
+.invite-value-row button:hover { background: var(--bg-hover); border-color: var(--border-strong); }
+.dice-panel { display: flex; flex-direction: column; gap: var(--space-5); padding-top: 10px; }
+.dice-panel > p { color: var(--text-secondary); font-size: var(--text-sm); line-height: 1.45; }
+.dice-type-field { margin-bottom: 0; }
+.dice-result { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 170px; padding: 20px; border: 1px solid var(--border-subtle); border-radius: 14px; background: var(--bg-surface); color: var(--text-secondary); animation: dice-result-in 0.18s ease-out; }
+.dice-result strong { margin: 8px 0 4px; color: var(--text-primary); font-size: 48px; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+.dice-result span { color: var(--text-tertiary); font-size: var(--text-xs); }
+.dice-roll-button { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 40px; border: 1px solid var(--border-default); border-radius: 8px; background: var(--bg-surface-raised); color: var(--text-primary); font-family: inherit; font-size: var(--text-md); font-weight: 500; cursor: pointer; }
+.dice-roll-button:hover { background: var(--bg-hover); border-color: var(--border-strong); }
+@keyframes dice-result-in { from { opacity: 0.55; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
 footer.hint { text-align: center; padding: 4px; }
 
 @media (max-width: 900px) {
