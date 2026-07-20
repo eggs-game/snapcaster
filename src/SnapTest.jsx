@@ -2,6 +2,13 @@ import React, { useEffect, useRef, useState } from "react";
 import { identify as identifyCard, preload } from "./recognition/matcher.js";
 import { degrade, loadImage, scryfallImageUrl, summarize } from "./snaptest/degrade.js";
 
+const STAGE_LABEL = {
+  "image-load": "image-load",
+  "timeout": "timeout (30s)",
+  "identify-error": "identify-error",
+  "other": "other",
+};
+
 const MODES = {
   random200: { label: "Random 200 (new each run)", size: 200 },
   fixed200: { label: "Fixed 200 (regression)", size: 200 },
@@ -61,22 +68,35 @@ export default function SnapTest() {
     try { set = await buildRunSet(); } catch { setStatus("error"); return; }
     if (!set || !set.length) return;
     const acc = [];
-    let correct = 0, peakHeapMB = 0, keptMissImgs = 0;
+    let correct = 0, peakHeapMB = 0, keptMissImgs = 0, keptErrorImgs = 0;
     setResults([]); setSummary(null); setProgress({ done: 0, correct: 0 });
     setStatus("running");
     for (let i = 0; i < set.length; i++) {
       if (cancelRef.current) break;
       const card = set[i];
-      const rec = { i, name: card.name, id: card.id, ok: false, err: null, ms: 0 };
+      const rec = { i, name: card.name, id: card.id, ok: false, err: null, errStage: null, ms: 0 };
+      const t0 = performance.now();
       let degradedUrl = null;
       try {
-        const img = await loadImage(scryfallImageUrl(card.id));
+        let img;
+        try {
+          img = await loadImage(scryfallImageUrl(card.id));
+        } catch (e) {
+          rec.errStage = "image-load"; // Scryfall fetch/decode failed — not a recognition failure
+          throw e;
+        }
         const deg = degrade(img, i);
         rec.rotationClass = deg.rotationClass;
         rec.occ = deg.occ;
         degradedUrl = deg.url;
-        const t0 = performance.now();
-        const data = await identifyCard(degradedUrl, { nx: 0.5, ny: 0.5 });
+        let data;
+        try {
+          data = await identifyCard(degradedUrl, { nx: 0.5, ny: 0.5 });
+        } catch (e) {
+          const msg = String((e && e.message) || e);
+          rec.errStage = /timed out/i.test(msg) ? "timeout" : "identify-error";
+          throw e;
+        }
         rec.ms = Math.round(performance.now() - t0);
         const top = data.matches && data.matches[0];
         rec.top = top && top.name;
@@ -88,7 +108,12 @@ export default function SnapTest() {
         // long-run accuracy collapse.
         if (!rec.ok && keptMissImgs < 60) { rec.degraded = degradedUrl; rec.topImage = top && top.image; keptMissImgs++; }
       } catch (e) {
+        rec.ms = Math.round(performance.now() - t0);
         rec.err = String((e && e.message) || e);
+        if (!rec.errStage) rec.errStage = "other";
+        // Keep a capped set of error thumbnails too — seeing exactly what was
+        // fed into a timeout is often the fastest way to explain it.
+        if (degradedUrl && keptErrorImgs < 30) { rec.degraded = degradedUrl; keptErrorImgs++; }
       }
       if (rec.ok) correct++;
       acc.push(rec);
@@ -104,6 +129,15 @@ export default function SnapTest() {
     sum.firstHalfAcc = halfAcc(okList.slice(0, half));
     sum.secondHalfAcc = halfAcc(okList.slice(half));
     sum.peakHeapMB = peakHeapMB;
+    // Group errors by stage (image-load / timeout / identify-error / other) so
+    // a run-over-run pattern (e.g. "18 timeouts, all >20s") is visible at a
+    // glance instead of buried in a flat error count.
+    const errList = acc.filter((r) => r.err);
+    const byStage = {};
+    for (const r of errList) (byStage[r.errStage] = byStage[r.errStage] || []).push(r);
+    sum.errorsByStage = Object.fromEntries(
+      Object.entries(byStage).map(([k, v]) => [k, v.length]),
+    );
     setResults(acc);
     setSummary(sum);
     setStatus(cancelRef.current ? "idle" : "done");
@@ -112,7 +146,13 @@ export default function SnapTest() {
   const stop = () => { cancelRef.current = true; };
 
   const copyResults = () => {
-    const payload = { build: window.__SNAP_BUILD || "unknown", mode, summary, misses: results.filter((r) => !r.ok && !r.err).map((r) => ({ name: r.name, got: r.top, by: r.by, rot: r.rotationClass, occ: r.occ })) };
+    const payload = {
+      build: window.__SNAP_BUILD || "unknown",
+      mode,
+      summary,
+      misses: results.filter((r) => !r.ok && !r.err).map((r) => ({ name: r.name, got: r.top, by: r.by, rot: r.rotationClass, occ: r.occ })),
+      errors: results.filter((r) => r.err).map((r) => ({ name: r.name, stage: r.errStage, ms: r.ms, message: r.err, rot: r.rotationClass, occ: r.occ })),
+    };
     navigator.clipboard.writeText(JSON.stringify(payload, null, 2)).then(() => {
       setCopied(true); setTimeout(() => setCopied(false), 1500);
     });
@@ -181,6 +221,16 @@ export default function SnapTest() {
               <Breakdown title="By rotation" data={summary.byRotation} />
               <Breakdown title="By occlusion" data={summary.byOcclusion} />
             </div>
+            {summary.errors > 0 && (
+              <div style={{ marginTop: 16 }}>
+                <div style={S.breakTitle}>Errors by stage</div>
+                <div style={S.errStageRow}>
+                  {Object.entries(summary.errorsByStage || {}).map(([stage, n]) => (
+                    <span key={stage} style={S.errStagePill}>{STAGE_LABEL[stage] || stage}: <b>{n}</b></span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -206,7 +256,29 @@ export default function SnapTest() {
         )}
 
         {summary && errors.length > 0 && (
-          <div style={S.note}>{errors.length} card(s) errored (usually image load / recognition timeout) and were excluded from accuracy.</div>
+          <div style={S.summary}>
+            <h2 style={S.h2}>Errors ({errors.length}) — excluded from accuracy</h2>
+            <p style={S.note}>
+              These are not misidentifications — the scan never produced a result. <b>timeout</b> means
+              recognition took longer than 30s (a real failure in practice: the user would give up
+              waiting); <b>image-load</b> means the Scryfall reference image itself failed to fetch
+              (a benchmark artifact, not a recognizer bug); <b>identify-error</b> / <b>other</b> are
+              unexpected exceptions worth investigating directly.
+            </p>
+            <div style={S.gallery}>
+              {errors.map((e, k) => (
+                <div key={k} style={S.miss}>
+                  {e.degraded && <img src={e.degraded} alt="" style={S.thumb} title="what we scanned" />}
+                  <div style={S.missMeta}>
+                    <div style={S.missTrue}>{e.name}</div>
+                    <div style={S.missGot}>{STAGE_LABEL[e.errStage] || e.errStage} · {(e.ms / 1000).toFixed(1)}s</div>
+                    <div style={S.missTag}>{e.rotationClass} · {e.occ}</div>
+                    <div style={S.errMsg} title={e.err}>{e.err}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
       </div>
     </div>
@@ -274,5 +346,8 @@ const S = {
   missGot: { color: "#c0504d", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
   missBy: { color: "#9aa0ac", fontSize: 11 },
   missTag: { color: "#9aa0ac", fontSize: 11, marginTop: 4 },
-  note: { marginTop: 16, color: "#9aa0ac", fontSize: 13 },
+  note: { marginTop: 4, marginBottom: 14, color: "#9aa0ac", fontSize: 13, lineHeight: 1.5 },
+  errStageRow: { display: "flex", gap: 10, flexWrap: "wrap", marginTop: 6 },
+  errStagePill: { background: "#232936", borderRadius: 20, padding: "5px 12px", fontSize: 13, color: "#c99a3a" },
+  errMsg: { color: "#c0504d", fontSize: 11, marginTop: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
 };
