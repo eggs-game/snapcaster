@@ -41,10 +41,30 @@ body { background: var(--bg2); color: var(--text); font-family: Inter, system-ui
 /* Icon-only drawer toggles: plain icons, no boxed chrome. */
 .drawer-toggle { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; flex: none; padding: 0; background: none; border: none; border-radius: 8px; color: var(--dim); cursor: pointer; }
 .drawer-toggle:hover { color: var(--text); }
-/* Topbar open-control stays mounted; fade instead of mount/unmount so the
-   lobby name doesn't stutter sideways. */
-.panel-toggle { transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
-.panel-toggle-away { opacity: 0; pointer-events: none; }
+/* Topbar open-control: collapse fully when the sidebar is open so there's no
+   blank slot; expand/fade in sync with the sidebar close so the lobby name
+   eases over instead of jumping. */
+.panel-toggle {
+  overflow: hidden;
+  transition:
+    width 0.2s cubic-bezier(0.7, 0, 0.84, 0),
+    opacity 0.2s cubic-bezier(0.7, 0, 0.84, 0),
+    margin-right 0.2s cubic-bezier(0.7, 0, 0.84, 0);
+}
+.panel-toggle-away {
+  width: 0;
+  opacity: 0;
+  /* Cancel the topbar flex gap so the lobby name sits flush left. */
+  margin-right: -10px;
+  pointer-events: none;
+}
+/* Opening the sidebar: ease-out collapse so it matches the drawer slide-in. */
+.panel-toggle.panel-toggle-away {
+  transition:
+    width 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    margin-right 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
 .logo { color: var(--text); font-weight: 600; }
 .lobby-name {
   background: none; border: none; padding: 0; font: inherit; color: var(--text); font-size: 15px; font-weight: 600;
