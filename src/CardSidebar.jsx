@@ -302,8 +302,8 @@ export default function CardSidebar({
                   lookupName(highlight >= 0 ? suggestions[highlight] : query);
                 }
               }}
-              placeholder="Search for a card"
-              aria-label="Search for a card"
+              placeholder="Lookup cards"
+              aria-label="Lookup cards"
               autoComplete="off"
               disabled={searching}
             />
