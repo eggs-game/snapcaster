@@ -471,7 +471,7 @@ function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, onCh
             background: color,
             [innerSide]: 0,
             // Flush against the corner: only round the corner facing the video.
-            borderRadius: innerSide === "right" ? "12px 0 0 0" : "0 12px 0 0",
+            borderRadius: innerSide === "right" ? "10px 0 0 0" : "0 10px 0 0",
           }}
           onClick={(e) => e.stopPropagation()}
         >
