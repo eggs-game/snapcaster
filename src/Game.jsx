@@ -419,6 +419,58 @@ function RemoteAudio({ stream }) {
   return <audio ref={ref} autoPlay playsInline />;
 }
 
+// Watch a stream's microphone level without routing any extra audio. A short
+// release delay keeps the indicator steady across natural gaps between words.
+function useSpeaking(stream, disabled = false) {
+  const [speaking, setSpeaking] = useState(false);
+
+  useEffect(() => {
+    if (!stream || disabled || !stream.getAudioTracks().some((track) => track.enabled)) {
+      setSpeaking(false);
+      return undefined;
+    }
+
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return undefined;
+    const context = new AudioContext();
+    const source = context.createMediaStreamSource(stream);
+    const analyser = context.createAnalyser();
+    analyser.fftSize = 512;
+    analyser.smoothingTimeConstant = 0.55;
+    source.connect(analyser);
+
+    const samples = new Float32Array(analyser.fftSize);
+    let frame = 0;
+    let lastVoiceAt = 0;
+    let active = false;
+    const update = () => {
+      analyser.getFloatTimeDomainData(samples);
+      let energy = 0;
+      for (let i = 0; i < samples.length; i++) energy += samples[i] * samples[i];
+      const rms = Math.sqrt(energy / samples.length);
+      const now = performance.now();
+      if (rms > 0.035) lastVoiceAt = now;
+      const next = now - lastVoiceAt < 360;
+      if (next !== active) {
+        active = next;
+        setSpeaking(next);
+      }
+      frame = requestAnimationFrame(update);
+    };
+    context.resume().catch(() => {});
+    frame = requestAnimationFrame(update);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      source.disconnect();
+      analyser.disconnect();
+      context.close().catch(() => {});
+    };
+  }, [stream, disabled]);
+
+  return speaking;
+}
+
 // Seat accent palette: yellow, blue, green, red.
 const TILE_COLORS = [
   "#d7ac3f", "#e67e3c", "#d95757", "#d45b9b", "#a66bdd", "#626bc9",
@@ -428,6 +480,7 @@ const TILE_COLORS = [
 function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, onChangeLife, flash }) {
   const videoRef = useRef(null);
   const [flipped, setFlipped] = useState(false);
+  const speaking = useSpeaking(tile.stream, tile.muted);
   useEffect(() => {
     if (videoRef.current && tile.stream) videoRef.current.srcObject = tile.stream;
   }, [tile.stream]);
@@ -441,7 +494,10 @@ function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, onCh
   }
 
   return (
-    <div className="tile" style={{ borderColor: color }}>
+    <div
+      className={`tile${speaking ? " speaking" : ""}`}
+      style={{ borderColor: color, "--speaker-color": color }}
+    >
       <CommanderBanner
         tile={tile}
         onChoose={onChooseCommander}
