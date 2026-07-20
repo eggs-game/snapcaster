@@ -1,9 +1,13 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.jsx";
+import SnapTest from "./SnapTest.jsx";
 import "./styles.css";
 
 const BUILD = "artfix-13b (reverted fast-14: protect accuracy)";
+window.__SNAP_BUILD = BUILD;
 console.log(`%c[snapcaster] build: ${BUILD}`, "color:#0a0;font-weight:bold");
 
-createRoot(document.getElementById("root")).render(<App />);
+// Recognition benchmark page at /snaptest (see snaptest/README.md).
+const isSnapTest = window.location.pathname.replace(/\/+$/, "") === "/snaptest";
+createRoot(document.getElementById("root")).render(isSnapTest ? <SnapTest /> : <App />);
