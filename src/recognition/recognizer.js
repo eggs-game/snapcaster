@@ -761,83 +761,43 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   let bestCandidateImage = null;
   let bestCandidateStrategy = "";
   let bestCandidateDistance = 0xffff;
-  // Combined gray+art+color score for one printing under one candidate crop.
-  const artVecsFor = (gray) => {
-    if (!(useV3 && artIndex)) return null;
-    const v = []; let img = gray;
-    for (let r = 0; r < 4; r++) { v.push(artPHash(img)); img = rotate90(img); }
-    return v;
-  };
-  const combineScore = (grayDist, idx, artVecs, colorSig) => {
-    let score = grayDist;
-    if (artVecs) {
-      let artDist = 0xffff;
-      const off = idx * ART_BYTES;
-      for (const av of artVecs) {
-        let d = 0;
-        for (let b = 0; b < ART_BYTES; b++) d += POPCOUNT[artIndex[off + b] ^ av[b]];
-        if (d < artDist) artDist = d;
-      }
-      score += artDist * 1.8; // 256-bit art hash weighted near the 512-bit gray hash
-    }
-    if (colorSig) {
-      let sim = 0;
-      const off = idx * COLOR_BYTES;
-      for (let b = 0; b < COLOR_BYTES; b++) sim += Math.min(colorSig[b], colorIndex[off + b] / 255);
-      score += (1 - Math.min(1, sim)) * 150; // color clash pushes a printing far down
-    }
-    return score;
-  };
-
-  // Prepare every candidate's hashes (cheap). The expensive full-index scans
-  // are limited to a few diverse seed crops below (coarse-to-fine): brute-force
-  // scoring all ~26 crops against 110k cards was the dominant cost.
-  const prepared = candidates.map((candidate) => {
+  for (const candidate of candidates) {
+    candidatesTried++;
+    // White-balance the crop so a warm/cool room cast doesn't bias the
+    // grayscale hash or the color signature toward mis-tinted cards.
     const wbImage = whiteBalance(candidate.image);
     const gray = toGray(wbImage);
     const variants = queryVariants(gray);
     queryCandidates.push({ strategy: candidate.strategy, vectors: variants });
-    return { candidate, wbImage, gray, variants };
-  });
-  if (prepared.length) {
-    bestCandidateImage = prepared[0].candidate.image;
-    bestCandidateStrategy = prepared[0].candidate.strategy;
-  }
-
-  // Seed crops get a full 110k scan and define the shortlist; every other crop
-  // only refines that shortlist. Same winners on the accuracy suite, ~4-5x less
-  // Hamming work. A decisive seed also short-circuits the rest.
-  const SEED_PRIORITY = ["full-frame", "outline-1", "outline-2", "center-45",
-    "center-27", "tilt20@60", "tilt-20@60", "off0,-11"];
-  const seedIdx = new Set();
-  for (const s of SEED_PRIORITY) {
-    const i = prepared.findIndex((p, pi) => !seedIdx.has(pi) && p.candidate.strategy === s);
-    if (i >= 0) seedIdx.add(i);
-    if (seedIdx.size >= 6) break;
-  }
-  for (let i = 0; i < prepared.length && seedIdx.size < 5; i++) seedIdx.add(i);
-
-  // Full-index scoring of one seed crop (updates dists/rank/artGlobal). Returns
-  // the crop's best gray distance for the decisive early-exit.
-  const scoreFull = (p) => {
-    candidatesTried++;
+    if (!bestCandidateImage) {
+      bestCandidateImage = candidate.image;
+      bestCandidateStrategy = candidate.strategy;
+    }
+    if (!n) continue;
     const candidateDists = new Uint16Array(n).fill(0xffff);
-    for (const q of p.variants) hammingSearch(q, index, n, candidateDists);
+    for (const q of variants) hammingSearch(q, index, n, candidateDists);
     let candidateBest = 0xffff;
     for (let i = 0; i < n; i++) {
       if (candidateDists[i] < candidateBest) candidateBest = candidateDists[i];
       if (candidateDists[i] < dists[i]) {
         dists[i] = candidateDists[i];
-        if (!useV3) strategies[i] = p.candidate.strategy;
+        if (!useV3) strategies[i] = candidate.strategy;
       }
     }
     if (useV3) {
+      // Rescore this candidate's ~400 gray-closest printings with art + color.
+      // Histogram cutoff keeps this O(n) with no per-printing allocation.
       const counts = new Uint32Array(513);
       for (let i = 0; i < n; i++) counts[candidateDists[i] <= 512 ? candidateDists[i] : 512]++;
       let cutoff = 0, cumulative = 0;
       while (cutoff < 512 && cumulative + counts[cutoff] < 400) { cumulative += counts[cutoff]; cutoff++; }
-      const artVecs = artVecsFor(p.gray);
-      if (artVecs && artGlobal && artGlobalStrategies.has(p.candidate.strategy)) {
+      let artVecs = null;
+      if (artIndex) {
+        artVecs = [];
+        let img = gray;
+        for (let r = 0; r < 4; r++) { artVecs.push(artPHash(img)); img = rotate90(img); }
+      }
+      if (artVecs && artGlobal && artGlobalStrategies.has(candidate.strategy)) {
         for (let i = 0; i < n; i++) {
           const off = i * ART_BYTES;
           for (const av of artVecs) {
@@ -847,67 +807,40 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
           }
         }
       }
-      const colorSig = colorIndex ? colorSignature(p.wbImage) : null;
+      const colorSig = colorIndex ? colorSignature(wbImage) : null;
       for (let i = 0; i < n; i++) {
         if (candidateDists[i] > cutoff) continue;
-        const score = combineScore(candidateDists[i], i, artVecs, colorSig);
-        if (score < rank[i]) { rank[i] = score; strategies[i] = p.candidate.strategy; }
+        let score = candidateDists[i];
+        if (artVecs) {
+          let artDist = 0xffff;
+          const off = i * ART_BYTES;
+          for (const av of artVecs) {
+            let d = 0;
+            for (let b = 0; b < ART_BYTES; b++) d += POPCOUNT[artIndex[off + b] ^ av[b]];
+            if (d < artDist) artDist = d;
+          }
+          score += artDist * 1.8; // 256-bit art hash weighted near the 512-bit gray hash
+        }
+        if (colorSig) {
+          let sim = 0;
+          const off = i * COLOR_BYTES;
+          for (let b = 0; b < COLOR_BYTES; b++) sim += Math.min(colorSig[b], colorIndex[off + b] / 255);
+          score += (1 - Math.min(1, sim)) * 150; // color clash pushes a printing far down
+        }
+        if (score < rank[i]) {
+          rank[i] = score;
+          strategies[i] = candidate.strategy;
+        }
       }
     }
     if (candidateBest < bestCandidateDistance) {
       bestCandidateDistance = candidateBest;
-      bestCandidateImage = p.candidate.image;
-      bestCandidateStrategy = p.candidate.strategy;
+      bestCandidateImage = candidate.image;
+      bestCandidateStrategy = candidate.strategy;
     }
-    return candidateBest;
-  };
-
-  if (n) {
-    let decisive = false;
-    for (const i of seedIdx) {
-      if (scoreFull(prepared[i]) <= 60) { decisive = true; break; }
-    }
-    // Shortlist the fine pass may improve: cards a seed already brought into
-    // contention (finite combined rank), or the gray-closest under v2.
-    let shortlist;
-    if (useV3) {
-      shortlist = [];
-      for (let i = 0; i < n; i++) if (rank[i] < Infinity) shortlist.push(i);
-    } else {
-      shortlist = Array.from({ length: n }, (_, i) => i)
-        .sort((a, b) => dists[a] - dists[b]).slice(0, 4000);
-    }
-    if (!decisive) {
-      for (let pi = 0; pi < prepared.length; pi++) {
-        if (seedIdx.has(pi)) continue;
-        const p = prepared[pi];
-        candidatesTried++;
-        const artVecs = artVecsFor(p.gray);
-        const colorSig = (useV3 && colorIndex) ? colorSignature(p.wbImage) : null;
-        let candidateBest = 0xffff;
-        for (const idx of shortlist) {
-          let d = 0xffff;
-          const off = idx * VEC_BYTES;
-          for (const q of p.variants) {
-            let dd = 0;
-            for (let b = 0; b < VEC_BYTES; b++) dd += POPCOUNT[index[off + b] ^ q[b]];
-            if (dd < d) d = dd;
-          }
-          if (d < candidateBest) candidateBest = d;
-          if (d < dists[idx]) { dists[idx] = d; if (!useV3) strategies[idx] = p.candidate.strategy; }
-          if (useV3) {
-            const score = combineScore(d, idx, artVecs, colorSig);
-            if (score < rank[idx]) { rank[idx] = score; strategies[idx] = p.candidate.strategy; }
-          }
-        }
-        if (candidateBest < bestCandidateDistance) {
-          bestCandidateDistance = candidateBest;
-          bestCandidateImage = p.candidate.image;
-          bestCandidateStrategy = p.candidate.strategy;
-        }
-        if (candidateBest <= 60) break;
-      }
-    }
+    // A distance this low is already a decisive match; avoid spending time on
+    // weaker fallback candidates.
+    if (candidateBest <= 60) break;
   }
   const rankArr = rank || dists;
 
