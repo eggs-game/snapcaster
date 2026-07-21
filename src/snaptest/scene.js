@@ -6,10 +6,16 @@
 // whole-table rotation, dim warm light, glare, and a card that occupies only a
 // fraction of the frame.
 //
-// A scene is rendered at full camera resolution (default 1080x1920, matching
-// the portrait phone/webcam frames we see in practice). The harness then crops
-// it with the *production* geometry from captureGeometry.js, so a tableau run
-// exercises the same capture path the live app uses.
+// A scene is rendered at full camera resolution (default 1920x1080). Video
+// tiles are landscape, so that is the frame players are actually captured in —
+// the reference photo this is modelled on only looks sideways because it was a
+// portrait phone screenshot; rotated upright it is a landscape table of upright
+// cards. Cards are therefore upright by default, with individual cards turned
+// 90 degrees because tapped permanents genuinely sit sideways on the table.
+//
+// The harness then crops the frame with the *production* geometry from
+// captureGeometry.js, so a tableau run exercises the same capture path the
+// live app uses.
 
 import { loadImage, scryfallImageUrl } from "./degrade.js";
 import { cropGeometry } from "../captureGeometry.js";
@@ -83,7 +89,7 @@ function paintLighting(x, W, H, rnd) {
  * click point (nx, ny) at the card's centre — what a player would click.
  * Call releaseScene(canvas) when done; these are ~8MB each.
  */
-export async function buildScene(cards, sceneIdx, frameW = 1080, frameH = 1920) {
+export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080) {
   const rnd = mulberry32((sceneIdx * 2246822519) >>> 0);
   const imgs = await Promise.all(
     cards.map((c) => loadImage(scryfallImageUrl(c.id)).then((im) => ({ c, im })).catch(() => ({ c, im: null }))),
@@ -92,11 +98,10 @@ export async function buildScene(cards, sceneIdx, frameW = 1080, frameH = 1920) 
   const failed = imgs.filter((r) => !r.im).map((r) => r.c);
   if (!ok.length) return { canvas: null, placed: [], failed };
 
-  // The whole table shares an orientation, exactly like a photo taken with the
-  // phone turned sideways — every card is rotated together, not independently.
-  const sceneAngle = [0, 90, 180, 270][sceneIdx % 4];
-  const rotationClass = sceneAngle === 0 ? "upright"
-    : sceneAngle === 180 ? "upsidedown" : "sideways";
+  // In a landscape tile a table of cards reads upright. The exception is the
+  // player sitting opposite (or a flipped tile), whose cards arrive rotated
+  // 180 — so most scenes are upright and every fourth is inverted.
+  const sceneAngle = sceneIdx % 4 === 3 ? 180 : 0;
   const warm = rnd() < 0.6;
 
   const canvas = document.createElement("canvas");
@@ -104,24 +109,32 @@ export async function buildScene(cards, sceneIdx, frameW = 1080, frameH = 1920) 
   const x = canvas.getContext("2d");
   paintBackground(x, frameW, frameH, rnd, warm);
 
-  const cardW = frameW * (0.18 + rnd() * 0.06);
+  // Card size is set against the short frame edge so it stays consistent with
+  // the crop, which is 0.55 of that same edge. ~0.2 matches the apparent card
+  // size in the reference photo.
+  const shortSide = Math.min(frameW, frameH);
+  const cardW = shortSide * (0.18 + rnd() * 0.06);
   const cardH = cardW * CARD_ASPECT;
-  const probe = bbox(0, 0, cardW, cardH, sceneAngle);
-  // Three columns matches the reference photo; drop to two when the cards sit
-  // sideways and are too wide to fit three across.
-  const cols = probe.bw * 2.7 < frameW ? 3 : 2;
+
+  // Spacing is derived from the card, not by dividing up the frame, so the
+  // cluster overlaps the way a real table does: rows crowd into each other
+  // vertically while columns sit roughly shoulder to shoulder.
+  const gapX = cardW * (0.95 + rnd() * 0.2);
+  const gapY = cardH * (0.70 + rnd() * 0.22);
+  const cols = Math.min(5, Math.max(3, Math.round((frameW * 0.8) / gapX)));
   const rows = Math.ceil(ok.length / cols);
-  const cellW = (frameW * 0.94) / cols;
-  const cellH = Math.min(probe.bh * 0.94, (frameH * 0.92) / rows);
-  const originX = (frameW - cols * cellW) / 2 + cellW / 2;
-  const originY = (frameH - rows * cellH) / 2 + cellH / 2;
+  const originX = (frameW - (cols - 1) * gapX) / 2;
+  const originY = (frameH - (rows - 1) * gapY) / 2;
 
   const placed = [];
   for (let i = 0; i < ok.length; i++) {
     const col = i % cols, row = (i / cols) | 0;
-    const cx = originX + col * cellW + (rnd() * 2 - 1) * cellW * 0.1;
-    const cy = originY + row * cellH + (rnd() * 2 - 1) * cellH * 0.1;
-    const angle = sceneAngle + (rnd() * 2 - 1) * 15;
+    const cx = originX + col * gapX + (rnd() * 2 - 1) * gapX * 0.1;
+    const cy = originY + row * gapY + (rnd() * 2 - 1) * gapY * 0.1;
+    // Tapped permanents really do sit sideways, so a quarter of cards turn 90.
+    const tapped = rnd() < 0.25;
+    const angle = sceneAngle + (tapped ? 90 : 0) + (rnd() * 2 - 1) * 12;
+    const rotationClass = tapped ? "tapped" : sceneAngle === 180 ? "upsidedown" : "upright";
 
     x.save();
     x.translate(cx, cy);

@@ -292,10 +292,12 @@ export default function SnapTest() {
         </p>
         <p style={S.sub}>
           <b>Tableau</b> modes are the realistic case: 10 random cards laid out on a table in one
-          1080×1920 frame, sharing a rotation, overlapping each other, dim and glare-lit — then
-          each card is clicked in turn. The frame is cropped with the same geometry the live
-          camera uses, so these runs test the real capture path, not a clean render. Expect much
-          lower accuracy here than the single-card modes; that gap is the point.
+          1920×1080 landscape frame — the shape a video tile actually is — overlapping each other,
+          dim and glare-lit, with a quarter of them turned sideways as tapped permanents and every
+          fourth scene inverted for the player sitting opposite. Each card is then clicked in turn.
+          The frame is cropped with the same geometry the live camera uses, so these runs test the
+          real capture path, not a clean render. Expect much lower accuracy here than the
+          single-card modes; that gap is the point.
         </p>
 
         <div style={S.controls}>
