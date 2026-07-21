@@ -525,13 +525,30 @@ function runTitleStrips(scanId) {
 // calibration point) is already certain: correct real-camera scans land 30-70
 // and WRONG cards essentially never score this low, so OCR can only slow it
 // down or override it with a bad read.
+// Distance at which a visual match is exact enough to present as such.
+const VISUAL_EXACT_DISTANCE = 90;
+// Distance below which OCR is not worth running. Deliberately looser than the
+// label above: OCR is only useful when it can CHANGE the answer, and across
+// three tableau runs it produced 0, 1 and 1 identifications per ~100 cards
+// while costing ~5.3s on every card that reached it — the single biggest
+// contributor to a 12s p90 against a 2.5s median. Cards in the 90-150 band are
+// not relabelled as exact; they simply stop paying for a read that has never
+// rescued them.
+const OCR_SKIP_DISTANCE = 150;
+
 async function finishIdentify(result) {
   if (result.art_decisive && result.matches?.[0]?.identified_by === "art-match") return result;
   const best = result.matches?.[0];
-  if (best && best.distance <= 90) {
+  if (best && best.distance <= VISUAL_EXACT_DISTANCE) {
     best.identified_by = best.identified_by || "visual-exact";
     return result;
   }
+  // A strong keypoint match already outranks OCR in applyTitleOCR — any read
+  // that disagrees is thrown away, and one that agrees changes nothing. So
+  // running OCR here can only ever burn time.
+  const art = result.art_best;
+  if (art && !art.weak && (art.inliers || 0) >= 12) return result;
+  if (best && best.distance <= OCR_SKIP_DISTANCE) return result;
   const t0 = performance.now();
   const out = await applyTitleOCR(result);
   out.stage_ms = { ...(result.stage_ms || {}), ...(out.stage_ms || {}), ocr: Math.round(performance.now() - t0) };
