@@ -147,10 +147,20 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080) 
   const spread = layout === "spaced" ? { x: 1.16 + rnd() * 0.20, y: 1.06 + rnd() * 0.20 }
     : layout === "touching" ? { x: 1.00 + rnd() * 0.15, y: 0.93 + rnd() * 0.12 }
     : { x: 0.95 + rnd() * 0.20, y: 0.70 + rnd() * 0.22 };
-  const gapX = cardW * spread.x;
-  const gapY = cardH * spread.y;
+  // Spacing is measured against the widest footprint a card can have, which is
+  // cardH — a tapped card is rotated 90 degrees and lies on its long edge.
+  // Basing it on cardW meant a tapped card (321px) was wider than the "spaced"
+  // gap (267-313px), so it overlapped its neighbours and pulled the adjacent
+  // upright cards into overlap too. "Spaced" scenes were not spaced, which
+  // understated the spaced score and muddled the layout breakdown.
+  const footprint = layout === "spaced" ? cardH : cardW;
+  const gapX = footprint * spread.x;
   const cols = Math.min(5, Math.max(3, Math.round((frameW * 0.8) / gapX)));
   const rows = Math.ceil(ok.length / cols);
+  // A wider footprint means fewer columns and more rows, which can push the
+  // top row off-frame — clamp the row pitch so the grid always fits.
+  const maxGapY = rows > 1 ? (frameH * 0.94 - cardH) / (rows - 1) : Infinity;
+  const gapY = Math.min(cardH * spread.y, maxGapY);
   const originX = (frameW - (cols - 1) * gapX) / 2;
   const originY = (frameH - (rows - 1) * gapY) / 2;
 
