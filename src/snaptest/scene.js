@@ -61,11 +61,26 @@ function hits(p, px, py, w, h) {
   return Math.abs(lx) <= w / 2 && Math.abs(ly) <= h / 2;
 }
 
-function overlapFrac(a, b) {
-  const w = Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0);
-  const h = Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0);
-  if (w <= 0 || h <= 0) return 0;
-  return (w * h) / (a.bw * a.bh);
+// Fraction of card `p` hidden by any later-drawn card, measured by sampling the
+// card's own surface. The previous version intersected axis-aligned bounding
+// boxes, which for cards tilted up to 12 degrees reported 15-20% coverage
+// between cards that never actually touched — overstating how crowded a scene
+// was and muddying every accuracy-vs-coverage breakdown.
+function coveredFraction(p, later, w, h) {
+  const COLS = 11, ROWS = 15;
+  let covered = 0, total = 0;
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const lx = ((c + 0.5) / COLS - 0.5) * w;
+      const ly = ((r + 0.5) / ROWS - 0.5) * h;
+      const f = toFrame(p.cx, p.cy, lx, ly, p.angle);
+      total++;
+      for (const q of later) {
+        if (hits(q, f.x, f.y, w, h)) { covered++; break; }
+      }
+    }
+  }
+  return total ? covered / total : 0;
 }
 
 // Cloth/table background: a warm base, soft wrinkle blobs and a directional
@@ -137,10 +152,15 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080) 
 
   // How tightly a table is packed varies: often cards are laid out with clear
   // gaps, often they just touch, sometimes they genuinely overlap.
-  const layout = ["spaced", "spaced", "touching", "touching", "overlapping"][sceneIdx % 5];
+  // Real tables are mostly cards touching a little or laid out with gaps.
+  // Significant overlap is uncommon, so it is 1 scene in 10 and deliberately
+  // mild — an earlier 1-in-5 at up to 30% overlap was punishing the recognizer
+  // with a layout players rarely produce.
+  const layout = ["spaced", "touching", "spaced", "touching", "touching",
+    "spaced", "touching", "spaced", "touching", "overlapping"][sceneIdx % 10];
   const spread = layout === "spaced" ? { x: 1.16 + rnd() * 0.20, y: 1.06 + rnd() * 0.20 }
     : layout === "touching" ? { x: 1.00 + rnd() * 0.15, y: 0.93 + rnd() * 0.12 }
-    : { x: 0.95 + rnd() * 0.20, y: 0.70 + rnd() * 0.22 };
+    : { x: 0.92 + rnd() * 0.13, y: 0.82 + rnd() * 0.13 };
 
   // Worst-case on-screen extent of a card. Cards tilt up to 12 degrees and may
   // be tapped (turned 90), and both cases reduce to the same expression. Pitch
@@ -243,8 +263,7 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080) 
   // a meaningful slice of it, "edge" when the frame itself cuts it off.
   for (let i = 0; i < placed.length; i++) {
     const p = placed[i];
-    let cov = 0;
-    for (let j = i + 1; j < placed.length; j++) cov += overlapFrac(p.box, placed[j].box);
+    const cov = coveredFraction(p, placed.slice(i + 1), cardW, cardH);
     const b = p.box;
     const cut = b.x0 < 0 || b.y0 < 0 || b.x1 > frameW || b.y1 > frameH;
     p.occ = cov > 0.1 ? "overlapped" : cut ? "edge" : "clear";

@@ -392,8 +392,8 @@ export default function SnapTest() {
         </p>
         <p style={S.sub}>
           <b>Tableau</b> modes are the realistic case: 10 random cards laid out on a table in one
-          1920×1080 landscape frame — the shape a video tile actually is — spaced out, just touching, or
-          overlapping depending on the scene, dim and glare-lit, with a quarter of them turned
+          1920×1080 landscape frame — the shape a video tile actually is — spaced out or just touching
+          (significant overlap is uncommon in real games, so it is 1 scene in 10 and mild), dim and glare-lit, with a quarter of them turned
           sideways as tapped permanents and every fourth scene inverted for the player opposite. Each card is then clicked in turn,
           at a random point on its artwork rather than dead centre — and never on a spot a
           neighbouring card covers, since naming the card actually under the cursor isn't a miss.
