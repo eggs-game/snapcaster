@@ -141,13 +141,21 @@ export async function buildScene(cards, sceneIdx, frameW = 1080, frameH = 1920) 
     if (rnd() < 0.35) {
       x.save();
       x.translate(cx, cy);
-      x.rotate((angle + 20) * Math.PI / 180);
-      const gg = x.createLinearGradient(-cardW / 2, -cardH / 2, cardW / 2, cardH / 2);
+      x.rotate(angle * Math.PI / 180);
+      // Clip to the card first: glare lives on the card surface, it must not
+      // spill onto the table. The streak is then rotated within that clip so
+      // it runs across the card at its own angle.
+      x.beginPath();
+      x.rect(-cardW / 2, -cardH / 2, cardW, cardH);
+      x.clip();
+      x.rotate(20 * Math.PI / 180);
+      const r = Math.hypot(cardW, cardH);
+      const gg = x.createLinearGradient(-r / 2, -r / 2, r / 2, r / 2);
       gg.addColorStop(0, "rgba(255,255,255,0)");
       gg.addColorStop(0.45 + rnd() * 0.1, `rgba(255,255,250,${(0.18 + rnd() * 0.24).toFixed(2)})`);
       gg.addColorStop(1, "rgba(255,255,255,0)");
       x.fillStyle = gg;
-      x.fillRect(-cardW / 2, -cardH / 2, cardW, cardH);
+      x.fillRect(-r, -r, r * 2, r * 2);
       x.restore();
     }
 
