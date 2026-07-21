@@ -60,3 +60,40 @@ Newest first. Run via `snapcaster.vercel.app/snaptest`.
   - Urza's Ruinous Blast → "Rats" (upright, fingers) via ocr-title
 - Takeaway: rotation and occlusion are essentially solved; the remaining failure
   mode is OCR producing a garbage read that matches a short/common card name.
+
+## 2026-07-21 — `tableau-20` — Tableau 10 scenes (100 cards) — **90.0%**
+
+First benchmark that models a real table: 10 cards per 1920x1080 landscape
+frame (4 cols x 3 rows), 90% of cards non-overlapping, ~5% clipped by the frame,
+25% tapped, every 4th scene inverted, dim/glare-lit, clicked at a random point
+on visible artwork, cropped with the production capture geometry.
+
+- Avg 4.4s / median 2.5s / p90 12.3s / max 15.8s. No errors.
+- By rotation: upright 85.5%, tapped **93.5%**, upside-down **100%**.
+- By layout: side-by-side 98.3%, spaced 96.7%, overlapping **20.0%**.
+- By coverage: 0% (clear) 97.8%; any overlap at all 11.1% (1/9).
+- By pathway: visual-exact 49/49, art-match 38/38 — **both 100%**; the
+  remaining 13 fell through to plain visual ranking at 23%.
+- All 10 misses have the true card ABSENT from the match list (never rank 2-5).
+
+Progression on the tableau benchmark: 36.4% -> 53.1% -> 65.3% -> 63.6% -> 90.0%.
+The fixes that moved it, in order of size:
+
+1. **Relative background-crop filter.** A fixed detail threshold discarded
+   nearly every crop in dim scenes (cases of 34 of 35 dropped, one candidate
+   left). Biggest single jump.
+2. **Landscape crops for tapped cards.** Every crop was portrait card-shaped,
+   so a sideways card could not be framed at all. Tapped 42% -> 68% -> 93.5%.
+3. **Mirrored art anchors (`artf-*`).** Fix 2 introduced a regression: the
+   art-anchored seeds assume artwork in the upper third, but a 180-degree card
+   shows it in the lower third. Upside-down 58% -> 33% -> **100%**.
+
+Remaining gap is almost entirely one failure mode: **8 of the 10 misses are in
+the single overlapping scene**, and adjacency (not coverage) is what breaks it —
+cards at 3-12% coverage fail alongside cards at 40%. Touching contours merge and
+no crop isolates the target card.
+
+OCR is now pure cost: it produced **zero** identifications this run (1 in each of
+the two prior runs) and costs ~5.3s on each of the 13 cards that reach it,
+driving p90 to 12.3s. 87 of 100 cards short-circuit before it via
+visual-exact/art-match.
