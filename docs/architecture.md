@@ -62,7 +62,7 @@ scripts/
 ## The card index
 
 Built by `scripts/build_index.py`, run by the **Build card index** GitHub
-Action (monthly, or manually), which commits the result to `main`. Version 3,
+Action (monthly, or manually), which commits the result to `main`. Version 4,
 currently **110,524 printings / 35,026 names / 256 shards**.
 
 | File | Size | Loaded by | Purpose |
@@ -73,7 +73,7 @@ currently **110,524 printings / 35,026 names / 256 shards**.
 | `colors.bin` | 1.4 MB | worker | 13-byte hue histogram per printing |
 | `arthashes.bin` | 3.4 MB | worker | 32-byte art-region hash per printing |
 | `cards.json` | 8.1 MB | worker | name/set/collector number/id per printing |
-| `shards/00..ff.json` | 25 MB total | main thread | on demand, one shard per lookup |
+| `shards/00..ff.json` | sharded | main thread | on demand; visual data plus mana cost, type line and Oracle text |
 
 The worker loads the four bulk files once and keeps them resident. The main
 thread loads only `names.json` — it used to pull `hashes.bin` + `cards.json`
@@ -81,6 +81,15 @@ thread loads only `names.json` — it used to pull `hashes.bin` + `cards.json`
 
 `/carddata/*` is served with a week of caching plus a month of
 `stale-while-revalidate`; it changes monthly.
+
+Version 4 appends `mana_cost`, `type_line`, and `oracle_text` to every shard
+row. They are face-specific for independently imaged double-faced cards and
+use empty strings when Scryfall has no value (for example, a token's mana
+cost). The manifest publishes `shard_fields` and `cards_fields`, so future
+consumers do not have to infer the positional schemas. The global `cards.json`
+stays deliberately compact because the worker loads it for every recognition
+session; future metadata-assisted recognition can derive purpose-built compact
+tables from the v4 shards without putting full Oracle text on the startup path.
 
 ## Recognition boundary
 

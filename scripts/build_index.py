@@ -9,17 +9,18 @@ Outputs:
   colors.bin             per-printing 13-byte hue histogram (v3)
   arthashes.bin          per-printing 32-byte pHash of the art region (v3)
 
-Each shard row is (v3):
+Each shard row is (v4):
   [name, set, collector_number, scryfall_id, face, base64_hash,
-   base64_color, base64_arthash]
+   base64_color, base64_arthash, mana_cost, type_line, oracle_text]
 
 The color histogram and art hash MUST stay formula-compatible with
 src/recognition/recognizer.js (colorSignature / art pHash) — change both or
 neither.
 
-Existing v3 shard rows are reused by Scryfall ID + face, so scheduled updates
+Existing v3/v4 shard rows are reused by Scryfall ID + face, with metadata
+refreshed from the current Scryfall bulk record. Scheduled updates therefore
 download only newly released artwork. v2 rows (no color/art fields) are NOT
-reused — the first v3 build refetches everything.
+reused.
 """
 import argparse
 import base64
@@ -48,6 +49,10 @@ HASH_SIZE = 16
 CARD_W, CARD_H = 244, 340
 VEC_BYTES = 64
 SHARD_COUNT = 256
+CARD_FIELDS = ["name", "set", "collector_number", "scryfall_id", "face"]
+SHARD_FIELDS = CARD_FIELDS + [
+    "hash", "color", "art_hash", "mana_cost", "type_line", "oracle_text",
+]
 
 
 def phash_bits(gray):
@@ -165,11 +170,45 @@ def faces(card):
                 yield min(index, 1), url, face.get("name", card["name"])
 
 
-def load_existing(out_dir):
-    """Return {(scryfall_id, face): row} of reusable v3 rows.
+def face_metadata(card, face):
+    """Return (mana_cost, type_line, oracle_text) for an indexed image face.
 
-    Only rows that already carry the v3 color + art fields (8 columns) are
-    reused; v2 rows are dropped so their images get refetched and enriched.
+    Cards with one shared image (split, adventure, etc.) keep Scryfall's
+    card-level strings. Independently imaged faces use that face's fields.
+    Missing values are encoded as empty strings to keep every v4 row uniform.
+    """
+    card_faces = card.get("card_faces") or []
+    if not card.get("image_uris") and face < len(card_faces):
+        source = card_faces[face]
+        return tuple(source.get(field) or "" for field in (
+            "mana_cost", "type_line", "oracle_text",
+        ))
+
+    # Split/adventure-style cards share one image. Prefer Scryfall's card-level
+    # combined value, but assemble every face when that field is null there.
+    separators = {
+        "mana_cost": " // ",
+        "type_line": " // ",
+        "oracle_text": "\n//\n",
+    }
+    values = []
+    for field in ("mana_cost", "type_line", "oracle_text"):
+        value = card.get(field) or ""
+        if not value and card_faces:
+            value = separators[field].join(
+                item[field] for item in card_faces if item.get(field)
+            )
+        values.append(value)
+    return tuple(values)
+
+
+def load_existing(out_dir):
+    """Return {(scryfall_id, face): row} of reusable v3/v4 visual rows.
+
+    Only the first eight visual fields are reused. Metadata is always taken
+    from the current bulk record, so Oracle wording changes do not leave stale
+    text in an otherwise reusable row. v2 rows are dropped so their images get
+    refetched and enriched with the visual v3 fields.
     """
     existing = {}
     shard_dir = os.path.join(out_dir, "shards")
@@ -180,7 +219,7 @@ def load_existing(out_dir):
             with open(os.path.join(shard_dir, filename), encoding="utf-8") as source:
                 for row in json.load(source):
                     if len(row) >= 8:
-                        existing[(row[3], int(row[4]))] = row
+                        existing[(row[3], int(row[4]))] = row[:8]
     return existing
 
 
@@ -200,7 +239,8 @@ class RateLimiter:
 
 
 def fetch_and_hash(task, limiter):
-    name, set_code, collector_number, card_id, face, url = task
+    (name, set_code, collector_number, card_id, face, url,
+     mana_cost, type_line, oracle_text) = task
     session = requests.Session()
     for attempt in range(4):
         try:
@@ -216,7 +256,8 @@ def fetch_and_hash(task, limiter):
             return [name, set_code, collector_number, card_id, face,
                     base64.b64encode(vector.tobytes()).decode("ascii"),
                     base64.b64encode(color.tobytes()).decode("ascii"),
-                    base64.b64encode(art.tobytes()).decode("ascii")]
+                    base64.b64encode(art.tobytes()).decode("ascii"),
+                    mana_cost, type_line, oracle_text]
         except Exception as error:
             if attempt == 3:
                 return error
@@ -247,10 +288,12 @@ def write_index(rows, out_dir):
         json.dump(names, output, separators=(",", ":"))
     with open(os.path.join(out_dir, "manifest.json"), "w", encoding="utf-8") as output:
         json.dump({
-            "version": 3,
+            "version": 4,
             "count": len(rows),
             "names": len(names),
             "shards": SHARD_COUNT,
+            "cards_fields": CARD_FIELDS,
+            "shard_fields": SHARD_FIELDS,
             "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         }, output, separators=(",", ":"))
 
@@ -265,7 +308,7 @@ def write_index(rows, out_dir):
     with open(os.path.join(out_dir, "hashes.bin"), "wb") as output:
         for row in ordered:
             output.write(base64.b64decode(row[5]))
-    # v3 companion tables, same row order as cards.json/hashes.bin.
+    # v3+ companion tables, same row order as cards.json/hashes.bin.
     with open(os.path.join(out_dir, "colors.bin"), "wb") as output:
         for row in ordered:
             output.write(base64.b64decode(row[6]))
@@ -295,12 +338,13 @@ def main():
             continue
         for face, url, name in faces(card):
             key = (card["id"], face)
+            metadata = face_metadata(card, face)
             if key in existing:
-                reused.append(existing[key])
+                reused.append(existing[key] + list(metadata))
             else:
                 tasks.append((
                     name, card.get("set", ""), card.get("collector_number", ""),
-                    card["id"], face, url,
+                    card["id"], face, url, *metadata,
                 ))
         card_count += 1
         if args.limit and card_count >= args.limit:

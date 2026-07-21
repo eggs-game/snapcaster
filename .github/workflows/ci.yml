@@ -26,6 +26,8 @@ jobs:
         run: python3 scripts/test_hash_compat.py
       - name: Verify the worker's hashing copy has not drifted
         run: python3 scripts/check_hash_duplication.py
+      - name: Verify card metadata schema and visual reuse
+        run: python3 scripts/test_index_metadata.py
 
   build:
     runs-on: ubuntu-latest
