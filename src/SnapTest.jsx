@@ -160,7 +160,7 @@ export default function SnapTest() {
         const rec = {
           name: p.card.name, id: p.card.id, ok: false, err: null, errStage: null, ms: 0,
           rotationClass: p.rotationClass, occ: p.occ, scene: s, coverage: p.coverage,
-          click: p.click,
+          click: p.click, layout: p.layout,
         };
         const t0 = performance.now();
         let cropUrl = null;
@@ -309,6 +309,9 @@ export default function SnapTest() {
     // If art-match is 98% but only fires 10% of the time, the work is to fire
     // it more often — not to make it more accurate.
     sum.byPathway = groupAcc(okList, (r) => r.by || "(no match)");
+    // Tableau-only: how much of the loss is the table being packed vs the
+    // recognizer simply failing on an isolated card.
+    if (okList.some((r) => r.layout)) sum.byLayout = groupAcc(okList, (r) => r.layout);
 
     // Where the correct card ranked on a miss. "absent" vs "rank 2-5" point at
     // completely different fixes: candidate generation vs ranking/tiebreak.
@@ -358,7 +361,7 @@ export default function SnapTest() {
         artBest: r.artBest, artChecked: r.artChecked,
         ocr: r.ocr, ocrConf: r.ocrConf, titleScore: r.titleScore,
         stages: r.stages,
-        ...(r.scene !== undefined ? { scene: r.scene, coverage: r.coverage, click: r.click } : {}),
+        ...(r.scene !== undefined ? { scene: r.scene, coverage: r.coverage, click: r.click, layout: r.layout } : {}),
       })),
       errors: results.filter((r) => r.err).map((r) => ({
         name: r.name, id: r.id, stage: r.errStage, ms: r.ms, message: r.err,
@@ -389,9 +392,9 @@ export default function SnapTest() {
         </p>
         <p style={S.sub}>
           <b>Tableau</b> modes are the realistic case: 10 random cards laid out on a table in one
-          1920×1080 landscape frame — the shape a video tile actually is — overlapping each other,
-          dim and glare-lit, with a quarter of them turned sideways as tapped permanents and every
-          fourth scene inverted for the player sitting opposite. Each card is then clicked in turn,
+          1920×1080 landscape frame — the shape a video tile actually is — spaced out, just touching, or
+          overlapping depending on the scene, dim and glare-lit, with a quarter of them turned
+          sideways as tapped permanents and every fourth scene inverted for the player opposite. Each card is then clicked in turn,
           at a random point on its artwork rather than dead centre — and never on a spot a
           neighbouring card covers, since naming the card actually under the cursor isn't a miss.
           The frame is cropped with the same geometry the live camera uses, so these runs test the
@@ -460,6 +463,7 @@ export default function SnapTest() {
             <div style={S.breakRow}>
               <Breakdown title="By pathway (how it was identified)" data={summary.byPathway} />
               {summary.byCoverage && <Breakdown title="By neighbour coverage" data={summary.byCoverage} />}
+              {summary.byLayout && <Breakdown title="By table layout" data={summary.byLayout} />}
             </div>
             {misses.length > 0 && (
               <div style={{ marginTop: 16 }}>

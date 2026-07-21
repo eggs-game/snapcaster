@@ -4,7 +4,7 @@ import App from "./App.jsx";
 import SnapTest from "./SnapTest.jsx";
 import "./styles.css";
 
-const BUILD = "art-anchor-3 (5 outline seeds, sqrt-area quad score)";
+const BUILD = "tableau-6 (varied table density: spaced/touching/overlapping)";
 window.__SNAP_BUILD = BUILD;
 console.log(`%c[snapcaster] build: ${BUILD}`, "color:#0a0;font-weight:bold");
 

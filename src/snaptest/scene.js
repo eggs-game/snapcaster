@@ -137,11 +137,18 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080) 
   const cardW = shortSide * (0.18 + rnd() * 0.06);
   const cardH = cardW * CARD_ASPECT;
 
-  // Spacing is derived from the card, not by dividing up the frame, so the
-  // cluster overlaps the way a real table does: rows crowd into each other
-  // vertically while columns sit roughly shoulder to shoulder.
-  const gapX = cardW * (0.95 + rnd() * 0.2);
-  const gapY = cardH * (0.70 + rnd() * 0.22);
+  // Spacing is derived from the card, not by dividing up the frame. How tightly
+  // a table is packed varies: often cards are laid out with clear gaps, often
+  // they just touch, and sometimes they genuinely overlap. Earlier versions used
+  // a gapY below one card height unconditionally, so *every* card overlapped a
+  // neighbour — harsher than reality and it made the overlap breakdown useless
+  // because there was nothing to compare against.
+  const layout = ["spaced", "spaced", "touching", "touching", "overlapping"][sceneIdx % 5];
+  const spread = layout === "spaced" ? { x: 1.16 + rnd() * 0.20, y: 1.06 + rnd() * 0.20 }
+    : layout === "touching" ? { x: 1.00 + rnd() * 0.15, y: 0.93 + rnd() * 0.12 }
+    : { x: 0.95 + rnd() * 0.20, y: 0.70 + rnd() * 0.22 };
+  const gapX = cardW * spread.x;
+  const gapY = cardH * spread.y;
   const cols = Math.min(5, Math.max(3, Math.round((frameW * 0.8) / gapX)));
   const rows = Math.ceil(ok.length / cols);
   const originX = (frameW - (cols - 1) * gapX) / 2;
@@ -197,7 +204,7 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080) 
       card: ok[i].c,
       cx, cy, angle,
       box: bbox(cx, cy, cardW, cardH, angle),
-      rotationClass,
+      rotationClass, layout,
     });
   }
 
