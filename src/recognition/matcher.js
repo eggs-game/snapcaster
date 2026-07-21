@@ -104,7 +104,7 @@ async function dataUrlToBitmap(dataUrl) {
 // parallel waves — the sequential 24-attempt loop was the slow tail on cards
 // without a decisive art match. Worker 0 is warmed by preload(); the second
 // spins up on first OCR use.
-const OCR_POOL_SIZE = 2;
+const OCR_POOL_SIZE = 3;
 const ocrPool = [];
 
 function makeOCRWorker() {
@@ -437,12 +437,14 @@ async function applyTitleOCR(result) {
     // be read near-exactly; only genuinely long names may tolerate the fuzzy
     // camera substitutions ("Gaunt from the Rarnpart").
     const requiredScore = normalized.length >= 12 ? 0.74 : normalized.length >= 8 ? 0.88 : 0.95;
-    // Short names are easy for a garbage OCR read to hit by chance ("Wall",
-    // "Rats" conjured from noise on an occluded/upside-down card). For names
-    // under 8 chars, only trust the read if the visual pipeline also had that
-    // card in contention — otherwise the OCR and the artwork disagree, so fall
+    // Short and mid-length names are easy for a garbage OCR read to hit by
+    // chance ("Wall", "Rats", and later "Experience" and "Apes of Rath"
+    // conjured from noise/reminder text on occluded or rotated cards). For
+    // names under 13 chars, only trust the read if the visual pipeline also
+    // had that card in contention — when OCR and the artwork disagree, fall
     // back to the visual match instead of confidently showing the wrong card.
-    const short = normalized.length < 8;
+    // Long names carry enough evidence on their own.
+    const short = normalized.length < 13;
     const corroborated = (result.matches || []).some((m) => m.name === title.name);
     if (title.score < requiredScore || bestRead.confidence < 25 || (short && !corroborated)) {
       return applyVisualFallback(enriched);
@@ -510,8 +512,17 @@ function runTitleStrips(scanId) {
 
 // A decisive art-keypoint match settles identity — skip the slower OCR pass
 // (which could otherwise override 200 agreeing keypoints with a fuzzy title).
+// Likewise, a near-exact hash match (distance <= 90 of 512 bits, the CONF_GOOD
+// calibration point) is already certain: correct real-camera scans land 30-70
+// and WRONG cards essentially never score this low, so OCR can only slow it
+// down or override it with a bad read.
 async function finishIdentify(result) {
   if (result.art_decisive && result.matches?.[0]?.identified_by === "art-match") return result;
+  const best = result.matches?.[0];
+  if (best && best.distance <= 90) {
+    best.identified_by = best.identified_by || "visual-exact";
+    return result;
+  }
   const t0 = performance.now();
   const out = await applyTitleOCR(result);
   out.stage_ms = { ...(result.stage_ms || {}), ...(out.stage_ms || {}), ocr: Math.round(performance.now() - t0) };

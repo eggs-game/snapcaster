@@ -4,7 +4,7 @@ import App from "./App.jsx";
 import SnapTest from "./SnapTest.jsx";
 import "./styles.css";
 
-const BUILD = "speed-16 (lazy strips, seed shortlist, orb trim, ocr pool)";
+const BUILD = "speed-17 (wider recall pool, visual-exact skip, 3 ocr workers)";
 window.__SNAP_BUILD = BUILD;
 console.log(`%c[snapcaster] build: ${BUILD}`, "color:#0a0;font-weight:bold");
 

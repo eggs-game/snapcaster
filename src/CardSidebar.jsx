@@ -159,7 +159,7 @@ export default function CardSidebar({
   ) ? best : null;
   // A decisive identification (art keypoints, title read, or manual search).
   // Anything else is a ranked guess and must say so.
-  const decisive = !!top && ["ocr-title", "art-match", "search"].includes(top.identified_by);
+  const decisive = !!top && ["ocr-title", "art-match", "search", "visual-exact"].includes(top.identified_by);
   const debugMode = typeof window !== "undefined"
     && new URLSearchParams(window.location.search).has("debug");
 

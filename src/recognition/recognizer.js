@@ -845,12 +845,15 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       }
     }
     if (useV3) {
-      // Rescore this candidate's ~400 gray-closest printings with art + color.
-      // Histogram cutoff keeps this O(n) with no per-printing allocation.
+      // Rescore this candidate's ~1000 gray-closest printings with art+color.
+      // This pool doubles as the fine-pass shortlist, so a wider pool directly
+      // widens recall for cards whose best crop is NOT a seed (a heavily
+      // occluded card can sit below every seed's top 400 yet still be found by
+      // the right non-seed crop). The extra scoring cost is negligible.
       const counts = new Uint32Array(513);
       for (let i = 0; i < n; i++) counts[candidateDists[i] <= 512 ? candidateDists[i] : 512]++;
       let cutoff = 0, cumulative = 0;
-      while (cutoff < 512 && cumulative + counts[cutoff] < 400) { cumulative += counts[cutoff]; cutoff++; }
+      while (cutoff < 512 && cumulative + counts[cutoff] < 1000) { cumulative += counts[cutoff]; cutoff++; }
       const artVecs = artVecsFor(p.gray);
       if (artVecs && artGlobal && artGlobalStrategies.has(p.candidate.strategy)) {
         for (let i = 0; i < n; i++) {
