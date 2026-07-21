@@ -351,7 +351,7 @@ export default function SnapTest() {
         top3: r.top3,
         rot: r.rotationClass, occ: r.occ, ms: r.ms,
         cv: r.cv, tried: r.tried, dropped: r.dropped,
-        art: `${r.artBest ?? "-"}/${r.artChecked ?? "-"}`,
+        artBest: r.artBest, artChecked: r.artChecked,
         ocr: r.ocr, ocrConf: r.ocrConf, titleScore: r.titleScore,
         stages: r.stages,
         ...(r.scene !== undefined ? { scene: r.scene, coverage: r.coverage, click: r.click } : {}),

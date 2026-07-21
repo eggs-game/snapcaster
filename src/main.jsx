@@ -4,7 +4,7 @@ import App from "./App.jsx";
 import SnapTest from "./SnapTest.jsx";
 import "./styles.css";
 
-const BUILD = "tableau-4 (full miss diagnostics: true-rank, pathway, distances)";
+const BUILD = "tableau-5 (fix art_best serialization in copy payload)";
 window.__SNAP_BUILD = BUILD;
 console.log(`%c[snapcaster] build: ${BUILD}`, "color:#0a0;font-weight:bold");
 
