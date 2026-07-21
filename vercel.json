@@ -19,7 +19,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob:; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://cards.scryfall.io; connect-src 'self' blob: data: https://*.supabase.co wss://*.supabase.co https://cards.scryfall.io; media-src 'self' blob: mediastream:; font-src 'self' data:; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'"
+          "value": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob: https://docs.opencv.org; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://cards.scryfall.io; connect-src 'self' blob: data: https://*.supabase.co wss://*.supabase.co https://cards.scryfall.io https://docs.opencv.org; media-src 'self' blob: mediastream:; font-src 'self' data:; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'"
         }
       ]
     },
