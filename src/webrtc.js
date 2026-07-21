@@ -309,22 +309,23 @@ export class GameConnection {
       try { m = JSON.parse(e.data); } catch { return; }
       if (m.t === "cap-req") {
         try {
-          const image = await captureLocalFrame(this.localStream, m.nx, m.ny);
-          this._sendChunked(peerId, { t: "cap-res", id: m.id }, image);
+          const cap = await captureLocalFrame(this.localStream, m.nx, m.ny);
+          this._sendChunked(peerId, { t: "cap-res", id: m.id, px: cap.px, py: cap.py }, cap.url);
         } catch (err) {
           this._dcSend(peerId, { t: "cap-res", id: m.id, error: String(err) });
         }
       } else if (m.t === "cap-res") {
         if (m.error) this._resolveCapture(m.id, null, m.error);
-        else if (m.n === undefined) this._resolveCapture(m.id, m.data);
+        else if (m.n === undefined) this._resolveCapture(m.id, { url: m.data, px: m.px, py: m.py });
       } else if (m.t === "chunk") {
         const key = m.id;
         if (!entry.chunks.has(key)) entry.chunks.set(key, { parts: new Array(m.n), got: 0 });
         const buf = entry.chunks.get(key);
+        if (m.px !== undefined) { buf.px = m.px; buf.py = m.py; }
         if (buf.parts[m.i] === undefined) { buf.parts[m.i] = m.part; buf.got++; }
         if (buf.got === m.n) {
           entry.chunks.delete(key);
-          this._resolveCapture(key, buf.parts.join(""));
+          this._resolveCapture(key, { url: buf.parts.join(""), px: buf.px, py: buf.py });
         }
       }
     };
@@ -338,7 +339,10 @@ export class GameConnection {
   _sendChunked(peerId, header, data) {
     const n = Math.ceil(data.length / CHUNK);
     for (let i = 0; i < n; i++) {
-      this._dcSend(peerId, { t: "chunk", id: header.id, i, n, part: data.slice(i * CHUNK, (i + 1) * CHUNK) });
+      const msg = { t: "chunk", id: header.id, i, n, part: data.slice(i * CHUNK, (i + 1) * CHUNK) };
+      // Ride the crop's click position along on the first chunk.
+      if (i === 0 && header.px !== undefined) { msg.px = header.px; msg.py = header.py; }
+      this._dcSend(peerId, msg);
     }
   }
 
@@ -449,8 +453,19 @@ export async function captureLocalFrame(stream, nx = 0.5, ny = 0.5) {
   const w = video.videoWidth, h = video.videoHeight;
   if (!w || !h) throw new Error("camera frame is not ready");
   const side = Math.round(Math.min(w, h) * 0.55);
-  const cx = Math.max(0, Math.min(1, nx)) * w;
-  const cy = Math.max(0, Math.min(1, ny)) * h;
+  // Slide the crop back inside the frame instead of letting it hang off the
+  // edge. A card held beside the head puts the click near a frame border, and
+  // an unclamped crop was filling 30%+ of the capture with black — throwing
+  // away real pixels and skewing the color signature, gradient score and hash
+  // toward a large featureless region. Clamping keeps a full frame of real
+  // camera data; the click stays inside the crop, just off-center.
+  const half = side / 2;
+  const cx = w > side
+    ? Math.max(half, Math.min(w - half, Math.max(0, Math.min(1, nx)) * w))
+    : w / 2;
+  const cy = h > side
+    ? Math.max(half, Math.min(h - half, Math.max(0, Math.min(1, ny)) * h))
+    : h / 2;
 
   const grab = () => {
     const canvas = document.createElement("canvas");
@@ -458,7 +473,7 @@ export async function captureLocalFrame(stream, nx = 0.5, ny = 0.5) {
     const ctx = canvas.getContext("2d");
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, side, side);
-    ctx.drawImage(video, cx - side / 2, cy - side / 2, side, side, 0, 0, side, side);
+    ctx.drawImage(video, cx - half, cy - half, side, side, 0, 0, side, side);
     return canvas;
   };
   const sharpness = (canvas) => {
@@ -491,7 +506,14 @@ export async function captureLocalFrame(stream, nx = 0.5, ny = 0.5) {
     if (score > bestScore) { best = next; bestScore = score; }
   }
   video.pause(); video.srcObject = null;
-  return best.toDataURL("image/jpeg", 0.9);
+  // px/py is where the click landed *inside* the crop. It is 0.5,0.5 unless the
+  // crop was clamped away from a frame edge, in which case the caller needs the
+  // real position so downstream crops still center on the card.
+  return {
+    url: best.toDataURL("image/jpeg", 0.9),
+    px: (Math.max(0, Math.min(1, nx)) * w - (cx - half)) / side,
+    py: (Math.max(0, Math.min(1, ny)) * h - (cy - half)) / side,
+  };
 }
 
 // Map click on an object-fit:cover video to normalized source coords.

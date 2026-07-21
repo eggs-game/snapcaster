@@ -167,12 +167,17 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     setTimeout(() => setFlash(null), 600);
     setCurrent({ loading: true });
     try {
-      // Captures are native-resolution crops centered on the clicked point
-      // (both local and remote), so the click is always at the crop center.
-      const image = tileId === myId
+      // Captures are native-resolution crops around the clicked point (both
+      // local and remote). The crop is clamped to stay inside the camera frame,
+      // so the click is at the crop center only when it was far enough from an
+      // edge — cap.px/py reports where it actually landed.
+      const cap = tileId === myId
         ? await captureLocalFrame(conn.localStream, pt.nx, pt.ny)
         : await conn.requestRemoteCapture(tileId, pt.nx, pt.ny);
-      const data = await identifyCard(image, { nx: 0.5, ny: 0.5 });
+      const data = await identifyCard(cap.url, {
+        nx: cap.px ?? 0.5,
+        ny: cap.py ?? 0.5,
+      });
       setCurrent({
         matches: data.matches || [],
         cardFound: data.card_found,
@@ -187,7 +192,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
         artChecked: data.art_checked,
         titleScore: data.title_score,
         ocrError: data.ocr_error,
-        captureImage: image,
+        captureImage: cap.url,
         cameraRes: (() => {
           const s = conn.localStream?.getVideoTracks?.()[0]?.getSettings?.();
           return s?.width ? `${s.width}×${s.height}` : "";
