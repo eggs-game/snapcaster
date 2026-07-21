@@ -18,6 +18,48 @@ const MODES = {
   tableau100: { label: "Tableau 100 scenes (1000 cards)", size: 1000, scenes: 100, perScene: 10 },
 };
 
+// Pull every diagnostic the pipeline exposes onto the record. The expensive
+// part of a benchmark run is producing the failure, not describing it — a miss
+// we can't explain costs another 40-minute run to reproduce.
+function captureDiagnostics(rec, data, trueName) {
+  const matches = data.matches || [];
+  const top = matches[0];
+  rec.top = top && top.name;
+  rec.by = top && top.identified_by;
+  rec.dist = top && top.distance;
+  rec.conf = top && typeof top.confidence === "number" ? +top.confidence.toFixed(2) : null;
+  rec.top3 = matches.slice(0, 3).map((m) => `${m.name} (d=${m.distance})`);
+  // Where the correct card landed in the ranking. This is the single most
+  // actionable signal: rank 2-5 means the candidates were right and the
+  // ranking/tiebreak is at fault; absent means the crop or hash never
+  // surfaced it at all. Those two failures need opposite fixes.
+  const idx = matches.findIndex((m) => m.name === trueName);
+  rec.trueRank = idx >= 0 ? idx + 1 : null;
+  rec.trueDist = idx >= 0 ? matches[idx].distance : null;
+  rec.cardFound = data.card_found;
+  rec.cv = data.cv_status;
+  rec.tried = data.candidates_tried;
+  rec.dropped = data.crops_dropped;
+  rec.artBest = data.art_best;
+  rec.artChecked = data.art_checked;
+  rec.ocr = data.ocr_text;
+  rec.ocrConf = data.ocr_confidence;
+  rec.titleScore = data.title_score;
+}
+
+// Accuracy grouped by an arbitrary key, for the summary breakdowns.
+function groupAcc(list, keyFn) {
+  const g = {};
+  for (const r of list) {
+    const k = keyFn(r);
+    if (k == null) continue;
+    (g[k] = g[k] || { n: 0, ok: 0 }).n++;
+    if (r.ok) g[k].ok++;
+  }
+  for (const k in g) g[k].acc = +(g[k].ok / g[k].n).toFixed(3);
+  return g;
+}
+
 export default function SnapTest() {
   const [cards, setCards] = useState(null);        // frozen benchmark set
   const [indexCards, setIndexCards] = useState(null); // full 110k index (lazy)
@@ -131,11 +173,13 @@ export default function SnapTest() {
           }
           rec.ms = Math.round(performance.now() - t0);
           rec.stages = data.stage_ms || null;
-          const top = data.matches && data.matches[0];
-          rec.top = top && top.name;
-          rec.by = top && top.identified_by;
+          captureDiagnostics(rec, data, p.card.name);
           rec.ok = rec.top === p.card.name;
-          if (!rec.ok && ctr.miss < 60) { rec.degraded = cropUrl; rec.topImage = top && top.image; ctr.miss++; }
+          if (!rec.ok && ctr.miss < 60) {
+            rec.degraded = cropUrl;
+            rec.topImage = data.matches && data.matches[0] && data.matches[0].image;
+            ctr.miss++;
+          }
         } catch (e) {
           rec.ms = Math.round(performance.now() - t0);
           rec.err = String((e && e.message) || e);
@@ -198,10 +242,9 @@ export default function SnapTest() {
         }
         rec.ms = Math.round(performance.now() - t0);
         rec.stages = data.stage_ms || null;
-        const top = data.matches && data.matches[0];
-        rec.top = top && top.name;
-        rec.by = top && top.identified_by;
+        captureDiagnostics(rec, data, card.name);
         rec.ok = rec.top === card.name;
+        const top = data.matches && data.matches[0];
         // Only KEEP the heavy degraded data-URL (~80KB) for a capped set of
         // misses (for the gallery). Hoarding all 1000 was ~80MB and starved the
         // tab, corrupting later canvas/bitmap ops — the real cause of the
@@ -252,6 +295,44 @@ export default function SnapTest() {
       const vals = withStages.map((r) => r.stages[k]).filter((v) => typeof v === "number");
       if (vals.length) sum.stageAvgMs[k] = Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
     }
+
+    // A slow tail is invisible in mean/median but is what users actually feel.
+    const times = okList.map((r) => r.ms).sort((a, b) => a - b);
+    sum.p90Ms = times.length ? times[Math.floor(times.length * 0.9)] : 0;
+    sum.maxMs = times.length ? times[times.length - 1] : 0;
+
+    // Which pathway is carrying identifications, and how each one performs.
+    // If art-match is 98% but only fires 10% of the time, the work is to fire
+    // it more often — not to make it more accurate.
+    sum.byPathway = groupAcc(okList, (r) => r.by || "(no match)");
+
+    // Where the correct card ranked on a miss. "absent" vs "rank 2-5" point at
+    // completely different fixes: candidate generation vs ranking/tiebreak.
+    const missList = okList.filter((r) => !r.ok);
+    const rankBucket = { "rank 2": 0, "rank 3-5": 0, "rank 6+": 0, absent: 0 };
+    for (const r of missList) {
+      if (r.trueRank == null) rankBucket.absent++;
+      else if (r.trueRank === 2) rankBucket["rank 2"]++;
+      else if (r.trueRank <= 5) rankBucket["rank 3-5"]++;
+      else rankBucket["rank 6+"]++;
+    }
+    sum.missTrueRank = rankBucket;
+    // How near the miss was: a wrong answer at d40 is a ranking problem, at
+    // d200 the pipeline never had a usable read.
+    const missDists = missList.map((r) => r.dist).filter((v) => typeof v === "number");
+    sum.missAvgDist = missDists.length
+      ? Math.round(missDists.reduce((a, b) => a + b, 0) / missDists.length) : null;
+
+    // Tableau-only: does accuracy fall off as neighbours cover more of the card?
+    if (okList.some((r) => typeof r.coverage === "number")) {
+      sum.byCoverage = groupAcc(okList, (r) => {
+        if (typeof r.coverage !== "number") return null;
+        return r.coverage === 0 ? "0 (clear)"
+          : r.coverage < 0.15 ? "0-15%"
+          : r.coverage < 0.3 ? "15-30%" : "30%+";
+      });
+    }
+    sum.ranAt = new Date().toISOString();
     setResults(acc);
     setSummary(sum);
     setStatus(cancelRef.current ? "idle" : "done");
@@ -265,10 +346,21 @@ export default function SnapTest() {
       mode,
       summary,
       misses: results.filter((r) => !r.ok && !r.err).map((r) => ({
-        name: r.name, got: r.top, by: r.by, rot: r.rotationClass, occ: r.occ,
+        name: r.name, id: r.id, got: r.top, by: r.by,
+        dist: r.dist, conf: r.conf, trueRank: r.trueRank, trueDist: r.trueDist,
+        top3: r.top3,
+        rot: r.rotationClass, occ: r.occ, ms: r.ms,
+        cv: r.cv, tried: r.tried, dropped: r.dropped,
+        art: `${r.artBest ?? "-"}/${r.artChecked ?? "-"}`,
+        ocr: r.ocr, ocrConf: r.ocrConf, titleScore: r.titleScore,
+        stages: r.stages,
         ...(r.scene !== undefined ? { scene: r.scene, coverage: r.coverage, click: r.click } : {}),
       })),
-      errors: results.filter((r) => r.err).map((r) => ({ name: r.name, stage: r.errStage, ms: r.ms, message: r.err, rot: r.rotationClass, occ: r.occ })),
+      errors: results.filter((r) => r.err).map((r) => ({
+        name: r.name, id: r.id, stage: r.errStage, ms: r.ms, message: r.err,
+        rot: r.rotationClass, occ: r.occ,
+        ...(r.scene !== undefined ? { scene: r.scene, coverage: r.coverage, click: r.click } : {}),
+      })),
     };
     navigator.clipboard.writeText(JSON.stringify(payload, null, 2)).then(() => {
       setCopied(true); setTimeout(() => setCopied(false), 1500);
@@ -339,6 +431,8 @@ export default function SnapTest() {
               <Stat label="Errors" value={summary.errors} />
               <Stat label="Avg time" value={`${(summary.avgMs / 1000).toFixed(1)}s`} />
               <Stat label="Median" value={`${(summary.medianMs / 1000).toFixed(1)}s`} />
+              <Stat label="p90" value={`${(summary.p90Ms / 1000).toFixed(1)}s`} />
+              <Stat label="Slowest" value={`${(summary.maxMs / 1000).toFixed(1)}s`} />
             </div>
             <div style={{ ...S.statRow, marginTop: 14 }}>
               <Stat label="1st-half acc" value={`${(summary.firstHalfAcc * 100).toFixed(1)}%`} />
@@ -359,6 +453,28 @@ export default function SnapTest() {
               <Breakdown title="By rotation" data={summary.byRotation} />
               <Breakdown title="By occlusion" data={summary.byOcclusion} />
             </div>
+            <div style={S.breakRow}>
+              <Breakdown title="By pathway (how it was identified)" data={summary.byPathway} />
+              {summary.byCoverage && <Breakdown title="By neighbour coverage" data={summary.byCoverage} />}
+            </div>
+            {misses.length > 0 && (
+              <div style={{ marginTop: 16 }}>
+                <div style={S.breakTitle}>
+                  Where the correct card ranked on a miss
+                  {summary.missAvgDist != null && <> · avg top-match distance <b>{summary.missAvgDist}</b></>}
+                </div>
+                <div style={S.errStageRow}>
+                  {Object.entries(summary.missTrueRank || {}).map(([k, n]) => (
+                    <span key={k} style={S.errStagePill}>{k}: <b>{n}</b></span>
+                  ))}
+                </div>
+                <p style={S.note}>
+                  <b>rank 2</b> / <b>rank 3-5</b> mean the right card was found but ranked below a
+                  competitor — a ranking or tiebreak problem. <b>absent</b> means it never surfaced
+                  at all, which points at the crop or the hash instead. These need opposite fixes.
+                </p>
+              </div>
+            )}
             {summary.errors > 0 && (
               <div style={{ marginTop: 16 }}>
                 <div style={S.breakTitle}>Errors by stage</div>
@@ -385,7 +501,14 @@ export default function SnapTest() {
                   <div style={S.missMeta}>
                     <div style={S.missTrue}>{m.name}</div>
                     <div style={S.missGot}>→ {m.top || "(no match)"} <span style={S.missBy}>{m.by || ""}</span></div>
-                    <div style={S.missTag}>{m.rotationClass} · {m.occ}</div>
+                    <div style={S.missTag}>
+                      {m.rotationClass} · {m.occ}
+                      {typeof m.dist === "number" && <> · d{m.dist}</>}
+                    </div>
+                    <div style={S.missTag}>
+                      true: {m.trueRank ? `rank ${m.trueRank} (d${m.trueDist})` : "absent"}
+                      {typeof m.coverage === "number" && <> · cov {(m.coverage * 100).toFixed(0)}%</>}
+                    </div>
                   </div>
                 </div>
               ))}

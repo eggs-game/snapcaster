@@ -4,7 +4,7 @@ import App from "./App.jsx";
 import SnapTest from "./SnapTest.jsx";
 import "./styles.css";
 
-const BUILD = "tableau-3 (random visible-art click points)";
+const BUILD = "tableau-4 (full miss diagnostics: true-rank, pathway, distances)";
 window.__SNAP_BUILD = BUILD;
 console.log(`%c[snapcaster] build: ${BUILD}`, "color:#0a0;font-weight:bold");
 
