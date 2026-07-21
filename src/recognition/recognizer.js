@@ -6,7 +6,13 @@
 // The hashing code below is inlined from ./hash.js and MUST stay bit-compatible
 // with scripts/build_index.py. If you change one, change both.
 
-const OPENCV_BASE = "https://docs.opencv.org/4.9.0/";
+// Self-hosted. Cross-origin importScripts to docs.opencv.org fails in real
+// browsers regardless of CSP — verified directly: a same-origin importScripts
+// of our own JS executes (it throws "window is not defined" inside a worker,
+// which proves it loaded), while the identical call to docs.opencv.org fails
+// to load in ~100ms. Losing OpenCV silently costs contour detection AND ORB
+// art verification, so this must not depend on a third-party origin.
+const OPENCV_BASE = new URL("/vendor/opencv/4.9.0/", self.location.origin).href;
 const HASH_SIZE = 16;
 const VEC_BYTES = 64;
 const CARD_W = 244, CARD_H = 340;
