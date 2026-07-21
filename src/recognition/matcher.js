@@ -447,6 +447,14 @@ async function applyTitleOCR(result) {
     // Long names carry enough evidence on their own.
     const short = normalized.length < 13;
     const corroborated = (result.matches || []).some((m) => m.name === title.name);
+    // A strong keypoint match outranks OCR, whatever the name length. Observed:
+    // ORB found "Muraganda Raceway" with 39 inliers and colour 95, and a
+    // hallucinated read of "Platinum Angel" replaced it — 14 characters is over
+    // the `short` cutoff, so no corroboration was ever required. Long names are
+    // not self-evidently trustworthy when read off an illegible title strip.
+    const art = result.art_best;
+    const strongArt = !!art && !art.weak && (art.inliers || 0) >= 12;
+    if (strongArt && art.name !== title.name) return applyVisualFallback(enriched);
     if (title.score < requiredScore || bestRead.confidence < 25 || (short && !corroborated)) {
       return applyVisualFallback(enriched);
     }

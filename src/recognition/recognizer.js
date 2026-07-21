@@ -585,15 +585,22 @@ function centerCropImageData(bmp, scale = 0.9, point = { nx: 0.5, ny: 0.5 }) {
 // too high, so the card is vertically misframed and its hash lands far from the
 // index entry (built from a properly framed scan). anchorV is where the click
 // should land inside the crop, as a fraction of crop height.
-function anchoredCropImageData(bmp, scale, point, anchorV, anchorH = 0.5) {
+function anchoredCropImageData(bmp, scale, point, anchorV, anchorH = 0.5, landscape = false) {
   const w = bmp.width, h = bmp.height;
-  let ch = Math.round(h * scale), cw = Math.round((ch * CARD_W) / CARD_H);
-  if (cw > w) { cw = Math.round(w * scale); ch = Math.round((cw * CARD_H) / CARD_W); }
+  // A tapped permanent lies sideways, so the region to cut is landscape. Every
+  // other crop here is portrait card-shaped, which cannot frame a tapped card:
+  // containing a 321x230 sideways card needs a 321x448 portrait crop, and the
+  // 218px of slack fills with neighbours. Tapped cards scored 42% against 73%
+  // upright for exactly this reason.
+  const aw = landscape ? CARD_H : CARD_W;
+  const ah = landscape ? CARD_W : CARD_H;
+  let ch = Math.round(h * scale), cw = Math.round((ch * aw) / ah);
+  if (cw > w) { cw = Math.round(w * scale); ch = Math.round((cw * ah) / aw); }
   const cx = point.nx * w, cy = point.ny * h;
   const x0 = Math.max(0, Math.min(w - cw, cx - cw * anchorH));
   const y0 = Math.max(0, Math.min(h - ch, cy - ch * anchorV));
-  const outScale = Math.max(1, Math.min(OCR_MAX_W, cw) / CARD_W);
-  const ow = Math.round(CARD_W * outScale), oh = Math.round(CARD_H * outScale);
+  const outScale = Math.max(1, Math.min(OCR_MAX_W, cw) / aw);
+  const ow = Math.round(aw * outScale), oh = Math.round(ah * outScale);
   const canvas = new OffscreenCanvas(ow, oh);
   const ctx = canvas.getContext("2d");
   ctx.drawImage(bmp, x0, y0, cw, ch, 0, 0, ow, oh);
@@ -813,6 +820,17 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       strategy: `title-${Math.round(scale * 100)}`,
     });
   }
+  // Tapped (sideways) cards need a landscape cut. The art sits a third along
+  // the card's long axis, which is now horizontal — and which end depends on
+  // whether the card was turned clockwise or anticlockwise, so probe both.
+  for (const scale of [0.5, 0.38]) {
+    for (const [side, anchorH] of [["l", 1 / 3], ["r", 2 / 3]]) {
+      candidates.push({
+        image: anchoredCropImageData(bmp, scale, normalizedPoint, 0.5, anchorH, true),
+        strategy: `tap-${Math.round(scale * 100)}${side}`,
+      });
+    }
+  }
   if (bmp.close) bmp.close();
 
   // Rank every candidate against the full printing index. The sharded (v2)
@@ -837,6 +855,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     // region lands where compute_art_hash expects it — these are the best
     // possible inputs to art-hash scoring, not an afterthought.
     "art-80", "art-65", "art-50", "art-38", "art-28", "title-65", "title-45",
+    "tap-50l", "tap-50r", "tap-38l", "tap-38r",
   ]);
   // Combined gray+art+color ranking score (v3). Gray distances stay in `dists`
   // for the calibrated display/keep gates.
@@ -938,8 +957,8 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   // 3rd or 4th, which previously meant it only ever refined a shortlist it was
   // never in, and the correct card was absent from every match.
   const SEED_PRIORITY = ["full-frame", "outline-1", "outline-2", "outline-3",
-    "art-50", "art-65", "center-45", "off0,-11", "outline-4", "art-38",
-    "center-27", "off0,-18", "tilt20@60", "tilt-20@60"];
+    "art-50", "art-65", "tap-50l", "tap-50r", "center-45", "off0,-11",
+    "outline-4", "art-38", "center-27", "off0,-18", "tilt20@60", "tilt-20@60"];
   const seedIdx = new Set();
   for (const s of SEED_PRIORITY) {
     const i = prepared.findIndex((p, pi) => !seedIdx.has(pi) && p.candidate.strategy === s);
@@ -948,7 +967,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     // spot check with no measured accuracy gain, so the budget stays at 8;
     // outline-3 and the two art-anchored crops are the additions worth paying
     // for. Widening this again needs evidence, not intuition.
-    if (seedIdx.size >= 8) break;
+    if (seedIdx.size >= 10) break;
   }
   for (let i = 0; i < prepared.length && seedIdx.size < 5; i++) seedIdx.add(i);
 
@@ -1145,7 +1164,8 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       const cardShaped = bestCandidateStrategy === "full-frame"
         || bestCandidateStrategy.startsWith("outline-")
         || bestCandidateStrategy.startsWith("art-")
-        || bestCandidateStrategy.startsWith("title-");
+        || bestCandidateStrategy.startsWith("title-")
+        || bestCandidateStrategy.startsWith("tap-");
       // Sourced from `prepared` (background crops already removed) so ORB is
       // never handed an empty wall/skin crop to match against.
       const kept = prepared.map((p) => p.candidate);
