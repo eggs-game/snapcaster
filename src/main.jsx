@@ -7,7 +7,7 @@ import App from "./App.jsx";
 const SnapTest = lazy(() => import("./SnapTest.jsx"));
 import "./styles.css";
 
-const BUILD = "arcane-update-6 (rules-text OCR + loosen OCR skip so weak ORB wrongs can still be rescued)";
+const BUILD = "arcane-update-7 (cap full-index escalation at 5 crops — was scanning all ~60 leftovers)";
 window.__SNAP_BUILD = BUILD;
 console.log(`%c[snapcaster] build: ${BUILD}`, "color:#0a0;font-weight:bold");
 

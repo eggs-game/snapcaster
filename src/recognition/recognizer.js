@@ -1194,16 +1194,36 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       }
     }
     // Escalation: if even the best crop still looks like garbage (no seed or
-    // shortlist-refined crop got anywhere near a match), fall back to full
-    // 110k scans of the remaining crops — real captures of off-center or
-    // edge-cut cards are exactly the case where a non-seed crop is the only
-    // one framing the card, and its true match may sit outside every seed's
-    // contention pool. The slow path only runs when the fast path has already
-    // failed, so ordinary scans keep their speed.
+    // shortlist-refined crop got anywhere near a match), fall back to a FEW
+    // more full 110k scans of diverse non-seed crops. Real captures of
+    // off-center or edge-cut cards are exactly the case where a non-seed crop
+    // is the only one framing the card. Cap at 5 — Arcane-medium runs were
+    // spending ~6s in rank by full-scanning every leftover crop (tried 70+)
+    // when gray never got below ~180; the accuracy wins came from art-shifts /
+    // art-global / OCR, not from crop #67 against 110k.
     if (bestCandidateDistance > 165) {
-      for (let pi = 0; pi < prepared.length; pi++) {
-        if (seedIdx.has(pi)) continue;
-        if (scoreFull(prepared[pi]) <= 60) break;
+      const ESCALATE_BUDGET = 5;
+      const escalatePriority = [
+        "outline-4", "outline-5", "outline-6", "art-38", "art-28",
+        "center-35", "center-27", "off0,-18", "off0,-26", "tilt20@35",
+        "tilt-20@35", "tap-38l", "tap-38r", "title-65",
+      ];
+      const escalated = new Set();
+      const tryEscalate = (pi) => {
+        if (pi < 0 || seedIdx.has(pi) || escalated.has(pi)) return false;
+        escalated.add(pi);
+        return scoreFull(prepared[pi]) <= 60;
+      };
+      let hit = false;
+      for (const s of escalatePriority) {
+        if (escalated.size >= ESCALATE_BUDGET) break;
+        const pi = prepared.findIndex((p, i) => !seedIdx.has(i) && !escalated.has(i) && p.candidate.strategy === s);
+        if (tryEscalate(pi)) { hit = true; break; }
+      }
+      if (!hit) {
+        for (let pi = 0; pi < prepared.length && escalated.size < ESCALATE_BUDGET; pi++) {
+          if (tryEscalate(pi)) break;
+        }
       }
     }
   }
