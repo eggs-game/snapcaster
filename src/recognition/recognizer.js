@@ -1524,6 +1524,14 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped) {
   // (e.g. white-bordered query vs red-frame reference). Neutral (1) when the
   // query wasn't card-shaped and no ring was computed.
   const ringBand = (m) => (m.ring_sim === undefined ? 1 : m.ring_sim >= 0.3 ? 1 : 0);
+  // A candidate only earns trust over a rival hash by clearing all three of:
+  // enough inliers, plausible color, and a real margin over the best rival
+  // CARD (not just the next row — see the note above `decisive` below).
+  // Shared by the demote-safety-net and the final art-match gate so a lead
+  // that fails one gate can't sneak past the other.
+  const isDecisiveLead = (m, rival) => (m?.art_inliers || 0) >= 16
+    && (m?.color_sim || 0) >= 0.22
+    && (m.art_inliers || 0) >= 1.5 * ((rival?.art_inliers || 0) + 1);
   let ranked;
   if (maxInliers >= 12) {
     // Keypoints carry real signal — rank by them, color as tiebreak, and let a
@@ -1534,12 +1542,23 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped) {
       && (ranked[0].art_inliers || 0) < 1.5 * (ranked[1].art_inliers || 0)) {
       [ranked[0], ranked[1]] = [ranked[1], ranked[0]];
     }
-    // A keypoint lead that is not decisive (>=16 is what makes an art match
-    // decisive) must not override a decisively better hash. Observed: 13
-    // inliers promoted "Riku and Riku" at d198 over the correct "Sowing
-    // Mycospawn" at d133 — a 65-point distance gap losing to a count barely
-    // above the noise floor. Confident art matches are untouched by this.
-    if ((ranked[0]?.art_inliers || 0) < 16) {
+    // A keypoint lead that is not decisive must not override a decisively
+    // better hash. Observed: 13 inliers promoted "Riku and Riku" at d198 over
+    // the correct "Sowing Mycospawn" at d133 — a 65-point distance gap losing
+    // to a count barely above the noise floor. Confident art matches are
+    // untouched by this.
+    //
+    // This used to gate on raw inlier count (< 16) rather than the full
+    // decisive test, which is narrower than the rule it was meant to encode:
+    // a lead can clear 16 inliers and still fail on color or margin-vs-rival,
+    // and such a lead slipped through untouched. Arcane-set benchmark: Barrin,
+    // Tolarian Archmage matched "Cancel" at exactly 16 inliers (color 0.89,
+    // margin insufficient — not decisive) and stayed ranked #1 over a rival at
+    // d189 vs its own d217. Same shape hit Underworld Cerberus, Garruk,
+    // Blackmail and others. Gate on the same three conditions the final
+    // art-match check uses, not a subset of them.
+    const leadRival = ranked.find((m) => m.name !== ranked[0]?.name);
+    if (!isDecisiveLead(ranked[0], leadRival)) {
       const closest = ranked.reduce((a, b) => (b.distance < a.distance ? b : a), ranked[0]);
       if (closest !== ranked[0] && closest.distance + 50 <= ranked[0].distance) {
         ranked = [closest, ...ranked.filter((m) => m !== closest)];
@@ -1562,9 +1581,7 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped) {
   // other, and a certain identification was presented as "possible match, not
   // certain". Being unsure WHICH PRINTING is not being unsure which card.
   const rival = ranked.find((m) => m.name !== best?.name);
-  const decisive = (best?.art_inliers || 0) >= 16
-    && (best?.color_sim || 0) >= 0.22
-    && (best.art_inliers || 0) >= 1.5 * ((rival?.art_inliers || 0) + 1);
+  const decisive = isDecisiveLead(best, rival);
   if (decisive) {
     best.identified_by = "art-match";
     best.confidence = Math.max(best.confidence || 0, Math.min(1, best.art_inliers / 40));
