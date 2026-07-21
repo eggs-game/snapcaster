@@ -64,7 +64,7 @@ function getWorker() {
       const {
         id, matches, printingMatches, titleCandidates, titleCount, queryCandidates,
         shardedIndex, cardFound, cvStatus, candidatesTried, cropsDropped, artBest, artChecked,
-        artDecisive, stageMs, wasmHeapMB, error,
+        artDecisive, stageMs, wasmHeapMB, error, debugAllFiniteRank,
       } = e.data || {};
       const p = pending.get(id);
       if (!p) return;
@@ -88,6 +88,8 @@ function getWorker() {
         art_decisive: !!artDecisive,
         stage_ms: stageMs || {},
         wasm_heap_mb: typeof wasmHeapMB === "number" ? wasmHeapMB : null,
+        // TEMP (Arcane-Update diagnostic): remove before merging to main.
+        debug_all_finite_rank: debugAllFiniteRank || null,
       });
     };
     worker.onerror = (e) => {

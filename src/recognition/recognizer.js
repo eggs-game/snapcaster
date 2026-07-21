@@ -1146,7 +1146,18 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   }
   const printingMatches = top
     .filter((t) => Number.isFinite(t.r))
-    .map((t) => ({ ...cardMeta(t.i, dists[t.i]), strategy: strategies[t.i] }));
+    .map((t) => ({ ...cardMeta(t.i, dists[t.i]), strategy: strategies[t.i], rank_score: t.r }));
+  // TEMP (Arcane-Update diagnostic): expose the full finite-rank pool + the
+  // top-72 cutoff so we can tell whether an "absent" miss means the correct
+  // printing never got a finite combined rank at all (info genuinely absent
+  // from every seed's shortlist) vs. it got a finite rank but the combined
+  // gray+art+color score pushed it below the 72-cutoff (a scoring/weighting
+  // problem, not a shortlisting problem). Remove before merging to main.
+  const debugAllFiniteRank = [];
+  for (let i = 0; i < n; i++) {
+    if (Number.isFinite(rankArr[i])) debugAllFiniteRank.push({ ...cardMeta(i, dists[i]), rank_score: rankArr[i] });
+  }
+  debugAllFiniteRank.sort((a, b) => a.rank_score - b.rank_score);
   const matches = [];
   const names = new Set();
   for (const match of printingMatches) {
@@ -1269,6 +1280,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     // OpenCV's WASM heap is invisible to performance.memory, which is why a
     // 1000-card run reported 52MB of JS heap while the tab held 1.5GB.
     wasmHeapMB: self.cv && self.cv.HEAPU8 ? Math.round(self.cv.HEAPU8.length / 1e6) : null,
+    debugAllFiniteRank,
   };
 }
 

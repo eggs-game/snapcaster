@@ -7,7 +7,7 @@ import App from "./App.jsx";
 const SnapTest = lazy(() => import("./SnapTest.jsx"));
 import "./styles.css";
 
-const BUILD = "arcane-update-1 (ORB demote gated on full decisive test, not raw inlier count)";
+const BUILD = "arcane-update-2 (TEMP diagnostic: debug_all_finite_rank exposed for absent-miss investigation)";
 window.__SNAP_BUILD = BUILD;
 console.log(`%c[snapcaster] build: ${BUILD}`, "color:#0a0;font-weight:bold");
 
