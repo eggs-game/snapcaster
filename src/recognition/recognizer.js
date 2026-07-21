@@ -17,7 +17,7 @@ const OPENCV_BASE = new URL("/vendor/opencv/4.9.0/", self.location.origin).href;
 // response, and Vercel serves content-hashed assets as immutable — so a CSP
 // change alone does not reach an already-cached worker. Its hash must change
 // too. Bump this when a header change has to take effect in the worker.
-const CSP_EPOCH = 4;
+const CSP_EPOCH = 5;
 void CSP_EPOCH;
 
 // OpenCV init competes with loading ~19MB of index in this same worker, so on
@@ -522,17 +522,25 @@ function findCardQuads(srcImageData, click) {
     // Low-contrast rescue: a white-bordered card against a light wall has
     // almost no luminance edge, but the colorful art/frame pops in the
     // saturation channel even then.
+    // Every Mat here is released in a finally. These were freed at the end of
+    // the try, under a catch that swallows the error — so any throw leaked
+    // four objects into a heap the garbage collector cannot touch, silently.
+    let rgb = null, hsv = null, channels = null, sat = null;
     try {
-      const rgb = new cv.Mat(), hsv = new cv.Mat(), channels = new cv.MatVector();
+      rgb = new cv.Mat(); hsv = new cv.Mat(); channels = new cv.MatVector();
       cv.cvtColor(src, rgb, cv.COLOR_RGBA2RGB);
       cv.cvtColor(rgb, hsv, cv.COLOR_RGB2HSV);
       cv.split(hsv, channels);
-      const sat = channels.get(1);
+      sat = channels.get(1);
       cv.threshold(sat, bin, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU);
       cv.morphologyEx(bin, bin, cv.MORPH_CLOSE, k5);
       tryBin(bin);
-      sat.delete(); channels.delete(); hsv.delete(); rgb.delete();
-    } catch (e) { /* saturation pass is best-effort */ }
+    } catch (e) { /* saturation pass is best-effort */ } finally {
+      if (sat) sat.delete();
+      if (channels) channels.delete();
+      if (hsv) hsv.delete();
+      if (rgb) rgb.delete();
+    }
     kernel.delete(); k5.delete();
   } finally {
     src.delete(); gray.delete(); blur.delete(); bin.delete();
@@ -1338,13 +1346,22 @@ function orbScore(query, ref) {
     bf.knnMatch(query.desc, ref.desc, knn, 2);
     const qPts = [], rPts = [];
     for (let i = 0; i < knn.size(); i++) {
+      // knn.get(i) hands back an OWNED DMatchVector, not a view — every one of
+      // these must be released. This is the leak that doubled the WASM heap
+      // (134MB -> 268MB) across a 100-card run: it runs once per match pair,
+      // per reference (24 of them), per query image, on every single scan, and
+      // OpenCV's heap is never reclaimed by the JS garbage collector.
       const pair = knn.get(i);
-      if (pair.size() >= 2) {
-        const m = pair.get(0), n = pair.get(1);
-        if (m.distance < 0.75 * n.distance) {
-          const qp = query.kp.get(m.queryIdx).pt, rp = ref.kp.get(m.trainIdx).pt;
-          qPts.push(qp.x, qp.y); rPts.push(rp.x, rp.y);
+      try {
+        if (pair.size() >= 2) {
+          const m = pair.get(0), n = pair.get(1);
+          if (m.distance < 0.75 * n.distance) {
+            const qp = query.kp.get(m.queryIdx).pt, rp = ref.kp.get(m.trainIdx).pt;
+            qPts.push(qp.x, qp.y); rPts.push(rp.x, rp.y);
+          }
         }
+      } finally {
+        if (pair && pair.delete) pair.delete();
       }
     }
     const good = qPts.length / 2;
