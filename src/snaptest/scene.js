@@ -191,6 +191,10 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080) 
   // spread over more table means the camera covers more area and each card
   // lands smaller in frame. Ten cards at full size simply cannot be spaced out
   // within one 1920x1080 frame, so a fixed size would silently force overlap.
+  // Almost every card should be fully in frame — a camera aimed at a table
+  // normally captures all of it. Roughly one scene in ten is framed tight
+  // enough to cut the outer row, which works out at about 5% of cards.
+  const tightFrame = sceneIdx % 10 === 6;
   let cardW = shortSide * (0.18 + rnd() * 0.06);
   // Size against 0.96 of the frame while the fit check below uses 0.98, so the
   // column count can never be tipped down by a marginal rounding. Losing a
@@ -203,6 +207,21 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080) 
   // produced 2% coverage where real overlap was intended.
   const perW = layout === "overlapping" ? factorX : factorX * extentPerW;
   cardW = Math.min(cardW, (frameW * 0.96) / ((colTarget - 1) * perW + extentPerW));
+  // Vertical fit. Three rows of non-overlapping cards only fit inside 1080px
+  // if each card is ~0.24-0.28 of frame height rather than 0.30 — which is
+  // physically right, since a camera that captures the whole table sees each
+  // card smaller. Without this the row pitch got clamped below one card height
+  // and the no-overlap guarantee broke silently.
+  if (!tightFrame) {
+    const rowsGuess = Math.ceil(ok.length / colTarget);
+    if (rowsGuess > 1) {
+      const baseYPerW = layout === "overlapping" ? CARD_ASPECT : extentPerW;
+      const vFactor = layout === "overlapping"
+        ? factorY : Math.max(1 / (1 - 2 * jitter), factorY);
+      cardW = Math.min(cardW,
+        (frameH * 0.98) / ((rowsGuess - 1) * vFactor * baseYPerW + extentPerW));
+    }
+  }
   const cardH = cardW * CARD_ASPECT;
   const extent = cardW * extentPerW;
   const baseX = layout === "overlapping" ? cardW : extent;
@@ -219,11 +238,14 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080) 
   // rarely covers the whole table. Previously every card was guaranteed fully
   // in frame, so a partially visible card — a certainty in real use — was never
   // tested. Overflow is capped so no card loses more than ~35% of its height.
-  const maxOverflow = 0.45 * cardH;
+  const maxOverflow = tightFrame ? 0.6 * cardH : 0;
   const maxGapY = rows > 1
-    ? (frameH + maxOverflow - extent) / (rows - 1)
+    ? (frameH * (tightFrame ? 1 : 0.98) + maxOverflow - extent) / (rows - 1)
     : Infinity;
-  const gapY = Math.max(Math.min(minGap, maxGapY), Math.min(factorY * baseY, maxGapY));
+  // The no-overlap floor is never capped by the fit limit: in a tight-framed
+  // scene the grid is meant to overflow and clip, not to squeeze its rows into
+  // each other. Capping the floor let tight scenes overlap vertically.
+  const gapY = Math.max(minGap, Math.min(factorY * baseY, maxGapY));
   // Spread the cards evenly over the rows and centre each row on its own.
   // Filling rows to `cols` and letting the last take the remainder produced a
   // 4+4+2 layout with a conspicuous empty corner; real tables sit more like

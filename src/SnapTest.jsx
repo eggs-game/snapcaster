@@ -404,7 +404,7 @@ export default function SnapTest() {
           overlap nothing at all: most sit side by side with a little space, some tables are
           spread out, and significant overlap is rare (1 scene in 10, and mild). Dim and
           glare-lit, a quarter turned sideways as tapped permanents, every fourth scene inverted
-          for the player opposite, and the outer rows clipped by the frame edge the way a camera that cannot cover the whole table clips them. Each card is then clicked in turn,
+          for the player opposite, and about 5% of cards clipped by the frame edge — a camera normally captures the whole table, but occasionally sits too close. Each card is then clicked in turn,
           at a random point on its artwork rather than dead centre — and never on a spot a
           neighbouring card covers, since naming the card actually under the cursor isn't a miss.
           The frame is cropped with the same geometry the live camera uses, so these runs test the
