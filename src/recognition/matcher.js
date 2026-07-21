@@ -418,6 +418,27 @@ async function applyTitleOCR(result) {
       }
       await runWaves(bottomAttempts.slice(0, 12));
     }
+    // Title bar already cut off (Arcane medium, forehead-hold clips): the card
+    // name often still appears in the rules text. Try a taller mid-card strip
+    // before giving up on OCR.
+    if ((bestRead?.title?.score || 0) < 0.82) {
+      const rulesAttempts = [];
+      for (const rotation of [0, 2]) {
+        for (const candidate of titleCandidates.slice(0, 3)) {
+          // imagesRules is packed as [rot0, rot2] — index 0/1, not by rotation.
+          const ri = rotation === 0 ? 0 : 1;
+          if (candidate.imagesRules?.[ri]) {
+            rulesAttempts.push({
+              image: candidate.imagesRules[ri],
+              flat: candidate.imagesRulesFlat?.[ri],
+              rotation,
+              strategy: `${candidate.strategy}:rules`,
+            });
+          }
+        }
+      }
+      await runWaves(rulesAttempts.slice(0, 8));
+    }
     // Glare / low-light retry: if nothing read convincingly, re-run the most
     // promising reads on their illumination-flattened strips.
     if ((bestRead?.title?.score || 0) < 0.82) {
@@ -455,14 +476,15 @@ async function applyTitleOCR(result) {
     // Long names carry enough evidence on their own.
     const short = normalized.length < 13;
     const corroborated = (result.matches || []).some((m) => m.name === title.name);
-    // A strong keypoint match outranks OCR, whatever the name length. Observed:
-    // ORB found "Muraganda Raceway" with 39 inliers and colour 95, and a
-    // hallucinated read of "Platinum Angel" replaced it — 14 characters is over
-    // the `short` cutoff, so no corroboration was ever required. Long names are
-    // not self-evidently trustworthy when read off an illegible title strip.
-    const art = result.art_best;
-    const strongArt = !!art && !art.weak && (art.inliers || 0) >= 12;
-    if (strongArt && art.name !== title.name) return applyVisualFallback(enriched);
+    // A decisive keypoint match outranks OCR, whatever the name length.
+    // Observed: ORB found "Muraganda Raceway" with 39 inliers and colour 95,
+    // and a hallucinated read of "Platinum Angel" replaced it. But a
+    // non-decisive 12–16 inlier wrong (common when the true card is absent)
+    // must NOT veto rules-text OCR — that is how top-cropped Arcane photos
+    // still identify when the name bar is gone.
+    if (result.art_decisive && result.art_best?.name && result.art_best.name !== title.name) {
+      return applyVisualFallback(enriched);
+    }
     if (title.score < requiredScore || bestRead.confidence < 25 || (short && !corroborated)) {
       return applyVisualFallback(enriched);
     }
@@ -553,9 +575,13 @@ async function finishIdentify(result) {
   }
   // A strong keypoint match already outranks OCR in applyTitleOCR — any read
   // that disagrees is thrown away, and one that agrees changes nothing. So
-  // running OCR here can only ever burn time.
+  // running OCR here can only ever burn time. BUT: skip only at a bar where
+  // wrong cards essentially never land. The old >=12 gate skipped OCR on
+  // non-decisive 12–16 inlier wrongs (Darkbore Pathway over Underworld
+  // Cerberus, Cancel over Barrin) while the true card was absent and the
+  // title bar was cropped — exactly when rules-text OCR can still rescue.
   const art = result.art_best;
-  if (art && !art.weak && (art.inliers || 0) >= 12) return result;
+  if (art && !art.weak && (art.inliers || 0) >= 28) return result;
   if (best && best.distance <= OCR_SKIP_DISTANCE) return result;
   const t0 = performance.now();
   const out = await applyTitleOCR(result);

@@ -755,12 +755,16 @@ async function makeTitleImage(cardImage, turns = 0, mode = "plain", placement = 
   // Most cards put their name at the top. Showcase/full-art basics (including
   // SNC metropolis lands) can put it in a narrow bar near the bottom instead.
   // Exclude the right-side mana/symbol area in either treatment.
-  const titleY = placement === "bottom" ? 0.82 : 0.025;
-  const titleH = placement === "bottom" ? 0.115 : 0.1;
+  const titleY = placement === "bottom" ? 0.82 : placement === "rules" ? 0.52 : 0.025;
+  const titleH = placement === "bottom" ? 0.115 : placement === "rules" ? 0.32 : 0.1;
+  // Rules-text strip is wider: the card name often repeats in the rules and
+  // is the only readable identity signal when the title bar is already cut off.
+  const titleX = placement === "rules" ? 0.06 : 0.04;
+  const titleW = placement === "rules" ? 0.88 : 0.76;
   ctx.drawImage(
     oriented,
-    oriented.width * 0.04, oriented.height * titleY,
-    oriented.width * 0.76, oriented.height * titleH,
+    oriented.width * titleX, oriented.height * titleY,
+    oriented.width * titleW, oriented.height * titleH,
     10, 10, 980, 120,
   );
   const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -1368,6 +1372,16 @@ async function makeTitleStrips(titleSource) {
       : [],
     imagesBottomFlat: index < 4
       ? await Promise.all([0, 1, 2, 3].map((turns) => makeTitleImage(candidate.image, turns, "flat", "bottom")))
+      : [],
+    // Rules-text strip: when the title bar is cropped out of the photo (Arcane
+    // medium and many real handhelds), the card name often still appears in
+    // the rules text. Only generated for the first few candidates and only
+    // consumed when title OCR is weak.
+    imagesRules: index < 3
+      ? await Promise.all([0, 2].map((turns) => makeTitleImage(candidate.image, turns, "plain", "rules")))
+      : [],
+    imagesRulesFlat: index < 3
+      ? await Promise.all([0, 2].map((turns) => makeTitleImage(candidate.image, turns, "flat", "rules")))
       : [],
   })));
 }
