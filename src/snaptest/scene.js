@@ -190,19 +190,26 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080) 
   // column count can never be tipped down by a marginal rounding. Losing a
   // column adds a row, and the extra row squeezes the row pitch under one card
   // extent — reintroducing overlap in a layout that promises none.
-  const span = (colTarget - 1) * factorX + 1;
-  cardW = Math.min(cardW, (frameW * 0.96) / span / extentPerW);
+  // Non-overlapping layouts pitch against `extent` (the worst-case tilted or
+  // tapped footprint) so the guarantee holds for every card. The overlapping
+  // layout must pitch against the ACTUAL card size instead: extent is 1.574x
+  // cardW, so even a 0.86 factor of it still clears a typical upright card and
+  // produced 2% coverage where real overlap was intended.
+  const perW = layout === "overlapping" ? factorX : factorX * extentPerW;
+  cardW = Math.min(cardW, (frameW * 0.96) / ((colTarget - 1) * perW + extentPerW));
   const cardH = cardW * CARD_ASPECT;
   const extent = cardW * extentPerW;
+  const baseX = layout === "overlapping" ? cardW : extent;
+  const baseY = layout === "overlapping" ? cardH : extent;
 
   // Non-overlapping layouts get a floor that keeps them clear even after jitter.
   const minGap = layout === "overlapping" ? 0 : extent / (1 - 2 * jitter);
-  const gapX = Math.max(minGap, factorX * extent);
+  const gapX = Math.max(minGap, factorX * baseX);
   let cols = colTarget;
   while (cols > 3 && (cols - 1) * gapX + extent > frameW * 0.98) cols--;
   const rows = Math.ceil(ok.length / cols);
   const maxGapY = rows > 1 ? (frameH * 0.97 - extent) / (rows - 1) : Infinity;
-  const gapY = Math.max(Math.min(minGap, maxGapY), Math.min(factorY * extent, maxGapY));
+  const gapY = Math.max(Math.min(minGap, maxGapY), Math.min(factorY * baseY, maxGapY));
   const originX = (frameW - (cols - 1) * gapX) / 2;
   const originY = (frameH - (rows - 1) * gapY) / 2;
 
