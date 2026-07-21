@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { identify as identifyCard, preload } from "./recognition/matcher.js";
 import { degrade, loadImage, scryfallImageUrl, summarize } from "./snaptest/degrade.js";
-import { buildScene, cropScene, releaseScene } from "./snaptest/scene.js";
+import { buildScene, cropScene, perfectCrop, releaseScene } from "./snaptest/scene.js";
 
 const STAGE_LABEL = {
   "image-load": "image-load",
@@ -91,8 +91,12 @@ export default function SnapTest() {
       const frame = scene.canvas.toDataURL("image/jpeg", 0.7);
       const p = scene.placed[card];
       const crop = p ? cropScene(scene.canvas, p.nx, p.ny) : null;
+      // Control case: the same card cropped perfectly (counter-rotated, exact
+      // card bounds). Comparing this against `crop` separates a framing problem
+      // from an image-quality problem.
+      const perfect = p ? perfectCrop(scene.canvas, p, scene.cardW, scene.cardH) : null;
       releaseScene(scene.canvas);
-      return { frame, crop: crop && crop.url, placed: scene.placed.map((q) => ({ name: q.card.name, occ: q.occ, rot: q.rotationClass, coverage: q.coverage, click: q.click, nx: q.nx, ny: q.ny })) };
+      return { frame, crop: crop && crop.url, perfect, placed: scene.placed.map((q) => ({ name: q.card.name, occ: q.occ, rot: q.rotationClass, coverage: q.coverage, click: q.click, nx: q.nx, ny: q.ny })) };
     };
   }, []);
 

@@ -236,7 +236,26 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080) 
     p.click = { u: +pick.u.toFixed(2), v: +pick.v.toFixed(2), covered: pick.covered };
   }
 
-  return { canvas, placed, failed };
+  return { canvas, placed, failed, cardW, cardH };
+}
+
+// Exact card-shaped crop of one placed card, counter-rotated so the card fills
+// the frame. Not part of the benchmark — this is the control case: if even a
+// perfect crop fails to identify, the problem is image quality, not framing.
+export function perfectCrop(canvas, p, cardW, cardH, margin = 1.0) {
+  const w = Math.round(cardW * margin), h = Math.round(cardH * margin);
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  const x = c.getContext("2d");
+  // Map the scene so the card's centre lands at the crop centre and its
+  // rotation is undone, then draw the whole scene through that transform.
+  x.translate(w / 2, h / 2);
+  x.rotate(-p.angle * Math.PI / 180);
+  x.translate(-p.cx, -p.cy);
+  x.drawImage(canvas, 0, 0);
+  const url = c.toDataURL("image/jpeg", 0.9);
+  c.width = c.height = 0;
+  return url;
 }
 
 // Crop a scene the way the live camera path does, returning the in-crop click
