@@ -96,7 +96,7 @@ export default function SnapTest() {
       // from an image-quality problem.
       const perfect = p ? perfectCrop(scene.canvas, p, scene.cardW, scene.cardH) : null;
       releaseScene(scene.canvas);
-      return { frame, crop: crop && crop.url, perfect, placed: scene.placed.map((q) => ({ name: q.card.name, occ: q.occ, rot: q.rotationClass, coverage: q.coverage, click: q.click, nx: q.nx, ny: q.ny, layout: q.layout })) };
+      return { frame, crop: crop && crop.url, perfect, placed: scene.placed.map((q) => ({ name: q.card.name, occ: q.occ, rot: q.rotationClass, coverage: q.coverage, clipped: q.clipped, click: q.click, nx: q.nx, ny: q.ny, layout: q.layout })) };
     };
   }, []);
 
