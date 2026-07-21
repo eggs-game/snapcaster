@@ -17,8 +17,13 @@ const OPENCV_BASE = new URL("/vendor/opencv/4.9.0/", self.location.origin).href;
 // response, and Vercel serves content-hashed assets as immutable — so a CSP
 // change alone does not reach an already-cached worker. Its hash must change
 // too. Bump this when a header change has to take effect in the worker.
-const CSP_EPOCH = 2;
+const CSP_EPOCH = 3;
 void CSP_EPOCH;
+
+// OpenCV init competes with loading ~19MB of index in this same worker, so on
+// a slow machine or a throttled tab the old 60s ceiling could expire before
+// the runtime finished compiling.
+const CV_INIT_TIMEOUT_MS = 180000;
 const HASH_SIZE = 16;
 const VEC_BYTES = 64;
 const CARD_W = 244, CARD_H = 340;
@@ -271,17 +276,25 @@ function loadCV() {
     const poll = () => {
       if (self.cv && self.cv.Mat) return finish();
       if (++ticks % 20 === 0) console.log(`[snapcaster worker] waiting for OpenCV… ${Date.now() - start}ms`);
-      if (Date.now() - start > 60000) {
+      if (Date.now() - start > CV_INIT_TIMEOUT_MS) {
         settled = true;
         cvStatus = "failed";
-        console.error("[snapcaster worker] OpenCV init timeout (60s)");
+        console.error(`[snapcaster worker] OpenCV init timeout (${CV_INIT_TIMEOUT_MS}ms)`);
         return reject(new Error("OpenCV init timeout"));
       }
       setTimeout(poll, 100);
     };
     poll();
   });
-  cvPromise.catch(() => { cvStatus = "failed"; });
+  cvPromise.catch(() => {
+    cvStatus = "failed";
+    // Do NOT memoize the failure. cvPromise was cached forever, so a single
+    // slow or blocked start permanently downgraded every later scan in the
+    // session to blind crops with no contour detection and no ORB — the user
+    // would have to reload to get recognition back. Clearing it lets the next
+    // scan try again.
+    cvPromise = null;
+  });
   return cvPromise;
 }
 
