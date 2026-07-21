@@ -4,7 +4,7 @@ import App from "./App.jsx";
 import SnapTest from "./SnapTest.jsx";
 import "./styles.css";
 
-const BUILD = "speed-20 (capture crop clamped to frame; real click point)";
+const BUILD = "tableau-1 (multi-card scene benchmark; shared capture geometry)";
 window.__SNAP_BUILD = BUILD;
 console.log(`%c[snapcaster] build: ${BUILD}`, "color:#0a0;font-weight:bold");
 

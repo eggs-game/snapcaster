@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { identify as identifyCard, preload } from "./recognition/matcher.js";
 import { degrade, loadImage, scryfallImageUrl, summarize } from "./snaptest/degrade.js";
+import { buildScene, cropScene, releaseScene } from "./snaptest/scene.js";
 
 const STAGE_LABEL = {
   "image-load": "image-load",
@@ -13,6 +14,8 @@ const MODES = {
   random200: { label: "Random 200 (new each run)", size: 200 },
   fixed200: { label: "Fixed 200 (regression)", size: 200 },
   fixed1000: { label: "Fixed 1000 (regression)", size: 1000 },
+  tableau10: { label: "Tableau 10 scenes (100 cards)", size: 100, scenes: 10, perScene: 10 },
+  tableau100: { label: "Tableau 100 scenes (1000 cards)", size: 1000, scenes: 100, perScene: 10 },
 };
 
 export default function SnapTest() {
@@ -34,6 +37,23 @@ export default function SnapTest() {
       .catch(() => setStatus("error"));
   }, []);
 
+  // Debug hook: render one tableau scene and hand back the frame plus the crop
+  // a click on card `card` would produce. Eyeballing these is the only way to
+  // know the generator actually resembles a real table shot.
+  useEffect(() => {
+    window.__snapScene = async (sceneIdx = 0, card = 0) => {
+      const rows = await (await fetch("/carddata/cards.json")).json();
+      const fronts = rows.filter((r) => r[4] === 0).map((r) => ({ id: r[3], name: r[0] }));
+      const group = Array.from({ length: 10 }, () => fronts[(Math.random() * fronts.length) | 0]);
+      const scene = await buildScene(group, sceneIdx);
+      const frame = scene.canvas.toDataURL("image/jpeg", 0.7);
+      const p = scene.placed[card];
+      const crop = p ? cropScene(scene.canvas, p.nx, p.ny) : null;
+      releaseScene(scene.canvas);
+      return { frame, crop: crop && crop.url, placed: scene.placed.map((q) => ({ name: q.card.name, occ: q.occ, rot: q.rotationClass, coverage: q.coverage })) };
+    };
+  }, []);
+
   // The full card index (array rows: [name,set,cn,id,face]); loaded on demand
   // for random sampling. It's the same file the recognizer uses, so it's cached.
   const loadIndexCards = async () => {
@@ -46,20 +66,91 @@ export default function SnapTest() {
 
   // Build the run set: a fresh random sample from the whole index, or a slice
   // of the frozen benchmark for regression comparisons.
-  const buildRunSet = async () => {
-    if (mode === "random200") {
-      const pool = await loadIndexCards();
-      const picked = [];
-      const seen = new Set();
-      while (picked.length < 200 && seen.size < pool.length) {
-        const j = (Math.random() * pool.length) | 0;
-        if (seen.has(j)) continue;
-        seen.add(j);
-        picked.push(pool[j]);
-      }
-      return picked;
+  const sampleIndex = async (n) => {
+    const pool = await loadIndexCards();
+    const picked = [];
+    const seen = new Set();
+    while (picked.length < n && seen.size < pool.length) {
+      const j = (Math.random() * pool.length) | 0;
+      if (seen.has(j)) continue;
+      seen.add(j);
+      picked.push(pool[j]);
     }
+    return picked;
+  };
+
+  const buildRunSet = async () => {
+    if (mode === "random200") return sampleIndex(200);
+    if (mode.startsWith("tableau")) return sampleIndex(MODES[mode].size);
     return cards.slice(0, MODES[mode].size);
+  };
+
+  // Scenes of many cards at once — the realistic case: a table of cards, all
+  // sharing one rotation, overlapping each other, dim and small in frame. The
+  // scene is cropped with the production capture geometry, so this exercises
+  // the real capture path rather than feeding the recognizer a clean render.
+  const runTableau = async (set, acc, ctr) => {
+    const { scenes, perScene } = MODES[mode];
+    for (let s = 0; s < scenes; s++) {
+      if (cancelRef.current) break;
+      const group = set.slice(s * perScene, (s + 1) * perScene);
+      if (!group.length) break;
+      let scene = null;
+      try {
+        scene = await buildScene(group, s);
+      } catch (e) {
+        for (const card of group) {
+          acc.push({ name: card.name, id: card.id, ok: false, ms: 0, errStage: "image-load", err: String((e && e.message) || e) });
+        }
+        setProgress({ done: acc.length, correct: ctr.correct });
+        continue;
+      }
+      // Cards whose reference image never loaded are a benchmark artifact.
+      for (const card of scene.failed) {
+        acc.push({ name: card.name, id: card.id, ok: false, ms: 0, errStage: "image-load", err: "image load failed" });
+      }
+      for (const p of scene.placed) {
+        if (cancelRef.current) break;
+        const rec = {
+          name: p.card.name, id: p.card.id, ok: false, err: null, errStage: null, ms: 0,
+          rotationClass: p.rotationClass, occ: p.occ, scene: s, coverage: p.coverage,
+        };
+        const t0 = performance.now();
+        let cropUrl = null;
+        try {
+          const crop = cropScene(scene.canvas, p.nx, p.ny);
+          cropUrl = crop.url;
+          let data;
+          try {
+            data = await identifyCard(cropUrl, { nx: crop.px, ny: crop.py });
+          } catch (e) {
+            const msg = String((e && e.message) || e);
+            rec.errStage = /timed out/i.test(msg) ? "timeout" : "identify-error";
+            throw e;
+          }
+          rec.ms = Math.round(performance.now() - t0);
+          rec.stages = data.stage_ms || null;
+          const top = data.matches && data.matches[0];
+          rec.top = top && top.name;
+          rec.by = top && top.identified_by;
+          rec.ok = rec.top === p.card.name;
+          if (!rec.ok && ctr.miss < 60) { rec.degraded = cropUrl; rec.topImage = top && top.image; ctr.miss++; }
+        } catch (e) {
+          rec.ms = Math.round(performance.now() - t0);
+          rec.err = String((e && e.message) || e);
+          if (!rec.errStage) rec.errStage = "other";
+          if (cropUrl && ctr.err < 30) { rec.degraded = cropUrl; ctr.err++; }
+        }
+        if (rec.ok) ctr.correct++;
+        acc.push(rec);
+        if (performance.memory) ctr.peak = Math.max(ctr.peak, Math.round(performance.memory.usedJSHeapSize / 1e6));
+        setProgress({ done: acc.length, correct: ctr.correct });
+        await new Promise((r) => setTimeout(r, 0));
+      }
+      // ~8MB per scene: free it before building the next one.
+      releaseScene(scene.canvas);
+      scene = null;
+    }
   };
 
   const run = async () => {
@@ -71,6 +162,13 @@ export default function SnapTest() {
     let correct = 0, peakHeapMB = 0, keptMissImgs = 0, keptErrorImgs = 0;
     setResults([]); setSummary(null); setProgress({ done: 0, correct: 0 });
     setStatus("running");
+    if (mode.startsWith("tableau")) {
+      const ctr = { correct: 0, peak: 0, miss: 0, err: 0 };
+      await runTableau(set, acc, ctr);
+      peakHeapMB = ctr.peak;
+      finalize(acc, peakHeapMB);
+      return;
+    }
     for (let i = 0; i < set.length; i++) {
       if (cancelRef.current) break;
       const card = set[i];
@@ -122,6 +220,10 @@ export default function SnapTest() {
       setProgress({ done: acc.length, correct });
       await new Promise((r) => setTimeout(r, 0));
     }
+    finalize(acc, peakHeapMB);
+  };
+
+  const finalize = (acc, peakHeapMB) => {
     const sum = summarize(acc);
     // Half-split accuracy directly reveals time/resource degradation.
     const okList = acc.filter((r) => !r.err);
@@ -161,7 +263,10 @@ export default function SnapTest() {
       build: window.__SNAP_BUILD || "unknown",
       mode,
       summary,
-      misses: results.filter((r) => !r.ok && !r.err).map((r) => ({ name: r.name, got: r.top, by: r.by, rot: r.rotationClass, occ: r.occ })),
+      misses: results.filter((r) => !r.ok && !r.err).map((r) => ({
+        name: r.name, got: r.top, by: r.by, rot: r.rotationClass, occ: r.occ,
+        ...(r.scene !== undefined ? { scene: r.scene, coverage: r.coverage } : {}),
+      })),
       errors: results.filter((r) => r.err).map((r) => ({ name: r.name, stage: r.errStage, ms: r.ms, message: r.err, rot: r.rotationClass, occ: r.occ })),
     };
     navigator.clipboard.writeText(JSON.stringify(payload, null, 2)).then(() => {
@@ -184,6 +289,13 @@ export default function SnapTest() {
           fresh sample from the full {indexCards ? indexCards.length.toLocaleString() : "110k"}-card
           index every run — good for discovering new failure cases. <b>Fixed</b> sets always use
           the same cards, for measuring whether a change helped or regressed.
+        </p>
+        <p style={S.sub}>
+          <b>Tableau</b> modes are the realistic case: 10 random cards laid out on a table in one
+          1080×1920 frame, sharing a rotation, overlapping each other, dim and glare-lit — then
+          each card is clicked in turn. The frame is cropped with the same geometry the live
+          camera uses, so these runs test the real capture path, not a clean render. Expect much
+          lower accuracy here than the single-card modes; that gap is the point.
         </p>
 
         <div style={S.controls}>
