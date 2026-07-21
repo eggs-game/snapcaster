@@ -128,3 +128,32 @@ One ranking bug found and fixed here: 13 ORB inliers promoted "Riku and Riku"
 (d198) over the correct "Sowing Mycospawn" (d133) — the first miss ever recorded
 where the true card was ranked (4th) rather than absent. A non-decisive keypoint
 lead (<16 inliers) can no longer override a hash distance better by 50+.
+
+## 2026-07-21 — `edh-3` — Tableau 10 — EDH staples (100 cards) — **90.0%**
+
+First run against a realistic card population: 70% EDHREC top-15k, 25% tokens,
+5% basic lands (see `scripts/build_popularity.py`).
+
+- Avg **2.7s** / median **1.6s** / p90 **5.7s** / max 13.3s. No errors.
+- By layout: side-by-side 96.7%, spaced 96.7%, overlapping 30%.
+- By pathway: visual-exact 47/47, art-match 40/40 — both 100%.
+- By rotation: upright 85.5%, tapped 93.5%, upside-down 100%.
+
+Against `ocr-gate-1` (random index cards, 92.0%) this is a 2-card difference on
+n=100 — inside run-to-run noise, so "realistic cards are harder" is NOT
+established. What did change: 3 misses fell outside the overlapping scene, where
+the previous run had none.
+
+Two candidate explanations, neither yet proven:
+
+- **4 of the 10 misses are tokens** (Centaur, Sphinx, Squadron, Reanimated) —
+  but all four sit in the overlapping scene, so this is confounded with the
+  layout and cannot be separated on this run.
+- **2 of the 3 non-overlapping misses are unusual printings**: Cataclysm is a
+  From the Vault foil-only print, Talion's Messenger is extended-art. Staple
+  cards carry alternate treatments far more often than the index average —
+  16% of the printings of the top 40 staples are borderless/extended/showcase,
+  against 3-6% across all paper printings. Plausible mechanism, two examples.
+
+Speed is now comfortably inside the original 2-3s goal on the median, with the
+tail driven entirely by the overlapping scene (rank 6.6-8.2s at 58-74 crops).
