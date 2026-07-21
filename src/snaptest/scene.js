@@ -134,41 +134,60 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080) 
   // the crop, which is 0.55 of that same edge. ~0.2 matches the apparent card
   // size in the reference photo.
   const shortSide = Math.min(frameW, frameH);
-  const cardW = shortSide * (0.18 + rnd() * 0.06);
-  const cardH = cardW * CARD_ASPECT;
 
-  // Spacing is derived from the card, not by dividing up the frame. How tightly
-  // a table is packed varies: often cards are laid out with clear gaps, often
-  // they just touch, and sometimes they genuinely overlap. Earlier versions used
-  // a gapY below one card height unconditionally, so *every* card overlapped a
-  // neighbour — harsher than reality and it made the overlap breakdown useless
-  // because there was nothing to compare against.
+  // How tightly a table is packed varies: often cards are laid out with clear
+  // gaps, often they just touch, sometimes they genuinely overlap.
   const layout = ["spaced", "spaced", "touching", "touching", "overlapping"][sceneIdx % 5];
   const spread = layout === "spaced" ? { x: 1.16 + rnd() * 0.20, y: 1.06 + rnd() * 0.20 }
     : layout === "touching" ? { x: 1.00 + rnd() * 0.15, y: 0.93 + rnd() * 0.12 }
     : { x: 0.95 + rnd() * 0.20, y: 0.70 + rnd() * 0.22 };
-  // Spacing is measured against the widest footprint a card can have, which is
-  // cardH — a tapped card is rotated 90 degrees and lies on its long edge.
-  // Basing it on cardW meant a tapped card (321px) was wider than the "spaced"
-  // gap (267-313px), so it overlapped its neighbours and pulled the adjacent
-  // upright cards into overlap too. "Spaced" scenes were not spaced, which
-  // understated the spaced score and muddled the layout breakdown.
-  const footprint = layout === "spaced" ? cardH : cardW;
-  const gapX = footprint * spread.x;
-  const cols = Math.min(5, Math.max(3, Math.round((frameW * 0.8) / gapX)));
+
+  // Worst-case on-screen extent of a card. Cards tilt up to 12 degrees and may
+  // be tapped (turned 90), and both cases reduce to the same expression. Pitch
+  // must be measured against THIS, not cardW: the occlusion metric compares
+  // axis-aligned bounding boxes, so a tilted card occupies ~1.57x its width,
+  // not 1.40x. Spacing on cardW or even cardH left "spaced" scenes overlapping.
+  const TILT = 12 * Math.PI / 180;
+  const extentPerW = Math.sin(TILT) + CARD_ASPECT * Math.cos(TILT);
+
+  // Jitter must be budgeted for up front: it shifts neighbours toward each
+  // other by up to 2*J of the gap, which is enough on its own to close a gap
+  // sized exactly to the card.
+  const jitter = layout === "spaced" ? 0.03 : 0.1;
+  const colTarget = Math.min(5, ok.length);
+  let cardW = shortSide * (0.18 + rnd() * 0.06);
+  if (layout === "spaced") {
+    // Ten non-touching cards have to fit, and the binding constraint is five
+    // columns of that extent plus the jitter budget. Without this cap the
+    // largest cards cannot be laid out without contact, and "spaced" silently
+    // degraded into "touching".
+    const span = (colTarget - 1) / (1 - 2 * jitter) + 1;
+    cardW = Math.min(cardW, (frameW * 0.98) / span / extentPerW);
+  }
+  const cardH = cardW * CARD_ASPECT;
+  const extent = cardW * extentPerW;
+
+  // Spaced scenes pitch on the worst-case extent so nothing touches; the packed
+  // layouts pitch on the plain card size so they stay deliberately crowded.
+  const pitchX = layout === "spaced" ? extent : cardW;
+  const pitchY = layout === "spaced" ? extent : cardH;
+  const fitX = (frameW * 0.98 - extent) / Math.max(1, colTarget - 1);
+  // Spaced scenes must never fall below the jitter-adjusted card extent.
+  const minGap = layout === "spaced" ? extent / (1 - 2 * jitter) : 0;
+  const gapX = Math.max(minGap, Math.min(pitchX * spread.x, fitX));
+  let cols = colTarget;
+  while (cols > 3 && (cols - 1) * gapX + extent > frameW * 0.98) cols--;
   const rows = Math.ceil(ok.length / cols);
-  // A wider footprint means fewer columns and more rows, which can push the
-  // top row off-frame — clamp the row pitch so the grid always fits.
-  const maxGapY = rows > 1 ? (frameH * 0.94 - cardH) / (rows - 1) : Infinity;
-  const gapY = Math.min(cardH * spread.y, maxGapY);
+  const maxGapY = rows > 1 ? (frameH * 0.97 - extent) / (rows - 1) : Infinity;
+  const gapY = Math.max(minGap, Math.min(pitchY * spread.y, maxGapY));
   const originX = (frameW - (cols - 1) * gapX) / 2;
   const originY = (frameH - (rows - 1) * gapY) / 2;
 
   const placed = [];
   for (let i = 0; i < ok.length; i++) {
     const col = i % cols, row = (i / cols) | 0;
-    const cx = originX + col * gapX + (rnd() * 2 - 1) * gapX * 0.1;
-    const cy = originY + row * gapY + (rnd() * 2 - 1) * gapY * 0.1;
+    const cx = originX + col * gapX + (rnd() * 2 - 1) * gapX * jitter;
+    const cy = originY + row * gapY + (rnd() * 2 - 1) * gapY * jitter;
     // Tapped permanents really do sit sideways, so a quarter of cards turn 90.
     const tapped = rnd() < 0.25;
     const angle = sceneAngle + (tapped ? 90 : 0) + (rnd() * 2 - 1) * 12;
