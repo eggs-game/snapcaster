@@ -54,6 +54,7 @@ function captureDiagnostics(rec, data, trueName) {
   rec.ocr = data.ocr_text;
   rec.ocrConf = data.ocr_confidence;
   rec.titleScore = data.title_score;
+  rec.wasmHeapMB = data.wasm_heap_mb;
 }
 
 // Accuracy grouped by an arbitrary key, for the summary breakdowns.
@@ -361,6 +362,15 @@ export default function SnapTest() {
     sum.firstHalfAcc = halfAcc(okList.slice(0, half));
     sum.secondHalfAcc = halfAcc(okList.slice(half));
     sum.peakHeapMB = peakHeapMB;
+    // OpenCV's WASM heap is invisible to performance.memory. A 1000-card run
+    // reported 52MB of JS heap while the tab held 1.5GB, ORB silently stopped
+    // returning keypoints from card ~670, and everything after timed out.
+    const heaps = okList.map((r) => r.wasmHeapMB).filter((v) => typeof v === "number");
+    if (heaps.length) {
+      sum.wasmHeapStartMB = heaps[0];
+      sum.wasmHeapEndMB = heaps[heaps.length - 1];
+      sum.wasmHeapPeakMB = Math.max(...heaps);
+    }
     // Group errors by stage (image-load / timeout / identify-error / other) so
     // a run-over-run pattern (e.g. "18 timeouts, all >20s") is visible at a
     // glance instead of buried in a flat error count.
@@ -540,7 +550,8 @@ export default function SnapTest() {
             <div style={{ ...S.statRow, marginTop: 14 }}>
               <Stat label="1st-half acc" value={`${(summary.firstHalfAcc * 100).toFixed(1)}%`} />
               <Stat label="2nd-half acc" value={`${(summary.secondHalfAcc * 100).toFixed(1)}%`} />
-              {summary.peakHeapMB ? <Stat label="Peak memory" value={`${summary.peakHeapMB} MB`} /> : null}
+              {summary.peakHeapMB ? <Stat label="JS heap" value={`${summary.peakHeapMB} MB`} /> : null}
+              {summary.wasmHeapPeakMB ? <Stat label="WASM heap" value={`${summary.wasmHeapStartMB}→${summary.wasmHeapEndMB} MB`} /> : null}
             </div>
             {summary.stageAvgMs && Object.keys(summary.stageAvgMs).length > 0 && (
               <div style={{ marginTop: 16 }}>

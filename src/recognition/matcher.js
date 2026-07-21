@@ -59,7 +59,7 @@ function getWorker() {
       const {
         id, matches, printingMatches, titleCandidates, titleCount, queryCandidates,
         shardedIndex, cardFound, cvStatus, candidatesTried, cropsDropped, artBest, artChecked,
-        artDecisive, stageMs, error,
+        artDecisive, stageMs, wasmHeapMB, error,
       } = e.data || {};
       const p = pending.get(id);
       if (!p) return;
@@ -82,6 +82,7 @@ function getWorker() {
         art_checked: artChecked || 0,
         art_decisive: !!artDecisive,
         stage_ms: stageMs || {},
+        wasm_heap_mb: typeof wasmHeapMB === "number" ? wasmHeapMB : null,
       });
     };
     worker.onerror = (e) => {

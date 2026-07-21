@@ -1232,6 +1232,9 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     cardFound, cvStatus, candidatesTried, shardedIndex,
     cropsDropped: preparedAll.length - prepared.length,
     artBest, artChecked, artDecisive, stageMs: stage.ms,
+    // OpenCV's WASM heap is invisible to performance.memory, which is why a
+    // 1000-card run reported 52MB of JS heap while the tab held 1.5GB.
+    wasmHeapMB: self.cv && self.cv.HEAPU8 ? Math.round(self.cv.HEAPU8.length / 1e6) : null,
   };
 }
 
@@ -1320,12 +1323,24 @@ function orbScore(query, ref) {
     }
     const good = qPts.length / 2;
     if (good >= 8 && typeof cv.findHomography === "function") {
-      const qm = cv.matFromArray(good, 1, cv.CV_32FC2, qPts);
-      const rm = cv.matFromArray(good, 1, cv.CV_32FC2, rPts);
-      const hmask = new cv.Mat();
-      const H = cv.findHomography(qm, rm, cv.RANSAC, 5, hmask);
-      for (let i = 0; i < hmask.rows; i++) inliers += hmask.data[i];
-      qm.delete(); rm.delete(); hmask.delete(); if (H) H.delete();
+      // These MUST be freed on the throw path too. OpenCV Mats live in a fixed
+      // WASM heap that no JS garbage collector can reclaim, so a leak here is
+      // permanent for the life of the worker: the heap fills, every later
+      // cv call fails silently, and art verification quietly reports 0
+      // keypoints for the rest of the session.
+      let qm = null, rm = null, hmask = null, H = null;
+      try {
+        qm = cv.matFromArray(good, 1, cv.CV_32FC2, qPts);
+        rm = cv.matFromArray(good, 1, cv.CV_32FC2, rPts);
+        hmask = new cv.Mat();
+        H = cv.findHomography(qm, rm, cv.RANSAC, 5, hmask);
+        for (let i = 0; i < hmask.rows; i++) inliers += hmask.data[i];
+      } finally {
+        if (qm) qm.delete();
+        if (rm) rm.delete();
+        if (hmask) hmask.delete();
+        if (H) H.delete();
+      }
     } else {
       inliers = good;
     }
