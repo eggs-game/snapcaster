@@ -168,6 +168,9 @@ function queryVariants(gray) {
 // Art region of an upright card — MUST mirror ART_X0..ART_Y1 in
 // scripts/build_index.py.
 const ART_X0 = 0.08, ART_X1 = 0.92, ART_Y0 = 0.10, ART_Y1 = 0.56;
+// Where a click on the artwork sits as a fraction of card height — the centre
+// of the art window above. Used to anchor crops on an art click.
+const ART_CLICK_V = (ART_Y0 + ART_Y1) / 2;
 
 function cropGray(gray, x0f, x1f, y0f, y1f) {
   const { pix, w, h } = gray;
@@ -570,6 +573,28 @@ function centerCropImageData(bmp, scale = 0.9, point = { nx: 0.5, ny: 0.5 }) {
   return ctx.getImageData(0, 0, ow, oh);
 }
 
+// Card-shaped crop whose *anchor* — not centre — sits on the clicked point.
+// centerCropImageData assumes the click is the middle of the card, but players
+// click what they are looking at: the artwork, which spans roughly 0.10-0.56 of
+// the card's height and centres near 0.33. A crop centred on an art click sits
+// too high, so the card is vertically misframed and its hash lands far from the
+// index entry (built from a properly framed scan). anchorV is where the click
+// should land inside the crop, as a fraction of crop height.
+function anchoredCropImageData(bmp, scale, point, anchorV, anchorH = 0.5) {
+  const w = bmp.width, h = bmp.height;
+  let ch = Math.round(h * scale), cw = Math.round((ch * CARD_W) / CARD_H);
+  if (cw > w) { cw = Math.round(w * scale); ch = Math.round((cw * CARD_H) / CARD_W); }
+  const cx = point.nx * w, cy = point.ny * h;
+  const x0 = Math.max(0, Math.min(w - cw, cx - cw * anchorH));
+  const y0 = Math.max(0, Math.min(h - ch, cy - ch * anchorV));
+  const outScale = Math.max(1, Math.min(OCR_MAX_W, cw) / CARD_W);
+  const ow = Math.round(CARD_W * outScale), oh = Math.round(CARD_H * outScale);
+  const canvas = new OffscreenCanvas(ow, oh);
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(bmp, x0, y0, cw, ch, 0, 0, ow, oh);
+  return ctx.getImageData(0, 0, ow, oh);
+}
+
 function bitmapToImageData(bmp) {
   const canvas = new OffscreenCanvas(bmp.width, bmp.height);
   const ctx = canvas.getContext("2d");
@@ -765,6 +790,24 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   // regressed on exactly this while every crop stayed centered on the click.
   candidates.push({ image: centerCropImageData(bmp, 0.45, { nx: normalizedPoint.nx, ny: normalizedPoint.ny - 0.18 }), strategy: "off0,-18" });
   candidates.push({ image: centerCropImageData(bmp, 0.5, { nx: normalizedPoint.nx, ny: normalizedPoint.ny - 0.26 }), strategy: "off0,-26" });
+  // Art-anchored crops: put the click a third of the way down the crop, where
+  // the artwork actually is. Every crop above centres the card on the click, so
+  // when a player clicks the art (the natural target) the card is framed too
+  // high and no candidate matches the index framing. Several scales because we
+  // cannot know how much of the frame the card occupies.
+  for (const scale of [0.8, 0.65, 0.5, 0.38, 0.28]) {
+    candidates.push({
+      image: anchoredCropImageData(bmp, scale, normalizedPoint, ART_CLICK_V),
+      strategy: `art-${Math.round(scale * 100)}`,
+    });
+  }
+  // Title-anchored: some players click the name bar instead of the art.
+  for (const scale of [0.65, 0.45]) {
+    candidates.push({
+      image: anchoredCropImageData(bmp, scale, normalizedPoint, 0.08),
+      strategy: `title-${Math.round(scale * 100)}`,
+    });
+  }
   if (bmp.close) bmp.close();
 
   // Rank every candidate against the full printing index. The sharded (v2)
@@ -784,6 +827,10 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     "full-frame", "outline-1", "outline-2", "center-45", "center-35", "center-27",
     "tilt20@35", "tilt-20@35", "off0,-11", "off0,-6", "off-8,-4", "off8,-4", "off0,7",
     "off0,-18", "off0,-26",
+    // Art-anchored crops frame the card the way the index does, so their art
+    // region lands where compute_art_hash expects it — these are the best
+    // possible inputs to art-hash scoring, not an afterthought.
+    "art-80", "art-65", "art-50", "art-38", "art-28", "title-65", "title-45",
   ]);
   // Combined gray+art+color ranking score (v3). Gray distances stay in `dists`
   // for the calibrated display/keep gates.
@@ -861,13 +908,19 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   // off0,-11 is a mandatory seed: real players hold the card above where they
   // click (forehead hold, card near the frame edge), so the up-shifted crop is
   // often the ONLY candidate that frames the card at all.
-  const SEED_PRIORITY = ["full-frame", "outline-1", "outline-2", "center-45",
-    "center-27", "off0,-11", "off0,-18", "tilt20@60", "tilt-20@60"];
+  // art-* are mandatory seeds for the same reason: a click on the artwork is
+  // the common case, and only the art-anchored crops frame the card correctly
+  // for it. A non-seed crop can only refine the shortlist the seeds built, so
+  // if no seed frames the card the right answer can never enter contention —
+  // which is exactly the "correct card absent from every match" signature.
+  const SEED_PRIORITY = ["full-frame", "outline-1", "outline-2",
+    "art-50", "art-65", "art-38", "center-45", "center-27",
+    "off0,-11", "off0,-18", "tilt20@60", "tilt-20@60"];
   const seedIdx = new Set();
   for (const s of SEED_PRIORITY) {
     const i = prepared.findIndex((p, pi) => !seedIdx.has(pi) && p.candidate.strategy === s);
     if (i >= 0) seedIdx.add(i);
-    if (seedIdx.size >= 8) break;
+    if (seedIdx.size >= 10) break;
   }
   for (let i = 0; i < prepared.length && seedIdx.size < 5; i++) seedIdx.add(i);
 
@@ -1059,16 +1112,25 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       // every real scan. Always keep a center and an offset crop as backup;
       // they cost one extra keypoint pass and are the difference between an
       // art match and a shrug.
-      const cardShaped = bestCandidateStrategy === "full-frame" || bestCandidateStrategy.startsWith("outline-");
+      // art-*/title-* are card-framed crops too, so they carry a usable border
+      // ring for the frame-agreement check.
+      const cardShaped = bestCandidateStrategy === "full-frame"
+        || bestCandidateStrategy.startsWith("outline-")
+        || bestCandidateStrategy.startsWith("art-")
+        || bestCandidateStrategy.startsWith("title-");
       // Sourced from `prepared` (background crops already removed) so ORB is
       // never handed an empty wall/skin crop to match against.
       const kept = prepared.map((p) => p.candidate);
       const queryImages = [
         bestCandidateImage,
         ...kept.filter((c) => c.strategy.startsWith("outline-")).slice(0, 2).map((c) => c.image),
+        // The art-anchored crop centres the artwork, which is exactly what ORB
+        // matches on — it is the strongest keypoint query we can offer.
+        kept.find((c) => c.strategy === "art-50")?.image,
+        kept.find((c) => c.strategy === "art-65")?.image,
         kept.find((c) => c.strategy === "off0,-11")?.image,
         kept.find((c) => c.strategy === "center-45")?.image,
-      ].filter((img, i, arr) => img && arr.indexOf(img) === i).slice(0, 4);
+      ].filter((img, i, arr) => img && arr.indexOf(img) === i).slice(0, 5);
       const verified = await verifyTopMatches(verificationCandidates, queryImages, cardShaped);
       // Keep the result UI compact after printing-level verification. The best
       // verified treatment wins for each name, and a decisive exact artwork
