@@ -78,8 +78,20 @@
 
     const cardH = Math.round(FRAME * scale);
     const cardW = Math.round(cardH * img.width / img.height);
-    const cx = FRAME / 2 + (rnd() * 2 - 1) * 40;
-    const cy = FRAME / 2 + (rnd() * 2 - 1) * 40;
+    // degrade v2 (keep in sync with src/snaptest/degrade.js): off-center and
+    // edge-cut placements mirror how players actually hold cards.
+    const place = (idx >> 4) % 4;
+    let cx, cy;
+    if (place === 1) {
+      cx = FRAME / 2 + (rnd() * 2 - 1) * 50;
+      cy = FRAME / 2 - FRAME * (0.14 + rnd() * 0.1);
+    } else if (place === 3) {
+      cx = FRAME / 2 + (rnd() * 2 - 1) * 90;
+      cy = cardH * (0.3 + rnd() * 0.15);
+    } else {
+      cx = FRAME / 2 + (rnd() * 2 - 1) * 40;
+      cy = FRAME / 2 + (rnd() * 2 - 1) * 40;
+    }
     x.save();
     x.translate(cx, cy);
     x.rotate(angle * Math.PI / 180);

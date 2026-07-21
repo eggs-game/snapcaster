@@ -66,8 +66,26 @@ export function degrade(img, idx) {
 
   const cardH = Math.round(FRAME * scale);
   const cardW = Math.round(cardH * img.width / img.height);
-  const cx = FRAME / 2 + (rnd() * 2 - 1) * 40;
-  const cy = FRAME / 2 + (rnd() * 2 - 1) * 40;
+  // degrade v2: real players click below the card (forehead hold) or near a
+  // frame edge, so the card center regularly deviates far from the click
+  // point (the identify click is always frame center) and can even be
+  // partially cut off. Half the cards keep the mild v1 placement; the rest
+  // exercise the off-center and edge-cut cases that v1 missed — production
+  // regressed on exactly these while v1 SNAPTEST stayed green.
+  const place = (idx >> 4) % 4;
+  let cx, cy;
+  if (place === 1) {
+    // Card well above the click point.
+    cx = FRAME / 2 + (rnd() * 2 - 1) * 50;
+    cy = FRAME / 2 - FRAME * (0.14 + rnd() * 0.1);
+  } else if (place === 3) {
+    // Near the top edge — partially cut off.
+    cx = FRAME / 2 + (rnd() * 2 - 1) * 90;
+    cy = cardH * (0.3 + rnd() * 0.15);
+  } else {
+    cx = FRAME / 2 + (rnd() * 2 - 1) * 40;
+    cy = FRAME / 2 + (rnd() * 2 - 1) * 40;
+  }
   x.save();
   x.translate(cx, cy);
   x.rotate(angle * Math.PI / 180);

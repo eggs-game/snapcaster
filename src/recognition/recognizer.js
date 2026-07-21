@@ -820,13 +820,16 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   // and define a shortlist (every card any seed brought into contention); the
   // remaining ~20 crops only refine that shortlist. A decisive seed (gray
   // distance <= 60) short-circuits everything.
+  // off0,-11 is a mandatory seed: real players hold the card above where they
+  // click (forehead hold, card near the frame edge), so the up-shifted crop is
+  // often the ONLY candidate that frames the card at all.
   const SEED_PRIORITY = ["full-frame", "outline-1", "outline-2", "center-45",
-    "center-27", "tilt20@60", "tilt-20@60", "off0,-11"];
+    "center-27", "off0,-11", "tilt20@60", "tilt-20@60"];
   const seedIdx = new Set();
   for (const s of SEED_PRIORITY) {
     const i = prepared.findIndex((p, pi) => !seedIdx.has(pi) && p.candidate.strategy === s);
     if (i >= 0) seedIdx.add(i);
-    if (seedIdx.size >= 6) break;
+    if (seedIdx.size >= 7) break;
   }
   for (let i = 0; i < prepared.length && seedIdx.size < 5; i++) seedIdx.add(i);
 
@@ -924,6 +927,19 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
           bestCandidateStrategy = p.candidate.strategy;
         }
         if (candidateBest <= 60) break;
+      }
+    }
+    // Escalation: if even the best crop still looks like garbage (no seed or
+    // shortlist-refined crop got anywhere near a match), fall back to full
+    // 110k scans of the remaining crops — real captures of off-center or
+    // edge-cut cards are exactly the case where a non-seed crop is the only
+    // one framing the card, and its true match may sit outside every seed's
+    // contention pool. The slow path only runs when the fast path has already
+    // failed, so ordinary scans keep their speed.
+    if (bestCandidateDistance > 165) {
+      for (let pi = 0; pi < prepared.length; pi++) {
+        if (seedIdx.has(pi)) continue;
+        if (scoreFull(prepared[pi]) <= 60) break;
       }
     }
   }

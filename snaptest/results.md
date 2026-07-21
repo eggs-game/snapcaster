@@ -2,6 +2,13 @@
 
 Newest first. Run via `snapcaster.vercel.app/snaptest`.
 
+> **Degrade v2 (2026-07-20):** manual camera tests failed on speed-17 while
+> SNAPTEST stayed green — real players hold the card well above the click
+> point and near frame edges, which v1 never simulated (cards were always
+> centered ±40px). Degradations now include off-center and edge-cut
+> placements. Results below this note used degrade v1 and are not directly
+> comparable to v2 numbers.
+
 ## 2026-07-20 — `speed-17` — Fixed 200 — **100%** (200/200, 0 errors) — MERGED
 
 - **First perfect run**, and 3x faster than the pre-speed baseline:
