@@ -54,6 +54,7 @@ src/
     degrade.js          single-card degradations
 scripts/
   build_index.py        builds the card index from Scryfall bulk data
+  analyze_metadata.py   measures metadata signals before they enter ranking
   build_popularity.py   EDHREC-ranked names + token names, for the benchmark
   test_hash_compat.py   asserts JS and Python hash identically
   check_hash_duplication.py  asserts the worker's copy has not drifted

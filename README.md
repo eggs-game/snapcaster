@@ -15,6 +15,7 @@ builder). No terminal required.
 | [docs/architecture.md](docs/architecture.md) | How the app is put together — stack, files, index, multiplayer, security |
 | [docs/recognition.md](docs/recognition.md) | How a click becomes a card name in ~1.6s across 110k printings |
 | [docs/testing.md](docs/testing.md) | SNAPTEST — how we prove it works and avoid fooling ourselves |
+| [docs/metadata-recognition.md](docs/metadata-recognition.md) | How v4 mana/type/text evidence will be measured and introduced |
 
 ## Why it beats SpellTable at recognition
 
