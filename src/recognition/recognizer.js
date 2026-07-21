@@ -202,9 +202,18 @@ function cropGray(gray, x0f, x1f, y0f, y1f) {
   return { pix: out, w: cw, h: ch };
 }
 
-// 32-byte pHash of the art region. Mirrors compute_art_hash in build_index.py.
-function artPHash(gray) {
-  const art = cropGray(gray, ART_X0, ART_X1, ART_Y0, ART_Y1);
+// 32-byte pHash of the art region. Default window (yShift=0) MUST mirror
+// compute_art_hash in build_index.py. Non-zero yShift is query-only: when a
+// photo has already cut off the title bar, the visible art sits higher in the
+// frame than a full Scryfall scan, so the default window samples the text box
+// instead of the illustration. Sliding the window up realigns it.
+function artPHash(gray, yShift = 0) {
+  const span = ART_Y1 - ART_Y0;
+  let y0 = ART_Y0 + yShift;
+  let y1 = y0 + span;
+  if (y0 < 0) { y0 = 0; y1 = span; }
+  if (y1 > 1) { y1 = 1; y0 = 1 - span; }
+  const art = cropGray(gray, ART_X0, ART_X1, y0, y1);
   const small = areaResize(art, 64, 64);
   const low = dct2_lowfreq(small.pix);
   const med = median(low);
@@ -212,6 +221,16 @@ function artPHash(gray) {
   for (let i = 0; i < low.length; i++) bits[i] = low[i] > med ? 1 : 0;
   return packBits(bits);
 }
+
+// Query-only vertical offsets for artPHash. Negative = window slides toward
+// the top of the crop (title already cut off). Index entries stay at yShift=0.
+const ART_Y_SHIFTS = [0, -0.05, -0.10, -0.16, -0.22];
+// Only these seeds pay for Y-shifts + a full-index artGlobal pass. Doing that
+// on every artGlobalStrategies crop made Arcane-medium p90 hit 20–30s.
+const ART_SHIFT_STRATEGIES = new Set([
+  "full-frame", "content-box", "outline-1", "outline-2", "outline-3",
+  "outline-4", "outline-5", "art-50", "art-65",
+]);
 
 function hammingSearch(query, index, nCards, distsOut) {
   for (let i = 0; i < nCards; i++) {
@@ -648,6 +667,48 @@ function bitmapToImageData(bmp) {
   return ctx.getImageData(0, 0, bmp.width, bmp.height);
 }
 
+// Tight crop of the non-black content in a capture. Arcane-style photos (and
+// many real handheld shots against a dark table) leave the card floating in a
+// black field; hashing the whole frame includes that border and poisons both
+// gray and art distances. Only fires when the lit region is a meaningful
+// card-shaped inset — busy webcam scenes fall through and keep the existing
+// outline/center crops.
+function contentBoxCropImageData(bmp) {
+  const src = bitmapToImageData(bmp);
+  const { data, width, height } = src;
+  const thr = 22;
+  let minX = width, minY = height, maxX = 0, maxY = 0, lit = 0;
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const i = (y * width + x) * 4;
+      if (data[i] > thr || data[i + 1] > thr || data[i + 2] > thr) {
+        lit++;
+        if (x < minX) minX = x;
+        if (y < minY) minY = y;
+        if (x > maxX) maxX = x;
+        if (y > maxY) maxY = y;
+      }
+    }
+  }
+  const area = width * height;
+  // Mostly empty (noise) or already filling the frame → not a letterbox case.
+  if (lit < area * 0.08 || lit > area * 0.90) return null;
+  const pad = Math.max(2, Math.round(Math.min(width, height) * 0.01));
+  minX = Math.max(0, minX - pad);
+  minY = Math.max(0, minY - pad);
+  maxX = Math.min(width - 1, maxX + pad);
+  maxY = Math.min(height - 1, maxY + pad);
+  const bw = maxX - minX + 1, bh = maxY - minY + 1;
+  const aspect = Math.max(bw, bh) / Math.min(bw, bh);
+  if (Math.abs(aspect - CARD_H / CARD_W) > 0.28) return null;
+  const outScale = Math.max(1, Math.min(OCR_MAX_W, bw) / CARD_W);
+  const ow = Math.round(CARD_W * outScale), oh = Math.round(CARD_H * outScale);
+  const canvas = new OffscreenCanvas(ow, oh);
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(bmp, minX, minY, bw, bh, 0, 0, ow, oh);
+  return ctx.getImageData(0, 0, ow, oh);
+}
+
 // Click-centered crop counter-rotated by angleDeg. Tilted cards on busy
 // backgrounds often produce no clean contour quad, and plain hash matching
 // only tolerates a few degrees plus exact 90° steps — counter-rotating the
@@ -700,12 +761,16 @@ async function makeTitleImage(cardImage, turns = 0, mode = "plain", placement = 
   // Most cards put their name at the top. Showcase/full-art basics (including
   // SNC metropolis lands) can put it in a narrow bar near the bottom instead.
   // Exclude the right-side mana/symbol area in either treatment.
-  const titleY = placement === "bottom" ? 0.82 : 0.025;
-  const titleH = placement === "bottom" ? 0.115 : 0.1;
+  const titleY = placement === "bottom" ? 0.82 : placement === "rules" ? 0.52 : 0.025;
+  const titleH = placement === "bottom" ? 0.115 : placement === "rules" ? 0.32 : 0.1;
+  // Rules-text strip is wider: the card name often repeats in the rules and
+  // is the only readable identity signal when the title bar is already cut off.
+  const titleX = placement === "rules" ? 0.06 : 0.04;
+  const titleW = placement === "rules" ? 0.88 : 0.76;
   ctx.drawImage(
     oriented,
-    oriented.width * 0.04, oriented.height * titleY,
-    oriented.width * 0.76, oriented.height * titleH,
+    oriented.width * titleX, oriented.height * titleY,
+    oriented.width * titleW, oriented.height * titleH,
     10, 10, 980, 120,
   );
   const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -804,6 +869,13 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       console.warn("[snapcaster worker] outline detection failed", e);
     }
   }
+  // Letterboxed single-card photos: drop the black field before hashing.
+  // Independent of OpenCV. Must be a seed (see SEED_PRIORITY) or it cannot
+  // introduce an answer.
+  {
+    const contentBox = contentBoxCropImageData(bmp);
+    if (contentBox) candidates.push({ image: contentBox, strategy: "content-box" });
+  }
   // Always include click-centered crops at several sizes. One often
   // approximates the card border even when no closed contour is available.
   // The small scales matter for hand-held and playmat cards: a card ~1/8 of
@@ -892,7 +964,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   // shortlist the right card for ORB verification.
   const artGlobal = useV3 && artIndex ? new Uint16Array(n).fill(0xffff) : null;
   const artGlobalStrategies = new Set([
-    "full-frame", "outline-1", "outline-2", "outline-3", "outline-4", "outline-5",
+    "full-frame", "content-box", "outline-1", "outline-2", "outline-3", "outline-4", "outline-5",
     "center-45", "center-35", "center-27",
     "tilt20@35", "tilt-20@35", "off0,-11", "off0,-6", "off-8,-4", "off8,-4", "off0,7",
     "off0,-18", "off0,-26",
@@ -955,11 +1027,23 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   }
   mark("prep");
 
-  const artVecsFor = (gray) => {
+  // Default: 4 rotations × default art window. With shifts: a few upward art
+  // windows on upright, plus two contrast-stretched uprights (glare / warm
+  // cast). Restricted to ART_SHIFT_STRATEGIES — see that set's comment.
+  const artVecsFor = (gray, { shifts = false } = {}) => {
     if (!(useV3 && artIndex)) return null;
     const v = [];
     let img = gray;
-    for (let r = 0; r < 4; r++) { v.push(artPHash(img)); img = rotate90(img); }
+    for (let r = 0; r < 4; r++) {
+      if (r === 0 && shifts) {
+        for (const s of ART_Y_SHIFTS) v.push(artPHash(img, s));
+        const stretched = contrastStretch(img);
+        for (const s of ART_Y_SHIFTS) v.push(artPHash(stretched, s));
+      } else {
+        v.push(artPHash(img));
+      }
+      img = rotate90(img);
+    }
     return v;
   };
   const combineScore = (grayDist, idx, artVecs, colorSig) => {
@@ -1002,7 +1086,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   // a seed at all. Among many overlapping cards the right quad routinely lands
   // 3rd or 4th, which previously meant it only ever refined a shortlist it was
   // never in, and the correct card was absent from every match.
-  const SEED_PRIORITY = ["full-frame", "outline-1", "outline-2", "outline-3",
+  const SEED_PRIORITY = ["full-frame", "content-box", "outline-1", "outline-2", "outline-3",
     "art-50", "art-65", "artf-50", "artf-65", "tap-50l", "tap-50r",
     "center-45", "off0,-11", "outline-4", "art-38", "artf-38", "center-27",
     "off0,-18", "tilt20@60", "tilt-20@60"];
@@ -1018,9 +1102,18 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   }
   for (let i = 0; i < prepared.length && seedIdx.size < 5; i++) seedIdx.add(i);
 
+  // Full-index artGlobal scans are the expensive part of scoreFull under v3.
+  // Cap how many seeds may run one — Arcane-medium p90 was 20–30s when every
+  // artGlobalStrategies seed did shifts × 110k.
+  let artGlobalScans = 0;
+  const ART_GLOBAL_SCAN_BUDGET = 6;
+
   // Full-index scoring of one seed crop; updates dists/rank/artGlobal and the
   // best-candidate tracking. Returns the crop's best gray distance.
-  const scoreFull = (p) => {
+  // forceArtGlobal: escalation crops may update artGlobal even after the seed
+  // budget is spent — outline-4/5 with Y-shifts are how some top-cropped
+  // cards (Boseiju) enter art-global rescue.
+  const scoreFull = (p, { forceArtGlobal = false } = {}) => {
     candidatesTried++;
     const candidateDists = new Uint16Array(n).fill(0xffff);
     for (const q of p.variants) hammingSearch(q, index, n, candidateDists);
@@ -1042,8 +1135,13 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       for (let i = 0; i < n; i++) counts[candidateDists[i] <= 512 ? candidateDists[i] : 512]++;
       let cutoff = 0, cumulative = 0;
       while (cutoff < 512 && cumulative + counts[cutoff] < 1000) { cumulative += counts[cutoff]; cutoff++; }
-      const artVecs = artVecsFor(p.gray);
-      if (artVecs && artGlobal && artGlobalStrategies.has(p.candidate.strategy)) {
+      const useShifts = ART_SHIFT_STRATEGIES.has(p.candidate.strategy);
+      const artVecs = artVecsFor(p.gray, { shifts: useShifts });
+      const allowArtGlobal = !!artVecs && !!artGlobal
+        && artGlobalStrategies.has(p.candidate.strategy)
+        && (forceArtGlobal || artGlobalScans < ART_GLOBAL_SCAN_BUDGET);
+      if (allowArtGlobal) {
+        if (!forceArtGlobal) artGlobalScans++;
         for (let i = 0; i < n; i++) {
           const off = i * ART_BYTES;
           for (const av of artVecs) {
@@ -1088,7 +1186,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
         if (seedIdx.has(pi)) continue;
         const p = prepared[pi];
         candidatesTried++;
-        const artVecs = artVecsFor(p.gray);
+        const artVecs = artVecsFor(p.gray, { shifts: false });
         const colorSig = (useV3 && colorIndex) ? colorSignature(p.wbImage) : null;
         let candidateBest = 0xffff;
         for (const idx of shortlist) {
@@ -1115,16 +1213,36 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       }
     }
     // Escalation: if even the best crop still looks like garbage (no seed or
-    // shortlist-refined crop got anywhere near a match), fall back to full
-    // 110k scans of the remaining crops — real captures of off-center or
-    // edge-cut cards are exactly the case where a non-seed crop is the only
-    // one framing the card, and its true match may sit outside every seed's
-    // contention pool. The slow path only runs when the fast path has already
-    // failed, so ordinary scans keep their speed.
+    // shortlist-refined crop got anywhere near a match), fall back to a FEW
+    // more full 110k scans of diverse non-seed crops. Real captures of
+    // off-center or edge-cut cards are exactly the case where a non-seed crop
+    // is the only one framing the card. Cap at 5 — Arcane-medium runs were
+    // spending ~6s in rank by full-scanning every leftover crop (tried 70+)
+    // when gray never got below ~180; the accuracy wins came from art-shifts /
+    // art-global / OCR, not from crop #67 against 110k.
     if (bestCandidateDistance > 165) {
-      for (let pi = 0; pi < prepared.length; pi++) {
-        if (seedIdx.has(pi)) continue;
-        if (scoreFull(prepared[pi]) <= 60) break;
+      const ESCALATE_BUDGET = 5;
+      const escalatePriority = [
+        "outline-4", "outline-5", "outline-6", "art-38", "art-28", "art-65",
+        "center-35", "center-27", "off0,-18", "off0,-26", "tilt20@35",
+        "tilt-20@35", "tap-38l", "tap-38r", "title-65",
+      ];
+      const escalated = new Set();
+      const tryEscalate = (pi) => {
+        if (pi < 0 || seedIdx.has(pi) || escalated.has(pi)) return false;
+        escalated.add(pi);
+        return scoreFull(prepared[pi], { forceArtGlobal: true }) <= 60;
+      };
+      let hit = false;
+      for (const s of escalatePriority) {
+        if (escalated.size >= ESCALATE_BUDGET) break;
+        const pi = prepared.findIndex((p, i) => !seedIdx.has(i) && !escalated.has(i) && p.candidate.strategy === s);
+        if (tryEscalate(pi)) { hit = true; break; }
+      }
+      if (!hit) {
+        for (let pi = 0; pi < prepared.length && escalated.size < ESCALATE_BUDGET; pi++) {
+          if (tryEscalate(pi)) break;
+        }
       }
     }
   }
@@ -1155,14 +1273,17 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     matches.push(match);
     if (matches.length === 24) break;
   }
-  // Build a printing-level ORB shortlist: 24 combined-rank printings plus 12
-  // pure-art printings. Deliberately do not deduplicate by name here; different
-  // Mountain artworks must each get a chance to match geometrically.
+  // Build a printing-level ORB shortlist: 24 combined-rank printings plus up
+  // to 20 pure-art printings (44 total). Art-global rescue is how top-cropped
+  // photos (name bar already gone, art still visible) enter ORB after gray
+  // hashing is poisoned — give it enough slots. Deliberately do not
+  // deduplicate by name here; different Mountain artworks must each get a
+  // chance to match geometrically.
   const verificationCandidates = [];
   const verificationIds = new Set();
   const addVerification = (match) => {
     const key = `${match.scryfall_id}:${match.face || 0}`;
-    if (verificationIds.has(key) || verificationCandidates.length >= 24) return;
+    if (verificationIds.has(key) || verificationCandidates.length >= 44) return;
     verificationIds.add(key);
     verificationCandidates.push(match);
   };
@@ -1170,14 +1291,14 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
 
   // Union in the best pure-art-hash printings the combined ranking missed, so
   // ORB can rescue artwork whose gray/color rank was poisoned by blur,
-  // occlusion, color cast, or a loose crop.
+  // occlusion, color cast, a loose crop, or a title bar already cut off.
   if (artGlobal) {
     const artTop = [];
     for (let i = 0; i < n; i++) {
-      if (artTop.length < 12 || artGlobal[i] < artTop[artTop.length - 1].d) {
+      if (artTop.length < 20 || artGlobal[i] < artTop[artTop.length - 1].d) {
         artTop.push({ i, d: artGlobal[i] });
         artTop.sort((a, b) => a.d - b.d);
-        if (artTop.length > 12) artTop.pop();
+        if (artTop.length > 20) artTop.pop();
       }
     }
     for (const t of artTop) {
@@ -1187,7 +1308,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       if (names.has(meta.name)) continue;
       names.add(meta.name);
       matches.push({ ...meta, strategy: "art-global" });
-      if (matches.length >= 36) break;
+      if (matches.length >= 44) break;
     }
   }
   // v2/grayscale fallback, or duplicate art candidates, may leave spare ORB
@@ -1209,6 +1330,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       // art-*/title-* are card-framed crops too, so they carry a usable border
       // ring for the frame-agreement check.
       const cardShaped = bestCandidateStrategy === "full-frame"
+        || bestCandidateStrategy === "content-box"
         || bestCandidateStrategy.startsWith("outline-")
         || bestCandidateStrategy.startsWith("art-")
         || bestCandidateStrategy.startsWith("artf-")
@@ -1219,6 +1341,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       const kept = prepared.map((p) => p.candidate);
       const queryImages = [
         bestCandidateImage,
+        kept.find((c) => c.strategy === "content-box")?.image,
         ...kept.filter((c) => c.strategy.startsWith("outline-")).slice(0, 2).map((c) => c.image),
         // The art-anchored crop centres the artwork, which is exactly what ORB
         // matches on — it is the strongest keypoint query we can offer.
@@ -1288,6 +1411,16 @@ async function makeTitleStrips(titleSource) {
       : [],
     imagesBottomFlat: index < 4
       ? await Promise.all([0, 1, 2, 3].map((turns) => makeTitleImage(candidate.image, turns, "flat", "bottom")))
+      : [],
+    // Rules-text strip: when the title bar is cropped out of the photo (Arcane
+    // medium and many real handhelds), the card name often still appears in
+    // the rules text. Only generated for the first few candidates and only
+    // consumed when title OCR is weak.
+    imagesRules: index < 3
+      ? await Promise.all([0, 2].map((turns) => makeTitleImage(candidate.image, turns, "plain", "rules")))
+      : [],
+    imagesRulesFlat: index < 3
+      ? await Promise.all([0, 2].map((turns) => makeTitleImage(candidate.image, turns, "flat", "rules")))
       : [],
   })));
 }
@@ -1486,7 +1619,10 @@ function ringSignature(imageData) {
 }
 
 async function verifyTopMatches(matches, queryImages, queryIsCardShaped) {
-  const shortlist = matches.slice(0, 24);
+  // Caller builds `matches` as combined-rank printings plus pure-art-hash
+  // printings. Honor that full list (up to 44) — an older slice(0, 24) here
+  // silently dropped every art-global rescue candidate before ORB saw them.
+  const shortlist = matches.slice(0, 44);
   const refs = await Promise.all(shortlist.map((m) => fetchReference(m.scryfall_id, m.face || 0)));
   const queryFeats = queryImages.map((img) => orbFeatures(img, 500));
   // References are neutral Scryfall scans, so neutralize the query's room cast
@@ -1524,6 +1660,19 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped) {
   // (e.g. white-bordered query vs red-frame reference). Neutral (1) when the
   // query wasn't card-shaped and no ring was computed.
   const ringBand = (m) => (m.ring_sim === undefined ? 1 : m.ring_sim >= 0.3 ? 1 : 0);
+  // A candidate only earns trust over a rival hash by clearing:
+  // enough inliers, plausible color, a real margin over the best rival CARD,
+  // and either a strong inlier count OR a plausible gray hash. Mid-strength
+  // ORB at garbage distance is a common wrong collision (Horseshoe Crab →
+  // Fleet Swallower at 23 inliers / d215) while true Arcane rescues clear 50+.
+  // Shared by the demote-safety-net and the final art-match gate.
+  const isDecisiveLead = (m, rival) => {
+    const inl = m?.art_inliers || 0;
+    if (inl < 16 || (m?.color_sim || 0) < 0.22) return false;
+    if (inl < 1.5 * ((rival?.art_inliers || 0) + 1)) return false;
+    if (inl < 35 && (m.distance || 999) > 180) return false;
+    return true;
+  };
   let ranked;
   if (maxInliers >= 12) {
     // Keypoints carry real signal — rank by them, color as tiebreak, and let a
@@ -1534,12 +1683,23 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped) {
       && (ranked[0].art_inliers || 0) < 1.5 * (ranked[1].art_inliers || 0)) {
       [ranked[0], ranked[1]] = [ranked[1], ranked[0]];
     }
-    // A keypoint lead that is not decisive (>=16 is what makes an art match
-    // decisive) must not override a decisively better hash. Observed: 13
-    // inliers promoted "Riku and Riku" at d198 over the correct "Sowing
-    // Mycospawn" at d133 — a 65-point distance gap losing to a count barely
-    // above the noise floor. Confident art matches are untouched by this.
-    if ((ranked[0]?.art_inliers || 0) < 16) {
+    // A keypoint lead that is not decisive must not override a decisively
+    // better hash. Observed: 13 inliers promoted "Riku and Riku" at d198 over
+    // the correct "Sowing Mycospawn" at d133 — a 65-point distance gap losing
+    // to a count barely above the noise floor. Confident art matches are
+    // untouched by this.
+    //
+    // This used to gate on raw inlier count (< 16) rather than the full
+    // decisive test, which is narrower than the rule it was meant to encode:
+    // a lead can clear 16 inliers and still fail on color or margin-vs-rival,
+    // and such a lead slipped through untouched. Arcane-set benchmark: Barrin,
+    // Tolarian Archmage matched "Cancel" at exactly 16 inliers (color 0.89,
+    // margin insufficient — not decisive) and stayed ranked #1 over a rival at
+    // d189 vs its own d217. Same shape hit Underworld Cerberus, Garruk,
+    // Blackmail and others. Gate on the same three conditions the final
+    // art-match check uses, not a subset of them.
+    const leadRival = ranked.find((m) => m.name !== ranked[0]?.name);
+    if (!isDecisiveLead(ranked[0], leadRival)) {
       const closest = ranked.reduce((a, b) => (b.distance < a.distance ? b : a), ranked[0]);
       if (closest !== ranked[0] && closest.distance + 50 <= ranked[0].distance) {
         ranked = [closest, ...ranked.filter((m) => m !== closest)];
@@ -1562,9 +1722,7 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped) {
   // other, and a certain identification was presented as "possible match, not
   // certain". Being unsure WHICH PRINTING is not being unsure which card.
   const rival = ranked.find((m) => m.name !== best?.name);
-  const decisive = (best?.art_inliers || 0) >= 16
-    && (best?.color_sim || 0) >= 0.22
-    && (best.art_inliers || 0) >= 1.5 * ((rival?.art_inliers || 0) + 1);
+  const decisive = isDecisiveLead(best, rival);
   if (decisive) {
     best.identified_by = "art-match";
     best.confidence = Math.max(best.confidence || 0, Math.min(1, best.art_inliers / 40));
