@@ -1167,13 +1167,23 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     if (matches.length === 24) break;
   }
   // Build a printing-level ORB shortlist: 24 combined-rank printings plus 12
-  // pure-art printings. Deliberately do not deduplicate by name here; different
-  // Mountain artworks must each get a chance to match geometrically.
+  // pure-art printings (36 total budget — see the artGlobal union just below,
+  // which is the whole reason this cap exists as 36 and not 24). It was
+  // 24 here, so the primary loop below silently ate the entire budget before
+  // the art-global rescue ever got to call addVerification, making that
+  // rescue a complete no-op on every scan. Confirmed on the Arcane-set
+  // benchmark: Barrin, Tolarian Archmage's own best crop hashed to distance
+  // 191 (a genuinely good match, better than several wrong answers that DID
+  // make the cut) but ranked 28th by combined gray+art+color score — 4 spots
+  // outside the old 24-slot cap — so it never reached ORB verification and
+  // "Cancel" won on inlier count instead. Deliberately do not deduplicate by
+  // name here; different Mountain artworks must each get a chance to match
+  // geometrically.
   const verificationCandidates = [];
   const verificationIds = new Set();
   const addVerification = (match) => {
     const key = `${match.scryfall_id}:${match.face || 0}`;
-    if (verificationIds.has(key) || verificationCandidates.length >= 24) return;
+    if (verificationIds.has(key) || verificationCandidates.length >= 36) return;
     verificationIds.add(key);
     verificationCandidates.push(match);
   };
@@ -1498,7 +1508,13 @@ function ringSignature(imageData) {
 }
 
 async function verifyTopMatches(matches, queryImages, queryIsCardShaped) {
-  const shortlist = matches.slice(0, 24);
+  // Was slice(0, 24): the caller already builds `matches` (verificationCandidates)
+  // as 24 combined-rank printings PLUS up to 12 pure-art-hash printings appended
+  // after them specifically to rescue cards the combined rank missed. Re-slicing
+  // to 24 here silently dropped every one of those art-global printings before
+  // ORB ever saw them, making the whole rescue path dead code. Slice to the
+  // caller's own cap instead of re-imposing a narrower one.
+  const shortlist = matches.slice(0, 36);
   const refs = await Promise.all(shortlist.map((m) => fetchReference(m.scryfall_id, m.face || 0)));
   const queryFeats = queryImages.map((img) => orbFeatures(img, 500));
   // References are neutral Scryfall scans, so neutralize the query's room cast

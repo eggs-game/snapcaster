@@ -7,7 +7,7 @@ import App from "./App.jsx";
 const SnapTest = lazy(() => import("./SnapTest.jsx"));
 import "./styles.css";
 
-const BUILD = "arcane-update-2 (TEMP diagnostic: debug_all_finite_rank exposed for absent-miss investigation)";
+const BUILD = "arcane-update-3 (ORB verification budget 24->36 so art-global rescue isn't silently dropped)";
 window.__SNAP_BUILD = BUILD;
 console.log(`%c[snapcaster] build: ${BUILD}`, "color:#0a0;font-weight:bold");
 
