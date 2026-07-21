@@ -13,6 +13,14 @@ if (import.meta.env.VITE_TURN_URL) {
 }
 
 const CHUNK = 12000; // chars per data-channel chunk
+
+// Hard limits on anything a PEER can influence. The data channel carries JSON
+// straight from another browser, so every field below is attacker-controlled.
+const MAX_CAPTURE_CHARS = 8 * 1024 * 1024;              // ~8MB assembled data URL
+const MAX_CHUNKS = Math.ceil(MAX_CAPTURE_CHARS / CHUNK);
+const CHUNK_TTL_MS = 30000;        // drop transfers that never complete
+const CAPTURE_MIN_INTERVAL_MS = 1200; // per-peer floor between capture requests
+const CAPTURE_BURST = 4;              // allowance for a quick flurry of clicks
 const MAX_VISITORS = 8; // peer-to-peer video fan-out is not an unlimited broadcast service
 
 export class GameConnection {
@@ -308,28 +316,91 @@ export class GameConnection {
     dc.onmessage = async (e) => {
       let m;
       try { m = JSON.parse(e.data); } catch { return; }
+      if (typeof m?.t !== "string" || typeof m.id !== "string" || m.id.length > 64) return;
       if (m.t === "cap-req") {
+        // A capture request hands a peer a native-resolution still of this
+        // player's camera. The Supabase broadcast path already gates every
+        // privileged message on sender role; this transport did not, so a
+        // visitor — who has no camera of their own — could pull frames from
+        // everyone, unthrottled and with nothing shown on this screen.
+        if (!this._mayCapture(peerId)) return;
         try {
           const cap = await captureLocalFrame(this.localStream, m.nx, m.ny);
           this._sendChunked(peerId, { t: "cap-res", id: m.id, px: cap.px, py: cap.py }, cap.url);
-        } catch (err) {
-          this._dcSend(peerId, { t: "cap-res", id: m.id, error: String(err) });
+          // Tell this player their board was just scanned, and by whom.
+          const by = this.roster.find((r) => r.id === peerId)?.name || "Someone";
+          this.h.onCaptured?.(peerId, by);
+        } catch {
+          // Deliberately opaque: the requester does not need our local error
+          // text, which can name devices or expose browser internals.
+          this._dcSend(peerId, { t: "cap-res", id: m.id, error: "capture failed" });
         }
       } else if (m.t === "cap-res") {
-        if (m.error) this._resolveCapture(m.id, null, m.error);
-        else if (m.n === undefined) this._resolveCapture(m.id, { url: m.data, px: m.px, py: m.py });
+        if (m.error) this._resolveCapture(m.id, null, "capture failed");
+        else if (m.n === undefined) {
+          if (typeof m.data !== "string" || m.data.length > MAX_CAPTURE_CHARS) return;
+          this._resolveCapture(m.id, { url: m.data, px: m.px, py: m.py });
+        }
       } else if (m.t === "chunk") {
+        // Every field here is peer-controlled. Unvalidated, `new Array(m.n)`
+        // and an unbounded `parts` accumulator let a peer exhaust this tab.
+        if (!Number.isInteger(m.n) || m.n < 1 || m.n > MAX_CHUNKS) return;
+        if (!Number.isInteger(m.i) || m.i < 0 || m.i >= m.n) return;
+        if (typeof m.part !== "string" || m.part.length > CHUNK) return;
+        // Only accept chunks for a capture WE asked for, so a peer cannot open
+        // transfers at will.
+        if (!this.pending.has(m.id)) return;
         const key = m.id;
-        if (!entry.chunks.has(key)) entry.chunks.set(key, { parts: new Array(m.n), got: 0 });
+        this._sweepChunks(entry);
+        if (!entry.chunks.has(key)) {
+          entry.chunks.set(key, { parts: new Array(m.n), got: 0, bytes: 0, at: Date.now() });
+        }
         const buf = entry.chunks.get(key);
         if (m.px !== undefined) { buf.px = m.px; buf.py = m.py; }
-        if (buf.parts[m.i] === undefined) { buf.parts[m.i] = m.part; buf.got++; }
+        if (buf.parts[m.i] === undefined) {
+          buf.bytes += m.part.length;
+          if (buf.bytes > MAX_CAPTURE_CHARS) { entry.chunks.delete(key); return; }
+          buf.parts[m.i] = m.part;
+          buf.got++;
+        }
         if (buf.got === m.n) {
           entry.chunks.delete(key);
           this._resolveCapture(key, { url: buf.parts.join(""), px: buf.px, py: buf.py });
         }
       }
     };
+  }
+
+  // Capture authorisation: players only, and no faster than a human clicking.
+  // Without this a peer can poll cap-req in a loop and reconstruct a video
+  // feed of this player at full camera resolution.
+  _mayCapture(peerId) {
+    if (!this.localStream) return false;
+    const role = this.roster.find((r) => r.id === peerId)?.role;
+    if (role === "visitor") return false;
+    const entry = this.peers.get(peerId);
+    if (!entry) return false;
+    const now = Date.now();
+    // Token bucket: refills at one per CAPTURE_MIN_INTERVAL_MS, capped at
+    // CAPTURE_BURST so ordinary rapid clicking is unaffected.
+    const last = entry.capTokensAt || 0;
+    const tokens = Math.min(
+      CAPTURE_BURST,
+      (entry.capTokens ?? CAPTURE_BURST) + (now - last) / CAPTURE_MIN_INTERVAL_MS,
+    );
+    if (tokens < 1) { entry.capTokens = tokens; entry.capTokensAt = now; return false; }
+    entry.capTokens = tokens - 1;
+    entry.capTokensAt = now;
+    return true;
+  }
+
+  // Incomplete transfers were never evicted, so a peer could accumulate them
+  // indefinitely by starting captures it never finished sending.
+  _sweepChunks(entry) {
+    const cutoff = Date.now() - CHUNK_TTL_MS;
+    for (const [k, buf] of entry.chunks) {
+      if (buf.at < cutoff) entry.chunks.delete(k);
+    }
   }
 
   _dcSend(peerId, obj) {

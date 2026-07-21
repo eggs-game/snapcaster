@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ArrowRight, Camera, Mic, X } from "lucide-react";
-import { isConfigured, makeCode } from "./signaling.js";
+import { isConfigured, makeCode, CODE_LENGTH } from "./signaling.js";
 import { loadIndex } from "./recognition/matcher.js";
 
 export default function Lobby({ onStart }) {
   const params = new URLSearchParams(window.location.search);
   const visitorMode = params.get("visitor") === "1";
-  const initialCode = (params.get("code") || "").toUpperCase().slice(0, 4);
+  const initialCode = (params.get("code") || "").toUpperCase().slice(0, CODE_LENGTH);
   const [modal, setModal] = useState(initialCode || visitorMode ? "join" : null);
   const [name, setName] = useState(localStorage.getItem("sc-name") || "");
   const [code, setCode] = useState(initialCode);
@@ -179,7 +179,7 @@ export default function Lobby({ onStart }) {
 
   const joinGame = (event) => {
     event.preventDefault();
-    if (code.length !== 4) {
+    if (code.length !== CODE_LENGTH) {
       setError("Enter the four-character game code.");
       return;
     }
@@ -192,7 +192,7 @@ export default function Lobby({ onStart }) {
 
   const continueToSetup = (event) => {
     event.preventDefault();
-    if (code.length !== 4) {
+    if (code.length !== CODE_LENGTH) {
       setError("Enter the four-character game code.");
       return;
     }
@@ -294,11 +294,11 @@ export default function Lobby({ onStart }) {
                       className="code-input"
                       value={code}
                       onChange={(event) => {
-                        setCode(event.target.value.replace(/[^a-z0-9]/gi, "").toUpperCase().slice(0, 4));
+                        setCode(event.target.value.replace(/[^a-z0-9]/gi, "").toUpperCase().slice(0, CODE_LENGTH));
                         setError("");
                       }}
                       placeholder="ABCD"
-                      maxLength={4}
+                      maxLength={CODE_LENGTH}
                       autoFocus
                     />
                   </label>

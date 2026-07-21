@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  hash-compat:
+    # The JS recogniser and scripts/build_index.py must produce bit-identical
+    # hashes. Nothing enforced that except a comment, and a silent drift would
+    # not raise an error — it would just quietly degrade every scan, which is
+    # exactly the class of failure that is most expensive to notice.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install hashing deps
+        run: pip install numpy opencv-python-headless requests pillow
+      - name: Verify JS/Python hash compatibility
+        run: python3 scripts/test_hash_compat.py
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build

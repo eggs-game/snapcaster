@@ -4,7 +4,7 @@ import App from "./App.jsx";
 import SnapTest from "./SnapTest.jsx";
 import "./styles.css";
 
-const BUILD = "edh-5 (fix ORB Mat leak on throw; instrument WASM heap)";
+const BUILD = "sec-1 (capture authz + rate limit, chunk bounds, headers, CSPRNG codes)";
 window.__SNAP_BUILD = BUILD;
 console.log(`%c[snapcaster] build: ${BUILD}`, "color:#0a0;font-weight:bold");
 

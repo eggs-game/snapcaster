@@ -13,8 +13,30 @@ function client() {
 }
 
 const CODE_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
-export const makeCode = () =>
-  Array.from({ length: 4 }, () => CODE_CHARS[(Math.random() * CODE_CHARS.length) | 0]).join("");
+export const CODE_LENGTH = 6;
+
+// A room code is the ONLY thing protecting a game: anyone holding one can join
+// and request camera captures from every player. Four characters of this
+// alphabet is 923,521 combinations — sweepable in minutes — and Math.random()
+// is a predictable PRNG, so observing a few codes narrows the rest. Six
+// characters from a CSPRNG is ~887 million and unpredictable.
+export const makeCode = () => {
+  const out = new Uint32Array(CODE_LENGTH);
+  crypto.getRandomValues(out);
+  // Reject values in the final partial bucket so the modulo stays uniform.
+  const limit = Math.floor(0x100000000 / CODE_CHARS.length) * CODE_CHARS.length;
+  let code = "";
+  for (let i = 0; i < CODE_LENGTH; i++) {
+    let v = out[i];
+    while (v >= limit) {
+      const extra = new Uint32Array(1);
+      crypto.getRandomValues(extra);
+      v = extra[0];
+    }
+    code += CODE_CHARS[v % CODE_CHARS.length];
+  }
+  return code;
+};
 
 /**
  * Join a room channel.

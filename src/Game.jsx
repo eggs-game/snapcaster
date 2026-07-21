@@ -45,6 +45,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const [heroPlayerId, setHeroPlayerId] = useState("");
   const [current, setCurrent] = useState(null);
   const [flash, setFlash] = useState(null);
+  const [scanNotice, setScanNotice] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [sidebarClosing, setSidebarClosing] = useState(false);
   const [edgeTabY, setEdgeTabY] = useState(null);
@@ -104,6 +105,13 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
         ...roll,
         id: `remote-${roll.from}-${roll.at}-${++diceLogIdRef.current}`,
       }]),
+      // Somebody pulled a still from this player's camera to identify a card.
+      // Silent capture is not acceptable: the person being photographed has to
+      // see it happen, even though the request itself is legitimate.
+      onCaptured: (peerId, byName) => setScanNotice({
+        id: `${peerId}-${Date.now()}`,
+        by: byName,
+      }),
       onError: setError,
     });
     connRef.current = conn;
@@ -143,6 +151,13 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       conn.close();
     };
   }, [isVisitor, session.code, session.name, session.videoDeviceId, session.audioDeviceId]);
+
+  // The capture notice is transient — it marks the moment, it is not a log.
+  useEffect(() => {
+    if (!scanNotice) return undefined;
+    const t = setTimeout(() => setScanNotice(null), 2600);
+    return () => clearTimeout(t);
+  }, [scanNotice]);
 
   // The first seated player establishes the opening turn. If the active
   // player leaves, the first remaining seat establishes the replacement.
@@ -567,6 +582,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
                 color={t.color || TILE_COLORS[i % TILE_COLORS.length]}
                 innerSide={videoLayout === "follow" || i % 2 === 0 ? "right" : "left"}
                 flash={flash?.tileId === t.id ? flash : null}
+                scanNotice={t.isMe ? scanNotice : null}
                 onIdentify={identify}
                 onChooseCommander={chooseCommander}
                 onChangeLife={changeLife}
@@ -685,7 +701,7 @@ const TILE_COLORS = [
   "#3f8fd2", "#38b8cf", "#31957e", "#58a75c", "#a6b94a", "#7c8796",
 ];
 
-function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, onChangeLife, onPassTurn, heroRole, onSelectHero, flash }) {
+function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, onChangeLife, onPassTurn, heroRole, onSelectHero, flash, scanNotice }) {
   const videoRef = useRef(null);
   const [flipped, setFlipped] = useState(false);
   const speaking = useSpeaking(tile.stream, tile.muted);
@@ -744,6 +760,11 @@ function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, onCh
           style={flipped ? { transform: "scaleY(-1)" } : undefined}
         />
         {flash && <div className="click-flash" style={{ left: flash.x, top: flash.y }} />}
+        {tile.isMe && scanNotice && (
+          <div className="scan-notice" role="status">
+            📷 {scanNotice.by} scanned your board
+          </div>
+        )}
         <div
           className={tile.isMe ? "life-badge mine" : "life-badge"}
           style={{
