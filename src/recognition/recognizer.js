@@ -228,7 +228,8 @@ const ART_Y_SHIFTS = [0, -0.05, -0.10, -0.16, -0.22];
 // Only these seeds pay for Y-shifts + a full-index artGlobal pass. Doing that
 // on every artGlobalStrategies crop made Arcane-medium p90 hit 20–30s.
 const ART_SHIFT_STRATEGIES = new Set([
-  "full-frame", "content-box", "outline-1", "outline-2", "outline-3", "art-50",
+  "full-frame", "content-box", "outline-1", "outline-2", "outline-3",
+  "outline-4", "outline-5", "art-50", "art-65",
 ]);
 
 function hammingSearch(query, index, nCards, distsOut) {
@@ -1105,11 +1106,14 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   // Cap how many seeds may run one — Arcane-medium p90 was 20–30s when every
   // artGlobalStrategies seed did shifts × 110k.
   let artGlobalScans = 0;
-  const ART_GLOBAL_SCAN_BUDGET = 8;
+  const ART_GLOBAL_SCAN_BUDGET = 6;
 
   // Full-index scoring of one seed crop; updates dists/rank/artGlobal and the
   // best-candidate tracking. Returns the crop's best gray distance.
-  const scoreFull = (p) => {
+  // forceArtGlobal: escalation crops may update artGlobal even after the seed
+  // budget is spent — outline-4/5 with Y-shifts are how some top-cropped
+  // cards (Boseiju) enter art-global rescue.
+  const scoreFull = (p, { forceArtGlobal = false } = {}) => {
     candidatesTried++;
     const candidateDists = new Uint16Array(n).fill(0xffff);
     for (const q of p.variants) hammingSearch(q, index, n, candidateDists);
@@ -1133,12 +1137,11 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       while (cutoff < 512 && cumulative + counts[cutoff] < 1000) { cumulative += counts[cutoff]; cutoff++; }
       const useShifts = ART_SHIFT_STRATEGIES.has(p.candidate.strategy);
       const artVecs = artVecsFor(p.gray, { shifts: useShifts });
-      // Full-index art pass: allow any artGlobalStrategies seed, but only the
-      // first ART_GLOBAL_SCAN_BUDGET of them. Shifts stay restricted to
-      // ART_SHIFT_STRATEGIES so later seeds are cheap (4 rotations, not 13).
-      if (artVecs && artGlobal && artGlobalStrategies.has(p.candidate.strategy)
-        && artGlobalScans < ART_GLOBAL_SCAN_BUDGET) {
-        artGlobalScans++;
+      const allowArtGlobal = !!artVecs && !!artGlobal
+        && artGlobalStrategies.has(p.candidate.strategy)
+        && (forceArtGlobal || artGlobalScans < ART_GLOBAL_SCAN_BUDGET);
+      if (allowArtGlobal) {
+        if (!forceArtGlobal) artGlobalScans++;
         for (let i = 0; i < n; i++) {
           const off = i * ART_BYTES;
           for (const av of artVecs) {
@@ -1220,7 +1223,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     if (bestCandidateDistance > 165) {
       const ESCALATE_BUDGET = 5;
       const escalatePriority = [
-        "outline-4", "outline-5", "outline-6", "art-38", "art-28",
+        "outline-4", "outline-5", "outline-6", "art-38", "art-28", "art-65",
         "center-35", "center-27", "off0,-18", "off0,-26", "tilt20@35",
         "tilt-20@35", "tap-38l", "tap-38r", "title-65",
       ];
@@ -1228,7 +1231,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       const tryEscalate = (pi) => {
         if (pi < 0 || seedIdx.has(pi) || escalated.has(pi)) return false;
         escalated.add(pi);
-        return scoreFull(prepared[pi]) <= 60;
+        return scoreFull(prepared[pi], { forceArtGlobal: true }) <= 60;
       };
       let hit = false;
       for (const s of escalatePriority) {
