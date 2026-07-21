@@ -40,6 +40,27 @@ function bbox(cx, cy, w, h, deg) {
   return { x0: cx - bw / 2, y0: cy - bh / 2, x1: cx + bw / 2, y1: cy + bh / 2, bw, bh };
 }
 
+// Art window in normalized card coordinates, inset from the true art box so a
+// click lands solidly on artwork rather than grazing the frame or type line.
+const ART = { u0: 0.15, u1: 0.85, v0: 0.14, v1: 0.52 };
+
+// Card-local offset -> frame coordinates, for a card rotated by `deg`.
+function toFrame(cx, cy, lx, ly, deg) {
+  const a = deg * Math.PI / 180;
+  const c = Math.cos(a), s = Math.sin(a);
+  return { x: cx + lx * c - ly * s, y: cy + lx * s + ly * c };
+}
+
+// Is (px,py) inside this card's rotated rectangle?
+function hits(p, px, py, w, h) {
+  const a = p.angle * Math.PI / 180;
+  const c = Math.cos(a), s = Math.sin(a);
+  const dx = px - p.cx, dy = py - p.cy;
+  const lx = dx * c + dy * s;
+  const ly = -dx * s + dy * c;
+  return Math.abs(lx) <= w / 2 && Math.abs(ly) <= h / 2;
+}
+
 function overlapFrac(a, b) {
   const w = Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0);
   const h = Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0);
@@ -175,8 +196,6 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080) 
     placed.push({
       card: ok[i].c,
       cx, cy, angle,
-      nx: cx / frameW,
-      ny: cy / frameH,
       box: bbox(cx, cy, cardW, cardH, angle),
       rotationClass,
     });
@@ -187,12 +206,34 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080) 
   // Occlusion label: a card is "overlapped" when a later-drawn neighbour covers
   // a meaningful slice of it, "edge" when the frame itself cuts it off.
   for (let i = 0; i < placed.length; i++) {
+    const p = placed[i];
     let cov = 0;
-    for (let j = i + 1; j < placed.length; j++) cov += overlapFrac(placed[i].box, placed[j].box);
-    const b = placed[i].box;
+    for (let j = i + 1; j < placed.length; j++) cov += overlapFrac(p.box, placed[j].box);
+    const b = p.box;
     const cut = b.x0 < 0 || b.y0 < 0 || b.x1 > frameW || b.y1 > frameH;
-    placed[i].occ = cov > 0.1 ? "overlapped" : cut ? "edge" : "clear";
-    placed[i].coverage = +cov.toFixed(3);
+    p.occ = cov > 0.1 ? "overlapped" : cut ? "edge" : "clear";
+    p.coverage = +cov.toFixed(3);
+
+    // Click a random point on the artwork rather than the card centre — that
+    // is what a player does, and the centre is both unrealistically kind and
+    // the least likely spot to be covered. Retry until the point is on art
+    // that is actually visible: a point hidden under a later-drawn neighbour
+    // would score a "miss" for naming the card genuinely under the cursor.
+    let pick = null;
+    for (let attempt = 0; attempt < 16; attempt++) {
+      const u = ART.u0 + rnd() * (ART.u1 - ART.u0);
+      const v = ART.v0 + rnd() * (ART.v1 - ART.v0);
+      const f = toFrame(p.cx, p.cy, (u - 0.5) * cardW, (v - 0.5) * cardH, p.angle);
+      if (f.x < 0 || f.y < 0 || f.x > frameW || f.y > frameH) continue;
+      const covered = placed.slice(i + 1).some((q) => hits(q, f.x, f.y, cardW, cardH));
+      if (!pick) pick = { f, u, v, covered };       // fall back to the first in-frame point
+      if (!covered) { pick = { f, u, v, covered }; break; }
+    }
+    // Degenerate case (card almost entirely buried): click its centre.
+    if (!pick) pick = { f: { x: p.cx, y: p.cy }, u: 0.5, v: 0.5, covered: true };
+    p.nx = pick.f.x / frameW;
+    p.ny = pick.f.y / frameH;
+    p.click = { u: +pick.u.toFixed(2), v: +pick.v.toFixed(2), covered: pick.covered };
   }
 
   return { canvas, placed, failed };

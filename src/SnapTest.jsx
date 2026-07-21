@@ -50,7 +50,7 @@ export default function SnapTest() {
       const p = scene.placed[card];
       const crop = p ? cropScene(scene.canvas, p.nx, p.ny) : null;
       releaseScene(scene.canvas);
-      return { frame, crop: crop && crop.url, placed: scene.placed.map((q) => ({ name: q.card.name, occ: q.occ, rot: q.rotationClass, coverage: q.coverage })) };
+      return { frame, crop: crop && crop.url, placed: scene.placed.map((q) => ({ name: q.card.name, occ: q.occ, rot: q.rotationClass, coverage: q.coverage, click: q.click })) };
     };
   }, []);
 
@@ -114,6 +114,7 @@ export default function SnapTest() {
         const rec = {
           name: p.card.name, id: p.card.id, ok: false, err: null, errStage: null, ms: 0,
           rotationClass: p.rotationClass, occ: p.occ, scene: s, coverage: p.coverage,
+          click: p.click,
         };
         const t0 = performance.now();
         let cropUrl = null;
@@ -265,7 +266,7 @@ export default function SnapTest() {
       summary,
       misses: results.filter((r) => !r.ok && !r.err).map((r) => ({
         name: r.name, got: r.top, by: r.by, rot: r.rotationClass, occ: r.occ,
-        ...(r.scene !== undefined ? { scene: r.scene, coverage: r.coverage } : {}),
+        ...(r.scene !== undefined ? { scene: r.scene, coverage: r.coverage, click: r.click } : {}),
       })),
       errors: results.filter((r) => r.err).map((r) => ({ name: r.name, stage: r.errStage, ms: r.ms, message: r.err, rot: r.rotationClass, occ: r.occ })),
     };
@@ -294,7 +295,9 @@ export default function SnapTest() {
           <b>Tableau</b> modes are the realistic case: 10 random cards laid out on a table in one
           1920×1080 landscape frame — the shape a video tile actually is — overlapping each other,
           dim and glare-lit, with a quarter of them turned sideways as tapped permanents and every
-          fourth scene inverted for the player sitting opposite. Each card is then clicked in turn.
+          fourth scene inverted for the player sitting opposite. Each card is then clicked in turn,
+          at a random point on its artwork rather than dead centre — and never on a spot a
+          neighbouring card covers, since naming the card actually under the cursor isn't a miss.
           The frame is cropped with the same geometry the live camera uses, so these runs test the
           real capture path, not a clean render. Expect much lower accuracy here than the
           single-card modes; that gap is the point.
