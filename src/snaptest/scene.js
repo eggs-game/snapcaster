@@ -152,54 +152,57 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080) 
 
   // How tightly a table is packed varies: often cards are laid out with clear
   // gaps, often they just touch, sometimes they genuinely overlap.
-  // Real tables are mostly cards touching a little or laid out with gaps.
-  // Significant overlap is uncommon, so it is 1 scene in 10 and deliberately
-  // mild — an earlier 1-in-5 at up to 30% overlap was punishing the recognizer
-  // with a layout players rarely produce.
-  const layout = ["spaced", "touching", "spaced", "touching", "touching",
-    "spaced", "touching", "spaced", "touching", "overlapping"][sceneIdx % 10];
-  const spread = layout === "spaced" ? { x: 1.16 + rnd() * 0.20, y: 1.06 + rnd() * 0.20 }
-    : layout === "touching" ? { x: 1.00 + rnd() * 0.15, y: 0.93 + rnd() * 0.12 }
-    : { x: 0.92 + rnd() * 0.13, y: 0.82 + rnd() * 0.13 };
+  // Real tables: about 90% of cards do not overlap anything at all. The common
+  // case is cards side by side with a little space between them; clearly spread
+  // out is less common, and significant overlap is rare — so it is 1 scene in
+  // 10 and mild. Pitch is expressed as a multiple of the card's worst-case
+  // on-screen extent, so >1 always means a visible gap and <1 means real
+  // overlap, independent of card size or tilt.
+  const layout = ["side-by-side", "side-by-side", "spaced", "side-by-side",
+    "side-by-side", "spaced", "side-by-side", "spaced", "side-by-side",
+    "overlapping"][sceneIdx % 10];
+  const PITCH = {
+    spaced: { min: 1.18, max: 1.30 },
+    "side-by-side": { min: 1.05, max: 1.14 },
+    overlapping: { min: 0.86, max: 0.96 },
+  }[layout];
+  const factorX = PITCH.min + rnd() * (PITCH.max - PITCH.min);
+  const factorY = PITCH.min + rnd() * (PITCH.max - PITCH.min);
 
   // Worst-case on-screen extent of a card. Cards tilt up to 12 degrees and may
   // be tapped (turned 90), and both cases reduce to the same expression. Pitch
   // must be measured against THIS, not cardW: the occlusion metric compares
-  // axis-aligned bounding boxes, so a tilted card occupies ~1.57x its width,
-  // not 1.40x. Spacing on cardW or even cardH left "spaced" scenes overlapping.
+  // rotated rectangles, and a tilted card spans ~1.57x its width, not 1.40x.
   const TILT = 12 * Math.PI / 180;
   const extentPerW = Math.sin(TILT) + CARD_ASPECT * Math.cos(TILT);
 
-  // Jitter must be budgeted for up front: it shifts neighbours toward each
-  // other by up to 2*J of the gap, which is enough on its own to close a gap
-  // sized exactly to the card.
-  const jitter = layout === "spaced" ? 0.03 : 0.1;
+  // Jitter is budgeted for up front — it shifts neighbours toward each other by
+  // up to 2x its fraction of the gap, enough on its own to close a small gap.
+  const jitter = layout === "overlapping" ? 0.06 : 0.02;
   const colTarget = Math.min(5, ok.length);
+
+  // Card size falls out of the spacing, which is physically right: ten cards
+  // spread over more table means the camera covers more area and each card
+  // lands smaller in frame. Ten cards at full size simply cannot be spaced out
+  // within one 1920x1080 frame, so a fixed size would silently force overlap.
   let cardW = shortSide * (0.18 + rnd() * 0.06);
-  if (layout === "spaced") {
-    // Ten non-touching cards have to fit, and the binding constraint is five
-    // columns of that extent plus the jitter budget. Without this cap the
-    // largest cards cannot be laid out without contact, and "spaced" silently
-    // degraded into "touching".
-    const span = (colTarget - 1) / (1 - 2 * jitter) + 1;
-    cardW = Math.min(cardW, (frameW * 0.98) / span / extentPerW);
-  }
+  // Size against 0.96 of the frame while the fit check below uses 0.98, so the
+  // column count can never be tipped down by a marginal rounding. Losing a
+  // column adds a row, and the extra row squeezes the row pitch under one card
+  // extent — reintroducing overlap in a layout that promises none.
+  const span = (colTarget - 1) * factorX + 1;
+  cardW = Math.min(cardW, (frameW * 0.96) / span / extentPerW);
   const cardH = cardW * CARD_ASPECT;
   const extent = cardW * extentPerW;
 
-  // Spaced scenes pitch on the worst-case extent so nothing touches; the packed
-  // layouts pitch on the plain card size so they stay deliberately crowded.
-  const pitchX = layout === "spaced" ? extent : cardW;
-  const pitchY = layout === "spaced" ? extent : cardH;
-  const fitX = (frameW * 0.98 - extent) / Math.max(1, colTarget - 1);
-  // Spaced scenes must never fall below the jitter-adjusted card extent.
-  const minGap = layout === "spaced" ? extent / (1 - 2 * jitter) : 0;
-  const gapX = Math.max(minGap, Math.min(pitchX * spread.x, fitX));
+  // Non-overlapping layouts get a floor that keeps them clear even after jitter.
+  const minGap = layout === "overlapping" ? 0 : extent / (1 - 2 * jitter);
+  const gapX = Math.max(minGap, factorX * extent);
   let cols = colTarget;
   while (cols > 3 && (cols - 1) * gapX + extent > frameW * 0.98) cols--;
   const rows = Math.ceil(ok.length / cols);
   const maxGapY = rows > 1 ? (frameH * 0.97 - extent) / (rows - 1) : Infinity;
-  const gapY = Math.max(minGap, Math.min(pitchY * spread.y, maxGapY));
+  const gapY = Math.max(Math.min(minGap, maxGapY), Math.min(factorY * extent, maxGapY));
   const originX = (frameW - (cols - 1) * gapX) / 2;
   const originY = (frameH - (rows - 1) * gapY) / 2;
 
