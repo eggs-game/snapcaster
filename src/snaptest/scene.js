@@ -66,21 +66,24 @@ function hits(p, px, py, w, h) {
 // boxes, which for cards tilted up to 12 degrees reported 15-20% coverage
 // between cards that never actually touched — overstating how crowded a scene
 // was and muddying every accuracy-vs-coverage breakdown.
-function coveredFraction(p, later, w, h) {
+function surfaceStats(p, later, w, h, frameW, frameH) {
   const COLS = 11, ROWS = 15;
-  let covered = 0, total = 0;
+  let covered = 0, clipped = 0, total = 0;
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       const lx = ((c + 0.5) / COLS - 0.5) * w;
       const ly = ((r + 0.5) / ROWS - 0.5) * h;
       const f = toFrame(p.cx, p.cy, lx, ly, p.angle);
       total++;
+      if (f.x < 0 || f.y < 0 || f.x > frameW || f.y > frameH) { clipped++; continue; }
       for (const q of later) {
         if (hits(q, f.x, f.y, w, h)) { covered++; break; }
       }
     }
   }
-  return total ? covered / total : 0;
+  return total
+    ? { covered: covered / total, clipped: clipped / total }
+    : { covered: 0, clipped: 0 };
 }
 
 // Cloth/table background: a warm base, soft wrinkle blobs and a directional
@@ -216,9 +219,9 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080) 
   // rarely covers the whole table. Previously every card was guaranteed fully
   // in frame, so a partially visible card — a certainty in real use — was never
   // tested. Overflow is capped so no card loses more than ~35% of its height.
-  const maxOverflow = 0.35 * cardH;
+  const maxOverflow = 0.45 * cardH;
   const maxGapY = rows > 1
-    ? (frameH + 2 * maxOverflow - extent) / (rows - 1)
+    ? (frameH + maxOverflow - extent) / (rows - 1)
     : Infinity;
   const gapY = Math.max(Math.min(minGap, maxGapY), Math.min(factorY * baseY, maxGapY));
   // Spread the cards evenly over the rows and centre each row on its own.
@@ -231,7 +234,13 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080) 
     perRow.push(take);
     left -= take;
   }
-  const originY = (frameH - (rows - 1) * gapY) / 2;
+  // Push the overflow mostly onto ONE edge. A camera frames a table from one
+  // side, so the near row runs off the bottom or the far row off the top —
+  // it does not clip both equally. Centring the grid clipped every outer row
+  // and put half the run in the edge bucket.
+  const overflow = Math.max(0, (rows - 1) * gapY + extent - frameH);
+  const originY = (frameH - (rows - 1) * gapY) / 2
+    + (rnd() < 0.5 ? -1 : 1) * 0.3 * overflow;
   const slots = [];
   for (let r = 0; r < rows; r++) {
     const originX = (frameW - (perRow[r] - 1) * gapX) / 2;
@@ -300,11 +309,14 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080) 
   // a meaningful slice of it, "edge" when the frame itself cuts it off.
   for (let i = 0; i < placed.length; i++) {
     const p = placed[i];
-    const cov = coveredFraction(p, placed.slice(i + 1), cardW, cardH);
-    const b = p.box;
-    const cut = b.x0 < 0 || b.y0 < 0 || b.x1 > frameW || b.y1 > frameH;
-    p.occ = cov > 0.1 ? "overlapped" : cut ? "edge" : "clear";
-    p.coverage = +cov.toFixed(3);
+    const st = surfaceStats(p, placed.slice(i + 1), cardW, cardH, frameW, frameH);
+    // "edge" now means a MEANINGFUL slice of the card is off-frame. It used to
+    // fire on any bounding-box contact with the frame, so a card missing a few
+    // pixels was pooled with one missing a third, and half the run landed in
+    // the bucket.
+    p.occ = st.covered > 0.1 ? "overlapped" : st.clipped > 0.05 ? "edge" : "clear";
+    p.coverage = +st.covered.toFixed(3);
+    p.clipped = +st.clipped.toFixed(3);
 
     // Click a random point on the artwork rather than the card centre — that
     // is what a player does, and the centre is both unrealistically kind and

@@ -160,7 +160,7 @@ export default function SnapTest() {
         const rec = {
           name: p.card.name, id: p.card.id, ok: false, err: null, errStage: null, ms: 0,
           rotationClass: p.rotationClass, occ: p.occ, scene: s, coverage: p.coverage,
-          click: p.click, layout: p.layout,
+          click: p.click, layout: p.layout, clipped: p.clipped,
         };
         const t0 = performance.now();
         let cropUrl = null;
@@ -312,6 +312,14 @@ export default function SnapTest() {
     // Tableau-only: how much of the loss is the table being packed vs the
     // recognizer simply failing on an isolated card.
     if (okList.some((r) => r.layout)) sum.byLayout = groupAcc(okList, (r) => r.layout);
+    // How much a card running off the frame edge actually costs.
+    if (okList.some((r) => typeof r.clipped === "number")) {
+      sum.byClipped = groupAcc(okList, (r) => {
+        if (typeof r.clipped !== "number") return null;
+        return r.clipped < 0.05 ? "0-5% (whole)" : r.clipped < 0.15 ? "5-15%"
+          : r.clipped < 0.3 ? "15-30%" : "30%+";
+      });
+    }
 
     // Where the correct card ranked on a miss. "absent" vs "rank 2-5" point at
     // completely different fixes: candidate generation vs ranking/tiebreak.
@@ -361,7 +369,7 @@ export default function SnapTest() {
         artBest: r.artBest, artChecked: r.artChecked,
         ocr: r.ocr, ocrConf: r.ocrConf, titleScore: r.titleScore,
         stages: r.stages,
-        ...(r.scene !== undefined ? { scene: r.scene, coverage: r.coverage, click: r.click, layout: r.layout } : {}),
+        ...(r.scene !== undefined ? { scene: r.scene, coverage: r.coverage, clipped: r.clipped, click: r.click, layout: r.layout } : {}),
       })),
       errors: results.filter((r) => r.err).map((r) => ({
         name: r.name, id: r.id, stage: r.errStage, ms: r.ms, message: r.err,
@@ -466,6 +474,7 @@ export default function SnapTest() {
               <Breakdown title="By pathway (how it was identified)" data={summary.byPathway} />
               {summary.byCoverage && <Breakdown title="By neighbour coverage" data={summary.byCoverage} />}
               {summary.byLayout && <Breakdown title="By table layout" data={summary.byLayout} />}
+              {summary.byClipped && <Breakdown title="By frame clipping" data={summary.byClipped} />}
             </div>
             {misses.length > 0 && (
               <div style={{ marginTop: 16 }}>

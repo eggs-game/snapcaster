@@ -813,6 +813,17 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       strategy: `art-${Math.round(scale * 100)}`,
     });
   }
+  // The player opposite (or a flipped tile) sends cards rotated 180, which puts
+  // the artwork in the LOWER third of the card as it appears in frame. The
+  // anchors above then frame such a card wrongly, and because they are seeds
+  // they crowded out the generic crops that used to catch it — upside-down
+  // accuracy fell from 58% to 33% when they landed. Mirror the anchor.
+  for (const scale of [0.65, 0.5, 0.38]) {
+    candidates.push({
+      image: anchoredCropImageData(bmp, scale, normalizedPoint, 1 - ART_CLICK_V),
+      strategy: `artf-${Math.round(scale * 100)}`,
+    });
+  }
   // Title-anchored: some players click the name bar instead of the art.
   for (const scale of [0.65, 0.45]) {
     candidates.push({
@@ -856,6 +867,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     // possible inputs to art-hash scoring, not an afterthought.
     "art-80", "art-65", "art-50", "art-38", "art-28", "title-65", "title-45",
     "tap-50l", "tap-50r", "tap-38l", "tap-38r",
+    "artf-65", "artf-50", "artf-38",
   ]);
   // Combined gray+art+color ranking score (v3). Gray distances stay in `dists`
   // for the calibrated display/keep gates.
@@ -957,8 +969,9 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   // 3rd or 4th, which previously meant it only ever refined a shortlist it was
   // never in, and the correct card was absent from every match.
   const SEED_PRIORITY = ["full-frame", "outline-1", "outline-2", "outline-3",
-    "art-50", "art-65", "tap-50l", "tap-50r", "center-45", "off0,-11",
-    "outline-4", "art-38", "center-27", "off0,-18", "tilt20@60", "tilt-20@60"];
+    "art-50", "art-65", "artf-50", "artf-65", "tap-50l", "tap-50r",
+    "center-45", "off0,-11", "outline-4", "art-38", "artf-38", "center-27",
+    "off0,-18", "tilt20@60", "tilt-20@60"];
   const seedIdx = new Set();
   for (const s of SEED_PRIORITY) {
     const i = prepared.findIndex((p, pi) => !seedIdx.has(pi) && p.candidate.strategy === s);
@@ -1164,6 +1177,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       const cardShaped = bestCandidateStrategy === "full-frame"
         || bestCandidateStrategy.startsWith("outline-")
         || bestCandidateStrategy.startsWith("art-")
+        || bestCandidateStrategy.startsWith("artf-")
         || bestCandidateStrategy.startsWith("title-")
         || bestCandidateStrategy.startsWith("tap-");
       // Sourced from `prepared` (background crops already removed) so ORB is
