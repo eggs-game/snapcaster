@@ -179,7 +179,10 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080) 
   // Jitter is budgeted for up front — it shifts neighbours toward each other by
   // up to 2x its fraction of the gap, enough on its own to close a small gap.
   const jitter = layout === "overlapping" ? 0.06 : 0.02;
-  const colTarget = Math.min(5, ok.length);
+  // Four across, three deep — the shape a real table photo takes (see the
+  // reference shot). Five across spread the cards wider and thinner than a
+  // camera actually sees them.
+  const colTarget = Math.min(4, ok.length);
 
   // Card size falls out of the spacing, which is physically right: ten cards
   // spread over more table means the camera covers more area and each card
@@ -208,7 +211,15 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080) 
   let cols = colTarget;
   while (cols > 3 && (cols - 1) * gapX + extent > frameW * 0.98) cols--;
   const rows = Math.ceil(ok.length / cols);
-  const maxGapY = rows > 1 ? (frameH * 0.97 - extent) / (rows - 1) : Infinity;
+  // The grid is ALLOWED to overflow vertically so the outer rows are clipped by
+  // the frame, exactly as the bottom row is in the reference photo: a camera
+  // rarely covers the whole table. Previously every card was guaranteed fully
+  // in frame, so a partially visible card — a certainty in real use — was never
+  // tested. Overflow is capped so no card loses more than ~35% of its height.
+  const maxOverflow = 0.35 * cardH;
+  const maxGapY = rows > 1
+    ? (frameH + 2 * maxOverflow - extent) / (rows - 1)
+    : Infinity;
   const gapY = Math.max(Math.min(minGap, maxGapY), Math.min(factorY * baseY, maxGapY));
   const originX = (frameW - (cols - 1) * gapX) / 2;
   const originY = (frameH - (rows - 1) * gapY) / 2;
