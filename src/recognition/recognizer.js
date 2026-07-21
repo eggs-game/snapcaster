@@ -403,7 +403,12 @@ function quadGeometry(pts, imageWidth, imageHeight, area, click) {
     && oppositeBalance >= 0.08;
   return {
     corners, aspect, containsClick, valid,
-    score: area * aspectFit * centerFit * Math.max(0.25, oppositeBalance),
+    // sqrt(area), not area: scoring linearly in area let a merged blob of two
+    // side-by-side cards beat the single correct card. Such a pair has aspect
+    // ~1.43 against a card's 1.397, so aspectFit cannot tell them apart, and at
+    // twice the area it always won. Scoring by linear size instead of area
+    // roughly halves that advantage.
+    score: Math.sqrt(area) * aspectFit * centerFit * Math.max(0.25, oppositeBalance),
   };
 }
 
@@ -824,7 +829,8 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   // shortlist the right card for ORB verification.
   const artGlobal = useV3 && artIndex ? new Uint16Array(n).fill(0xffff) : null;
   const artGlobalStrategies = new Set([
-    "full-frame", "outline-1", "outline-2", "center-45", "center-35", "center-27",
+    "full-frame", "outline-1", "outline-2", "outline-3", "outline-4", "outline-5",
+    "center-45", "center-35", "center-27",
     "tilt20@35", "tilt-20@35", "off0,-11", "off0,-6", "off-8,-4", "off8,-4", "off0,7",
     "off0,-18", "off0,-26",
     // Art-anchored crops frame the card the way the index does, so their art
@@ -913,14 +919,21 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   // for it. A non-seed crop can only refine the shortlist the seeds built, so
   // if no seed frames the card the right answer can never enter contention —
   // which is exactly the "correct card absent from every match" signature.
-  const SEED_PRIORITY = ["full-frame", "outline-1", "outline-2",
-    "art-50", "art-65", "art-38", "center-45", "center-27",
-    "off0,-11", "off0,-18", "tilt20@60", "tilt-20@60"];
+  // Seed the first FIVE outline rectifications, not two. A correctly rectified
+  // card measures d85-151 against the index (verified by cropping a card
+  // perfectly out of a benchmark scene), so it wins on distance the moment it
+  // is scored — it does not need to be the top-ranked quad, it only needs to be
+  // a seed at all. Among many overlapping cards the right quad routinely lands
+  // 3rd or 4th, which previously meant it only ever refined a shortlist it was
+  // never in, and the correct card was absent from every match.
+  const SEED_PRIORITY = ["full-frame", "outline-1", "outline-2", "outline-3",
+    "outline-4", "outline-5", "art-50", "art-65", "art-38", "center-45",
+    "center-27", "off0,-11", "off0,-18", "tilt20@60", "tilt-20@60"];
   const seedIdx = new Set();
   for (const s of SEED_PRIORITY) {
     const i = prepared.findIndex((p, pi) => !seedIdx.has(pi) && p.candidate.strategy === s);
     if (i >= 0) seedIdx.add(i);
-    if (seedIdx.size >= 10) break;
+    if (seedIdx.size >= 12) break;
   }
   for (let i = 0; i < prepared.length && seedIdx.size < 5; i++) seedIdx.add(i);
 
