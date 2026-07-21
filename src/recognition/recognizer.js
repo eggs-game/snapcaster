@@ -224,12 +224,11 @@ function artPHash(gray, yShift = 0) {
 
 // Query-only vertical offsets for artPHash. Negative = window slides toward
 // the top of the crop (title already cut off). Index entries stay at yShift=0.
-// Kept short: each extra shift multiplies a full-index art scan on seeds.
-const ART_Y_SHIFTS = [0, -0.08, -0.16, -0.24];
+const ART_Y_SHIFTS = [0, -0.05, -0.10, -0.16, -0.22];
 // Only these seeds pay for Y-shifts + a full-index artGlobal pass. Doing that
 // on every artGlobalStrategies crop made Arcane-medium p90 hit 20–30s.
 const ART_SHIFT_STRATEGIES = new Set([
-  "full-frame", "content-box", "outline-1", "outline-2", "art-50",
+  "full-frame", "content-box", "outline-1", "outline-2", "outline-3", "art-50",
 ]);
 
 function hammingSearch(query, index, nCards, distsOut) {
@@ -1038,7 +1037,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       if (r === 0 && shifts) {
         for (const s of ART_Y_SHIFTS) v.push(artPHash(img, s));
         const stretched = contrastStretch(img);
-        for (const s of [0, -0.16]) v.push(artPHash(stretched, s));
+        for (const s of ART_Y_SHIFTS) v.push(artPHash(stretched, s));
       } else {
         v.push(artPHash(img));
       }
@@ -1106,7 +1105,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   // Cap how many seeds may run one — Arcane-medium p90 was 20–30s when every
   // artGlobalStrategies seed did shifts × 110k.
   let artGlobalScans = 0;
-  const ART_GLOBAL_SCAN_BUDGET = 4;
+  const ART_GLOBAL_SCAN_BUDGET = 5;
 
   // Full-index scoring of one seed crop; updates dists/rank/artGlobal and the
   // best-candidate tracking. Returns the crop's best gray distance.
