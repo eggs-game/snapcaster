@@ -198,3 +198,47 @@ Two resilience bugs fixed alongside: `cvPromise` cached the *rejection*, so a
 single failed init downgraded every later scan in the session to blind crops
 until reload; and the 60s init ceiling competed with a 19MB index load in the
 same worker.
+
+## 2026-07-21 — `art-margin-1` — Tableau 10 — EDH staples (100 cards) — **90.0%**
+
+First run with OpenCV working again (see the CSP incident above). Two findings,
+one of them the reason the headline did not move.
+
+**The art-match margin fix landed hard.** Measuring the decisiveness margin
+against the best rival CARD rather than the next row (the shortlist keeps
+several printings of one name on purpose, so the runner-up is usually the same
+card) more than doubled how often the confident path fires:
+
+| | before | after |
+| --- | --- | --- |
+| art-match fires | 37 | **81** |
+| art-match precision | 100% | **100%** |
+| avg OCR | 2872ms | **800ms** |
+| median | 2340ms | **1968ms** |
+| p90 | 5652ms | **4064ms** |
+
+Faster *because* of the accuracy fix: those scans now short-circuit before OCR.
+
+- By pool: token 94.7%, basic 100%, card 88.0% — tokens are not the weak spot.
+- By layout: side-by-side 96.7%, spaced 96.7%, overlapping 30%.
+- 7 of 10 misses in the single overlapping scene. The other three
+  (Undergrowth Stadium, Oketra's Monument, Shifting Woodland) are lands and
+  artifacts reporting `Art: 0-6 kp, weak` — ORB finds nothing to grip on.
+
+**The heap instrumentation proved the earlier leak fix was not the leak.**
+
+    wasmHeapStartMB 134 -> wasmHeapEndMB 268
+    firstHalfAcc 0.98   -> secondHalfAcc 0.82
+
+The OpenCV heap doubled across 100 cards and dragged the back half down, which
+is why the headline stayed at 90%. The real leak: `knn.get(i)` in orbScore
+returns an OWNED DMatchVector, not a view, and was never deleted — once per
+match pair, per reference (24 a scan), per query image, every scan. Every other
+`.get()` in the file was already released.
+
+Fixed in `leak-fix-1` and verified directly: **WASM heap flat at 134MB across
+10 consecutive scans**, cv ready and ORB running on every one.
+
+Lesson: the earlier orbScore homography fix was a real bug and fixing it felt
+like progress, but it was not the cause. Only the measurement distinguished
+them — which is the whole argument for instrumenting before believing a fix.
