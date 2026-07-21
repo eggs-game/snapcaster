@@ -61,6 +61,10 @@ function captureDiagnostics(rec, data, trueName) {
   rec.ocr = data.ocr_text;
   rec.ocrConf = data.ocr_confidence;
   rec.titleScore = data.title_score;
+  rec.metadata = data.metadata_observation || null;
+  rec.metadataVetoed = data.metadata_vetoed || 0;
+  rec.metadataConflictAll = !!data.metadata_conflict_all;
+  rec.metadataError = data.metadata_error || null;
   rec.wasmHeapMB = data.wasm_heap_mb;
 }
 

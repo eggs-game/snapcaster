@@ -134,6 +134,23 @@ guesses the player can click — matches survive to distance ≤ 210, because re
 correct scans land at 170–205 and unrelated cards at 220+. **Never silently
 discard the ranked list.**
 
+### Metadata evidence on uncertain scans
+
+When a scan is too weak for the exact-visual and decisive-ORB exits and already
+falls through to title OCR, the best framed and oriented crop also supplies
+three narrow regions: top-right mana cost, type line, and rules box. The three
+OCR reads run in parallel. OpenCV separately counts a regular row of two or
+more mana-symbol circles; a generic numeral read supplies additional mana
+evidence.
+
+The main thread loads v4 metadata only for the visual shortlist and applies the
+rules in `metadataEvidence.js`. A high-confidence generic-mana, symbol-count,
+or primary-type contradiction vetoes that candidate. Matching meaningful rules
+words promote compatible candidates but never veto, because rules OCR is often
+partial. If every visual candidate conflicts, the read is treated as faulty and
+the original shortlist is preserved. This pathway never runs before a decisive
+visual or art match, so the common fast path keeps its existing cost.
+
 ## Where the time goes
 
 Median ~1.6s, p90 ~5.7s on realistic scenes:

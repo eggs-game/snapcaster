@@ -670,29 +670,32 @@ function tiltCropImageData(bmp, angleDeg, scale, point) {
   return ctx.getImageData(0, 0, ow, oh);
 }
 
-async function makeTitleImage(cardImage, turns = 0, mode = "plain", placement = "top") {
+function orientCardImage(cardImage, turns = 0) {
   const source = new OffscreenCanvas(cardImage.width, cardImage.height);
   source.getContext("2d").putImageData(cardImage, 0, 0);
-  let oriented = source;
-  if (turns) {
-    const sideways = turns % 2 === 1;
-    oriented = new OffscreenCanvas(
-      sideways ? cardImage.height : cardImage.width,
-      sideways ? cardImage.width : cardImage.height,
-    );
-    const rotate = oriented.getContext("2d");
-    if (turns === 1) {
-      rotate.translate(oriented.width, 0);
-      rotate.rotate(Math.PI / 2);
-    } else if (turns === 2) {
-      rotate.translate(oriented.width, oriented.height);
-      rotate.rotate(Math.PI);
-    } else {
-      rotate.translate(0, oriented.height);
-      rotate.rotate(-Math.PI / 2);
-    }
-    rotate.drawImage(source, 0, 0);
+  if (!turns) return source;
+  const sideways = turns % 2 === 1;
+  const oriented = new OffscreenCanvas(
+    sideways ? cardImage.height : cardImage.width,
+    sideways ? cardImage.width : cardImage.height,
+  );
+  const rotate = oriented.getContext("2d");
+  if (turns === 1) {
+    rotate.translate(oriented.width, 0);
+    rotate.rotate(Math.PI / 2);
+  } else if (turns === 2) {
+    rotate.translate(oriented.width, oriented.height);
+    rotate.rotate(Math.PI);
+  } else {
+    rotate.translate(0, oriented.height);
+    rotate.rotate(-Math.PI / 2);
   }
+  rotate.drawImage(source, 0, 0);
+  return oriented;
+}
+
+async function makeTitleImage(cardImage, turns = 0, mode = "plain", placement = "top") {
+  const oriented = orientCardImage(cardImage, turns);
   const canvas = new OffscreenCanvas(1000, 140);
   const ctx = canvas.getContext("2d");
   ctx.fillStyle = "white";
@@ -744,6 +747,81 @@ async function makeTitleImage(cardImage, turns = 0, mode = "plain", placement = 
   }
   ctx.putImageData(pixels, 0, 0);
   return canvas.convertToBlob({ type: "image/png" });
+}
+
+async function makeMetadataRegion(cardImage, turns, region, outW, outH) {
+  const oriented = orientCardImage(cardImage, turns);
+  const canvas = new OffscreenCanvas(outW, outH);
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "white";
+  ctx.fillRect(0, 0, outW, outH);
+  ctx.drawImage(
+    oriented,
+    oriented.width * region.x, oriented.height * region.y,
+    oriented.width * region.w, oriented.height * region.h,
+    10, 10, outW - 20, outH - 20,
+  );
+  return canvas.convertToBlob({ type: "image/png" });
+}
+
+function estimateManaSymbols(cardImage, turns) {
+  if (!cvReady) return { count: null, confidence: 0 };
+  const oriented = orientCardImage(cardImage, turns);
+  const region = { x: 0.60, y: 0.01, w: 0.38, h: 0.13 };
+  const ctx = oriented.getContext("2d");
+  const x = Math.floor(oriented.width * region.x);
+  const y = Math.floor(oriented.height * region.y);
+  const w = Math.max(1, Math.floor(oriented.width * region.w));
+  const h = Math.max(1, Math.floor(oriented.height * region.h));
+  const src = cv.matFromImageData(ctx.getImageData(x, y, w, h));
+  const gray = new cv.Mat();
+  const circles = new cv.Mat();
+  try {
+    cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+    cv.medianBlur(gray, gray, 5);
+    cv.HoughCircles(
+      gray, circles, cv.HOUGH_GRADIENT, 1,
+      Math.max(5, h * 0.25), 70, 12,
+      Math.max(3, Math.floor(h * 0.12)), Math.max(5, Math.floor(h * 0.38)),
+    );
+    const found = [];
+    for (let i = 0; i < circles.cols; i++) {
+      const cx = circles.data32F[i * 3];
+      const cy = circles.data32F[i * 3 + 1];
+      const radius = circles.data32F[i * 3 + 2];
+      if (cy >= h * 0.18 && cy <= h * 0.82 && cx >= radius && cx <= w - radius) {
+        found.push({ x: cx, y: cy, radius });
+      }
+    }
+    found.sort((a, b) => a.x - b.x);
+    if (!found.length || found.length > 8) return { count: null, confidence: 0 };
+    const meanRadius = found.reduce((sum, item) => sum + item.radius, 0) / found.length;
+    const radiusSpread = Math.max(...found.map((item) => Math.abs(item.radius - meanRadius))) / meanRadius;
+    const meanY = found.reduce((sum, item) => sum + item.y, 0) / found.length;
+    const ySpread = Math.max(...found.map((item) => Math.abs(item.y - meanY))) / h;
+    // One detected circle could be a frame ornament. Multiple evenly sized,
+    // aligned circles are the distinctive geometry of a mana-cost cluster.
+    const confidence = found.length >= 2 && radiusSpread <= 0.2 && ySpread <= 0.13 ? 0.98 : 0.65;
+    return { count: found.length, confidence };
+  } finally {
+    src.delete(); gray.delete(); circles.delete();
+  }
+}
+
+async function makeMetadataStrips(titleSource, strategy, turns) {
+  const baseStrategy = String(strategy || "").split(":")[0].split("+")[0];
+  const candidate = titleSource.find((item) => item.strategy === baseStrategy) || titleSource[0];
+  if (!candidate) return null;
+  return {
+    strategy: candidate.strategy,
+    rotation: turns,
+    manaSymbols: estimateManaSymbols(candidate.image, turns),
+    // Standard-frame regions. Reads below their confidence gates remain
+    // neutral, which covers showcase frames that place these lines elsewhere.
+    mana: await makeMetadataRegion(candidate.image, turns, { x: 0.60, y: 0.01, w: 0.38, h: 0.13 }, 520, 150),
+    type: await makeMetadataRegion(candidate.image, turns, { x: 0.035, y: 0.555, w: 0.87, h: 0.105 }, 1000, 150),
+    rules: await makeMetadataRegion(candidate.image, turns, { x: 0.045, y: 0.64, w: 0.91, h: 0.30 }, 1000, 430),
+  };
 }
 
 // Resolve when OpenCV becomes ready, or after `ms` — whichever comes first.
@@ -1657,6 +1735,13 @@ self.onmessage = async (e) => {
     try {
       const source = lastTitleSource.scanId === scanId ? lastTitleSource.candidates : [];
       self.postMessage({ id, titleCandidates: await makeTitleStrips(source) });
+    } catch (err) {
+      self.postMessage({ id, error: String((err && err.message) || err) });
+    }
+  } else if (type === "metadata-strips") {
+    try {
+      const source = lastTitleSource.scanId === scanId ? lastTitleSource.candidates : [];
+      self.postMessage({ id, metadataStrips: await makeMetadataStrips(source, e.data.strategy, e.data.rotation || 0) });
     } catch (err) {
       self.postMessage({ id, error: String((err && err.message) || err) });
     }

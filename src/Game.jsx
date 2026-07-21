@@ -207,6 +207,10 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
         artChecked: data.art_checked,
         titleScore: data.title_score,
         ocrError: data.ocr_error,
+        metadataObservation: data.metadata_observation,
+        metadataVetoed: data.metadata_vetoed,
+        metadataConflictAll: data.metadata_conflict_all,
+        metadataError: data.metadata_error,
         captureImage: cap.url,
         cameraRes: (() => {
           const s = conn.localStream?.getVideoTracks?.()[0]?.getSettings?.();

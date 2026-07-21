@@ -10,11 +10,10 @@ runs, and the benchmark shows it rarely changes the answer.
 1. **Measure discriminative value offline.** Run `scripts/analyze_metadata.py`
    after the v4 index build. It reports how far exact mana cost, coarse type,
    their combination, and a rare Oracle word narrow the card population.
-2. **Prototype extraction separately.** Measure mana-symbol detection and
-   type/rules OCR against SNAPTEST crops without changing production ranking.
-   Record extraction accuracy, latency, rotation, and whether the true card was
-   already in the visual shortlist.
-3. **Add evidence only where it can help.** Decisive visual and art matches must
+2. **Measure the guarded extraction path.** `metadata-vision-1` extracts mana,
+   type, and rules regions only after decisive visual/art exits fail. SNAPTEST
+   records the observation, veto count, conflicts, and metadata stage time.
+3. **Keep evidence only where it helps.** Decisive visual and art matches must
    continue to return immediately. Metadata belongs on the uncertain fallback
    path unless measurements show a cheaper signal.
 4. **Benchmark the complete pathway.** Compare Fixed 200 for regression and

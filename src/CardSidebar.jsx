@@ -557,6 +557,20 @@ export default function CardSidebar({
                   </span>
                 )}
                 {current.ocrText && <span>Title read: {current.ocrText}</span>}
+                {current.metadataObservation && (
+                  <span>
+                    Metadata: mana {current.metadataObservation.mana?.text || "—"}
+                    {Number.isInteger(current.metadataObservation.mana?.symbolCount)
+                      ? ` (${current.metadataObservation.mana.symbolCount} symbols)` : ""}
+                    {`, type ${current.metadataObservation.type?.text || "—"}`}
+                    {current.metadataVetoed ? `; ${current.metadataVetoed} candidates vetoed` : ""}
+                    {current.metadataConflictAll ? "; all conflicts ignored" : ""}
+                  </span>
+                )}
+                {current.metadataObservation?.rules?.text && (
+                  <span>Rules read: {current.metadataObservation.rules.text}</span>
+                )}
+                {current.metadataError && <span>Metadata error: {current.metadataError}</span>}
                 {current.ocrImage && <img className="debug-strip" src={current.ocrImage} alt="OCR strip" />}
                 {current.captureImage && (
                   <>

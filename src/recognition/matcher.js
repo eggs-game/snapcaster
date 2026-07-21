@@ -4,6 +4,7 @@
 // This module only: (1) loads the index once for the lobby's "N printings" banner,
 // and (2) captures crops and relays them to the worker.
 import { VEC_BYTES } from "./hash.js";
+import { evaluateMetadataEvidence, primaryTypes } from "./metadataEvidence.js";
 import { createWorker, PSM } from "tesseract.js";
 
 let cards = null;
@@ -62,7 +63,7 @@ function getWorker() {
     worker = new Worker(new URL("./recognizer.js", import.meta.url));
     worker.onmessage = (e) => {
       const {
-        id, matches, printingMatches, titleCandidates, titleCount, queryCandidates,
+        id, matches, printingMatches, titleCandidates, metadataStrips, titleCount, queryCandidates,
         shardedIndex, cardFound, cvStatus, candidatesTried, cropsDropped, artBest, artChecked,
         artDecisive, stageMs, wasmHeapMB, error,
       } = e.data || {};
@@ -72,6 +73,7 @@ function getWorker() {
       clearTimeout(p.timer);
       if (error) p.reject(new Error(error));
       else if (p.kind === "title-strips") p.resolve(titleCandidates || []);
+      else if (p.kind === "metadata-strips") p.resolve(metadataStrips || null);
       else p.resolve({
         scan_id: id,
         matches: matches || [],
@@ -113,15 +115,25 @@ async function dataUrlToBitmap(dataUrl) {
 // spins up on first OCR use.
 const OCR_POOL_SIZE = 3;
 const ocrPool = [];
+const TITLE_OCR_PARAMETERS = {
+  tessedit_pageseg_mode: PSM.SINGLE_LINE,
+  tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz '-,",
+};
 
 function makeOCRWorker() {
   return createWorker("eng").then(async (worker) => {
-    await worker.setParameters({
-      tessedit_pageseg_mode: PSM.SINGLE_LINE,
-      tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz '-,",
-    });
+    await worker.setParameters(TITLE_OCR_PARAMETERS);
     return worker;
   });
+}
+
+// Parameter changes are worker-global. Serialize OCR-bearing scans so the
+// metadata readers cannot change PSM/whitelists under a concurrent title read.
+let ocrOperation = Promise.resolve();
+function withOCRLock(operation) {
+  const next = ocrOperation.then(operation, operation);
+  ocrOperation = next.catch(() => {});
+  return next;
 }
 
 function getOCRWorker() {
@@ -246,6 +258,55 @@ async function loadShard(name) {
   return shardCache.get(key);
 }
 
+function metadataFromRow(row) {
+  return {
+    mana_cost: row?.[8] || "",
+    type_line: row?.[9] || "",
+    oracle_text: row?.[10] || "",
+  };
+}
+
+async function enrichMatchMetadata(match) {
+  if ((manifest?.version || 0) < 4 || !match?.name) return match;
+  const shard = await loadShard(match.name);
+  const row = shard.find((candidate) => (
+    candidate[0] === match.name
+    && (!match.scryfall_id || candidate[3] === match.scryfall_id)
+    && (match.face === undefined || Number(candidate[4]) === Number(match.face))
+  )) || shard.find((candidate) => candidate[0] === match.name);
+  return row ? { ...match, ...metadataFromRow(row) } : match;
+}
+
+async function applyMetadataRanking(result, observation) {
+  if ((manifest?.version || 0) < 4 || !result.matches?.length) {
+    return { ...result, metadata_observation: observation };
+  }
+  const evaluated = await Promise.all(result.matches.map(async (match, originalRank) => {
+    const enriched = await enrichMatchMetadata(match);
+    const evidence = evaluateMetadataEvidence(observation, enriched);
+    return {
+      ...enriched,
+      metadata_score: Number.isFinite(evidence.score) ? evidence.score : null,
+      metadata_reasons: evidence.reasons,
+      metadata_compatible: evidence.compatible,
+      _metadataRank: originalRank,
+    };
+  }));
+  const compatible = evaluated.filter((match) => match.metadata_compatible);
+  // If every candidate conflicts, the crop/read is more likely wrong than the
+  // entire visual shortlist. Preserve it and expose the conflict for SNAPTEST.
+  const pool = compatible.length ? compatible : evaluated;
+  pool.sort((a, b) => (b.metadata_score || 0) - (a.metadata_score || 0) || a._metadataRank - b._metadataRank);
+  const matches = pool.map(({ _metadataRank, ...match }) => match);
+  return {
+    ...result,
+    matches,
+    metadata_observation: observation,
+    metadata_vetoed: compatible.length ? evaluated.length - compatible.length : 0,
+    metadata_conflict_all: !compatible.length && evaluated.some((match) => !match.metadata_compatible),
+  };
+}
+
 async function matchShardedPrinting(name, result, strategy) {
   const shard = await loadShard(name);
   const rows = shard.filter((row) => row[0] === name);
@@ -271,6 +332,9 @@ async function matchShardedPrinting(name, result, strategy) {
     name: cardName,
     set,
     collector_number: collectorNumber,
+    scryfall_id: id,
+    face,
+    ...metadataFromRow(best.row),
     image: `https://cards.scryfall.io/normal/${side}/${id[0]}/${id[1]}/${id}.jpg`,
     scryfall_uri: `https://scryfall.com/card/${set}/${collectorNumber}`,
     distance: best.distance,
@@ -340,7 +404,60 @@ function ocrDebugUrl(blob) {
   return lastOcrDebugUrl || "";
 }
 
-async function applyTitleOCR(result) {
+async function readMetadataObservation(result, bestRead, pool) {
+  if (!bestRead) return null;
+  const strips = await runMetadataStrips(result.scan_id, bestRead.strategy, bestRead.rotation || 0);
+  if (!strips) return null;
+  const [manaWorker, typeWorker, rulesWorker] = pool;
+  try {
+    await Promise.all([
+      manaWorker.setParameters({
+        tessedit_pageseg_mode: PSM.SINGLE_LINE,
+        tessedit_char_whitelist: "0123456789X",
+      }),
+      typeWorker.setParameters({
+        tessedit_pageseg_mode: PSM.SINGLE_LINE,
+        tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz —-",
+      }),
+      rulesWorker.setParameters({
+        tessedit_pageseg_mode: PSM.SINGLE_BLOCK,
+        tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz '-,.",
+      }),
+    ]);
+    const [manaResult, typeResult, rulesResult] = await Promise.all([
+      manaWorker.recognize(strips.mana),
+      typeWorker.recognize(strips.type),
+      rulesWorker.recognize(strips.rules),
+    ]);
+    const manaText = String(manaResult.data.text || "").trim();
+    const genericMatch = manaText.match(/\b(\d{1,2})\b/);
+    const typeText = String(typeResult.data.text || "").trim();
+    const rulesText = String(rulesResult.data.text || "").trim();
+    return {
+      strategy: strips.strategy,
+      rotation: (strips.rotation || 0) * 90,
+      mana: {
+        text: manaText,
+        generic: genericMatch ? Number(genericMatch[1]) : null,
+        genericConfidence: genericMatch ? (manaResult.data.confidence || 0) / 100 : 0,
+        symbolCount: Number.isInteger(strips.manaSymbols?.count) ? strips.manaSymbols.count : null,
+        symbolCountConfidence: strips.manaSymbols?.confidence || 0,
+      },
+      type: {
+        text: typeText,
+        confidence: primaryTypes(typeText).length ? (typeResult.data.confidence || 0) / 100 : 0,
+      },
+      rules: {
+        text: rulesText,
+        confidence: (rulesResult.data.confidence || 0) / 100,
+      },
+    };
+  } finally {
+    await Promise.all(pool.map((ocrWorker) => ocrWorker.setParameters(TITLE_OCR_PARAMETERS)));
+  }
+}
+
+async function applyTitleOCRUnlocked(result) {
   if (!result.title_count) return applyVisualFallback(result);
   try {
     // Title strips are rendered on demand by the worker (a decisive art match
@@ -438,7 +555,19 @@ async function applyTitleOCR(result) {
       ocr_image: ocrDebugUrl(bestRead?.image),
       title_score: title?.score || 0,
     };
-    if (!title) return applyVisualFallback(enriched);
+    const metadataStarted = performance.now();
+    let metadataResult = enriched;
+    try {
+      const observation = await readMetadataObservation(result, bestRead, pool);
+      if (observation) metadataResult = await applyMetadataRanking(enriched, observation);
+    } catch (error) {
+      metadataResult = { ...enriched, metadata_error: String(error?.message || error) };
+    }
+    metadataResult.stage_ms = {
+      ...(metadataResult.stage_ms || {}),
+      metadata: Math.round(performance.now() - metadataStarted),
+    };
+    if (!title) return applyVisualFallback(metadataResult);
     const normalized = normalizeTitle(title.name);
     // Acceptance scales with how much evidence the name can carry: garbage
     // reads like "men ow" trivially reach high scores against tiny names
@@ -454,29 +583,35 @@ async function applyTitleOCR(result) {
     // back to the visual match instead of confidently showing the wrong card.
     // Long names carry enough evidence on their own.
     const short = normalized.length < 13;
-    const corroborated = (result.matches || []).some((m) => m.name === title.name);
+    const corroborated = (metadataResult.matches || []).some((m) => m.name === title.name);
     // A strong keypoint match outranks OCR, whatever the name length. Observed:
     // ORB found "Muraganda Raceway" with 39 inliers and colour 95, and a
     // hallucinated read of "Platinum Angel" replaced it — 14 characters is over
     // the `short` cutoff, so no corroboration was ever required. Long names are
     // not self-evidently trustworthy when read off an illegible title strip.
-    const art = result.art_best;
+    const art = metadataResult.art_best;
     const strongArt = !!art && !art.weak && (art.inliers || 0) >= 12;
-    if (strongArt && art.name !== title.name) return applyVisualFallback(enriched);
+    if (strongArt && art.name !== title.name) return applyVisualFallback(metadataResult);
     if (title.score < requiredScore || bestRead.confidence < 25 || (short && !corroborated)) {
-      return applyVisualFallback(enriched);
+      return applyVisualFallback(metadataResult);
     }
-    const printing = result.sharded_index
-      ? await matchShardedPrinting(title.name, result, bestRead.strategy)
-      : (result.printing_matches || [])
+    const printing = metadataResult.sharded_index
+      ? await matchShardedPrinting(title.name, metadataResult, bestRead.strategy)
+      : (metadataResult.printing_matches || [])
         .filter((match) => match.name === title.name)
         .sort((a, b) => a.distance - b.distance)[0]
         || cardFromIndex(title.name);
-    if (!printing) return applyVisualFallback(enriched);
+    if (!printing) return applyVisualFallback(metadataResult);
+    const printingEvidence = metadataResult.metadata_observation
+      ? evaluateMetadataEvidence(metadataResult.metadata_observation, printing)
+      : { compatible: true, score: 0, reasons: [] };
+    if (!printingEvidence.compatible) return applyVisualFallback(metadataResult);
     return {
-      ...enriched,
+      ...metadataResult,
       matches: [{
         ...printing,
+        metadata_score: printingEvidence.score,
+        metadata_reasons: printingEvidence.reasons,
         confidence: Math.max(printing.confidence || 0, title.score),
         identified_by: "ocr-title",
       }],
@@ -484,6 +619,10 @@ async function applyTitleOCR(result) {
   } catch (error) {
     return applyVisualFallback({ ...result, ocr_error: String(error?.message || error) });
   }
+}
+
+function applyTitleOCR(result) {
+  return withOCRLock(() => applyTitleOCRUnlocked(result));
 }
 
 function runOnWorker(bmp, point = { nx: 0.5, ny: 0.5 }) {
@@ -524,6 +663,19 @@ function runTitleStrips(scanId) {
     }, 20000);
     pending.set(id, { resolve, reject, timer, kind: "title-strips" });
     w.postMessage({ type: "title-strips", id, scanId });
+  });
+}
+
+function runMetadataStrips(scanId, strategy, rotation) {
+  const w = getWorker();
+  const id = ++seq;
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      pending.delete(id);
+      reject(new Error("Metadata strip rendering timed out."));
+    }, 20000);
+    pending.set(id, { resolve, reject, timer, kind: "metadata-strips" });
+    w.postMessage({ type: "metadata-strips", id, scanId, strategy, rotation });
   });
 }
 
