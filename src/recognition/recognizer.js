@@ -13,6 +13,12 @@
 // to load in ~100ms. Losing OpenCV silently costs contour detection AND ORB
 // art verification, so this must not depend on a third-party origin.
 const OPENCV_BASE = new URL("/vendor/opencv/4.9.0/", self.location.origin).href;
+// CSP-cache-bust marker. A worker enforces the CSP delivered with ITS OWN
+// response, and Vercel serves content-hashed assets as immutable — so a CSP
+// change alone does not reach an already-cached worker. Its hash must change
+// too. Bump this when a header change has to take effect in the worker.
+const CSP_EPOCH = 2;
+void CSP_EPOCH;
 const HASH_SIZE = 16;
 const VEC_BYTES = 64;
 const CARD_W = 244, CARD_H = 340;

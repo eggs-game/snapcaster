@@ -7,7 +7,7 @@ import App from "./App.jsx";
 const SnapTest = lazy(() => import("./SnapTest.jsx"));
 import "./styles.css";
 
-const BUILD = "opencv-fix-2 (unsafe-eval for OpenCV; self-hosted)";
+const BUILD = "opencv-fix-3 (rehash worker so the new CSP applies)";
 window.__SNAP_BUILD = BUILD;
 console.log(`%c[snapcaster] build: ${BUILD}`, "color:#0a0;font-weight:bold");
 
