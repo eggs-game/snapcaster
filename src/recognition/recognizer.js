@@ -224,7 +224,13 @@ function artPHash(gray, yShift = 0) {
 
 // Query-only vertical offsets for artPHash. Negative = window slides toward
 // the top of the crop (title already cut off). Index entries stay at yShift=0.
-const ART_Y_SHIFTS = [0, -0.05, -0.10, -0.16, -0.22];
+// Kept short: each extra shift multiplies a full-index art scan on seeds.
+const ART_Y_SHIFTS = [0, -0.08, -0.16, -0.24];
+// Only these seeds pay for Y-shifts + a full-index artGlobal pass. Doing that
+// on every artGlobalStrategies crop made Arcane-medium p90 hit 20–30s.
+const ART_SHIFT_STRATEGIES = new Set([
+  "full-frame", "content-box", "outline-1", "outline-2", "art-50",
+]);
 
 function hammingSearch(query, index, nCards, distsOut) {
   for (let i = 0; i < nCards; i++) {
@@ -1021,10 +1027,9 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   }
   mark("prep");
 
-  // Default: 4 rotations × default art window. With shifts: also try several
-  // upward art windows on the upright orientation, plus a contrast-stretched
-  // upright pass (glare / dim yellow cast poison the raw art hash). Arcane
-  // medium photos need both or the art hash never approaches the index.
+  // Default: 4 rotations × default art window. With shifts: a few upward art
+  // windows on upright, plus two contrast-stretched uprights (glare / warm
+  // cast). Restricted to ART_SHIFT_STRATEGIES — see that set's comment.
   const artVecsFor = (gray, { shifts = false } = {}) => {
     if (!(useV3 && artIndex)) return null;
     const v = [];
@@ -1033,7 +1038,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       if (r === 0 && shifts) {
         for (const s of ART_Y_SHIFTS) v.push(artPHash(img, s));
         const stretched = contrastStretch(img);
-        for (const s of ART_Y_SHIFTS) v.push(artPHash(stretched, s));
+        for (const s of [0, -0.16]) v.push(artPHash(stretched, s));
       } else {
         v.push(artPHash(img));
       }
@@ -1097,6 +1102,12 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   }
   for (let i = 0; i < prepared.length && seedIdx.size < 5; i++) seedIdx.add(i);
 
+  // Full-index artGlobal scans are the expensive part of scoreFull under v3.
+  // Cap how many seeds may run one — Arcane-medium p90 was 20–30s when every
+  // artGlobalStrategies seed did shifts × 110k.
+  let artGlobalScans = 0;
+  const ART_GLOBAL_SCAN_BUDGET = 4;
+
   // Full-index scoring of one seed crop; updates dists/rank/artGlobal and the
   // best-candidate tracking. Returns the crop's best gray distance.
   const scoreFull = (p) => {
@@ -1121,8 +1132,10 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       for (let i = 0; i < n; i++) counts[candidateDists[i] <= 512 ? candidateDists[i] : 512]++;
       let cutoff = 0, cumulative = 0;
       while (cutoff < 512 && cumulative + counts[cutoff] < 1000) { cumulative += counts[cutoff]; cutoff++; }
-      const artVecs = artVecsFor(p.gray, { shifts: artGlobalStrategies.has(p.candidate.strategy) });
-      if (artVecs && artGlobal && artGlobalStrategies.has(p.candidate.strategy)) {
+      const useShifts = ART_SHIFT_STRATEGIES.has(p.candidate.strategy);
+      const artVecs = artVecsFor(p.gray, { shifts: useShifts });
+      if (artVecs && artGlobal && useShifts && artGlobalScans < ART_GLOBAL_SCAN_BUDGET) {
+        artGlobalScans++;
         for (let i = 0; i < n; i++) {
           const off = i * ART_BYTES;
           for (const av of artVecs) {
@@ -1167,7 +1180,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
         if (seedIdx.has(pi)) continue;
         const p = prepared[pi];
         candidatesTried++;
-        const artVecs = artVecsFor(p.gray, { shifts: artGlobalStrategies.has(p.candidate.strategy) });
+        const artVecs = artVecsFor(p.gray, { shifts: false });
         const colorSig = (useV3 && colorIndex) ? colorSignature(p.wbImage) : null;
         let candidateBest = 0xffff;
         for (const idx of shortlist) {
@@ -1641,14 +1654,19 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped) {
   // (e.g. white-bordered query vs red-frame reference). Neutral (1) when the
   // query wasn't card-shaped and no ring was computed.
   const ringBand = (m) => (m.ring_sim === undefined ? 1 : m.ring_sim >= 0.3 ? 1 : 0);
-  // A candidate only earns trust over a rival hash by clearing all three of:
-  // enough inliers, plausible color, and a real margin over the best rival
-  // CARD (not just the next row — see the note above `decisive` below).
-  // Shared by the demote-safety-net and the final art-match gate so a lead
-  // that fails one gate can't sneak past the other.
-  const isDecisiveLead = (m, rival) => (m?.art_inliers || 0) >= 16
-    && (m?.color_sim || 0) >= 0.22
-    && (m.art_inliers || 0) >= 1.5 * ((rival?.art_inliers || 0) + 1);
+  // A candidate only earns trust over a rival hash by clearing:
+  // enough inliers, plausible color, a real margin over the best rival CARD,
+  // and either a strong inlier count OR a plausible gray hash. Mid-strength
+  // ORB at garbage distance is a common wrong collision (Horseshoe Crab →
+  // Fleet Swallower at 23 inliers / d215) while true Arcane rescues clear 50+.
+  // Shared by the demote-safety-net and the final art-match gate.
+  const isDecisiveLead = (m, rival) => {
+    const inl = m?.art_inliers || 0;
+    if (inl < 16 || (m?.color_sim || 0) < 0.22) return false;
+    if (inl < 1.5 * ((rival?.art_inliers || 0) + 1)) return false;
+    if (inl < 35 && (m.distance || 999) > 180) return false;
+    return true;
+  };
   let ranked;
   if (maxInliers >= 12) {
     // Keypoints carry real signal — rank by them, color as tiebreak, and let a
