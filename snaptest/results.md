@@ -2,6 +2,21 @@
 
 Newest first. Run via `snapcaster.vercel.app/snaptest`.
 
+## 2026-07-20 — `speed-17` — Fixed 200 — **100%** (200/200, 0 errors) — MERGED
+
+- **First perfect run**, and 3x faster than the pre-speed baseline:
+  avg 1.82s / median 1.85s (was 99.0% at 5.4s avg on artfix-13b).
+- Every rotation and every occlusion class at 100%. Peak memory 33MB.
+- Stage avg: prep 0.35s, rank 0.9s, orb 0.4s; ocr 3.1s but only on the few
+  cards that still need it (visual-exact + art-decisive skip it otherwise).
+- Gate passed → Speed-Update branch merged to main.
+
+## 2026-07-20 — `speed-17` — Random 200 — **99.5%** (199/200, 0 errors)
+
+- Avg 2.27s / median 1.97s. One visual miss on a brutal degradation
+  (White Ward, fingers+dice). Wider recall pool + <13-char OCR corroboration
+  fixed both failure patterns from speed-16's random run.
+
 ## 2026-07-20 — `speed-16` (Speed-Update branch) — Fixed 200 — **99.0%** (198/200, 0 errors)
 
 - Avg 5.6s / median 3.7s. Stage avg: prep 0.7s, rank 1.8s, orb 0.7s, ocr 6.9s
