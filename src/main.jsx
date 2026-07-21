@@ -7,7 +7,7 @@ import App from "./App.jsx";
 const SnapTest = lazy(() => import("./SnapTest.jsx"));
 import "./styles.css";
 
-const BUILD = "arcane-update-9 (art-shifts on 5 card seeds only; fine-pass cheap; false art-match gate)";
+const BUILD = "arcane-update-10 (8 artGlobal scans, shifts only on priority seeds; false art-match gate)";
 window.__SNAP_BUILD = BUILD;
 console.log(`%c[snapcaster] build: ${BUILD}`, "color:#0a0;font-weight:bold");
 

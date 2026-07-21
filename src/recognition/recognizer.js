@@ -1105,7 +1105,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   // Cap how many seeds may run one — Arcane-medium p90 was 20–30s when every
   // artGlobalStrategies seed did shifts × 110k.
   let artGlobalScans = 0;
-  const ART_GLOBAL_SCAN_BUDGET = 5;
+  const ART_GLOBAL_SCAN_BUDGET = 8;
 
   // Full-index scoring of one seed crop; updates dists/rank/artGlobal and the
   // best-candidate tracking. Returns the crop's best gray distance.
@@ -1133,7 +1133,11 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       while (cutoff < 512 && cumulative + counts[cutoff] < 1000) { cumulative += counts[cutoff]; cutoff++; }
       const useShifts = ART_SHIFT_STRATEGIES.has(p.candidate.strategy);
       const artVecs = artVecsFor(p.gray, { shifts: useShifts });
-      if (artVecs && artGlobal && useShifts && artGlobalScans < ART_GLOBAL_SCAN_BUDGET) {
+      // Full-index art pass: allow any artGlobalStrategies seed, but only the
+      // first ART_GLOBAL_SCAN_BUDGET of them. Shifts stay restricted to
+      // ART_SHIFT_STRATEGIES so later seeds are cheap (4 rotations, not 13).
+      if (artVecs && artGlobal && artGlobalStrategies.has(p.candidate.strategy)
+        && artGlobalScans < ART_GLOBAL_SCAN_BUDGET) {
         artGlobalScans++;
         for (let i = 0; i < n; i++) {
           const off = i * ART_BYTES;
