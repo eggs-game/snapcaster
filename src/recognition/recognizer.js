@@ -139,8 +139,9 @@ function contrastStretch(gray) {
   const hi = sorted[Math.floor(sorted.length * 0.98)];
   const range = Math.max(1, hi - lo);
   const out = new Float32Array(gray.pix.length);
-  for (let i = 0; i < out.length; i++)
+  for (let i = 0; i < out.length; i++) {
     out[i] = Math.max(0, Math.min(255, ((gray.pix[i] - lo) / range) * 255));
+  }
   return { pix: out, w: gray.w, h: gray.h };
 }
 
@@ -155,7 +156,7 @@ function rotate90(gray) {
 
 function queryVariants(gray) {
   const variants = [];
-  for (const base of [gray, contrastStretch(gray)]) {
+  for (let base of [gray, contrastStretch(gray)]) {
     let img = base;
     for (let r = 0; r < 4; r++) {
       variants.push(computeHashes(img));

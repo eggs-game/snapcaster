@@ -18,7 +18,12 @@ export function loadIndex() {
     const manifestResponse = await fetch("/carddata/manifest.json");
     if (manifestResponse.ok) {
       manifest = await manifestResponse.json();
-      if (manifest.version === 2) {
+      // Any sharded index (v2 and up) serves names from names.json. This said
+      // `=== 2`, so a v3 manifest — which is what we ship — fell through to the
+      // v1 path below and pulled 15MB (hashes.bin + cards.json) onto the MAIN
+      // thread on every load, parsing 8MB of JSON, purely to produce a count
+      // and a name list that names.json already holds in 0.67MB.
+      if (manifest.version >= 2) {
         const namesResponse = await fetch("/carddata/names.json");
         if (!namesResponse.ok) throw new Error("Card name index is missing.");
         cardNames = await namesResponse.json();
@@ -274,6 +279,8 @@ async function matchShardedPrinting(name, result, strategy) {
   };
 }
 
+// Only reachable on a pre-sharded (v1) index; a sharded index resolves the
+// printing through matchShardedPrinting instead, so `cards` is never loaded.
 function cardFromIndex(name) {
   const row = cards?.find((card) => card[0] === name);
   if (!row) return null;

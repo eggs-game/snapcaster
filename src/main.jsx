@@ -1,13 +1,20 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.jsx";
-import SnapTest from "./SnapTest.jsx";
+// The benchmark page pulls in SnapTest + the scene generator + the degradation
+// harness (~1300 lines) that no player ever runs. Split it out so it is fetched
+// only when /snaptest is opened.
+const SnapTest = lazy(() => import("./SnapTest.jsx"));
 import "./styles.css";
 
-const BUILD = "sec-1 (capture authz + rate limit, chunk bounds, headers, CSPRNG codes)";
+const BUILD = "lean-1 (15MB main-thread load removed; dead code cut)";
 window.__SNAP_BUILD = BUILD;
 console.log(`%c[snapcaster] build: ${BUILD}`, "color:#0a0;font-weight:bold");
 
 // Recognition benchmark page at /snaptest (see snaptest/README.md).
 const isSnapTest = window.location.pathname.replace(/\/+$/, "") === "/snaptest";
-createRoot(document.getElementById("root")).render(isSnapTest ? <SnapTest /> : <App />);
+createRoot(document.getElementById("root")).render(
+  isSnapTest
+    ? <Suspense fallback={null}><SnapTest /></Suspense>
+    : <App />,
+);

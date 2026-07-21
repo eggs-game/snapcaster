@@ -24,6 +24,8 @@ jobs:
         run: pip install numpy opencv-python-headless requests pillow
       - name: Verify JS/Python hash compatibility
         run: python3 scripts/test_hash_compat.py
+      - name: Verify the worker's hashing copy has not drifted
+        run: python3 scripts/check_hash_duplication.py
 
   build:
     runs-on: ubuntu-latest
