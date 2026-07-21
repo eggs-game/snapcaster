@@ -17,7 +17,7 @@ const OPENCV_BASE = new URL("/vendor/opencv/4.9.0/", self.location.origin).href;
 // response, and Vercel serves content-hashed assets as immutable — so a CSP
 // change alone does not reach an already-cached worker. Its hash must change
 // too. Bump this when a header change has to take effect in the worker.
-const CSP_EPOCH = 3;
+const CSP_EPOCH = 4;
 void CSP_EPOCH;
 
 // OpenCV init competes with loading ~19MB of index in this same worker, so on
@@ -1536,10 +1536,18 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped) {
     ranked = [...shortlist].sort((a, b) => ringBand(b) - ringBand(a)
       || colorBand(b) - colorBand(a) || a.distance - b.distance);
   }
-  const best = ranked[0], second = ranked[1];
+  const best = ranked[0];
+  // The margin must be measured against the best rival CARD, not merely the
+  // next row. The shortlist deliberately keeps several printings of the same
+  // name so competing artworks each get a chance, so for a card with many
+  // printings the runner-up is usually the same card again — two printings of
+  // Generous Gift both scored ~79 inliers, the 1.5x test failed against each
+  // other, and a certain identification was presented as "possible match, not
+  // certain". Being unsure WHICH PRINTING is not being unsure which card.
+  const rival = ranked.find((m) => m.name !== best?.name);
   const decisive = (best?.art_inliers || 0) >= 16
     && (best?.color_sim || 0) >= 0.22
-    && (best.art_inliers || 0) >= 1.5 * ((second?.art_inliers || 0) + 1);
+    && (best.art_inliers || 0) >= 1.5 * ((rival?.art_inliers || 0) + 1);
   if (decisive) {
     best.identified_by = "art-match";
     best.confidence = Math.max(best.confidence || 0, Math.min(1, best.art_inliers / 40));
