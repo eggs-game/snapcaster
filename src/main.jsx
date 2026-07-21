@@ -7,7 +7,7 @@ import App from "./App.jsx";
 const SnapTest = lazy(() => import("./SnapTest.jsx"));
 import "./styles.css";
 
-const BUILD = "arcane-update-4 (art-window Y-shifts + wider art-global rescue for top-cropped photos)";
+const BUILD = "arcane-update-5 (content-box seed + contrast art shifts for letterboxed/top-cropped photos)";
 window.__SNAP_BUILD = BUILD;
 console.log(`%c[snapcaster] build: ${BUILD}`, "color:#0a0;font-weight:bold");
 

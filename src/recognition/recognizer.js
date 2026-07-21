@@ -661,6 +661,48 @@ function bitmapToImageData(bmp) {
   return ctx.getImageData(0, 0, bmp.width, bmp.height);
 }
 
+// Tight crop of the non-black content in a capture. Arcane-style photos (and
+// many real handheld shots against a dark table) leave the card floating in a
+// black field; hashing the whole frame includes that border and poisons both
+// gray and art distances. Only fires when the lit region is a meaningful
+// card-shaped inset — busy webcam scenes fall through and keep the existing
+// outline/center crops.
+function contentBoxCropImageData(bmp) {
+  const src = bitmapToImageData(bmp);
+  const { data, width, height } = src;
+  const thr = 22;
+  let minX = width, minY = height, maxX = 0, maxY = 0, lit = 0;
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const i = (y * width + x) * 4;
+      if (data[i] > thr || data[i + 1] > thr || data[i + 2] > thr) {
+        lit++;
+        if (x < minX) minX = x;
+        if (y < minY) minY = y;
+        if (x > maxX) maxX = x;
+        if (y > maxY) maxY = y;
+      }
+    }
+  }
+  const area = width * height;
+  // Mostly empty (noise) or already filling the frame → not a letterbox case.
+  if (lit < area * 0.08 || lit > area * 0.90) return null;
+  const pad = Math.max(2, Math.round(Math.min(width, height) * 0.01));
+  minX = Math.max(0, minX - pad);
+  minY = Math.max(0, minY - pad);
+  maxX = Math.min(width - 1, maxX + pad);
+  maxY = Math.min(height - 1, maxY + pad);
+  const bw = maxX - minX + 1, bh = maxY - minY + 1;
+  const aspect = Math.max(bw, bh) / Math.min(bw, bh);
+  if (Math.abs(aspect - CARD_H / CARD_W) > 0.28) return null;
+  const outScale = Math.max(1, Math.min(OCR_MAX_W, bw) / CARD_W);
+  const ow = Math.round(CARD_W * outScale), oh = Math.round(CARD_H * outScale);
+  const canvas = new OffscreenCanvas(ow, oh);
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(bmp, minX, minY, bw, bh, 0, 0, ow, oh);
+  return ctx.getImageData(0, 0, ow, oh);
+}
+
 // Click-centered crop counter-rotated by angleDeg. Tilted cards on busy
 // backgrounds often produce no clean contour quad, and plain hash matching
 // only tolerates a few degrees plus exact 90° steps — counter-rotating the
@@ -817,6 +859,13 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       console.warn("[snapcaster worker] outline detection failed", e);
     }
   }
+  // Letterboxed single-card photos: drop the black field before hashing.
+  // Independent of OpenCV. Must be a seed (see SEED_PRIORITY) or it cannot
+  // introduce an answer.
+  {
+    const contentBox = contentBoxCropImageData(bmp);
+    if (contentBox) candidates.push({ image: contentBox, strategy: "content-box" });
+  }
   // Always include click-centered crops at several sizes. One often
   // approximates the card border even when no closed contour is available.
   // The small scales matter for hand-held and playmat cards: a card ~1/8 of
@@ -905,7 +954,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   // shortlist the right card for ORB verification.
   const artGlobal = useV3 && artIndex ? new Uint16Array(n).fill(0xffff) : null;
   const artGlobalStrategies = new Set([
-    "full-frame", "outline-1", "outline-2", "outline-3", "outline-4", "outline-5",
+    "full-frame", "content-box", "outline-1", "outline-2", "outline-3", "outline-4", "outline-5",
     "center-45", "center-35", "center-27",
     "tilt20@35", "tilt-20@35", "off0,-11", "off0,-6", "off-8,-4", "off8,-4", "off0,7",
     "off0,-18", "off0,-26",
@@ -969,9 +1018,9 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   mark("prep");
 
   // Default: 4 rotations × default art window. With shifts: also try several
-  // upward art windows on the upright orientation. Arcane-medium photos (and
-  // real handheld captures that clip the name bar) need those shifts or the
-  // art hash never approaches the index and the correct card stays absent.
+  // upward art windows on the upright orientation, plus a contrast-stretched
+  // upright pass (glare / dim yellow cast poison the raw art hash). Arcane
+  // medium photos need both or the art hash never approaches the index.
   const artVecsFor = (gray, { shifts = false } = {}) => {
     if (!(useV3 && artIndex)) return null;
     const v = [];
@@ -979,6 +1028,8 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     for (let r = 0; r < 4; r++) {
       if (r === 0 && shifts) {
         for (const s of ART_Y_SHIFTS) v.push(artPHash(img, s));
+        const stretched = contrastStretch(img);
+        for (const s of ART_Y_SHIFTS) v.push(artPHash(stretched, s));
       } else {
         v.push(artPHash(img));
       }
@@ -1026,7 +1077,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   // a seed at all. Among many overlapping cards the right quad routinely lands
   // 3rd or 4th, which previously meant it only ever refined a shortlist it was
   // never in, and the correct card was absent from every match.
-  const SEED_PRIORITY = ["full-frame", "outline-1", "outline-2", "outline-3",
+  const SEED_PRIORITY = ["full-frame", "content-box", "outline-1", "outline-2", "outline-3",
     "art-50", "art-65", "artf-50", "artf-65", "tap-50l", "tap-50r",
     "center-45", "off0,-11", "outline-4", "art-38", "artf-38", "center-27",
     "off0,-18", "tilt20@60", "tilt-20@60"];
@@ -1236,6 +1287,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       // art-*/title-* are card-framed crops too, so they carry a usable border
       // ring for the frame-agreement check.
       const cardShaped = bestCandidateStrategy === "full-frame"
+        || bestCandidateStrategy === "content-box"
         || bestCandidateStrategy.startsWith("outline-")
         || bestCandidateStrategy.startsWith("art-")
         || bestCandidateStrategy.startsWith("artf-")
@@ -1246,6 +1298,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       const kept = prepared.map((p) => p.candidate);
       const queryImages = [
         bestCandidateImage,
+        kept.find((c) => c.strategy === "content-box")?.image,
         ...kept.filter((c) => c.strategy.startsWith("outline-")).slice(0, 2).map((c) => c.image),
         // The art-anchored crop centres the artwork, which is exactly what ORB
         // matches on — it is the strongest keypoint query we can offer.
