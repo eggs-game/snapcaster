@@ -50,7 +50,7 @@ export default function SnapTest() {
       const p = scene.placed[card];
       const crop = p ? cropScene(scene.canvas, p.nx, p.ny) : null;
       releaseScene(scene.canvas);
-      return { frame, crop: crop && crop.url, placed: scene.placed.map((q) => ({ name: q.card.name, occ: q.occ, rot: q.rotationClass, coverage: q.coverage, click: q.click })) };
+      return { frame, crop: crop && crop.url, placed: scene.placed.map((q) => ({ name: q.card.name, occ: q.occ, rot: q.rotationClass, coverage: q.coverage, click: q.click, nx: q.nx, ny: q.ny })) };
     };
   }, []);
 
