@@ -16,6 +16,11 @@ const MODES = {
   fixed1000: { label: "Fixed 1000 (regression)", size: 1000 },
   tableau10: { label: "Tableau 10 scenes (100 cards)", size: 100, scenes: 10, perScene: 10 },
   tableau100: { label: "Tableau 100 scenes (1000 cards)", size: 1000, scenes: 100, perScene: 10 },
+  tableauEdh10: {
+    label: "Tableau 10 scenes — EDH staples (100 cards)",
+    size: 100, scenes: 10, perScene: 10, popular: 15000,
+  },
+  edh200: { label: "EDH staples 200 (single cards)", size: 200, popular: 15000 },
 };
 
 // Pull every diagnostic the pipeline exposes onto the record. The expensive
@@ -63,6 +68,7 @@ function groupAcc(list, keyFn) {
 export default function SnapTest() {
   const [cards, setCards] = useState(null);        // frozen benchmark set
   const [indexCards, setIndexCards] = useState(null); // full 110k index (lazy)
+  const popularRef = useRef(null); // EDHREC-ranked names (lazy)
   const [mode, setMode] = useState("random200");
   const [status, setStatus] = useState("idle"); // idle | running | done | error
   const [progress, setProgress] = useState({ done: 0, correct: 0 });
@@ -110,6 +116,47 @@ export default function SnapTest() {
     return fronts;
   };
 
+  // Cards players actually own, most-played first. Drawing uniformly from the
+  // 110k-printing index is wildly unrepresentative: only 19% of such a draw is
+  // inside the EDHREC top 2000, and 10% is tokens, art-series prints and Un-set
+  // jokes that nobody will ever hold to a webcam. Sampling the top N by EDHREC
+  // rank measures the cards that actually have to work.
+  const loadPopular = async () => {
+    if (popularRef.current) return popularRef.current;
+    const [names, rows] = await Promise.all([
+      fetch("/carddata/popularity.json").then((r) => r.json()),
+      fetch("/carddata/cards.json").then((r) => r.json()),
+    ]);
+    const byName = new Map();
+    for (const r of rows) {
+      if (r[4] !== 0) continue;
+      const list = byName.get(r[0]);
+      if (list) list.push(r[3]); else byName.set(r[0], [r[3]]);
+    }
+    // Keep every printing of a name so runs vary the artwork, not just the card.
+    const pool = [];
+    for (const name of names) {
+      const ids = byName.get(name);
+      if (ids) pool.push({ name, ids });
+    }
+    popularRef.current = pool;
+    return pool;
+  };
+
+  const samplePopular = async (n, topN) => {
+    const pool = (await loadPopular()).slice(0, topN);
+    const picked = [];
+    const seen = new Set();
+    while (picked.length < n && seen.size < pool.length) {
+      const j = (Math.random() * pool.length) | 0;
+      if (seen.has(j)) continue;
+      seen.add(j);
+      const entry = pool[j];
+      picked.push({ name: entry.name, id: entry.ids[(Math.random() * entry.ids.length) | 0] });
+    }
+    return picked;
+  };
+
   // Build the run set: a fresh random sample from the whole index, or a slice
   // of the frozen benchmark for regression comparisons.
   const sampleIndex = async (n) => {
@@ -126,6 +173,8 @@ export default function SnapTest() {
   };
 
   const buildRunSet = async () => {
+    const popular = MODES[mode].popular;
+    if (popular) return samplePopular(MODES[mode].size, popular);
     if (mode === "random200") return sampleIndex(200);
     if (mode.startsWith("tableau")) return sampleIndex(MODES[mode].size);
     return cards.slice(0, MODES[mode].size);
