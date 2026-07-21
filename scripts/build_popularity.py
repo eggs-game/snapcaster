@@ -25,7 +25,9 @@ import urllib.request
 
 API = "https://api.scryfall.com/cards/search"
 HEADERS = {"Accept": "application/json", "User-Agent": "snapcaster-popularity/1.0"}
-OUT = os.path.join(os.path.dirname(__file__), "..", "public", "carddata", "popularity.json")
+CARDDATA = os.path.join(os.path.dirname(__file__), "..", "public", "carddata")
+OUT = os.path.join(CARDDATA, "popularity.json")
+OUT_TOKENS = os.path.join(CARDDATA, "tokens.json")
 
 
 def fetch(limit):
@@ -63,6 +65,39 @@ def fetch(limit):
     return names
 
 
+def fetch_tokens():
+    """Token names, most-printed first.
+
+    Tokens carry no edhrec_rank, but they matter a great deal in practice — a
+    Treasure or Soldier on the battlefield is exactly the thing a player clicks,
+    since "what token is that?" is the question a remote table cannot answer by
+    leaning over. How often Wizards has printed a token is a good stand-in for
+    how often one shows up, and that count is already in our own card index.
+    """
+    names, page = set(), 1
+    query = urllib.parse.urlencode({"q": "is:token -is:digital", "unique": "cards"})
+    while True:
+        url = f"{API}?{query}&page={page}"
+        with urllib.request.urlopen(urllib.request.Request(url, headers=HEADERS)) as r:
+            payload = json.load(r)
+        for card in payload["data"]:
+            names.add(card["name"])
+        if not payload.get("has_more"):
+            break
+        page += 1
+        time.sleep(0.12)
+
+    with open(os.path.join(CARDDATA, "cards.json"), encoding="utf-8") as f:
+        rows = json.load(f)
+    counts = {}
+    for row in rows:
+        if row[4] == 0:
+            counts[row[0]] = counts.get(row[0], 0) + 1
+    present = [(n, counts[n]) for n in names if n in counts]
+    present.sort(key=lambda x: -x[1])
+    return [n for n, _ in present]
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--limit", type=int, default=20000)
@@ -74,6 +109,11 @@ def main():
     print(f"wrote {len(names)} names -> {os.path.relpath(OUT)}")
     print(f"  most played: {', '.join(names[:5])}")
     print(f"  rank 15000 : {names[14999] if len(names) > 14999 else '(n/a)'}")
+    tokens = fetch_tokens()
+    with open(OUT_TOKENS, "w", encoding="utf-8") as f:
+        json.dump(tokens, f, ensure_ascii=False, separators=(",", ":"))
+    print(f"wrote {len(tokens)} token names -> {os.path.relpath(OUT_TOKENS)}")
+    print(f"  most printed: {', '.join(tokens[:5])}")
 
 
 if __name__ == "__main__":

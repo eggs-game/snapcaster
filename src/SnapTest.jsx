@@ -123,8 +123,9 @@ export default function SnapTest() {
   // rank measures the cards that actually have to work.
   const loadPopular = async () => {
     if (popularRef.current) return popularRef.current;
-    const [names, rows] = await Promise.all([
+    const [names, tokens, rows] = await Promise.all([
       fetch("/carddata/popularity.json").then((r) => r.json()),
+      fetch("/carddata/tokens.json").then((r) => r.json()),
       fetch("/carddata/cards.json").then((r) => r.json()),
     ]);
     const byName = new Map();
@@ -134,24 +135,37 @@ export default function SnapTest() {
       if (list) list.push(r[3]); else byName.set(r[0], [r[3]]);
     }
     // Keep every printing of a name so runs vary the artwork, not just the card.
-    const pool = [];
-    for (const name of names) {
-      const ids = byName.get(name);
-      if (ids) pool.push({ name, ids });
-    }
-    popularRef.current = pool;
-    return pool;
+    const build = (list) => list
+      .map((name) => ({ name, ids: byName.get(name) }))
+      .filter((e) => e.ids);
+    const basics = build(["Forest", "Island", "Swamp", "Mountain", "Plains"]);
+    popularRef.current = { cards: build(names), tokens: build(tokens), basics };
+    return popularRef.current;
   };
 
+  // What gets CLICKED is not what is most numerous on a table — players click
+  // what they cannot read from across a video call. Tokens are clicked far out
+  // of proportion to their share of a battlefield ("what token is that?" is the
+  // question a remote table cannot answer by leaning over), while basic lands
+  // are numerous but almost never need identifying.
+  const CLICK_MIX = { tokens: 0.25, basics: 0.05 }; // remainder: ranked cards
+
   const samplePopular = async (n, topN) => {
-    const pool = (await loadPopular()).slice(0, topN);
+    const { cards, tokens, basics } = await loadPopular();
+    const ranked = cards.slice(0, topN);
     const picked = [];
     const seen = new Set();
-    while (picked.length < n && seen.size < pool.length) {
+    let guard = 0;
+    while (picked.length < n && guard++ < n * 50) {
+      const roll = Math.random();
+      const pool = roll < CLICK_MIX.tokens ? tokens
+        : roll < CLICK_MIX.tokens + CLICK_MIX.basics ? basics : ranked;
       const j = (Math.random() * pool.length) | 0;
-      if (seen.has(j)) continue;
-      seen.add(j);
       const entry = pool[j];
+      if (!entry) continue;
+      const key = `${entry.name}:${j}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
       picked.push({ name: entry.name, id: entry.ids[(Math.random() * entry.ids.length) | 0] });
     }
     return picked;
