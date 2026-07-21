@@ -864,10 +864,21 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   // (cont'd)" accounted for a quarter of all misses once degrade v2 started
   // placing cards off-center and edge-cut. Even a small, blurry card carries
   // frame borders and text, so it clears this bar comfortably; empty
-  // background does not. Keep everything if nothing clears it, so a genuinely
-  // low-contrast scan still gets its best shot.
-  const prepared = preparedAll.filter((p) => p.detail >= BACKGROUND_DETAIL_MIN);
-  if (!prepared.length) prepared.push(...preparedAll);
+  // background does not.
+  //
+  // The bar is RELATIVE to the sharpest crop in this frame, not absolute. A
+  // dim, vignetted table photo has low gradient energy everywhere, so a fixed
+  // threshold discarded almost every crop: benchmark runs showed cases with 34
+  // of 35 crops dropped and a single candidate left to identify from. Scoring
+  // one arbitrary survivor is worse than scoring a few soft ones. A hard floor
+  // of MIN_KEEP guarantees the pipeline always has a real choice.
+  const sortedByDetail = [...preparedAll].sort((a, b) => b.detail - a.detail);
+  const bestDetail = sortedByDetail[0]?.detail || 0;
+  const detailBar = Math.min(BACKGROUND_DETAIL_MIN, bestDetail * 0.4);
+  const MIN_KEEP = Math.min(12, preparedAll.length);
+  const floorSet = new Set(sortedByDetail.slice(0, MIN_KEEP));
+  // Filter preparedAll (not the sorted copy) so candidate order is preserved.
+  const prepared = preparedAll.filter((p) => p.detail >= detailBar || floorSet.has(p));
   // The visual fallback searches these too, so it must not see background
   // crops either — same blank-card trap, different code path.
   for (const p of prepared) {
