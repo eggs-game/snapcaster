@@ -157,3 +157,44 @@ Two candidate explanations, neither yet proven:
 
 Speed is now comfortably inside the original 2-3s goal on the median, with the
 tail driven entirely by the overlapping scene (rank 6.6-8.2s at 58-74 crops).
+
+## 2026-07-21 — production incident: CSP disabled OpenCV
+
+Not a benchmark run; recorded because it silently disabled half the pipeline
+and took three wrong diagnoses to find.
+
+The Content-Security-Policy added during the security audit omitted
+`'unsafe-eval'`. OpenCV's Emscripten build evaluates strings internally, and
+`'wasm-unsafe-eval'` covers WASM compilation but not `eval`/`Function`, so
+`importScripts` threw and OpenCV never loaded. Effect on every scan:
+
+- no contour detection  -> "No outline — using crops"
+- no ORB verification   -> `Art: 0 kp`, and the 100%-precise path gone
+- real scans landing at d209 against art-series prints
+
+Wrong turns, in order: blamed the missing `docs.opencv.org` origin (allowing
+it changed nothing); blamed cross-origin `importScripts`; blamed asset
+caching of the worker's CSP. The answer only appeared by running
+`importScripts` inside a worker and printing the exception, which named the
+directive outright.
+
+Verified after the fix, on a real scan of Generous Gift:
+`OpenCV ready`, `Card outline detected`, `d145 via outline-1`,
+`Art: 79 kp, colour 86%` — against `Art: 0 kp` and d209 while broken.
+
+Lessons worth keeping:
+
+1. **A security header must be verified by checking the protected thing still
+   WORKS**, not that the header is present. The header was correct and the app
+   was broken.
+2. **Verify in a browser that enforces the policy.** The embedded browser used
+   for checking reported success while production was broken; it was later
+   confirmed to enforce CSP, so the earlier pass was against edge-cached
+   headers from before the policy existed.
+3. **Read the exception.** Three plausible theories cost far more time than
+   printing the actual error once.
+
+Two resilience bugs fixed alongside: `cvPromise` cached the *rejection*, so a
+single failed init downgraded every later scan in the session to blind crops
+until reload; and the 60s init ceiling competed with a 19MB index load in the
+same worker.
