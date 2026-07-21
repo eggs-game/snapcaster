@@ -202,9 +202,18 @@ function cropGray(gray, x0f, x1f, y0f, y1f) {
   return { pix: out, w: cw, h: ch };
 }
 
-// 32-byte pHash of the art region. Mirrors compute_art_hash in build_index.py.
-function artPHash(gray) {
-  const art = cropGray(gray, ART_X0, ART_X1, ART_Y0, ART_Y1);
+// 32-byte pHash of the art region. Default window (yShift=0) MUST mirror
+// compute_art_hash in build_index.py. Non-zero yShift is query-only: when a
+// photo has already cut off the title bar, the visible art sits higher in the
+// frame than a full Scryfall scan, so the default window samples the text box
+// instead of the illustration. Sliding the window up realigns it.
+function artPHash(gray, yShift = 0) {
+  const span = ART_Y1 - ART_Y0;
+  let y0 = ART_Y0 + yShift;
+  let y1 = y0 + span;
+  if (y0 < 0) { y0 = 0; y1 = span; }
+  if (y1 > 1) { y1 = 1; y0 = 1 - span; }
+  const art = cropGray(gray, ART_X0, ART_X1, y0, y1);
   const small = areaResize(art, 64, 64);
   const low = dct2_lowfreq(small.pix);
   const med = median(low);
@@ -212,6 +221,10 @@ function artPHash(gray) {
   for (let i = 0; i < low.length; i++) bits[i] = low[i] > med ? 1 : 0;
   return packBits(bits);
 }
+
+// Query-only vertical offsets for artPHash. Negative = window slides toward
+// the top of the crop (title already cut off). Index entries stay at yShift=0.
+const ART_Y_SHIFTS = [0, -0.05, -0.10, -0.16, -0.22];
 
 function hammingSearch(query, index, nCards, distsOut) {
   for (let i = 0; i < nCards; i++) {
@@ -955,11 +968,22 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   }
   mark("prep");
 
-  const artVecsFor = (gray) => {
+  // Default: 4 rotations × default art window. With shifts: also try several
+  // upward art windows on the upright orientation. Arcane-medium photos (and
+  // real handheld captures that clip the name bar) need those shifts or the
+  // art hash never approaches the index and the correct card stays absent.
+  const artVecsFor = (gray, { shifts = false } = {}) => {
     if (!(useV3 && artIndex)) return null;
     const v = [];
     let img = gray;
-    for (let r = 0; r < 4; r++) { v.push(artPHash(img)); img = rotate90(img); }
+    for (let r = 0; r < 4; r++) {
+      if (r === 0 && shifts) {
+        for (const s of ART_Y_SHIFTS) v.push(artPHash(img, s));
+      } else {
+        v.push(artPHash(img));
+      }
+      img = rotate90(img);
+    }
     return v;
   };
   const combineScore = (grayDist, idx, artVecs, colorSig) => {
@@ -1042,7 +1066,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       for (let i = 0; i < n; i++) counts[candidateDists[i] <= 512 ? candidateDists[i] : 512]++;
       let cutoff = 0, cumulative = 0;
       while (cutoff < 512 && cumulative + counts[cutoff] < 1000) { cumulative += counts[cutoff]; cutoff++; }
-      const artVecs = artVecsFor(p.gray);
+      const artVecs = artVecsFor(p.gray, { shifts: artGlobalStrategies.has(p.candidate.strategy) });
       if (artVecs && artGlobal && artGlobalStrategies.has(p.candidate.strategy)) {
         for (let i = 0; i < n; i++) {
           const off = i * ART_BYTES;
@@ -1088,7 +1112,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
         if (seedIdx.has(pi)) continue;
         const p = prepared[pi];
         candidatesTried++;
-        const artVecs = artVecsFor(p.gray);
+        const artVecs = artVecsFor(p.gray, { shifts: artGlobalStrategies.has(p.candidate.strategy) });
         const colorSig = (useV3 && colorIndex) ? colorSignature(p.wbImage) : null;
         let candidateBest = 0xffff;
         for (const idx of shortlist) {
@@ -1146,18 +1170,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   }
   const printingMatches = top
     .filter((t) => Number.isFinite(t.r))
-    .map((t) => ({ ...cardMeta(t.i, dists[t.i]), strategy: strategies[t.i], rank_score: t.r }));
-  // TEMP (Arcane-Update diagnostic): expose the full finite-rank pool + the
-  // top-72 cutoff so we can tell whether an "absent" miss means the correct
-  // printing never got a finite combined rank at all (info genuinely absent
-  // from every seed's shortlist) vs. it got a finite rank but the combined
-  // gray+art+color score pushed it below the 72-cutoff (a scoring/weighting
-  // problem, not a shortlisting problem). Remove before merging to main.
-  const debugAllFiniteRank = [];
-  for (let i = 0; i < n; i++) {
-    if (Number.isFinite(rankArr[i])) debugAllFiniteRank.push({ ...cardMeta(i, dists[i]), rank_score: rankArr[i] });
-  }
-  debugAllFiniteRank.sort((a, b) => a.rank_score - b.rank_score);
+    .map((t) => ({ ...cardMeta(t.i, dists[t.i]), strategy: strategies[t.i] }));
   const matches = [];
   const names = new Set();
   for (const match of printingMatches) {
@@ -1166,24 +1179,17 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     matches.push(match);
     if (matches.length === 24) break;
   }
-  // Build a printing-level ORB shortlist: 24 combined-rank printings plus 12
-  // pure-art printings (36 total budget — see the artGlobal union just below,
-  // which is the whole reason this cap exists as 36 and not 24). It was
-  // 24 here, so the primary loop below silently ate the entire budget before
-  // the art-global rescue ever got to call addVerification, making that
-  // rescue a complete no-op on every scan. Confirmed on the Arcane-set
-  // benchmark: Barrin, Tolarian Archmage's own best crop hashed to distance
-  // 191 (a genuinely good match, better than several wrong answers that DID
-  // make the cut) but ranked 28th by combined gray+art+color score — 4 spots
-  // outside the old 24-slot cap — so it never reached ORB verification and
-  // "Cancel" won on inlier count instead. Deliberately do not deduplicate by
-  // name here; different Mountain artworks must each get a chance to match
-  // geometrically.
+  // Build a printing-level ORB shortlist: 24 combined-rank printings plus up
+  // to 20 pure-art printings (44 total). Art-global rescue is how top-cropped
+  // photos (name bar already gone, art still visible) enter ORB after gray
+  // hashing is poisoned — give it enough slots. Deliberately do not
+  // deduplicate by name here; different Mountain artworks must each get a
+  // chance to match geometrically.
   const verificationCandidates = [];
   const verificationIds = new Set();
   const addVerification = (match) => {
     const key = `${match.scryfall_id}:${match.face || 0}`;
-    if (verificationIds.has(key) || verificationCandidates.length >= 36) return;
+    if (verificationIds.has(key) || verificationCandidates.length >= 44) return;
     verificationIds.add(key);
     verificationCandidates.push(match);
   };
@@ -1191,14 +1197,14 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
 
   // Union in the best pure-art-hash printings the combined ranking missed, so
   // ORB can rescue artwork whose gray/color rank was poisoned by blur,
-  // occlusion, color cast, or a loose crop.
+  // occlusion, color cast, a loose crop, or a title bar already cut off.
   if (artGlobal) {
     const artTop = [];
     for (let i = 0; i < n; i++) {
-      if (artTop.length < 12 || artGlobal[i] < artTop[artTop.length - 1].d) {
+      if (artTop.length < 20 || artGlobal[i] < artTop[artTop.length - 1].d) {
         artTop.push({ i, d: artGlobal[i] });
         artTop.sort((a, b) => a.d - b.d);
-        if (artTop.length > 12) artTop.pop();
+        if (artTop.length > 20) artTop.pop();
       }
     }
     for (const t of artTop) {
@@ -1208,7 +1214,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       if (names.has(meta.name)) continue;
       names.add(meta.name);
       matches.push({ ...meta, strategy: "art-global" });
-      if (matches.length >= 36) break;
+      if (matches.length >= 44) break;
     }
   }
   // v2/grayscale fallback, or duplicate art candidates, may leave spare ORB
@@ -1290,7 +1296,6 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     // OpenCV's WASM heap is invisible to performance.memory, which is why a
     // 1000-card run reported 52MB of JS heap while the tab held 1.5GB.
     wasmHeapMB: self.cv && self.cv.HEAPU8 ? Math.round(self.cv.HEAPU8.length / 1e6) : null,
-    debugAllFiniteRank,
   };
 }
 
@@ -1508,13 +1513,10 @@ function ringSignature(imageData) {
 }
 
 async function verifyTopMatches(matches, queryImages, queryIsCardShaped) {
-  // Was slice(0, 24): the caller already builds `matches` (verificationCandidates)
-  // as 24 combined-rank printings PLUS up to 12 pure-art-hash printings appended
-  // after them specifically to rescue cards the combined rank missed. Re-slicing
-  // to 24 here silently dropped every one of those art-global printings before
-  // ORB ever saw them, making the whole rescue path dead code. Slice to the
-  // caller's own cap instead of re-imposing a narrower one.
-  const shortlist = matches.slice(0, 36);
+  // Caller builds `matches` as combined-rank printings plus pure-art-hash
+  // printings. Honor that full list (up to 44) — an older slice(0, 24) here
+  // silently dropped every art-global rescue candidate before ORB saw them.
+  const shortlist = matches.slice(0, 44);
   const refs = await Promise.all(shortlist.map((m) => fetchReference(m.scryfall_id, m.face || 0)));
   const queryFeats = queryImages.map((img) => orbFeatures(img, 500));
   // References are neutral Scryfall scans, so neutralize the query's room cast
