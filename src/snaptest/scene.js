@@ -221,14 +221,30 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080) 
     ? (frameH + 2 * maxOverflow - extent) / (rows - 1)
     : Infinity;
   const gapY = Math.max(Math.min(minGap, maxGapY), Math.min(factorY * baseY, maxGapY));
-  const originX = (frameW - (cols - 1) * gapX) / 2;
+  // Spread the cards evenly over the rows and centre each row on its own.
+  // Filling rows to `cols` and letting the last take the remainder produced a
+  // 4+4+2 layout with a conspicuous empty corner; real tables sit more like
+  // 4+3+3, each row roughly centred.
+  const perRow = [];
+  for (let r = 0, left = ok.length; r < rows; r++) {
+    const take = Math.ceil(left / (rows - r));
+    perRow.push(take);
+    left -= take;
+  }
   const originY = (frameH - (rows - 1) * gapY) / 2;
+  const slots = [];
+  for (let r = 0; r < rows; r++) {
+    const originX = (frameW - (perRow[r] - 1) * gapX) / 2;
+    for (let c = 0; c < perRow[r]; c++) {
+      slots.push({ sx: originX + c * gapX, sy: originY + r * gapY });
+    }
+  }
 
   const placed = [];
   for (let i = 0; i < ok.length; i++) {
-    const col = i % cols, row = (i / cols) | 0;
-    const cx = originX + col * gapX + (rnd() * 2 - 1) * gapX * jitter;
-    const cy = originY + row * gapY + (rnd() * 2 - 1) * gapY * jitter;
+    const slot = slots[i];
+    const cx = slot.sx + (rnd() * 2 - 1) * gapX * jitter;
+    const cy = slot.sy + (rnd() * 2 - 1) * gapY * jitter;
     // Tapped permanents really do sit sideways, so a quarter of cards turn 90.
     const tapped = rnd() < 0.25;
     const angle = sceneAngle + (tapped ? 90 : 0) + (rnd() * 2 - 1) * 12;
