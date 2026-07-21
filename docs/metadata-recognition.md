@@ -36,3 +36,19 @@ runs, and the benchmark shows it rarely changes the answer.
 Metadata must not override a decisive ORB result or a near-exact visual hash.
 It also cannot repair an absent-candidate framing failure merely by reranking;
 introducing a card globally requires sufficiently precise independent evidence.
+
+## Evidence policy
+
+The four visible regions are independent signals: name, mana cost, type line,
+and rules text. A high-confidence semantic contradiction is a veto: an exact
+`{1}` read is incompatible with `{2}`, and a clear `Sorcery` read is
+incompatible with a candidate whose primary type is only `Creature`. Compound
+types remain compatible when they overlap (`Creature` is compatible with
+`Artifact Creature`).
+
+That rule applies only above a measured confidence threshold. A cropped,
+rotated, occluded, or unreadable region is neutral rather than contradictory.
+Rules text is positive corroboration only because partial multi-line OCR is too
+easy to miss; matching rare words can promote a candidate, but missing words do
+not eliminate it. `metadataEvidence.js` owns these compatibility rules so the
+future extractor and ranker cannot quietly apply different policies.
