@@ -97,3 +97,34 @@ OCR is now pure cost: it produced **zero** identifications this run (1 in each o
 the two prior runs) and costs ~5.3s on each of the 13 cards that reach it,
 driving p90 to 12.3s. 87 of 100 cards short-circuit before it via
 visual-exact/art-match.
+
+## 2026-07-21 — `ocr-gate-1` — Tableau 10 scenes (100 cards) — **92.0%**
+
+Same benchmark as `tableau-20`, plus OCR gating. Accuracy up, tail nearly halved.
+
+- Avg **2.9s** (was 4.4s) / median 2.3s / p90 **7.0s** (was 12.3s) / max 13.6s.
+- By layout: side-by-side **100%** (60/60), spaced **100%** (30/30),
+  overlapping 20% (2/10).
+- By coverage: 0% coverage — **91/91, a clean sweep**.
+- By rotation: upright 87.3%, tapped 96.8%, upside-down 100%.
+- By pathway: visual-exact 48/48, art-match 37/37 — both 100%.
+
+**Every non-overlapping card was identified correctly.** All 8 misses sit in the
+single overlapping scene, which is 1 scene in 10 by design.
+
+Accuracy rose (90.0 -> 92.0) while OCR was gated off, confirming the gates
+discard nothing that mattered — OCR had produced 0-1 identifications per 100
+across four runs while costing ~5.3s on every card that reached it.
+
+Remaining known issues, both confined to the overlapping scene:
+
+1. **Adjacency, not coverage.** Cards at 8% coverage fail alongside cards at
+   40%. Touching contours merge and no crop isolates the target.
+2. **`rank` is now the dominant cost there** — 7.0-8.2s with 62-74 crops tried,
+   against ~39 elsewhere. Overlapping cards generate far more outline quads.
+   This is a side effect of the 12 candidate crops added to fix rotation.
+
+One ranking bug found and fixed here: 13 ORB inliers promoted "Riku and Riku"
+(d198) over the correct "Sowing Mycospawn" (d133) — the first miss ever recorded
+where the true card was ranked (4th) rather than absent. A non-decisive keypoint
+lead (<16 inliers) can no longer override a hash distance better by 50+.

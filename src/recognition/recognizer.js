@@ -1476,6 +1476,17 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped) {
       && (ranked[0].art_inliers || 0) < 1.5 * (ranked[1].art_inliers || 0)) {
       [ranked[0], ranked[1]] = [ranked[1], ranked[0]];
     }
+    // A keypoint lead that is not decisive (>=16 is what makes an art match
+    // decisive) must not override a decisively better hash. Observed: 13
+    // inliers promoted "Riku and Riku" at d198 over the correct "Sowing
+    // Mycospawn" at d133 — a 65-point distance gap losing to a count barely
+    // above the noise floor. Confident art matches are untouched by this.
+    if ((ranked[0]?.art_inliers || 0) < 16) {
+      const closest = ranked.reduce((a, b) => (b.distance < a.distance ? b : a), ranked[0]);
+      if (closest !== ranked[0] && closest.distance + 50 <= ranked[0].distance) {
+        ranked = [closest, ...ranked.filter((m) => m !== closest)];
+      }
+    }
   } else {
     // Keypoints are noise at this capture quality (e.g. 6 matches everywhere).
     // Do NOT reorder by them — rank by frame agreement, then color agreement,

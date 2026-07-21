@@ -4,7 +4,7 @@ import App from "./App.jsx";
 import SnapTest from "./SnapTest.jsx";
 import "./styles.css";
 
-const BUILD = "ocr-gate-1 (skip OCR when it cannot change the answer)";
+const BUILD = "ocr-gate-2 (marginal ORB lead cannot override a much better hash)";
 window.__SNAP_BUILD = BUILD;
 console.log(`%c[snapcaster] build: ${BUILD}`, "color:#0a0;font-weight:bold");
 
