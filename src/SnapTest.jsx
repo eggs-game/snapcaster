@@ -20,6 +20,10 @@ const MODES = {
     label: "Tableau 10 scenes — EDH staples (100 cards)",
     size: 100, scenes: 10, perScene: 10, popular: 15000,
   },
+  tableauEdh100: {
+    label: "Tableau 100 scenes — EDH staples (1000 cards)",
+    size: 1000, scenes: 100, perScene: 10, popular: 15000,
+  },
   edh200: { label: "EDH staples 200 (single cards)", size: 200, popular: 15000 },
 };
 
@@ -135,8 +139,8 @@ export default function SnapTest() {
       if (list) list.push(r[3]); else byName.set(r[0], [r[3]]);
     }
     // Keep every printing of a name so runs vary the artwork, not just the card.
-    const build = (list) => list
-      .map((name) => ({ name, ids: byName.get(name) }))
+    const build = (list, pool) => list
+      .map((name) => ({ name, ids: byName.get(name), pool }))
       .filter((e) => e.ids);
     // Snow-covered basics and Wastes turn up in real decks too — they surfaced
     // as gaps when the per-commander lists were checked against global rank.
@@ -144,8 +148,10 @@ export default function SnapTest() {
       "Forest", "Island", "Swamp", "Mountain", "Plains", "Wastes",
       "Snow-Covered Forest", "Snow-Covered Island", "Snow-Covered Swamp",
       "Snow-Covered Mountain", "Snow-Covered Plains",
-    ]);
-    popularRef.current = { cards: build(names), tokens: build(tokens), basics };
+    ], "basic");
+    popularRef.current = {
+      cards: build(names, "card"), tokens: build(tokens, "token"), basics,
+    };
     return popularRef.current;
   };
 
@@ -172,7 +178,10 @@ export default function SnapTest() {
       const key = `${entry.name}:${j}`;
       if (seen.has(key)) continue;
       seen.add(key);
-      picked.push({ name: entry.name, id: entry.ids[(Math.random() * entry.ids.length) | 0] });
+      picked.push({
+        name: entry.name, pool: entry.pool,
+        id: entry.ids[(Math.random() * entry.ids.length) | 0],
+      });
     }
     return picked;
   };
@@ -229,7 +238,7 @@ export default function SnapTest() {
         const rec = {
           name: p.card.name, id: p.card.id, ok: false, err: null, errStage: null, ms: 0,
           rotationClass: p.rotationClass, occ: p.occ, scene: s, coverage: p.coverage,
-          click: p.click, layout: p.layout, clipped: p.clipped,
+          click: p.click, layout: p.layout, clipped: p.clipped, pool: p.card.pool,
         };
         const t0 = performance.now();
         let cropUrl = null;
@@ -290,7 +299,10 @@ export default function SnapTest() {
     for (let i = 0; i < set.length; i++) {
       if (cancelRef.current) break;
       const card = set[i];
-      const rec = { i, name: card.name, id: card.id, ok: false, err: null, errStage: null, ms: 0 };
+      const rec = {
+        i, name: card.name, id: card.id, pool: card.pool,
+        ok: false, err: null, errStage: null, ms: 0,
+      };
       const t0 = performance.now();
       let degradedUrl = null;
       try {
@@ -381,6 +393,11 @@ export default function SnapTest() {
     // Tableau-only: how much of the loss is the table being packed vs the
     // recognizer simply failing on an isolated card.
     if (okList.some((r) => r.layout)) sum.byLayout = groupAcc(okList, (r) => r.layout);
+    // Ranked card vs token vs basic land. Tokens carry no mana cost and little
+    // rules text, so they are the case most likely to behave differently — and
+    // the one the app most needs to get right, since a remote table cannot read
+    // a token by leaning over.
+    if (okList.some((r) => r.pool)) sum.byPool = groupAcc(okList, (r) => r.pool);
     // How much a card running off the frame edge actually costs.
     if (okList.some((r) => typeof r.clipped === "number")) {
       sum.byClipped = groupAcc(okList, (r) => {
@@ -430,7 +447,7 @@ export default function SnapTest() {
       mode,
       summary,
       misses: results.filter((r) => !r.ok && !r.err).map((r) => ({
-        name: r.name, id: r.id, got: r.top, by: r.by,
+        name: r.name, id: r.id, pool: r.pool, got: r.top, by: r.by,
         dist: r.dist, conf: r.conf, trueRank: r.trueRank, trueDist: r.trueDist,
         top3: r.top3,
         rot: r.rotationClass, occ: r.occ, ms: r.ms,
@@ -544,6 +561,7 @@ export default function SnapTest() {
               {summary.byCoverage && <Breakdown title="By neighbour coverage" data={summary.byCoverage} />}
               {summary.byLayout && <Breakdown title="By table layout" data={summary.byLayout} />}
               {summary.byClipped && <Breakdown title="By frame clipping" data={summary.byClipped} />}
+              {summary.byPool && <Breakdown title="By card kind" data={summary.byPool} />}
             </div>
             {misses.length > 0 && (
               <div style={{ marginTop: 16 }}>
