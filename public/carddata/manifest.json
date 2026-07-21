@@ -1,1 +1,1 @@
-{"version":3,"count":110524,"names":35026,"shards":256,"generated_at":"2026-07-19T15:40:06Z"}
+{"version":4,"count":110533,"names":35032,"shards":256,"cards_fields":["name","set","collector_number","scryfall_id","face"],"shard_fields":["name","set","collector_number","scryfall_id","face","hash","color","art_hash","mana_cost","type_line","oracle_text"],"generated_at":"2026-07-21T22:55:17Z"}
