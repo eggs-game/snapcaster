@@ -33,6 +33,24 @@ function toGray(imageData) {
   return { pix: g, w: width, h: height };
 }
 
+// Mean absolute gradient — a cheap "is there anything here?" measure. Empty
+// wall/skin/playmat lands near 1-4; even a small, blurry card carries frame
+// borders, text and art edges and lands well above 10.
+const BACKGROUND_DETAIL_MIN = 6;
+
+function detailScore(gray) {
+  const { pix, w, h } = gray;
+  let sum = 0, count = 0;
+  for (let y = 1; y < h - 1; y += 2) {
+    for (let x = 1; x < w - 1; x += 2) {
+      const i = y * w + x;
+      sum += Math.abs(pix[i] - pix[i + 1]) + Math.abs(pix[i] - pix[i + w]);
+      count++;
+    }
+  }
+  return count ? sum / count : 0;
+}
+
 function areaResize(gray, dw, dh) {
   const { pix, w, h } = gray;
   const out = new Float32Array(dw * dh);
@@ -742,6 +760,11 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     const p = { nx: normalizedPoint.nx + dx, ny: normalizedPoint.ny + dy };
     candidates.push({ image: centerCropImageData(bmp, 0.4, p), strategy: `off${Math.round(dx * 100)},${Math.round(dy * 100)}` });
   }
+  // Deep up-offsets: a card held to the forehead sits 15-30% of the frame
+  // above the click, beyond the reach of the mild offsets above. Real scans
+  // regressed on exactly this while every crop stayed centered on the click.
+  candidates.push({ image: centerCropImageData(bmp, 0.45, { nx: normalizedPoint.nx, ny: normalizedPoint.ny - 0.18 }), strategy: "off0,-18" });
+  candidates.push({ image: centerCropImageData(bmp, 0.5, { nx: normalizedPoint.nx, ny: normalizedPoint.ny - 0.26 }), strategy: "off0,-26" });
   if (bmp.close) bmp.close();
 
   // Rank every candidate against the full printing index. The sharded (v2)
@@ -760,6 +783,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   const artGlobalStrategies = new Set([
     "full-frame", "outline-1", "outline-2", "center-45", "center-35", "center-27",
     "tilt20@35", "tilt-20@35", "off0,-11", "off0,-6", "off-8,-4", "off8,-4", "off0,7",
+    "off0,-18", "off0,-26",
   ]);
   // Combined gray+art+color ranking score (v3). Gray distances stay in `dists`
   // for the calibrated display/keep gates.
@@ -773,15 +797,29 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   // Prepare every candidate's hashes (cheap). The expensive full-index scans
   // below are limited to a few diverse SEED crops; scoring all ~27 crops
   // against 110k cards (8 hash variants each) was the dominant per-scan cost.
-  const prepared = candidates.map((candidate) => {
+  const preparedAll = candidates.map((candidate) => {
     // White-balance the crop so a warm/cool room cast doesn't bias the
     // grayscale hash or the color signature toward mis-tinted cards.
     const wbImage = whiteBalance(candidate.image);
     const gray = toGray(wbImage);
     const variants = queryVariants(gray);
-    queryCandidates.push({ strategy: candidate.strategy, vectors: variants });
-    return { candidate, wbImage, gray, variants };
+    return { candidate, wbImage, gray, variants, detail: detailScore(gray) };
   });
+  // Drop crops that contain no card — just wall, skin, or playmat. A
+  // featureless crop hashes closest to a FEATURELESS INDEX ENTRY, which is why
+  // "Blank Card", "Double-Faced Substitute Card" and "Find the Assassin
+  // (cont'd)" accounted for a quarter of all misses once degrade v2 started
+  // placing cards off-center and edge-cut. Even a small, blurry card carries
+  // frame borders and text, so it clears this bar comfortably; empty
+  // background does not. Keep everything if nothing clears it, so a genuinely
+  // low-contrast scan still gets its best shot.
+  const prepared = preparedAll.filter((p) => p.detail >= BACKGROUND_DETAIL_MIN);
+  if (!prepared.length) prepared.push(...preparedAll);
+  // The visual fallback searches these too, so it must not see background
+  // crops either — same blank-card trap, different code path.
+  for (const p of prepared) {
+    queryCandidates.push({ strategy: p.candidate.strategy, vectors: p.variants });
+  }
   if (prepared.length) {
     bestCandidateImage = prepared[0].candidate.image;
     bestCandidateStrategy = prepared[0].candidate.strategy;
@@ -824,12 +862,12 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   // click (forehead hold, card near the frame edge), so the up-shifted crop is
   // often the ONLY candidate that frames the card at all.
   const SEED_PRIORITY = ["full-frame", "outline-1", "outline-2", "center-45",
-    "center-27", "off0,-11", "tilt20@60", "tilt-20@60"];
+    "center-27", "off0,-11", "off0,-18", "tilt20@60", "tilt-20@60"];
   const seedIdx = new Set();
   for (const s of SEED_PRIORITY) {
     const i = prepared.findIndex((p, pi) => !seedIdx.has(pi) && p.candidate.strategy === s);
     if (i >= 0) seedIdx.add(i);
-    if (seedIdx.size >= 7) break;
+    if (seedIdx.size >= 8) break;
   }
   for (let i = 0; i < prepared.length && seedIdx.size < 5; i++) seedIdx.add(i);
 
@@ -1014,23 +1052,23 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   let artBest = null, artChecked = 0, artDecisive = false;
   if (cvReady && verificationCandidates.length && bestCandidateImage) {
     try {
-      // Feed ORB pure-card crops. Outline rectifications exclude the skin/hair
-      // background that was drowning the keypoint matches (weak 0-4 inliers on
-      // every real scan). When the best candidate IS a clean outline/full-frame
-      // crop, two queries suffice — halving keypoint matching; the backup
-      // offset/tight crops only earn their cost when no outline isolated it.
+      // Feed ORB a DIVERSE crop set. Outline rectifications exclude the
+      // skin/hair background, but on real camera scans the outline detector
+      // regularly latches onto hair/hand edges instead of the card — trimming
+      // to outline-only queries left ORB with two bad crops and 0-2 inliers on
+      // every real scan. Always keep a center and an offset crop as backup;
+      // they cost one extra keypoint pass and are the difference between an
+      // art match and a shrug.
       const cardShaped = bestCandidateStrategy === "full-frame" || bestCandidateStrategy.startsWith("outline-");
-      const queryImages = (cardShaped
-        ? [
-          ...candidates.filter((c) => c.strategy.startsWith("outline-")).slice(0, 2).map((c) => c.image),
-          bestCandidateImage,
-        ]
-        : [
-          bestCandidateImage,
-          candidates.find((c) => c.strategy === "off0,-11")?.image,
-          candidates.find((c) => c.strategy === "center-27")?.image,
-        ]
-      ).filter((img, i, arr) => img && arr.indexOf(img) === i).slice(0, cardShaped ? 2 : 3);
+      // Sourced from `prepared` (background crops already removed) so ORB is
+      // never handed an empty wall/skin crop to match against.
+      const kept = prepared.map((p) => p.candidate);
+      const queryImages = [
+        bestCandidateImage,
+        ...kept.filter((c) => c.strategy.startsWith("outline-")).slice(0, 2).map((c) => c.image),
+        kept.find((c) => c.strategy === "off0,-11")?.image,
+        kept.find((c) => c.strategy === "center-45")?.image,
+      ].filter((img, i, arr) => img && arr.indexOf(img) === i).slice(0, 4);
       const verified = await verifyTopMatches(verificationCandidates, queryImages, cardShaped);
       // Keep the result UI compact after printing-level verification. The best
       // verified treatment wins for each name, and a decisive exact artwork
@@ -1068,6 +1106,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     titleSource: preferredTitleCandidates,
     titleCount: preferredTitleCandidates.length,
     cardFound, cvStatus, candidatesTried, shardedIndex,
+    cropsDropped: preparedAll.length - prepared.length,
     artBest, artChecked, artDecisive, stageMs: stage.ms,
   };
 }

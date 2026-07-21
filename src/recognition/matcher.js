@@ -58,7 +58,7 @@ function getWorker() {
     worker.onmessage = (e) => {
       const {
         id, matches, printingMatches, titleCandidates, titleCount, queryCandidates,
-        shardedIndex, cardFound, cvStatus, candidatesTried, artBest, artChecked,
+        shardedIndex, cardFound, cvStatus, candidatesTried, cropsDropped, artBest, artChecked,
         artDecisive, stageMs, error,
       } = e.data || {};
       const p = pending.get(id);
@@ -77,6 +77,7 @@ function getWorker() {
         card_found: !!cardFound,
         cv_status: cvStatus || "unknown",
         candidates_tried: candidatesTried || 0,
+        crops_dropped: cropsDropped || 0,
         art_best: artBest || null,
         art_checked: artChecked || 0,
         art_decisive: !!artDecisive,

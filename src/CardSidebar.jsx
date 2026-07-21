@@ -548,7 +548,7 @@ export default function CardSidebar({
                 {current.cameraRes && <span>Camera: {current.cameraRes}</span>}
                 {best && (
                   <span>
-                    Best: d{best.distance} via {best.strategy || "?"} ({current.candidatesTried || 1} tried)
+                    Best: d{best.distance} via {best.strategy || "?"} ({current.candidatesTried || 1} tried{current.cropsDropped ? `, ${current.cropsDropped} empty dropped` : ""})
                   </span>
                 )}
                 {current.artBest && (

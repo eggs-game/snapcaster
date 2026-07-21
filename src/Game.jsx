@@ -178,6 +178,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
         cardFound: data.card_found,
         cvStatus: data.cv_status,
         candidatesTried: data.candidates_tried,
+        cropsDropped: data.crops_dropped,
         ocrText: data.ocr_text,
         ocrConfidence: data.ocr_confidence,
         ocrRotation: data.ocr_rotation,
