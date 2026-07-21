@@ -25,6 +25,13 @@ const MODES = {
     size: 1000, scenes: 100, perScene: 10, popular: 15000,
   },
   edh200: { label: "EDH staples 200 (single cards)", size: 200, popular: 15000 },
+  // Third-party test set (arcane-table-card-recognition-test-data): the SAME
+  // 200 cards photographed/cropped at three severities. Fed to the recogniser
+  // exactly as supplied — no scene generation, no degradation of our own — so
+  // this measures our pipeline against somebody else's idea of hard.
+  arcaneLight: { label: "Arcane set — light (200 cards)", size: 200, arcane: "light" },
+  arcaneMedium: { label: "Arcane set — medium (200 cards)", size: 200, arcane: "medium" },
+  arcaneHeavy: { label: "Arcane set — heavy (200 cards)", size: 200, arcane: "heavy" },
 };
 
 // Pull every diagnostic the pipeline exposes onto the record. The expensive
@@ -202,7 +209,20 @@ export default function SnapTest() {
     return picked;
   };
 
+  // The arcane buckets ship as fixed image files with the scryfall id in the
+  // filename, so ground truth is exact and needs no lookup at run time.
+  const loadArcane = async (bucket) => {
+    const manifest = await (await fetch("/snaptest/arcane/manifest.json")).json();
+    return (manifest[bucket] || []).map((e) => ({
+      name: e.name,
+      id: e.id,
+      pool: "arcane",
+      imageUrl: `/snaptest/arcane/${bucket}/${e.file}`,
+    }));
+  };
+
   const buildRunSet = async () => {
+    if (MODES[mode].arcane) return loadArcane(MODES[mode].arcane);
     const popular = MODES[mode].popular;
     if (popular) return samplePopular(MODES[mode].size, popular);
     if (mode === "random200") return sampleIndex(200);
@@ -307,17 +327,25 @@ export default function SnapTest() {
       const t0 = performance.now();
       let degradedUrl = null;
       try {
-        let img;
-        try {
-          img = await loadImage(scryfallImageUrl(card.id));
-        } catch (e) {
-          rec.errStage = "image-load"; // Scryfall fetch/decode failed — not a recognition failure
-          throw e;
+        if (card.imageUrl) {
+          // Supplied as-is. Applying our own degradation on top would measure
+          // our harness, not their test set.
+          degradedUrl = card.imageUrl;
+          rec.rotationClass = MODES[mode].arcane;
+          rec.occ = "as-supplied";
+        } else {
+          let img;
+          try {
+            img = await loadImage(scryfallImageUrl(card.id));
+          } catch (e) {
+            rec.errStage = "image-load"; // Scryfall fetch/decode failed — not a recognition failure
+            throw e;
+          }
+          const deg = degrade(img, i);
+          rec.rotationClass = deg.rotationClass;
+          rec.occ = deg.occ;
+          degradedUrl = deg.url;
         }
-        const deg = degrade(img, i);
-        rec.rotationClass = deg.rotationClass;
-        rec.occ = deg.occ;
-        degradedUrl = deg.url;
         let data;
         try {
           data = await identifyCard(degradedUrl, { nx: 0.5, ny: 0.5 });
@@ -491,7 +519,9 @@ export default function SnapTest() {
           Each card is degraded (small, blurry, sideways, upside-down, fingers, dice) and
           identified; a miss means the top match was the wrong card. <b>Random 200</b> draws a
           fresh sample from the full {indexCards ? indexCards.length.toLocaleString() : "110k"}-card
-          index every run — good for discovering new failure cases. <b>Fixed</b> sets always use
+          index every run. <b>Arcane set</b> modes run a third-party test set as supplied —
+          the same 200 cards at light / medium / heavy crop severity, with no degradation of
+          ours applied on top — good for discovering new failure cases. <b>Fixed</b> sets always use
           the same cards, for measuring whether a change helped or regressed.
         </p>
         <p style={S.sub}>
