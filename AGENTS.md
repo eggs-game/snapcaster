@@ -1,25 +1,52 @@
 # Snapcaster — agent context
 
-Read **README.md § "Development handoff — July 19, 2026"** first; it is the
-authoritative, up-to-date description of the architecture, the recognition
-pipeline, verified behavior, and known limits.
+Start with the docs; they are the authoritative description of this project.
 
-Quick facts:
+| Doc | Covers |
+| --- | --- |
+| [docs/why.md](docs/why.md) | Why the app exists, what "working" means, non-goals |
+| [docs/architecture.md](docs/architecture.md) | Stack, file layout, card index, multiplayer, security |
+| [docs/recognition.md](docs/recognition.md) | The identification pipeline, stage by stage |
+| [docs/testing.md](docs/testing.md) | SNAPTEST — how to verify a change |
+| [snaptest/results.md](snaptest/results.md) | Benchmark history with per-run analysis |
 
-- Production: https://snapcaster.vercel.app — auto-deploys on every push to
-  `main` (the only branch). Verify deploys via the commit's GitHub status
-  ("Vercel" context) before telling anyone something is live.
-- Stack: Vite + React, Supabase Realtime (signaling only), WebRTC 4-player
-  mesh, recognition in a Web Worker (OpenCV.js + pHash/dHash + ORB art
-  verification) with tesseract.js title OCR on the main thread.
-- Card index: `public/carddata/` v2 sharded (110k printings), rebuilt by the
-  "Build card index" GitHub Action (monthly + manual). Committed to `main` by
-  the workflow itself.
-- No local node/npm assumed on dev machines — pushes build on Vercel.
+## Working agreements
+
+- **Production:** <https://snapcaster.vercel.app>, auto-deploys on every push
+  to `main` (the only branch). Confirm a deploy via the commit's GitHub status
+  before telling anyone something is live.
+- **No local node/npm** is assumed on dev machines — pushes build on Vercel.
   Verify recognition changes against the live site with
-  `window.__scIdentifyUrl(imageUrl)` from the browser console (full pipeline,
-  no camera), using degraded/tilted test images to simulate webcam reality.
-- Bump the `BUILD` marker in `src/main.jsx` on every recognition change so
-  browser-cache confusion is immediately diagnosable.
-- Hashing in `src/recognition/recognizer.js` and `hash.js` must stay
-  bit-compatible with `scripts/build_index.py` — change both or neither.
+  `window.__scIdentifyUrl(imageUrl, {nx, ny})` from the browser console, which
+  runs the full pipeline without a camera.
+- **Bump the `BUILD` marker** in `src/main.jsx` on every recognition change so
+  stale-cache confusion is immediately diagnosable.
+- **Hashing is a cross-language contract.** `scripts/build_index.py`,
+  `src/recognition/hash.js` and the duplicated copy inside
+  `src/recognition/recognizer.js` must all agree bit-for-bit. CI enforces this
+  via `test_hash_compat.py` and `check_hash_duplication.py`. Change all sides
+  or none.
+- **A crop must be a seed to introduce an answer.** Non-seed crops only refine
+  the shortlist the seeds built, so adding a candidate crop without adding it
+  to `SEED_PRIORITY` usually does nothing.
+
+## Hard-won lessons
+
+These cost real debugging time; do not relearn them.
+
+- **Two runs of 100 differ by ~2 cards from noise alone.** Do not ship a fix on
+  a 2-card movement, and do not build a story around one. This has already
+  produced two changes that did nothing.
+- **Verify, don't assume.** The most valuable findings here came from control
+  experiments — cropping a card perfectly out of a scene to prove framing was
+  the whole problem, and injecting a deliberate change to prove a CI check
+  actually fails.
+- **Check the benchmark before blaming the recogniser.** A 1st-half/2nd-half
+  accuracy gap means the harness is degrading. A 1.5GB tab once reported 52MB
+  of JS heap, because OpenCV's WASM heap is invisible to `performance.memory`.
+- **A benchmark that cannot reproduce the failure cannot verify the fix.**
+  SNAPTEST reported 97% on single centred cards while real scans were failing.
+- **Fixing one rotation can break another.** Landscape crops took tapped cards
+  from 42% to 97% and simultaneously regressed upside-down from 58% to 33%,
+  because the new seeds displaced others. Check `byRotation` after any crop
+  change.
