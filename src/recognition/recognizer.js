@@ -927,13 +927,17 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   // 3rd or 4th, which previously meant it only ever refined a shortlist it was
   // never in, and the correct card was absent from every match.
   const SEED_PRIORITY = ["full-frame", "outline-1", "outline-2", "outline-3",
-    "outline-4", "outline-5", "art-50", "art-65", "art-38", "center-45",
-    "center-27", "off0,-11", "off0,-18", "tilt20@60", "tilt-20@60"];
+    "art-50", "art-65", "center-45", "off0,-11", "outline-4", "art-38",
+    "center-27", "off0,-18", "tilt20@60", "tilt-20@60"];
   const seedIdx = new Set();
   for (const s of SEED_PRIORITY) {
     const i = prepared.findIndex((p, pi) => !seedIdx.has(pi) && p.candidate.strategy === s);
     if (i >= 0) seedIdx.add(i);
-    if (seedIdx.size >= 12) break;
+    // Each seed is a full 110k scan. Twelve seeds ran ~4x slower per card in a
+    // spot check with no measured accuracy gain, so the budget stays at 8;
+    // outline-3 and the two art-anchored crops are the additions worth paying
+    // for. Widening this again needs evidence, not intuition.
+    if (seedIdx.size >= 8) break;
   }
   for (let i = 0; i < prepared.length && seedIdx.size < 5; i++) seedIdx.add(i);
 
