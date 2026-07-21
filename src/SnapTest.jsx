@@ -138,7 +138,13 @@ export default function SnapTest() {
     const build = (list) => list
       .map((name) => ({ name, ids: byName.get(name) }))
       .filter((e) => e.ids);
-    const basics = build(["Forest", "Island", "Swamp", "Mountain", "Plains"]);
+    // Snow-covered basics and Wastes turn up in real decks too — they surfaced
+    // as gaps when the per-commander lists were checked against global rank.
+    const basics = build([
+      "Forest", "Island", "Swamp", "Mountain", "Plains", "Wastes",
+      "Snow-Covered Forest", "Snow-Covered Island", "Snow-Covered Swamp",
+      "Snow-Covered Mountain", "Snow-Covered Plains",
+    ]);
     popularRef.current = { cards: build(names), tokens: build(tokens), basics };
     return popularRef.current;
   };
