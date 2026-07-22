@@ -59,8 +59,9 @@ metadata observations but drops them from its export, so completed misses
 cannot satisfy the required metadata analysis without being rerun. Code
 inspection confirmed the omission. The harness-only fix centralizes the Copy
 payload, adds the captured metadata fields, and exposes the identical payload
-as `window.__SNAPTEST_LAST_RESULT` when clipboard access is unavailable. It
-does not alter recognition or the BUILD marker. Production build and hash-copy
+as `window.__SNAPTEST_LAST_RESULT` plus a hidden `#snaptest-result` element when
+clipboard or page-world access is unavailable. It does not alter recognition
+or the BUILD marker. Production build and hash-copy
 checks pass; full hash compatibility could not start locally because the
 Python environment lacks `cv2`, so CI remains the authoritative check.
 

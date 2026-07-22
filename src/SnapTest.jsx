@@ -586,6 +586,12 @@ export default function SnapTest() {
           {summary && <button style={S.copy} onClick={copyResults}>{copied ? "Copied ✓" : "Copy results"}</button>}
         </div>
 
+        {summary && (
+          <pre id="snaptest-result" hidden>
+            {JSON.stringify(buildResultPayload(mode, summary, results))}
+          </pre>
+        )}
+
         {(running || progress.done > 0) && (
           <div style={S.progressCard}>
             <div style={S.progressRow}>
