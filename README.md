@@ -79,6 +79,12 @@ with `VITE_`. Snapcaster's `/api/turn-credentials` function exchanges them for
 the long-lived TURN key. Create a production TURN key in **Cloudflare Dashboard
 → Realtime → TURN**, then redeploy after adding both variables.
 
+Optional usage monitoring requires two additional server-only variables:
+`CLOUDFLARE_ACCOUNT_ID` and a `CLOUDFLARE_ANALYTICS_API_TOKEN` limited to
+**Account Analytics: Read**. `/api/turn-usage` then reports only aggregate
+current-month TURN ingress/egress and allowance percentages; it never returns
+the account ID or API token.
+
 If you ran the index build *after* deploying, go to Vercel → your project → **Deployments** → ⋯ → **Redeploy** so the site picks up the new index.
 
 ### Step 6 — Play

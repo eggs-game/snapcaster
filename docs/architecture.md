@@ -71,6 +71,10 @@ also be watched in Cloudflare Realtime analytics.
 opening media devices and reports only candidate counts/protocols, never the
 short-lived credential. `/turntest` exposes the same safe result as a small
 production health page.
+`api/turn-usage.js` is a read-only, same-origin analytics broker. With a
+Cloudflare Account Analytics token in Vercel, it aggregates current-month TURN
+egress and projects month-end use against the 1,000 GB allowance without
+exposing the account ID or analytics token.
 
 ## The card index
 
