@@ -41,4 +41,9 @@ jobs:
         with:
           node-version: "20"
       - run: npm ci --no-audit --no-fund
+      # package-lock.json is generated on macOS. npm/cli#4828 can omit the
+      # Linux Rollup native optional package from a clean `npm ci`, even though
+      # Rollup declares it. Install the exact locked Rollup native explicitly
+      # so CI tests the app instead of failing in Rollup's loader.
+      - run: npm install --no-save --no-audit --no-fund @rollup/rollup-linux-x64-gnu@4.62.2
       - run: npm run build
