@@ -9,6 +9,34 @@ Newest first. Run via `snapcaster.vercel.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-07-21 — `art-rescue-2` — Full Test Plan baseline
+
+The first complete manual Full Test Plan established the daily three-suite
+baseline and reproduced the real framing gap that degrade v2 was built to show.
+
+- **Tableau 10 scenes / EDH staples:** 91/100 (91.0%), 0 errors; avg 3.3s,
+  median 3.0s, p90 5.2s. Clear and spaced/side-by-side cards were 97%; the six
+  overlapped cards were 33%. Art-match and visual-exact were both 100% precise.
+- **Random 200:** 152/199 (76.4%), 1 image-load error; avg 3.2s, median 3.4s,
+  p90 4.3s. First half 83.8%, second half 69.0%.
+- **EDH staples 200:** 155/199 (77.9%), 1 image-load error; avg 3.0s, median
+  3.2s, p90 4.3s. First half 83.8%, second half 72.0%.
+
+Both independent 200-card runs started near 100%, then fell sharply at card 48.
+That boundary is deterministic benchmark behavior, not session degradation:
+degrade v2 changes placement in 16-card blocks, and indices 48–63 are the first
+block deliberately clipped against the top edge. A 63-card diagnostic rerun
+with staged reference requests and a 48-entry cache reproduced the same fall;
+all 15 misses fetched 36/36 references successfully and every accepted art
+match remained correct. The speculative request/cache changes were discarded.
+
+All 91 recognition misses in the complete 200-card runs had the true card
+absent from the shortlist. The next accuracy work should therefore target
+top-edge/off-center crop recall, then verify every rotation and the Fixed 200
+control. Tableau's remaining gap is separately concentrated in overlapping
+cards. Do not tune ORB thresholds or metadata gates from these misses—the true
+printing never reached either verifier.
+
 ## 2026-07-21 — `art-rescue-2` — bounded Arcane-medium A/B — READY
 
 - Current `main` reached **9/20 (45%)** on the fixed Arcane-medium prefix.
