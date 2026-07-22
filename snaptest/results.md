@@ -9,6 +9,38 @@ Newest first. Run via `snapcaster.vercel.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-07-21 — `outline-offclick-1` — Full Test Plan — READY
+
+The first degrade-v2 Full Test Plan exposed a deterministic cliff at index 48:
+top-edge clipping moved the click away from the real card, and the contour
+stage discarded every outline that did not contain it. A bounded off-click
+outline quota restores those candidates. A spatial-rival guard disables the
+quota in crowded scenes so a neighbouring card cannot win by a perfect art
+match.
+
+- **Tableau 10 scenes / EDH staples:** **91/100 (91.0%)**, 0 errors; avg 2.9s,
+  median 2.3s, p90 4.6s. Art-match 84/84 and visual-exact 6/6 were 100%
+  precise. The remaining nine misses were eight absent and one rank 6+.
+- **Random 200:** **184/200 (92.0%)**, 0 errors; avg 4.0s, median 3.6s,
+  p90 7.0s. Art-match was 182/182 precise. Placement accuracy was 98.2%,
+  100%, 100% and 68.8% for the four blocks.
+- **EDH staples 200:** **186/200 (93.0%)**, 0 errors; avg 3.2s, median 3.3s,
+  p90 4.3s. Art-match was 181/181 precise. The three non-edge placement
+  blocks were 100%; top-edge-clipped was 34/48 (70.8%).
+- **Fixed 200 regression control:** **94.0%** with the first three placement
+  blocks at 100% and top-edge-clipped at 74.5%.
+- A new **Fixed top-edge 64** mode makes this failure class directly and
+  deterministically testable. The original recogniser scored **8/64 (12.5%)**;
+  the bounded off-click candidate experiment scored **47/64 (73.4%)**.
+
+An unconditional off-click quota was rejected after it produced perfect art
+matches on neighbouring cards in overlapping tableaux. Edge-specific crop
+families and a wider escalation threshold were also tested and discarded: both
+left the targeted result at 12.5%. The accepted change clears the 90% goal on
+all three Full Test Plan suites without sacrificing accepted-match precision.
+The remaining route toward 95% is now explicit: improve top-edge recall while
+keeping the crowded-scene guard, then isolate overlapping tableau contours.
+
 ## 2026-07-21 — `art-rescue-2` — Full Test Plan baseline
 
 The first complete manual Full Test Plan established the daily three-suite

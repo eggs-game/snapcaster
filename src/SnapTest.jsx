@@ -13,6 +13,7 @@ const STAGE_LABEL = {
 const MODES = {
   random200: { label: "Random 200 (new each run)", size: 200 },
   fixed200: { label: "Fixed 200 (regression)", size: 200 },
+  fixedTopEdge64: { label: "Fixed top-edge 64 (targeted)", size: 64, topEdge: true },
   fixed1000: { label: "Fixed 1000 (regression)", size: 1000 },
   tableau10: { label: "Tableau 10 scenes (100 cards)", size: 100, scenes: 10, perScene: 10 },
   tableau100: { label: "Tableau 100 scenes (1000 cards)", size: 1000, scenes: 100, perScene: 10 },
@@ -231,6 +232,15 @@ export default function SnapTest() {
     if (popular) return samplePopular(MODES[mode].size, popular);
     if (mode === "random200") return sampleIndex(200);
     if (mode.startsWith("tableau")) return sampleIndex(MODES[mode].size);
+    if (MODES[mode].topEdge) {
+      // Four deterministic repetitions of degrade-v2's hardest placement
+      // block. Adding 64 changes the degradation seed while preserving the
+      // same top-edge placement, rotation and occlusion cycle.
+      return cards.slice(0, MODES[mode].size).map((card, i) => ({
+        ...card,
+        degradeIndex: 48 + (i % 16) + 64 * Math.floor(i / 16),
+      }));
+    }
     return cards.slice(0, MODES[mode].size);
   };
 
@@ -345,9 +355,12 @@ export default function SnapTest() {
             rec.errStage = "image-load"; // Scryfall fetch/decode failed — not a recognition failure
             throw e;
           }
-          const deg = degrade(img, i);
+          const degradeIndex = card.degradeIndex ?? i;
+          const deg = degrade(img, degradeIndex);
+          rec.degradeIndex = degradeIndex;
           rec.rotationClass = deg.rotationClass;
           rec.occ = deg.occ;
+          rec.placementClass = deg.placementClass;
           degradedUrl = deg.url;
         }
         let data;
@@ -432,6 +445,9 @@ export default function SnapTest() {
     // If art-match is 98% but only fires 10% of the time, the work is to fire
     // it more often — not to make it more accurate.
     sum.byPathway = groupAcc(okList, (r) => r.by || "(no match)");
+    if (okList.some((r) => r.placementClass)) {
+      sum.byPlacement = groupAcc(okList, (r) => r.placementClass);
+    }
     // Tableau-only: how much of the loss is the table being packed vs the
     // recognizer simply failing on an isolated card.
     if (okList.some((r) => r.layout)) sum.byLayout = groupAcc(okList, (r) => r.layout);
@@ -492,6 +508,7 @@ export default function SnapTest() {
         name: r.name, id: r.id, pool: r.pool, got: r.top, by: r.by,
         dist: r.dist, conf: r.conf, trueRank: r.trueRank, trueDist: r.trueDist,
         top3: r.top3,
+        i: r.i, degradeIndex: r.degradeIndex, placement: r.placementClass,
         rot: r.rotationClass, occ: r.occ, ms: r.ms,
         cv: r.cv, tried: r.tried, dropped: r.dropped,
         artBest: r.artBest, artChecked: r.artChecked,
@@ -501,6 +518,7 @@ export default function SnapTest() {
       })),
       errors: results.filter((r) => r.err).map((r) => ({
         name: r.name, id: r.id, stage: r.errStage, ms: r.ms, message: r.err,
+        i: r.i, degradeIndex: r.degradeIndex, placement: r.placementClass,
         rot: r.rotationClass, occ: r.occ,
         ...(r.scene !== undefined ? { scene: r.scene, coverage: r.coverage, click: r.click } : {}),
       })),
@@ -603,6 +621,7 @@ export default function SnapTest() {
             </div>
             <div style={S.breakRow}>
               <Breakdown title="By pathway (how it was identified)" data={summary.byPathway} />
+              {summary.byPlacement && <Breakdown title="By card placement" data={summary.byPlacement} />}
               {summary.byCoverage && <Breakdown title="By neighbour coverage" data={summary.byCoverage} />}
               {summary.byLayout && <Breakdown title="By table layout" data={summary.byLayout} />}
               {summary.byClipped && <Breakdown title="By frame clipping" data={summary.byClipped} />}

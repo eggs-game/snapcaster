@@ -77,6 +77,7 @@ add ~1%.
 | **Tableau 10 / 100** | Same scenes, uniform draw from the whole index |
 | **Random 200** | Single cards, fresh sample — discovers new failure cases |
 | **Fixed 200 / 1000** | Single cards, identical every run — regression checking |
+| **Fixed top-edge 64** | Four deterministic repetitions of degrade-v2's hardest clipped placement |
 | **EDH staples 200** | Single cards from the realistic pool |
 
 Ground truth always comes from the live index, so a miss is always a real
@@ -98,6 +99,9 @@ diagnose:
 - **`byLayout`** — side-by-side / spaced / overlapping. Isolates crowding.
 - **`byPool`** — card / token / basic. Answers "are tokens weak?"
 - **`byClipped`**, **`byCoverage`** — cost of frame-clipping and of neighbours.
+- **`byPlacement`** — the single-card crop geometry: two mildly centred
+  blocks, an above-click block and the top-edge-clipped block. Each copied miss
+  also includes its original index and degradation index for exact replay.
 - **`wasmHeap` start→end** — OpenCV's heap is invisible to
   `performance.memory`; a leak once took a tab to 1.5GB while it reported 52MB.
 - **1st/2nd-half accuracy** — a large gap means the *harness* is degrading, not

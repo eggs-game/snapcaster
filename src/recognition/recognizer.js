@@ -442,6 +442,7 @@ function quadGeometry(pts, imageWidth, imageHeight, area, click) {
     && oppositeBalance >= 0.08;
   return {
     corners, aspect, containsClick, valid,
+    center: { x: cx / imageWidth, y: cy / imageHeight },
     // sqrt(area), not area: scoring linearly in area let a merged blob of two
     // side-by-side cards beat the single correct card. Such a pair has aspect
     // ~1.43 against a card's 1.397, so aspectFit cannot tell them apart, and at
@@ -558,13 +559,28 @@ function findCardQuads(srcImageData, click) {
   } finally {
     src.delete(); gray.delete(); blur.delete(); bin.delete();
   }
-  const containing = results.filter((result) => result.containsClick);
-  const pool = containing.length ? containing : results;
-  pool.sort((a, b) => b.score - a.score);
+  const containing = results.filter((result) => result.containsClick).sort((a, b) => b.score - a.score);
+  const offClick = results.filter((result) => !result.containsClick).sort((a, b) => b.score - a.score);
   // Perspective can create several strong inner-frame and minimum-rectangle
-  // candidates. Keep enough alternatives for title OCR to identify the true
-  // outer card rather than committing to the first geometric guess.
-  return pool.slice(0, 8).map((result) => result.corners);
+  // candidates. Preserve a bounded off-click quota: the production crop moves
+  // the cursor when it clamps at a frame edge, and players also click below a
+  // forehead-held card. The old all-or-nothing filter discarded the real card
+  // whenever any unrelated contour happened to contain the click.
+  const bestOff = offClick[0];
+  const spatialRival = bestOff && offClick.find((candidate) => (
+    Math.hypot(candidate.center.x - bestOff.center.x, candidate.center.y - bestOff.center.y) > 0.18
+      && candidate.score >= bestOff.score * 0.35
+  ));
+  // A lone card held above the click produces one dominant off-click cluster.
+  // A crowded tableau produces several card-sized clusters; accepting one of
+  // those would identify a visually perfect neighbour instead of the card the
+  // player clicked. Any substantial spatial rival makes the scene ambiguous,
+  // so retain only click-containing contours in that case.
+  const useOffClick = !containing.length || (bestOff && !spatialRival);
+  const pool = containing.length
+    ? [...containing.slice(0, useOffClick ? 5 : 8), ...(useOffClick ? offClick.slice(0, 3) : [])]
+    : offClick.slice(0, 8);
+  return pool.map((result) => result.corners);
 }
 
 function matToImageData(mat) {

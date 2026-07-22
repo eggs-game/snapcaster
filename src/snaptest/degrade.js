@@ -28,6 +28,10 @@ export function scryfallImageUrl(id) {
   return `https://cards.scryfall.io/normal/front/${id[0]}/${id[1]}/${id}.jpg`;
 }
 
+export function placementForIndex(idx) {
+  return ["mild-centered-a", "above-click", "mild-centered-b", "top-edge-clipped"][(idx >> 4) % 4];
+}
+
 export function loadImage(url) {
   return new Promise((res, rej) => {
     const img = new Image();
@@ -72,13 +76,13 @@ export function degrade(img, idx) {
   // partially cut off. Half the cards keep the mild v1 placement; the rest
   // exercise the off-center and edge-cut cases that v1 missed — production
   // regressed on exactly these while v1 SNAPTEST stayed green.
-  const place = (idx >> 4) % 4;
+  const placementClass = placementForIndex(idx);
   let cx, cy;
-  if (place === 1) {
+  if (placementClass === "above-click") {
     // Card well above the click point.
     cx = FRAME / 2 + (rnd() * 2 - 1) * 50;
     cy = FRAME / 2 - FRAME * (0.14 + rnd() * 0.1);
-  } else if (place === 3) {
+  } else if (placementClass === "top-edge-clipped") {
     // Near the top edge — partially cut off.
     cx = FRAME / 2 + (rnd() * 2 - 1) * 90;
     cy = cardH * (0.3 + rnd() * 0.15);
@@ -123,7 +127,7 @@ export function degrade(img, idx) {
       x.restore();
     }
   }
-  return { url: c.toDataURL("image/jpeg", 0.72), rotationClass, occ };
+  return { url: c.toDataURL("image/jpeg", 0.72), rotationClass, occ, placementClass };
 }
 
 export function summarize(results) {

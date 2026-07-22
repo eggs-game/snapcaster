@@ -69,6 +69,14 @@ The art/title/tap families exist because of measured failures. Tapped cards
 scored 42% until landscape crops were added (now ~97%). Upside-down cards
 scored 33% until the mirrored art anchor was added (now 100%).
 
+Contour selection normally prefers quads containing the click. Near the top
+of the camera frame, however, crop clamping can move the click below the real
+card. The recogniser therefore keeps a bounded quota of the strongest
+off-click contour cluster (three of eight outline candidates). It only does so
+when that cluster has no substantial spatial rival; multiple strong clusters
+mean a crowded tableau, where an off-click contour is likely to be a neighbour
+and must not be allowed to introduce a false art match.
+
 Crops that are mostly featureless are dropped, using a **relative** threshold —
 a fixed one discarded almost every crop in dim scenes, once leaving a single
 candidate out of 35.
