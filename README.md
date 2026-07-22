@@ -93,7 +93,9 @@ Open your URL, allow camera + mic, **Create game**, send the 6-character code to
   key stays in the server-side Vercel function; only expiring credentials reach
   a player's browser. Inspect `window.__SNAP_TURN_STATUS` when diagnosing a
   connection (`ready` means relay credentials loaded; `fallback` means only
-  direct/STUN connectivity is available).
+  direct/STUN connectivity is available). Run `await window.__scTestTurn()` in
+  production devtools to gather a relay-only candidate without using the
+  camera or microphone.
 - **New sets** are picked up by the monthly automatic index rebuild (or run the Action manually).
 - Card data and images © Wizards of the Coast, via [Scryfall](https://scryfall.com) under the WotC Fan Content Policy. Unofficial fan project.
 

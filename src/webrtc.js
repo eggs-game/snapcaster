@@ -629,6 +629,57 @@ export class GameConnection {
   }
 }
 
+// Production connectivity diagnostic. It gathers relay-only ICE candidates
+// without opening a camera/microphone or connecting to another player. The
+// result deliberately excludes the short-lived username and credential.
+export async function testTurnConnectivity(roomCode = "ABC234") {
+  const connection = new GameConnection({});
+  await connection._configureIceServers(String(roomCode).toUpperCase());
+  if (connection.turnStatus !== "ready") {
+    return { status: "unavailable", relayCandidates: 0 };
+  }
+
+  const pc = new RTCPeerConnection({
+    iceServers: connection.iceServers,
+    iceTransportPolicy: "relay",
+  });
+  const candidates = [];
+  try {
+    const gathering = new Promise((resolve) => {
+      const timeout = setTimeout(resolve, 10000);
+      pc.onicecandidate = (event) => {
+        if (!event.candidate) {
+          clearTimeout(timeout);
+          resolve();
+          return;
+        }
+        const candidate = event.candidate;
+        const relay = candidate.type === "relay" || /\styp relay\s/i.test(candidate.candidate);
+        if (relay) {
+          candidates.push({
+            protocol: candidate.protocol || (/\sudp\s/i.test(candidate.candidate) ? "udp" : "tcp"),
+            relayProtocol: candidate.relayProtocol || null,
+          });
+        }
+      };
+    });
+    pc.createDataChannel("turn-diagnostic");
+    await pc.setLocalDescription(await pc.createOffer());
+    await gathering;
+    return {
+      status: candidates.length ? "ready" : "no-relay-candidate",
+      relayCandidates: candidates.length,
+      protocols: [...new Set(candidates.flatMap((candidate) => [candidate.protocol, candidate.relayProtocol]).filter(Boolean))],
+    };
+  } catch (error) {
+    return { status: "error", relayCandidates: 0, reason: String(error?.message || error) };
+  } finally {
+    pc.close();
+  }
+}
+
+if (typeof window !== "undefined") window.__scTestTurn = testTurnConnectivity;
+
 // Recognition capture: a native-resolution crop centered on the clicked point.
 // Never downscales — a card that fills 1/10th of a playmat frame keeps every
 // pixel the sensor recorded, which is what makes small-card OCR and hashing

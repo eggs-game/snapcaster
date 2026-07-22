@@ -67,6 +67,9 @@ room-code-shaped request. It filters out Cloudflare's browser-blocked port 53
 URLs and returns UDP, TCP/80, TLS/5349 and TLS/443 options. A best-effort
 per-IP/room rate limit reduces casual credential abuse; production usage should
 also be watched in Cloudflare Realtime analytics.
+`await window.__scTestTurn()` performs a relay-only ICE gathering check without
+opening media devices and reports only candidate counts/protocols, never the
+short-lived credential.
 
 ## The card index
 
