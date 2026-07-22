@@ -3,6 +3,7 @@ import {
   Check, FlipVertical2, MicOff, MoreVertical, PanelLeft, Shuffle, SkipForward, X,
 } from "lucide-react";
 import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
+import { labelRecognitionReport, saveRecognitionReport } from "./signaling.js";
 import { suggestCardNames } from "./cardSearch.js";
 import { identify as identifyCard, preload as preloadRecognition } from "./recognition/matcher.js";
 import CardSidebar from "./CardSidebar.jsx";
@@ -36,6 +37,12 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const [readyEvents, setReadyEvents] = useState([]);
   const [readyCheck, setReadyCheck] = useState(null);
   const [gridOrder, setGridOrder] = useState([]);
+  const [recognitionReports, setRecognitionReports] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("snapcaster-recognition-reports") || "[]");
+      return Array.isArray(saved) ? saved.slice(-100) : [];
+    } catch { return []; }
+  });
   const [activePlayerId, setActivePlayerId] = useState("");
   const [poisonCounters, setPoisonCounters] = useState({});
   const [commanderDamage, setCommanderDamage] = useState({});
@@ -256,6 +263,13 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
         metadataConflictAll: data.metadata_conflict_all,
         metadataError: data.metadata_error,
         captureImage: cap.url,
+        captureContext: {
+          tileId,
+          tileName: rosterRef.current.find((member) => member.id === tileId)?.name || (tileId === myId ? session.name : "Player"),
+          remote: tileId !== myId,
+          click: { nx: pt.nx, ny: pt.ny },
+          cropClick: { nx: cap.px ?? 0.5, ny: cap.py ?? 0.5 },
+        },
         cameraRes: (() => {
           const s = conn.localStream?.getVideoTracks?.()[0]?.getSettings?.();
           return s?.width ? `${s.width}×${s.height}` : "";
@@ -372,6 +386,63 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     const next = ["tiles", "follow", "hero"].includes(layout) ? layout : "tiles";
     setVideoLayout(next);
     try { localStorage.setItem("snapcaster-video-layout", next); } catch { /* preference remains in memory */ }
+  };
+
+  const saveRecognitionReports = (next) => {
+    setRecognitionReports(next);
+    // The durable copies are in Supabase Storage. Keep only the small report
+    // index and its edit token locally, not a second large camera-image cache.
+    try {
+      const localIndex = next.slice(-100).map(({ captureImage, ocrImage, ...entry }) => entry);
+      localStorage.setItem("snapcaster-recognition-reports", JSON.stringify(localIndex));
+    } catch { /* Supabase save still works for this session */ }
+  };
+
+  const addRecognitionReport = async (report) => {
+    if (!report?.id) return false;
+    const pending = { ...report, syncStatus: "saving" };
+    saveRecognitionReports([...recognitionReports.filter((entry) => entry.id !== report.id), pending]);
+    try {
+      const stored = await saveRecognitionReport({
+        ...report,
+        roomCode: session.code,
+        reporterId: myId,
+        reporterName: session.name,
+      });
+      setRecognitionReports((reports) => {
+        const next = reports.map((entry) => entry.id === report.id
+          ? { ...entry, ...stored, syncStatus: "saved" }
+          : entry);
+        try {
+          const localIndex = next.slice(-100).map(({ captureImage, ocrImage, ...entry }) => entry);
+          localStorage.setItem("snapcaster-recognition-reports", JSON.stringify(localIndex));
+        } catch { /* report remains in memory */ }
+        return next;
+      });
+      return true;
+    } catch (error) {
+      setRecognitionReports((reports) => reports.map((entry) => entry.id === report.id
+        ? { ...entry, syncStatus: "error", syncError: String(error.message || error) }
+        : entry));
+      return false;
+    }
+  };
+
+  const updateRecognitionReport = async (id, truth) => {
+    const report = recognitionReports.find((entry) => entry.id === id);
+    if (!report?.editToken) return false;
+    try {
+      await labelRecognitionReport(id, report.editToken, truth);
+      saveRecognitionReports(recognitionReports.map((entry) => entry.id === id
+        ? { ...entry, truth, labeledAt: Date.now(), syncStatus: "saved" }
+        : entry));
+      return true;
+    } catch (error) {
+      saveRecognitionReports(recognitionReports.map((entry) => entry.id === id
+        ? { ...entry, syncStatus: "error", syncError: String(error.message || error) }
+        : entry));
+      return false;
+    }
   };
 
   const finishReadyCheck = useCallback((outcome, announce = true, byId = myId, checkId = readyCheckRef.current?.checkId) => {
@@ -589,6 +660,9 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
             lifeEvents={lifeEvents}
             diceRolls={diceRolls}
             readyEvents={readyEvents}
+            recognitionReports={recognitionReports}
+            onAddRecognitionReport={addRecognitionReport}
+            onUpdateRecognitionReport={updateRecognitionReport}
             chatMessages={chatMessages}
             currentUserId={myId}
             onSendChat={sendChat}

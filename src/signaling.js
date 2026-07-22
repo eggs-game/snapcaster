@@ -12,6 +12,72 @@ function client() {
   return supabase;
 }
 
+const REPORT_BUCKET = "recognition-reports";
+
+async function dataUrlBlob(dataUrl) {
+  if (!dataUrl || !String(dataUrl).startsWith("data:")) return null;
+  const response = await fetch(dataUrl);
+  return response.blob();
+}
+
+// Recognition reports are intentionally separate from room signaling. Realtime
+// broadcasts are ephemeral; these captures need to survive long enough to be
+// labeled and curated into future recognition data.
+export async function saveRecognitionReport(report) {
+  if (!isConfigured()) throw new Error("Supabase is not configured");
+  const id = String(report?.id || "");
+  const editToken = String(report?.editToken || "");
+  if (!id || !editToken) throw new Error("Invalid recognition report");
+  const db = client();
+  const capturePath = `${id}/capture.jpg`;
+  let ocrPath = null;
+  const capture = await dataUrlBlob(report.captureImage);
+  if (!capture) throw new Error("Missing clicked-card capture");
+  const { error: captureError } = await db.storage.from(REPORT_BUCKET).upload(capturePath, capture, {
+    contentType: capture.type || "image/jpeg",
+    upsert: false,
+  });
+  if (captureError) throw captureError;
+  if (report.ocrImage) {
+    const ocr = await dataUrlBlob(report.ocrImage);
+    if (ocr) {
+      ocrPath = `${id}/ocr.jpg`;
+      const { error: ocrError } = await db.storage.from(REPORT_BUCKET).upload(ocrPath, ocr, {
+        contentType: ocr.type || "image/jpeg",
+        upsert: false,
+      });
+      if (ocrError) throw ocrError;
+    }
+  }
+  const { error } = await db.from("recognition_reports").insert({
+    id,
+    edit_token: editToken,
+    room_code: String(report.roomCode || "").slice(0, 16),
+    reporter_id: String(report.reporterId || "").slice(0, 40),
+    reporter_name: String(report.reporterName || "").slice(0, 80),
+    created_at: new Date(report.createdAt || Date.now()).toISOString(),
+    predicted_card: report.predictedCard || null,
+    matches: report.matches || [],
+    diagnostics: report.recognizer || {},
+    capture_context: report.captureContext || {},
+    capture_path: capturePath,
+    ocr_path: ocrPath,
+    camera_resolution: String(report.cameraRes || "").slice(0, 32),
+  });
+  if (error) throw error;
+  return { capturePath, ocrPath };
+}
+
+export async function labelRecognitionReport(id, editToken, truth) {
+  if (!isConfigured()) throw new Error("Supabase is not configured");
+  const { error } = await client().rpc("label_recognition_report", {
+    p_report_id: id,
+    p_edit_token: editToken,
+    p_truth_card: truth,
+  });
+  if (error) throw error;
+}
+
 const CODE_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 export const CODE_LENGTH = 6;
 

@@ -54,7 +54,15 @@ builder). No terminal required.
    - **Project URL** (like `https://abcd1234.supabase.co`)
    - **anon public** API key
 
-### Step 4 — Deploy on Vercel
+### Step 4 — Enable recognition reports
+
+In Supabase, open **SQL Editor** and run
+[`supabase/migrations/20260722153000_recognition_reports.sql`](supabase/migrations/20260722153000_recognition_reports.sql).
+It creates the private evidence bucket and report table used by the in-game
+**Wrong card** button. Reports are write-only from the app; review and curate
+them in the Supabase dashboard.
+
+### Step 5 — Deploy on Vercel
 
 1. Sign up at [vercel.com](https://vercel.com) **with your GitHub account**.
 2. **Add New → Project** → Import your `snapcaster` repo.
@@ -65,7 +73,7 @@ builder). No terminal required.
 
 If you ran the index build *after* deploying, go to Vercel → your project → **Deployments** → ⋯ → **Redeploy** so the site picks up the new index.
 
-### Step 5 — Play
+### Step 6 — Play
 
 Open your URL, allow camera + mic, **Create game**, send the 6-character code to up to 3 friends. Click any card on any video to identify it.
 

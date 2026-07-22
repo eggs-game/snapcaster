@@ -77,9 +77,11 @@ another card, which is uncommon in real play.
 
 ## Constraints that shape everything
 
-- **No server.** Vercel serves static files; Supabase Realtime carries only
-  signaling; video and captures are peer-to-peer. There is no backend to run,
-  scale or pay for, and no card images pass through any server we own.
+- **No application server.** Vercel serves static files; Supabase Realtime
+  carries signaling; video and captures are peer-to-peer. Opt-in wrong-card
+  reports are the sole exception: the reporter explicitly saves a cropped
+  capture plus diagnostics to private Supabase Storage and a database row for
+  later curation. No live video stream reaches a server.
 - **Free to run.** The whole stack sits on free tiers.
 - **Physics is the real limit.** A 20-card playmat on a 720p camera simply
   does not contain enough pixels per card. 1080p is borderline; 4K is

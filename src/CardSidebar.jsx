@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
-  ArrowLeft, ArrowUpRight, Copy, Dices, Link2, Mic, MicOff, PanelLeft, Search,
-  Send, Settings, Swords, UserPlus, UserRound, Video, VideoOff,
+  ArrowLeft, ArrowUpRight, Copy, Dices, Download, Link2, Mic, MicOff, PanelLeft, Search,
+  Send, Settings, Swords, ThumbsDown, UserPlus, UserRound, Video, VideoOff,
 } from "lucide-react";
 import { suggestCardNames } from "./cardSearch.js";
 
@@ -30,12 +30,25 @@ function cardFromScryfall(card) {
   };
 }
 
+function reportUuid() {
+  if (crypto?.randomUUID) return crypto.randomUUID();
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = [...bytes].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
 export default function CardSidebar({
   current,
   lookups,
   lifeEvents,
   diceRolls,
   readyEvents,
+  recognitionReports,
+  onAddRecognitionReport,
+  onUpdateRecognitionReport,
   chatMessages,
   currentUserId,
   onSendChat,
@@ -89,6 +102,10 @@ export default function CardSidebar({
   const [editingLobbyName, setEditingLobbyName] = useState(false);
   const [lobbyNameDraft, setLobbyNameDraft] = useState(lobbyName || "Untitled game");
   const [chatDraft, setChatDraft] = useState("");
+  const [wrongReport, setWrongReport] = useState(null);
+  const [truthQuery, setTruthQuery] = useState("");
+  const [truthSuggestions, setTruthSuggestions] = useState([]);
+  const [truthHighlight, setTruthHighlight] = useState(-1);
   // One-shot open slide; cleared after the panel settles into place.
   const [entering, setEntering] = useState(true);
   const settings = view === "settings";
@@ -101,6 +118,28 @@ export default function CardSidebar({
     ...(readyEvents || []).map((entry) => ({ ...entry, type: "ready" })),
   ].sort((a, b) => (b.at || 0) - (a.at || 0));
   const recentCards = [...(lookups || [])].reverse();
+
+  useEffect(() => {
+    const q = truthQuery.trim();
+    if (q.length < 2) {
+      setTruthSuggestions([]);
+      setTruthHighlight(-1);
+      return undefined;
+    }
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        setTruthSuggestions(await suggestCardNames(q, controller.signal));
+        setTruthHighlight(-1);
+      } catch (error) {
+        if (error.name !== "AbortError") setTruthSuggestions([]);
+      }
+    }, 200);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [truthQuery]);
 
   useEffect(() => {
     if (!editingLobbyName) setLobbyNameDraft(lobbyName || "Untitled game");
@@ -147,6 +186,79 @@ export default function CardSidebar({
     } finally {
       setSearching(false);
     }
+  };
+
+  const beginWrongCardReport = async () => {
+    if (!current?.captureImage) return;
+    const predicted = current.matches?.[0] || null;
+    const report = {
+      id: reportUuid(),
+      editToken: reportUuid(),
+      createdAt: Date.now(),
+      truth: null,
+      captureImage: current.captureImage,
+      predictedCard: predicted,
+      predictedImage: predicted?.image || "",
+      matches: (current.matches || []).slice(0, 24),
+      recognizer: {
+        cardFound: current.cardFound,
+        cvStatus: current.cvStatus,
+        candidatesTried: current.candidatesTried,
+        cropsDropped: current.cropsDropped,
+        artBest: current.artBest,
+        artChecked: current.artChecked,
+        ocrText: current.ocrText,
+        ocrConfidence: current.ocrConfidence,
+        ocrRotation: current.ocrRotation,
+        titleScore: current.titleScore,
+        metadataObservation: current.metadataObservation,
+        metadataVetoed: current.metadataVetoed,
+        metadataConflictAll: current.metadataConflictAll,
+        metadataError: current.metadataError,
+      },
+      captureContext: current.captureContext || null,
+      cameraRes: current.cameraRes || "",
+      ocrImage: current.ocrImage || "",
+    };
+    setWrongReport({ ...report, syncStatus: "saving" });
+    const saved = await onAddRecognitionReport?.(report);
+    setWrongReport({ ...report, syncStatus: saved === false ? "error" : "saved" });
+  };
+
+  const labelWrongCard = async (name) => {
+    const cardName = String(name || "").trim();
+    if (!wrongReport || !cardName) return;
+    try {
+      const response = await fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(cardName)}`);
+      if (!response.ok) throw new Error("Card not found");
+      const card = cardFromScryfall(await response.json());
+      const truth = { ...card, recordedName: card.name };
+      const saved = await onUpdateRecognitionReport?.(wrongReport.id, truth);
+      if (saved === false) throw new Error("Could not save the label to Supabase");
+      const next = { ...wrongReport, truth, labeledAt: Date.now() };
+      setWrongReport(next);
+      setTruthQuery("");
+      setTruthSuggestions([]);
+    } catch (error) {
+      setTruthSuggestions([]);
+      setTruthQuery(String(error.message || error));
+    }
+  };
+
+  const downloadRecognitionReports = () => {
+    const payload = JSON.stringify({
+      format: "snapcaster-recognition-reports/v1",
+      exportedAt: new Date().toISOString(),
+      // The edit token is intentionally never exported: it is the capability
+      // used by this browser to attach a later true-card label.
+      reports: (recognitionReports || []).map(({ editToken, ...report }) => report),
+    }, null, 2);
+    const url = URL.createObjectURL(new Blob([payload], { type: "application/json" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `snapcaster-recognition-reports-${new Date().toISOString().slice(0, 10)}.json`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   const best = current?.matches?.[0];
@@ -498,6 +610,17 @@ export default function CardSidebar({
                 <img src={top.image} alt={top.name} />
                 <div className="card-meta">
                   <b>{top.name}</b>
+                  {current.captureImage && (
+                    <button
+                      type="button"
+                      className="wrong-card-btn"
+                      onClick={beginWrongCardReport}
+                      aria-label="Wrong card"
+                      title="Wrong card"
+                    >
+                      <ThumbsDown size={17} />
+                    </button>
+                  )}
                   {top.scryfall_uri && (
                     <a
                       className="scryfall-link"
@@ -513,6 +636,61 @@ export default function CardSidebar({
                 </div>
                 {!decisive && <span className="match-qualifier">Possible match — not certain</span>}
               </div>
+            )}
+            {wrongReport && (
+              <section className="wrong-card-report" aria-label="Wrong card report">
+                <div className="wrong-card-report-head">
+                  <strong>Wrong card report</strong>
+                  <span>{wrongReport.syncStatus === "saving" ? "Saving…" : wrongReport.syncStatus === "error" ? "Save failed" : wrongReport.truth ? "Labeled" : "Needs card label"}</span>
+                </div>
+                <div className="wrong-card-evidence">
+                  {wrongReport.captureImage && <img src={wrongReport.captureImage} alt="Clicked card capture" title="Clicked card capture" />}
+                  {wrongReport.predictedImage && <img src={wrongReport.predictedImage} alt="Predicted card" title={`Predicted: ${wrongReport.predictedCard?.name || "Unknown"}`} />}
+                  {wrongReport.truth?.image && <img src={wrongReport.truth.image} alt="Recorded true card" title={`True card: ${wrongReport.truth.name}`} />}
+                </div>
+                {wrongReport.syncStatus === "saving" && <p className="wrong-card-sync-note">Saving evidence to Supabase…</p>}
+                {wrongReport.syncStatus === "error" && <p className="wrong-card-sync-note error">{wrongReport.syncError || "Could not save to Supabase. Download the report to keep it."}</p>}
+                {!wrongReport.truth && wrongReport.syncStatus !== "saving" && (
+                  <div className="truth-card-field">
+                    <input
+                      value={truthQuery}
+                      onChange={(event) => setTruthQuery(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "ArrowDown" && truthSuggestions.length) {
+                          event.preventDefault();
+                          setTruthHighlight((i) => (i + 1) % truthSuggestions.length);
+                        } else if (event.key === "ArrowUp" && truthSuggestions.length) {
+                          event.preventDefault();
+                          setTruthHighlight((i) => (i <= 0 ? truthSuggestions.length - 1 : i - 1));
+                        } else if (event.key === "Enter") {
+                          event.preventDefault();
+                          labelWrongCard(truthHighlight >= 0 ? truthSuggestions[truthHighlight] : truthQuery);
+                        }
+                      }}
+                      placeholder="What card was it?"
+                      aria-label="Record true card"
+                      autoComplete="off"
+                    />
+                    {truthSuggestions.length > 0 && (
+                      <ul className="truth-card-suggest">
+                        {truthSuggestions.map((name, index) => (
+                          <li
+                            key={name}
+                            className={index === truthHighlight ? "active" : ""}
+                            onMouseDown={(event) => { event.preventDefault(); labelWrongCard(name); }}
+                          >{name}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+                <div className="wrong-card-report-actions">
+                  <span>{recognitionReports?.filter((entry) => entry.syncStatus === "saved").length || 0} saved</span>
+                  {!!recognitionReports?.length && (
+                    <button type="button" onClick={downloadRecognitionReports}><Download size={15} /> Download reports</button>
+                  )}
+                </div>
+              </section>
             )}
             {best && !decisive && current?.matches?.length > 1 && (
               <div className="alts" aria-label="Other possible matches">

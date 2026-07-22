@@ -132,8 +132,10 @@ the main thread — an early bug that made the lobby unresponsive.
   `X-Frame-Options: DENY`, nosniff and a referrer policy are set in
   `vercel.json`.
 - No `dangerouslySetInnerHTML`, `innerHTML` or `eval` anywhere in `src/`.
-- The Supabase key is a publishable anon key used solely for Realtime; there
-  is no database and therefore no row-level data to protect.
+- The Supabase key is publishable. Realtime handles the game; opt-in
+  recognition reports use a private Storage bucket plus a write-only table and
+  token-scoped labeling function from `supabase/migrations/`. There is still
+  no app server and no live video upload.
 
 ## Conventions
 
