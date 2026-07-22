@@ -73,6 +73,7 @@ add ~1%.
 | Mode | Use |
 | --- | --- |
 | **Tableau 10 — EDH staples (100 cards)** | The default. Realistic scenes, realistic cards, ~5 min |
+| **Tableau 10 EDH dice (100 cards)** | Same EDH tableau, with one white/black/blue/red/pink die on every card |
 | **Tableau 100 — EDH staples (1000 cards)** | Separates confounded signals; ~45 min |
 | **Tableau 10 / 100** | Same scenes, uniform draw from the whole index |
 | **Random 200** | Single cards, fresh sample — discovers new failure cases |

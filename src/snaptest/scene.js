@@ -21,6 +21,13 @@ import { loadImage, scryfallImageUrl } from "./degrade.js";
 import { cropGeometry } from "../captureGeometry.js";
 
 const CARD_ASPECT = 88 / 63; // MTG card height / width
+const DICE = [
+  { name: "white", fill: "#f4f1e8", pip: "#20242b" },
+  { name: "black", fill: "#20242b", pip: "#f5f3ed" },
+  { name: "blue", fill: "#2774c8", pip: "#f5f3ed" },
+  { name: "red", fill: "#c83b3b", pip: "#f5f3ed" },
+  { name: "pink", fill: "#df5aa5", pip: "#fff7fb" },
+];
 
 function mulberry32(a) {
   return function () {
@@ -59,6 +66,57 @@ function hits(p, px, py, w, h) {
   const lx = dx * c + dy * s;
   const ly = -dx * s + dy * c;
   return Math.abs(lx) <= w / 2 && Math.abs(ly) <= h / 2;
+}
+
+function roundedRect(x, left, top, size, radius) {
+  x.beginPath();
+  x.moveTo(left + radius, top);
+  x.arcTo(left + size, top, left + size, top + size, radius);
+  x.arcTo(left + size, top + size, left, top + size, radius);
+  x.arcTo(left, top + size, left, top, radius);
+  x.arcTo(left, top, left + size, top, radius);
+  x.closePath();
+}
+
+const PIPS = {
+  1: [[0, 0]],
+  2: [[-0.25, -0.25], [0.25, 0.25]],
+  3: [[-0.25, -0.25], [0, 0], [0.25, 0.25]],
+  4: [[-0.25, -0.25], [0.25, -0.25], [-0.25, 0.25], [0.25, 0.25]],
+  5: [[-0.25, -0.25], [0.25, -0.25], [0, 0], [-0.25, 0.25], [0.25, 0.25]],
+  6: [[-0.25, -0.28], [0.25, -0.28], [-0.25, 0], [0.25, 0], [-0.25, 0.28], [0.25, 0.28]],
+};
+
+function paintDie(x, card, die) {
+  x.save();
+  x.translate(card.cx, card.cy);
+  x.rotate(card.angle * Math.PI / 180);
+  x.translate(die.x, die.y);
+  x.shadowColor = "rgba(0,0,0,0.55)";
+  x.shadowBlur = die.size * 0.18;
+  x.shadowOffsetY = die.size * 0.1;
+  x.fillStyle = die.fill;
+  roundedRect(x, -die.size / 2, -die.size / 2, die.size, die.size, die.size * 0.18);
+  x.fill();
+  x.shadowColor = "transparent";
+  x.fillStyle = die.pip;
+  for (const [px, py] of PIPS[die.face]) {
+    x.beginPath();
+    x.arc(px * die.size, py * die.size, die.size * 0.075, 0, Math.PI * 2);
+    x.fill();
+  }
+  x.restore();
+}
+
+function hitsDie(p, px, py) {
+  if (!p.die) return false;
+  const a = p.angle * Math.PI / 180;
+  const c = Math.cos(a), s = Math.sin(a);
+  const dx = px - p.cx, dy = py - p.cy;
+  const lx = dx * c + dy * s;
+  const ly = -dx * s + dy * c;
+  return Math.abs(lx - p.die.x) <= p.die.size / 2
+    && Math.abs(ly - p.die.y) <= p.die.size / 2;
 }
 
 // Fraction of card `p` hidden by any later-drawn card, measured by sampling the
@@ -128,8 +186,11 @@ function paintLighting(x, W, H, rnd) {
  * click point (nx, ny) at the card's centre — what a player would click.
  * Call releaseScene(canvas) when done; these are ~8MB each.
  */
-export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080) {
+export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080, options = {}) {
   const rnd = mulberry32((sceneIdx * 2246822519) >>> 0);
+  // Keep dice randomness independent so toggling the dice mode does not move,
+  // rotate or relight the cards. That makes a normal-vs-dice A/B meaningful.
+  const diceRnd = mulberry32(((sceneIdx + 1) * 3266489917) >>> 0);
   const imgs = await Promise.all(
     cards.map((c) => loadImage(scryfallImageUrl(c.id)).then((im) => ({ c, im })).catch(() => ({ c, im: null }))),
   );
@@ -317,12 +378,30 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080) 
       x.restore();
     }
 
-    placed.push({
+    const placedCard = {
       card: ok[i].c,
       cx, cy, angle,
       box: bbox(cx, cy, cardW, cardH, angle),
       rotationClass, layout,
-    });
+    };
+
+    if (options.dice) {
+      // Two of each requested colour per ten-card scene. Position and face are
+      // deterministic in sceneIdx, while the sampled card printing stays fresh.
+      const color = DICE[(sceneIdx * 10 + i) % DICE.length];
+      placedCard.die = {
+        color: color.name,
+        fill: color.fill,
+        pip: color.pip,
+        face: 1 + ((diceRnd() * 6) | 0),
+        size: cardW * (0.20 + diceRnd() * 0.05),
+        x: (diceRnd() * 2 - 1) * cardW * 0.28,
+        y: (diceRnd() * 2 - 1) * cardH * 0.28,
+      };
+      paintDie(x, placedCard, placedCard.die);
+    }
+
+    placed.push(placedCard);
   }
 
   paintLighting(x, frameW, frameH, rnd);
@@ -339,6 +418,10 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080) 
     p.occ = st.covered > 0.1 ? "overlapped" : st.clipped > 0.05 ? "edge" : "clear";
     p.coverage = +st.covered.toFixed(3);
     p.clipped = +st.clipped.toFixed(3);
+    p.diceColor = p.die?.color || null;
+    p.diceFace = p.die?.face || null;
+    p.diceCoverage = p.die
+      ? +((p.die.size * p.die.size) / (cardW * cardH)).toFixed(3) : 0;
 
     // Click a random point on the artwork rather than the card centre — that
     // is what a player does, and the centre is both unrealistically kind and
@@ -351,7 +434,8 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080) 
       const v = ART.v0 + rnd() * (ART.v1 - ART.v0);
       const f = toFrame(p.cx, p.cy, (u - 0.5) * cardW, (v - 0.5) * cardH, p.angle);
       if (f.x < 0 || f.y < 0 || f.x > frameW || f.y > frameH) continue;
-      const covered = placed.slice(i + 1).some((q) => hits(q, f.x, f.y, cardW, cardH));
+      const covered = hitsDie(p, f.x, f.y)
+        || placed.slice(i + 1).some((q) => hits(q, f.x, f.y, cardW, cardH));
       if (!pick) pick = { f, u, v, covered };       // fall back to the first in-frame point
       if (!covered) { pick = { f, u, v, covered }; break; }
     }

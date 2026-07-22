@@ -21,6 +21,10 @@ const MODES = {
     label: "Tableau 10 scenes — EDH staples (100 cards)",
     size: 100, scenes: 10, perScene: 10, popular: 15000,
   },
+  tableauEdhDice10: {
+    label: "Tableau 10 EDH dice (100 cards)",
+    size: 100, scenes: 10, perScene: 10, popular: 15000, dice: true,
+  },
   tableauEdh100: {
     label: "Tableau 100 scenes — EDH staples (1000 cards)",
     size: 1000, scenes: 100, perScene: 10, popular: 15000,
@@ -103,7 +107,11 @@ function buildResultPayload(mode, summary, results) {
       metadata: r.metadata, metadataVetoed: r.metadataVetoed,
       metadataConflictAll: r.metadataConflictAll, metadataError: r.metadataError,
       stages: r.stages,
-      ...(r.scene !== undefined ? { scene: r.scene, coverage: r.coverage, clipped: r.clipped, click: r.click, layout: r.layout } : {}),
+      ...(r.scene !== undefined ? {
+        scene: r.scene, coverage: r.coverage, clipped: r.clipped,
+        click: r.click, layout: r.layout, diceColor: r.diceColor,
+        diceFace: r.diceFace, diceCoverage: r.diceCoverage,
+      } : {}),
     })),
     errors: results.filter((r) => r.err).map((r) => ({
       name: r.name, id: r.id, stage: r.errStage, ms: r.ms, message: r.err,
@@ -138,11 +146,11 @@ export default function SnapTest() {
   // a click on card `card` would produce. Eyeballing these is the only way to
   // know the generator actually resembles a real table shot.
   useEffect(() => {
-    window.__snapScene = async (sceneIdx = 0, card = 0) => {
+    window.__snapScene = async (sceneIdx = 0, card = 0, dice = false) => {
       const rows = await (await fetch("/carddata/cards.json")).json();
       const fronts = rows.filter((r) => r[4] === 0).map((r) => ({ id: r[3], name: r[0] }));
       const group = Array.from({ length: 10 }, () => fronts[(Math.random() * fronts.length) | 0]);
-      const scene = await buildScene(group, sceneIdx);
+      const scene = await buildScene(group, sceneIdx, 1920, 1080, { dice });
       const frame = scene.canvas.toDataURL("image/jpeg", 0.7);
       const p = scene.placed[card];
       const crop = p ? cropScene(scene.canvas, p.nx, p.ny) : null;
@@ -151,7 +159,7 @@ export default function SnapTest() {
       // from an image-quality problem.
       const perfect = p ? perfectCrop(scene.canvas, p, scene.cardW, scene.cardH) : null;
       releaseScene(scene.canvas);
-      return { frame, crop: crop && crop.url, perfect, placed: scene.placed.map((q) => ({ name: q.card.name, occ: q.occ, rot: q.rotationClass, coverage: q.coverage, clipped: q.clipped, click: q.click, nx: q.nx, ny: q.ny, layout: q.layout })) };
+      return { frame, crop: crop && crop.url, perfect, placed: scene.placed.map((q) => ({ name: q.card.name, occ: q.occ, rot: q.rotationClass, coverage: q.coverage, clipped: q.clipped, click: q.click, nx: q.nx, ny: q.ny, layout: q.layout, diceColor: q.diceColor, diceFace: q.diceFace, diceCoverage: q.diceCoverage })) };
     };
   }, []);
 
@@ -288,7 +296,7 @@ export default function SnapTest() {
       if (!group.length) break;
       let scene = null;
       try {
-        scene = await buildScene(group, s);
+        scene = await buildScene(group, s, 1920, 1080, { dice: !!MODES[mode].dice });
       } catch (e) {
         for (const card of group) {
           acc.push({ name: card.name, id: card.id, ok: false, ms: 0, errStage: "image-load", err: String((e && e.message) || e) });
@@ -306,6 +314,7 @@ export default function SnapTest() {
           name: p.card.name, id: p.card.id, ok: false, err: null, errStage: null, ms: 0,
           rotationClass: p.rotationClass, occ: p.occ, scene: s, coverage: p.coverage,
           click: p.click, layout: p.layout, clipped: p.clipped, pool: p.card.pool,
+          diceColor: p.diceColor, diceFace: p.diceFace, diceCoverage: p.diceCoverage,
         };
         const t0 = performance.now();
         let cropUrl = null;
@@ -488,6 +497,9 @@ export default function SnapTest() {
     // the one the app most needs to get right, since a remote table cannot read
     // a token by leaning over.
     if (okList.some((r) => r.pool)) sum.byPool = groupAcc(okList, (r) => r.pool);
+    if (okList.some((r) => r.diceColor)) {
+      sum.byDiceColor = groupAcc(okList, (r) => r.diceColor);
+    }
     // How much a card running off the frame edge actually costs.
     if (okList.some((r) => typeof r.clipped === "number")) {
       sum.byClipped = groupAcc(okList, (r) => {
@@ -645,6 +657,7 @@ export default function SnapTest() {
               {summary.byLayout && <Breakdown title="By table layout" data={summary.byLayout} />}
               {summary.byClipped && <Breakdown title="By frame clipping" data={summary.byClipped} />}
               {summary.byPool && <Breakdown title="By card kind" data={summary.byPool} />}
+              {summary.byDiceColor && <Breakdown title="By die color" data={summary.byDiceColor} />}
             </div>
             {misses.length > 0 && (
               <div style={{ marginTop: 16 }}>
