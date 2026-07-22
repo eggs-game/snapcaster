@@ -7,7 +7,7 @@ import App from "./App.jsx";
 const SnapTest = lazy(() => import("./SnapTest.jsx"));
 import "./styles.css";
 
-const BUILD = "outline-offclick-1 (bounded off-click contours + metadata evidence)";
+const BUILD = "overlap-art-escalation-1 (tight rotation-aware art recall)";
 window.__SNAP_BUILD = BUILD;
 console.log(`%c[snapcaster] build: ${BUILD}`, "color:#0a0;font-weight:bold");
 
