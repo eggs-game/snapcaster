@@ -35,6 +35,7 @@ export default function CardSidebar({
   lookups,
   lifeEvents,
   diceRolls,
+  readyEvents,
   chatMessages,
   currentUserId,
   onSendChat,
@@ -97,6 +98,7 @@ export default function CardSidebar({
   const logEntries = [
     ...(lifeEvents || []).map((entry) => ({ ...entry, type: "life" })),
     ...(diceRolls || []).map((entry) => ({ ...entry, type: "dice" })),
+    ...(readyEvents || []).map((entry) => ({ ...entry, type: "ready" })),
   ].sort((a, b) => (b.at || 0) - (a.at || 0));
   const recentCards = [...(lookups || [])].reverse();
 
@@ -583,19 +585,28 @@ export default function CardSidebar({
           </> : lookupTab === "log" ? (
             <div className="lookup-log">
               {!logEntries.length ? (
-                <p className="lookup-status">Life changes and dice rolls will appear here.</p>
+                <p className="lookup-status">Life changes, dice rolls, and ready checks will appear here.</p>
               ) : (
                 <ul className="lookups">
                   {logEntries.map((entry) => (
                     <li
                       key={`${entry.type}-${entry.id}`}
-                      className={entry.type === "dice" ? "dice-log-entry" : "life-log-entry"}
+                      className={entry.type === "dice" ? "dice-log-entry" : entry.type === "ready" ? "ready-log-entry" : "life-log-entry"}
                     >
                       {entry.type === "dice" ? (
                         <>
                           <span className="log-dice-roll">{entry.name} rolled a {entry.value}</span>
                           <span className="log-detail">
                             d{entry.sides || 20} · {new Date(entry.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                          </span>
+                        </>
+                      ) : entry.type === "ready" ? (
+                        <>
+                          <span className={entry.outcome === "ready" ? "log-ready-check ready" : "log-ready-check not-ready"}>
+                            {entry.outcome === "ready" ? "Everyone is ready" : `${entry.player} is not ready`}
+                          </span>
+                          <span className="log-detail">
+                            {new Date(entry.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
                           </span>
                         </>
                       ) : (

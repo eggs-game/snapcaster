@@ -26,7 +26,9 @@ const MAX_VISITORS = 8; // peer-to-peer video fan-out is not an unlimited broadc
 export class GameConnection {
   constructor(handlers) {
     // handlers: onRoster, onRemoteStream, onPeerLeft, onLife,
-    // onCommander, onColor, onCardIdentified, onChat, onActivePlayer, onError
+    // onCommander, onColor, onCardIdentified, onChat, onActivePlayer,
+    // onGridOrder, onReadyCheckStart, onReadyCheckResponse, onReadyCheckEnd,
+    // onError
     this.h = handlers;
     this.peers = new Map();     // peerId -> {pc, dc, chunks: Map}
     this.pending = new Map();   // requestId -> {resolve, reject, timer}
@@ -42,6 +44,7 @@ export class GameConnection {
     this.activePlayerId = "";
     this.poison = 0;
     this.commanderDamage = {};
+    this.gridOrder = [];
     this.role = "player";
     this.roster = [];
     this.videoDeviceId = "";
@@ -191,6 +194,7 @@ export class GameConnection {
       if (this.commander) this.room?.send({ type: "commander", commander: this.commander });
       if (this.color) this.room?.send({ type: "color", color: this.color });
       if (this.activePlayerId) this.room?.send({ type: "active-player", playerId: this.activePlayerId });
+      if (this.gridOrder.length) this.room?.send({ type: "grid-order", order: this.gridOrder });
       if (this.poison) this.room?.send({ type: "poison", value: this.poison });
       for (const [attackerId, value] of Object.entries(this.commanderDamage)) {
         if (value) this.room?.send({ type: "commander-damage", attackerId, value });
@@ -252,6 +256,35 @@ export class GameConnection {
         if (senderRole !== "visitor") {
           this.activePlayerId = String(msg.playerId || "").slice(0, 40);
           this.h.onActivePlayer?.(this.activePlayerId);
+        }
+        break;
+      case "grid-order":
+        if (senderRole !== "visitor") {
+          const order = this._safeGridOrder(msg.order);
+          if (order.length) {
+            this.gridOrder = order;
+            this.h.onGridOrder?.(order);
+          }
+        }
+        break;
+      case "ready-check-start":
+        if (senderRole !== "visitor") {
+          const checkId = String(msg.checkId || "").slice(0, 64);
+          const expiresAt = Number(msg.expiresAt);
+          if (checkId && Number.isFinite(expiresAt)) this.h.onReadyCheckStart?.({ checkId, expiresAt });
+        }
+        break;
+      case "ready-check-response":
+        if (senderRole !== "visitor") {
+          const checkId = String(msg.checkId || "").slice(0, 64);
+          if (checkId) this.h.onReadyCheckResponse?.({ checkId, playerId: msg.from, ready: !!msg.ready });
+        }
+        break;
+      case "ready-check-end":
+        if (senderRole !== "visitor") {
+          const checkId = String(msg.checkId || "").slice(0, 64);
+          const outcome = ["ready", "not-ready"].includes(msg.outcome) ? msg.outcome : "timeout";
+          if (checkId) this.h.onReadyCheckEnd?.({ checkId, outcome, by: msg.from });
         }
         break;
       case "poison":
@@ -476,6 +509,37 @@ export class GameConnection {
     if (this.activePlayerId) {
       this.room?.send({ type: "active-player", playerId: this.activePlayerId });
     }
+  }
+  _safeGridOrder(order) {
+    if (!Array.isArray(order)) return [];
+    return [...new Set(order.map((id) => String(id || "").slice(0, 40)).filter(Boolean))].slice(0, 8);
+  }
+  setGridOrder(order) {
+    if (this.role === "visitor") return;
+    const safeOrder = this._safeGridOrder(order);
+    if (!safeOrder.length) return;
+    this.gridOrder = safeOrder;
+    this.room?.send({ type: "grid-order", order: safeOrder });
+  }
+  startReadyCheck(checkId, expiresAt) {
+    if (this.role === "visitor") return;
+    const safeId = String(checkId || "").slice(0, 64);
+    const safeExpiry = Number(expiresAt);
+    if (!safeId || !Number.isFinite(safeExpiry)) return;
+    this.room?.send({ type: "ready-check-start", checkId: safeId, expiresAt: safeExpiry });
+  }
+  respondReady(checkId, ready) {
+    if (this.role === "visitor") return;
+    const safeId = String(checkId || "").slice(0, 64);
+    if (!safeId) return;
+    this.room?.send({ type: "ready-check-response", checkId: safeId, ready: !!ready });
+  }
+  endReadyCheck(checkId, outcome) {
+    if (this.role === "visitor") return;
+    const safeId = String(checkId || "").slice(0, 64);
+    const safeOutcome = ["ready", "not-ready", "timeout"].includes(outcome) ? outcome : "timeout";
+    if (!safeId) return;
+    this.room?.send({ type: "ready-check-end", checkId: safeId, outcome: safeOutcome });
   }
   setPoison(value) {
     if (this.role === "visitor") return;

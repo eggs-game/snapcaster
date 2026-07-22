@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
-  FlipVertical2, MicOff, MoreVertical, PanelLeft, SkipForward,
+  Check, FlipVertical2, MicOff, MoreVertical, PanelLeft, Shuffle, SkipForward, X,
 } from "lucide-react";
 import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
 import { suggestCardNames } from "./cardSearch.js";
@@ -15,6 +15,8 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const lifeLogIdRef = useRef(0);
   const chatIdRef = useRef(0);
   const diceLogIdRef = useRef(0);
+  const readyLogIdRef = useRef(0);
+  const readyCheckRef = useRef(null);
   const [myId, setMyId] = useState(null);
   const [roster, setRoster] = useState([]);
   const [lives, setLives] = useState({}); // id -> life
@@ -31,6 +33,9 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const [lifeEvents, setLifeEvents] = useState([]);
   const [chatMessages, setChatMessages] = useState([]);
   const [diceRolls, setDiceRolls] = useState([]);
+  const [readyEvents, setReadyEvents] = useState([]);
+  const [readyCheck, setReadyCheck] = useState(null);
+  const [gridOrder, setGridOrder] = useState([]);
   const [activePlayerId, setActivePlayerId] = useState("");
   const [poisonCounters, setPoisonCounters] = useState({});
   const [commanderDamage, setCommanderDamage] = useState({});
@@ -105,6 +110,24 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
         ...roll,
         id: `remote-${roll.from}-${roll.at}-${++diceLogIdRef.current}`,
       }]),
+      onGridOrder: (order) => setGridOrder(order),
+      onReadyCheckStart: (check) => {
+        const next = { ...check, responses: {} };
+        readyCheckRef.current = next;
+        setReadyCheck(next);
+      },
+      onReadyCheckResponse: ({ checkId, playerId, ready }) => {
+        setReadyCheck((currentCheck) => {
+          if (!currentCheck || currentCheck.checkId !== checkId) return currentCheck;
+          const next = {
+            ...currentCheck,
+            responses: { ...currentCheck.responses, [playerId]: ready },
+          };
+          readyCheckRef.current = next;
+          return next;
+        });
+      },
+      onReadyCheckEnd: ({ checkId, outcome, by }) => finishReadyCheck(outcome, false, by, checkId),
       // Somebody pulled a still from this player's camera to identify a card.
       // Silent capture is not acceptable: the person being photographed has to
       // see it happen, even though the request itself is legitimate.
@@ -151,6 +174,27 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       conn.close();
     };
   }, [isVisitor, session.code, session.name, session.videoDeviceId, session.audioDeviceId]);
+
+  // A readiness prompt is deliberately ephemeral. The timer is local so a
+  // lost broadcast cannot leave a stale prompt on one player's screen.
+  useEffect(() => {
+    if (!readyCheck) return undefined;
+    const delay = Math.max(0, readyCheck.expiresAt - Date.now());
+    const timer = setTimeout(() => finishReadyCheck("timeout", true), delay);
+    return () => clearTimeout(timer);
+  }, [readyCheck]);
+
+  // Any player can veto immediately; the prompt closes when every seated
+  // player has answered Ready. Visitors are audio-only and are not part of
+  // the ready quorum.
+  useEffect(() => {
+    if (!readyCheck) return;
+    const playerIds = roster.filter((member) => member.role !== "visitor").map((member) => member.id);
+    const responses = readyCheck.responses || {};
+    const veto = playerIds.find((id) => responses[id] === false);
+    if (veto) finishReadyCheck("not-ready", true, veto);
+    else if (playerIds.length && playerIds.every((id) => responses[id] === true)) finishReadyCheck("ready", true);
+  }, [readyCheck, roster]);
 
   // The capture notice is transient — it marks the moment, it is not a log.
   useEffect(() => {
@@ -330,6 +374,60 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     try { localStorage.setItem("snapcaster-video-layout", next); } catch { /* preference remains in memory */ }
   };
 
+  const finishReadyCheck = useCallback((outcome, announce = true, byId = myId, checkId = readyCheckRef.current?.checkId) => {
+    const currentCheck = readyCheckRef.current;
+    if (!currentCheck || !checkId || currentCheck.checkId !== checkId) return;
+    readyCheckRef.current = null;
+    setReadyCheck(null);
+    if (announce) connRef.current?.endReadyCheck(checkId, outcome);
+    if (outcome === "ready" || outcome === "not-ready") {
+      const player = rosterRef.current.find((member) => member.id === byId)?.name || (byId === myId ? session.name : "A player");
+      setReadyEvents((events) => [...events.slice(-49), {
+        id: ++readyLogIdRef.current,
+        outcome,
+        player,
+        at: Date.now(),
+      }]);
+    }
+  }, [myId, session.name]);
+
+  const randomizeGrid = useCallback(() => {
+    if (!session.creator || !myId) return;
+    const ids = rosterRef.current.filter((member) => member.role !== "visitor").map((member) => member.id);
+    for (let i = ids.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [ids[i], ids[j]] = [ids[j], ids[i]];
+    }
+    setGridOrder(ids);
+    connRef.current?.setGridOrder(ids);
+  }, [myId, session.creator]);
+
+  const startReadyCheck = useCallback(() => {
+    if (!session.creator || !myId || readyCheckRef.current) return;
+    const playerIds = rosterRef.current.filter((member) => member.role !== "visitor");
+    if (!playerIds.length) return;
+    const check = {
+      checkId: `${myId}-${Date.now()}`,
+      expiresAt: Date.now() + 10000,
+      responses: {},
+    };
+    readyCheckRef.current = check;
+    setReadyCheck(check);
+    connRef.current?.startReadyCheck(check.checkId, check.expiresAt);
+  }, [myId, session.creator]);
+
+  const respondReady = useCallback((ready) => {
+    const currentCheck = readyCheckRef.current;
+    if (!currentCheck || !myId) return;
+    const next = {
+      ...currentCheck,
+      responses: { ...currentCheck.responses, [myId]: !!ready },
+    };
+    readyCheckRef.current = next;
+    setReadyCheck(next);
+    connRef.current?.respondReady(currentCheck.checkId, ready);
+  }, [myId]);
+
   const changePoison = (delta) => {
     if (isVisitor || !myId) return;
     const value = Math.max(0, Math.min(99, (poisonCounters[myId] || 0) + delta));
@@ -440,7 +538,15 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       poison: poisonCounters[player.id] || 0,
       commanderDamage: commanderDamage[player.id] || {},
     }));
-  const tiles = players.map((p, i) => ({
+  const orderedPlayers = [...players].sort((a, b) => {
+    const ai = gridOrder.indexOf(a.id);
+    const bi = gridOrder.indexOf(b.id);
+    if (ai < 0 && bi < 0) return a.joinedAt - b.joinedAt;
+    if (ai < 0) return 1;
+    if (bi < 0) return -1;
+    return ai - bi;
+  });
+  const tiles = orderedPlayers.map((p, i) => ({
     ...p,
     life: lives[p.id] ?? 40,
     commander: commanders[p.id] || "",
@@ -482,6 +588,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
             lookups={lookups}
             lifeEvents={lifeEvents}
             diceRolls={diceRolls}
+            readyEvents={readyEvents}
             chatMessages={chatMessages}
             currentUserId={myId}
             onSendChat={sendChat}
@@ -591,6 +698,13 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
                 onChooseCommander={chooseCommander}
                 onChangeLife={changeLife}
                 onPassTurn={passTurn}
+                canRandomizeGrid={session.creator && t.isMe}
+                onRandomizeGrid={randomizeGrid}
+                onStartReadyCheck={startReadyCheck}
+                isReadyCheckActive={!!readyCheck}
+                readyStatus={readyCheck?.responses?.[t.id]}
+                onReady={t.isMe ? () => respondReady(true) : undefined}
+                onNotReady={t.isMe ? () => respondReady(false) : undefined}
                 heroRole={videoLayout === "hero" ? (i === 0 ? "main" : "thumbnail") : ""}
                 onSelectHero={() => {
                   if (!t.empty) setHeroPlayerId(t.id);
@@ -705,7 +819,7 @@ const TILE_COLORS = [
   "#3f8fd2", "#38b8cf", "#31957e", "#58a75c", "#a6b94a", "#7c8796",
 ];
 
-function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, onChangeLife, onPassTurn, heroRole, onSelectHero, flash, scanNotice }) {
+function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, onChangeLife, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, isReadyCheckActive, readyStatus, onReady, onNotReady, heroRole, onSelectHero, flash, scanNotice }) {
   const videoRef = useRef(null);
   const [flipped, setFlipped] = useState(false);
   const speaking = useSpeaking(tile.stream, tile.muted);
@@ -739,6 +853,9 @@ function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, onCh
         onChoose={onChooseCommander}
         speaking={speaking}
         onPassTurn={onPassTurn}
+        canRandomizeGrid={canRandomizeGrid}
+        onRandomizeGrid={onRandomizeGrid}
+        onStartReadyCheck={onStartReadyCheck}
         flipped={flipped}
         onToggleFlip={() => setFlipped((f) => !f)}
       />
@@ -764,6 +881,17 @@ function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, onCh
           style={flipped ? { transform: "scaleY(-1)" } : undefined}
         />
         {flash && <div className="click-flash" style={{ left: flash.x, top: flash.y }} />}
+        {isReadyCheckActive && (
+          <div className="ready-check-overlay" role="status">
+            <strong>{readyStatus === true ? "Ready" : readyStatus === false ? "Not ready" : tile.isMe ? "Are you ready?" : "Waiting…"}</strong>
+            {tile.isMe && readyStatus === undefined && (
+              <span className="ready-check-actions">
+                <button type="button" className="ready-btn" onClick={(event) => { event.stopPropagation(); onReady?.(); }}><Check size={15} /> Ready</button>
+                <button type="button" className="not-ready-btn" onClick={(event) => { event.stopPropagation(); onNotReady?.(); }}><X size={15} /> Not ready</button>
+              </span>
+            )}
+          </div>
+        )}
         {tile.isMe && scanNotice && (
           <div className="scan-notice" role="status">
             📷 {scanNotice.by} scanned your board
@@ -819,7 +947,7 @@ function ManaCost({ cost }) {
 }
 
 // Three-dot video-options menu on the banner's first row.
-function TileMenu({ flipped, onToggleFlip, canPassTurn, onPassTurn }) {
+function TileMenu({ flipped, onToggleFlip, canPassTurn, onPassTurn, canRandomizeGrid, onRandomizeGrid, canStartReadyCheck, onStartReadyCheck }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="banner-menu" onClick={(e) => e.stopPropagation()}>
@@ -855,13 +983,25 @@ function TileMenu({ flipped, onToggleFlip, canPassTurn, onPassTurn }) {
               <span>Pass turn</span>
             </button>
           )}
+          {canRandomizeGrid && (
+            <button type="button" onClick={() => { onRandomizeGrid?.(); setOpen(false); }}>
+              <Shuffle size={18} />
+              <span>Randomize video positions</span>
+            </button>
+          )}
+          {canStartReadyCheck && (
+            <button type="button" onClick={() => { onStartReadyCheck?.(); setOpen(false); }}>
+              <Check size={18} />
+              <span>Check ready</span>
+            </button>
+          )}
         </div>
       )}
     </div>
   );
 }
 
-function CommanderBanner({ tile, onChoose, speaking, onPassTurn, flipped, onToggleFlip }) {
+function CommanderBanner({ tile, onChoose, speaking, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, flipped, onToggleFlip }) {
   const [draft, setDraft] = useState(tile.commander);
   const [suggestions, setSuggestions] = useState([]);
   const [highlight, setHighlight] = useState(-1);
@@ -934,7 +1074,7 @@ function CommanderBanner({ tile, onChoose, speaking, onPassTurn, flipped, onTogg
   if (!tile.isMe) {
     return (
       <div className="commander-banner">
-        <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} />
+        <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} />
         {nameRow}
         <div className="banner-row">
           <span className={tile.commander ? "commander-name" : "commander-name unset"}>
@@ -955,7 +1095,7 @@ function CommanderBanner({ tile, onChoose, speaking, onPassTurn, flipped, onTogg
         onClick={() => setEditing(true)}
         title={tile.commander ? "Click to change commander" : "Click to add commander"}
       >
-        <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canPassTurn={tile.activeTurn} onPassTurn={onPassTurn} />
+        <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canPassTurn={tile.activeTurn} onPassTurn={onPassTurn} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} canStartReadyCheck={canRandomizeGrid} onStartReadyCheck={onStartReadyCheck} />
         {nameRow}
         <div className="banner-row">
           <span className={tile.commander ? "commander-name" : "commander-name unset"}>
@@ -979,7 +1119,7 @@ function CommanderBanner({ tile, onChoose, speaking, onPassTurn, flipped, onTogg
   };
   return (
     <form className="commander-banner commander-picker" onSubmit={submit}>
-      <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canPassTurn={tile.activeTurn} onPassTurn={onPassTurn} />
+      <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canPassTurn={tile.activeTurn} onPassTurn={onPassTurn} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} canStartReadyCheck={canRandomizeGrid} onStartReadyCheck={onStartReadyCheck} />
       {nameRow}
       <div className="commander-search">
         <input

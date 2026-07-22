@@ -405,6 +405,14 @@ input::placeholder { color: var(--text-tertiary); opacity: 1; }
   background: rgba(0,0,0,0.78); color: #fff; font-size: 13px; font-weight: 600;
   padding: 6px 12px; border-radius: 999px; white-space: nowrap; pointer-events: none;
   animation: scan-notice-in 0.2s ease-out; }
+.ready-check-overlay { position: absolute; inset: 0; z-index: 4; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 16px; background: rgba(7, 10, 16, 0.64); color: #fff; text-align: center; pointer-events: none; }
+.ready-check-overlay strong { font-size: clamp(16px, 2vw, 24px); text-shadow: 0 1px 4px rgba(0,0,0,0.45); }
+.ready-check-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; pointer-events: auto; }
+.ready-check-actions button { display: inline-flex; align-items: center; gap: 5px; min-height: 34px; padding: 7px 12px; border: 1px solid rgba(255,255,255,0.35); border-radius: 8px; color: #fff; font: inherit; font-size: var(--text-sm); font-weight: 600; cursor: pointer; }
+.ready-btn { background: rgba(48, 152, 93, 0.9); }
+.ready-btn:hover { background: rgba(59, 177, 108, 0.98); }
+.not-ready-btn { background: rgba(181, 67, 72, 0.9); }
+.not-ready-btn:hover { background: rgba(207, 78, 84, 0.98); }
 @keyframes scan-notice-in { from { opacity: 0; transform: translate(-50%, -6px); }
   to { opacity: 1; transform: translate(-50%, 0); } }
 
@@ -527,11 +535,14 @@ input::placeholder { color: var(--text-tertiary); opacity: 1; }
 .lookup-log .lookups li { display: flex; flex-direction: column; gap: 1px; padding: 8px 10px; }
 .lookup-log .lookups li.life-log-entry { cursor: default; }
 .lookup-log .lookups li.dice-log-entry { cursor: default; }
-.lookup-log .lookups li.life-log-entry:hover, .lookup-log .lookups li.dice-log-entry:hover { background: var(--bg-surface-raised); }
+.lookup-log .lookups li.ready-log-entry { cursor: default; }
+.lookup-log .lookups li.life-log-entry:hover, .lookup-log .lookups li.dice-log-entry:hover, .lookup-log .lookups li.ready-log-entry:hover { background: var(--bg-surface-raised); }
 .log-life-change { color: var(--text-primary); }
 .log-life-change.gained { color: var(--success-text); }
 .log-life-change.lost { color: var(--danger-text); }
 .log-dice-roll { color: var(--text-primary); }
+.log-ready-check.ready { color: var(--success-text); }
+.log-ready-check.not-ready { color: var(--danger-text); }
 .log-detail { color: var(--text-tertiary); font-size: var(--text-xs); }
 .lookups .by { color: var(--dim); }
 .sidebar.chat-view { overflow: hidden; }

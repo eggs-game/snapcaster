@@ -160,6 +160,7 @@ export default function Lobby({ onStart }) {
       name: playerName,
       code: roomCode,
       role,
+      creator: !!settings.creator,
       lobbyName: createdLobbyName.trim().slice(0, 48),
       ...settings,
     });
@@ -174,6 +175,7 @@ export default function Lobby({ onStart }) {
     go(makeCode(), "player", lobbyName, {
       bracket: Number(bracket),
       seatLimit: Number(seatLimit),
+      creator: true,
     });
   };
 
