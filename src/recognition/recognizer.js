@@ -1301,13 +1301,10 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     if (bestCandidateDistance > 165) {
       const ESCALATE_BUDGET = 5;
       const priority = [
-        // In crowded tableaus the clicked art remains visible but every outer
-        // card contour can merge with a neighbour. Probe the tight cursor-
-        // anchored crops for upright, inverted and both landscape directions
-        // before spending the last slot on another outline. This keeps the
-        // same five-scan tail budget and leaves decisive/clear cards untouched.
-        "art-28", "artf-38", "tap-38l", "tap-38r", "outline-4",
-        "outline-5", "outline-6", "art-38", "art-65",
+        // Preserve both landscape orientations before spending the bounded
+        // budget on more portrait crops.
+        "tap-38l", "tap-38r", "outline-4", "outline-5", "outline-6",
+        "art-38", "art-28", "art-65",
         "center-35", "center-27", "off0,-18", "off0,-26", "tilt20@35",
         "tilt-20@35", "title-65",
       ];
