@@ -9,6 +9,68 @@ Newest first. Run via `snapcaster.vercel.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-07-22 — `outline-offclick-1` — Full Test Plan — measurement follow-up
+
+All three production suites were run sequentially in one browser session. Two
+suites cleared the 90% goal; the 100-card tableau landed one card below it and
+two below the prior run, exactly at the documented noise boundary. No
+recognition change was attempted from that movement.
+
+- **Tableau 10 scenes / EDH staples:** **89/100 (89.0%)**, 0 errors; target
+  distance **-1 card**. Avg 2.3s, median 1.8s, p90 4.3s, max 5.7s. Stage means:
+  prep 0.52s, rank 1.01s, ORB 0.67s, OCR 0.78s. Art-match 83/83 and
+  visual-exact 4/4 were 100% precise. Layout: side-by-side 58/60 (96.7%),
+  spaced 27/30 (90.0%), overlapping 4/10 (40.0%); clear cards were 86/91
+  (94.5%). Rotation: upright 49/55 (89.1%), tapped 28/31 (90.3%), upside-down
+  12/14 (85.7%). Nine misses were absent and two were rank 6+.
+- **Random 200:** **190/200 (95.0%)**, 0 errors; target distance **+10 cards**.
+  Avg 2.9s, median 3.1s, p90 4.0s, max 4.4s. Stage means: prep 0.49s, rank
+  1.43s, ORB 0.75s, OCR 0.56s. Art-match 182/182 and visual-exact 3/3 were
+  100% precise. Placement: mild-centered-a 56/56, above-click 48/48,
+  mild-centered-b 48/48, top-edge-clipped **38/48 (79.2%)**. Every one of the
+  ten misses was top-edge-clipped and the true card was absent. Rotation:
+  upright 46/50, tilt 49/50, sideways 49/50, upside-down 46/50.
+- **EDH staples 200:** **185/199 (93.0%)**, one Scryfall image-load error;
+  target distance **+6 cards** among completed scans. Avg 2.9s, median 3.0s,
+  p90 3.9s; one 23.3s completed outlier. Stage means: prep 0.50s, rank 1.44s,
+  ORB 0.78s, OCR 0.52s. Art-match 182/182 and visual-exact 1/1 were 100%
+  precise. Placement: mild-centered-a 56/56, above-click 48/48,
+  mild-centered-b 47/47, top-edge-clipped **34/48 (70.8%)**. All 14 misses
+  were top-edge-clipped and absent. Rotation: upright 44/49, tilt 49/50,
+  sideways 49/50, upside-down 43/50. Card/token/basic accuracy was
+  141/151, 39/42 and 5/6 respectively.
+
+Resource diagnostics reject a time-degradation explanation. WASM heap was
+flat at **134MB start-to-end in all three suites**; peak JS heap was 43MB,
+42MB and 27MB. First/second-half accuracy was 98%/80% (tableau), 98%/92%
+(Random) and 97%/89% (EDH). In the single-card suites the losses recur at the
+deterministic top-edge blocks, while every non-edge placement was perfect.
+Tableau's late loss is confounded with its deliberately overlapping scene and
+occurred with a flat heap.
+
+Compared with the 2026-07-21 run on the same build, tableau moved 91% -> 89%
+(inside 100-card noise), Random moved 92% -> 95% with top-edge 68.8% -> 79.2%
+(fresh-card sampling, not a code effect), and EDH stayed 93% with top-edge
+exactly unchanged at 70.8%. Median/p90 improved from 2.3s/4.6s to 1.8s/4.3s,
+3.6s/7.0s to 3.1s/4.0s, and 3.3s/4.3s to 3.0s/3.9s respectively.
+
+**Today's falsifiable measurement hypothesis:** SNAPTEST already captures
+metadata observations but drops them from its export, so completed misses
+cannot satisfy the required metadata analysis without being rerun. Code
+inspection confirmed the omission. The harness-only fix centralizes the Copy
+payload, adds the captured metadata fields, and exposes the identical payload
+as `window.__SNAPTEST_LAST_RESULT` when clipboard access is unavailable. It
+does not alter recognition or the BUILD marker. Production build and hash-copy
+checks pass; full hash compatibility could not start locally because the
+Python environment lacks `cv2`, so CI remains the authoritative check.
+
+No recognition experiment was shipped. The single best next experiment is a
+deterministic Fixed top-edge 64 A/B that clusters off-click contours before
+the spatial-rival guard: test whether inner-frame/background contours from the
+same physical card are being mistaken for a competing card, disabling the
+bounded rescue. Require gains across all four rotations and no regression on
+Fixed 200 or overlapping tableaux.
+
 ## 2026-07-21 — `outline-offclick-1` — Full Test Plan — READY
 
 The first degrade-v2 Full Test Plan exposed a deterministic cliff at index 48:

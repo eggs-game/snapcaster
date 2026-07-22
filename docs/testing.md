@@ -110,6 +110,9 @@ diagnose:
 Every miss records the top-3 with distances, ORB inliers, the OCR text, the
 click position, per-stage timings and the scryfall id — because reproducing a
 miss costs another full run, so a miss that cannot be explained is expensive.
+After a run, `window.__SNAPTEST_LAST_RESULT` contains the exact **Copy results**
+payload, including metadata observations on misses, so completed diagnostics
+remain available when browser clipboard access is unavailable.
 
 ## Workflow
 

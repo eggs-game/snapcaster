@@ -82,6 +82,38 @@ function groupAcc(list, keyFn) {
   return g;
 }
 
+// Keep the clipboard export and the automation/debug export bit-for-bit
+// identical. SNAPTEST already captures these diagnostics while the expensive
+// scan is running; dropping them here would make a completed miss impossible
+// to analyze without reproducing it.
+function buildResultPayload(mode, summary, results) {
+  return {
+    build: window.__SNAP_BUILD || "unknown",
+    mode,
+    summary,
+    misses: results.filter((r) => !r.ok && !r.err).map((r) => ({
+      name: r.name, id: r.id, pool: r.pool, got: r.top, by: r.by,
+      dist: r.dist, conf: r.conf, trueRank: r.trueRank, trueDist: r.trueDist,
+      top3: r.top3,
+      i: r.i, degradeIndex: r.degradeIndex, placement: r.placementClass,
+      rot: r.rotationClass, occ: r.occ, ms: r.ms,
+      cv: r.cv, tried: r.tried, dropped: r.dropped,
+      artBest: r.artBest, artChecked: r.artChecked,
+      ocr: r.ocr, ocrConf: r.ocrConf, titleScore: r.titleScore,
+      metadata: r.metadata, metadataVetoed: r.metadataVetoed,
+      metadataConflictAll: r.metadataConflictAll, metadataError: r.metadataError,
+      stages: r.stages,
+      ...(r.scene !== undefined ? { scene: r.scene, coverage: r.coverage, clipped: r.clipped, click: r.click, layout: r.layout } : {}),
+    })),
+    errors: results.filter((r) => r.err).map((r) => ({
+      name: r.name, id: r.id, stage: r.errStage, ms: r.ms, message: r.err,
+      i: r.i, degradeIndex: r.degradeIndex, placement: r.placementClass,
+      rot: r.rotationClass, occ: r.occ,
+      ...(r.scene !== undefined ? { scene: r.scene, coverage: r.coverage, click: r.click } : {}),
+    })),
+  };
+}
+
 export default function SnapTest() {
   const [cards, setCards] = useState(null);        // frozen benchmark set
   const [indexCards, setIndexCards] = useState(null); // full 110k index (lazy)
@@ -492,6 +524,9 @@ export default function SnapTest() {
       });
     }
     sum.ranAt = new Date().toISOString();
+    // Browser automation and console diagnostics cannot reliably read the OS
+    // clipboard. Expose the same payload without requiring another run.
+    window.__SNAPTEST_LAST_RESULT = buildResultPayload(mode, sum, acc);
     setResults(acc);
     setSummary(sum);
     setStatus(cancelRef.current ? "idle" : "done");
@@ -500,29 +535,7 @@ export default function SnapTest() {
   const stop = () => { cancelRef.current = true; };
 
   const copyResults = () => {
-    const payload = {
-      build: window.__SNAP_BUILD || "unknown",
-      mode,
-      summary,
-      misses: results.filter((r) => !r.ok && !r.err).map((r) => ({
-        name: r.name, id: r.id, pool: r.pool, got: r.top, by: r.by,
-        dist: r.dist, conf: r.conf, trueRank: r.trueRank, trueDist: r.trueDist,
-        top3: r.top3,
-        i: r.i, degradeIndex: r.degradeIndex, placement: r.placementClass,
-        rot: r.rotationClass, occ: r.occ, ms: r.ms,
-        cv: r.cv, tried: r.tried, dropped: r.dropped,
-        artBest: r.artBest, artChecked: r.artChecked,
-        ocr: r.ocr, ocrConf: r.ocrConf, titleScore: r.titleScore,
-        stages: r.stages,
-        ...(r.scene !== undefined ? { scene: r.scene, coverage: r.coverage, clipped: r.clipped, click: r.click, layout: r.layout } : {}),
-      })),
-      errors: results.filter((r) => r.err).map((r) => ({
-        name: r.name, id: r.id, stage: r.errStage, ms: r.ms, message: r.err,
-        i: r.i, degradeIndex: r.degradeIndex, placement: r.placementClass,
-        rot: r.rotationClass, occ: r.occ,
-        ...(r.scene !== undefined ? { scene: r.scene, coverage: r.coverage, click: r.click } : {}),
-      })),
-    };
+    const payload = buildResultPayload(mode, summary, results);
     navigator.clipboard.writeText(JSON.stringify(payload, null, 2)).then(() => {
       setCopied(true); setTimeout(() => setCopied(false), 1500);
     });
