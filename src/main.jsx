@@ -7,7 +7,7 @@ import App from "./App.jsx";
 const SnapTest = lazy(() => import("./SnapTest.jsx"));
 import "./styles.css";
 
-const BUILD = "overlap-art38-additive-1 (uncertain tableau recall)";
+const BUILD = "outline-offclick-1 (bounded off-click contours + metadata evidence)";
 window.__SNAP_BUILD = BUILD;
 console.log(`%c[snapcaster] build: ${BUILD}`, "color:#0a0;font-weight:bold");
 
