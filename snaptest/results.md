@@ -9,6 +9,22 @@ Newest first. Run via `snapcaster.vercel.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-07-21 — `art-rescue-2` — bounded Arcane-medium A/B — READY
+
+- Current `main` reached **9/20 (45%)** on the fixed Arcane-medium prefix.
+  The integrated shifted-art rescue reached **18/22 (81.8%)**, with every
+  success a 100%-precise `art-match` and no errors.
+- Integrated timing: avg 5.6s / median 4.6s / p90 10.0s, versus main's
+  avg 8.0s / median 8.3s / p90 14.7s on its 20-card run. More decisive art
+  exits outweighed the bounded extra search work.
+- A Fixed-set control found three absent sideways misses in 35 integrated
+  cards. Production reproduced the same three true-card failures in its first
+  40, so they are baseline crop failures rather than regressions from this
+  change.
+- The Arcane branch's rules-box-as-title OCR was deliberately excluded: it
+  produced none of the wins and weakened the OCR safety boundary. Existing v4
+  rules metadata remains positive-only supporting evidence.
+
 ## 2026-07-20 — `speed-17` — Fixed 200 — **100%** (200/200, 0 errors) — MERGED
 
 - **First perfect run**, and 3x faster than the pre-speed baseline:

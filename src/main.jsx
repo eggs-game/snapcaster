@@ -7,7 +7,7 @@ import App from "./App.jsx";
 const SnapTest = lazy(() => import("./SnapTest.jsx"));
 import "./styles.css";
 
-const BUILD = "metadata-vision-1 (mana/type/rules fallback evidence)";
+const BUILD = "art-rescue-2 (bounded shifted-art rescue + metadata evidence)";
 window.__SNAP_BUILD = BUILD;
 console.log(`%c[snapcaster] build: ${BUILD}`, "color:#0a0;font-weight:bold");
 

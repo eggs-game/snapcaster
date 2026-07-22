@@ -106,6 +106,10 @@ the query using ORB keypoints and a RANSAC homography.
   `art-match` and skips everything downstream.
 - A marginal lead (<16 inliers) cannot override a hash that is better by 50+.
   13 inliers once promoted a card at d198 over the correct one at d133.
+- Top-cropped and dark-letterboxed captures also get a bounded pure-art rescue:
+  shifted art windows can introduce up to 12 candidates beyond the 24 combined
+  guesses, and ORB verifies at most 36 total. Expensive full-index art scans
+  are capped at eight, including escalation crops.
 
 This path has been **100% precise** across benchmark runs — when it fires, it
 is right.
