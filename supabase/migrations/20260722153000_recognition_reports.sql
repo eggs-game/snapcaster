@@ -25,6 +25,8 @@ alter table public.recognition_reports enable row level security;
 -- Snapcaster has no account system yet. The app may submit evidence but cannot
 -- read the corpus back; curation happens in the Supabase dashboard. A future
 -- authenticated user model can replace this anonymous insert policy.
+drop policy if exists "anonymous recognition report insert"
+  on public.recognition_reports;
 create policy "anonymous recognition report insert"
   on public.recognition_reports for insert to anon with check (true);
 
@@ -55,6 +57,8 @@ insert into storage.buckets (id, name, public)
 values ('recognition-reports', 'recognition-reports', false)
 on conflict (id) do nothing;
 
+drop policy if exists "anonymous recognition report upload"
+  on storage.objects;
 create policy "anonymous recognition report upload"
   on storage.objects for insert to anon
   with check (bucket_id = 'recognition-reports');
