@@ -9,6 +9,68 @@ Newest first. Run via `snapcaster.vercel.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-07-22 — `outline-offclick-1` — dice tableau + overlap A/B
+
+The Full Test Plan now targets 95% and includes a fourth daily production
+suite, **Tableau 10 EDH dice**. It samples the same realistic EDH population as
+the ordinary tableau and places one deterministic white, black, blue, red or
+pink die on every card. Dice randomness is isolated from scene randomness, so
+normal-vs-dice comparisons do not silently move or relight cards.
+
+Today's four production results and distance from 95%:
+
+- **Tableau 10 scenes / EDH staples:** **89/100 (89.0%)**, **6 cards short**;
+  median 1.8s, p90 4.3s. Side-by-side 96.7%, spaced 90.0%, overlapping 40.0%.
+- **Tableau 10 EDH dice:** **88/100 (88.0%)**, **7 cards short**, 0 errors;
+  avg 3.2s, median 3.2s, p90 4.4s, max 5.9s. Stage means: prep 0.53s, rank
+  1.75s, ORB 0.78s, OCR 0.81s. Side-by-side 57/60 (95.0%), spaced 29/30
+  (96.7%), overlapping **2/10 (20.0%)**. Upright 45/55 (81.8%), tapped 29/31
+  (93.5%), upside-down 14/14. Art-match 79/79 and visual-exact 8/8 were 100%
+  precise. Ten misses were absent and two rank 6+. By die colour: white 16/20,
+  black 17/20, blue 18/20, red 18/20, pink 19/20.
+- **Random 200:** **190/200 (95.0%)**, at target; median 3.1s, p90 4.0s.
+  All ten misses were in top-edge/clipped placements; every non-edge placement
+  was perfect.
+- **EDH staples 200:** **185/199 (93.0%)**, **5 completed cards short**, one
+  image-load error; median 3.0s, p90 3.9s. All 14 misses were top-edge/clipped;
+  every non-edge placement was perfect.
+
+The dice run does **not** establish a colour-specific recognition problem.
+Cards with zero neighbour coverage scored **87/91 (95.6%)** despite every one
+carrying a die. Eight of 12 misses came from the one overlapping scene, and
+white/black happened to occupy more of those placements. First/second-half
+accuracy was 96%/80%, but JS stayed at 43MB and the OpenCV WASM heap stayed
+flat at 134MB; the late drop is scene 9's deterministic layout, not resource
+degradation.
+
+A new **Fixed tableau overlap dice 100** control freezes the card printings and
+forces all ten scenes into the overlapping layout. Baseline: **39/100**, median
+5.2s, p90 5.7s. Zero-coverage cards were 13/17 (76.5%), 0-15% coverage 16/34
+(47.1%), 15-30% 10/40 (25.0%), and 30%+ 0/9. All 61 misses had the true card
+absent. Art-match remained 35/36 precise and visual-exact 1/1.
+
+**Hypothesis tested:** overlap destroys the outer contour, while the known
+tableau-scale cursor-anchored art crops exist but never receive a full-index
+scan. Three bounded escalation experiments were deployed and tested on the
+identical control:
+
+1. Replacing existing slots with a tighter 28% art crop regressed to 8/25 and
+   was stopped and reverted.
+2. Replacing them with the measured 38% crop regressed to 3/12 and was stopped
+   and reverted. This proved the late outline slots already rescue real cards.
+3. Keeping all five existing slots and adding upright/inverted 38% scans
+   completed at **39/100 exactly unchanged**, with the same 61 misses and every
+   rotation/coverage/pathway count identical. Rank work rose from 2.90s to
+   3.11s, so it was reverted too.
+
+No recognition change cleared the ship gate; production recognition remains
+`outline-offclick-1`. The shipped changes are harness-only: the dice suite, its
+repeatable overlap control, richer dice diagnostics, and the daily automation
+update. The single best next experiment is cursor-connected target isolation:
+use the click plus nearby card-edge orientation to reject neighbour edges and
+construct one bounded target quad, then prove it on the fixed overlap control
+without disturbing the current clear-card and top-edge paths.
+
 ## 2026-07-22 — `outline-offclick-1` — Full Test Plan — measurement follow-up
 
 All three production suites were run sequentially in one browser session. Two
