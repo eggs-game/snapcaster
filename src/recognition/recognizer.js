@@ -1301,12 +1301,10 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     if (bestCandidateDistance > 165) {
       const ESCALATE_BUDGET = 5;
       const priority = [
-        // Tableau cards occupy about 38% of the production crop height. When
-        // neighbours merge their contours, try that measured cursor-anchored
-        // geometry in every rotation before another uncertain outline. Keep
-        // the same five-scan tail budget and leave decisive cards untouched.
-        "art-38", "artf-38", "tap-38l", "tap-38r", "outline-4",
-        "outline-5", "outline-6", "art-28", "art-65",
+        // Preserve both landscape orientations before spending the bounded
+        // budget on more portrait crops.
+        "tap-38l", "tap-38r", "outline-4", "outline-5", "outline-6",
+        "art-38", "art-28", "art-65",
         "center-35", "center-27", "off0,-18", "off0,-26", "tilt20@35",
         "tilt-20@35", "title-65",
       ];
