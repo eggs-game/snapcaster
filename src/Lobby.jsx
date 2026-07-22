@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ArrowRight, Camera, Mic, X } from "lucide-react";
 import { isConfigured, makeCode, CODE_LENGTH } from "./signaling.js";
-import { loadIndex } from "./recognition/matcher.js";
+import { preload as preloadRecognition } from "./recognition/matcher.js";
 
 export default function Lobby({ onStart }) {
   const params = new URLSearchParams(window.location.search);
@@ -28,7 +28,7 @@ export default function Lobby({ onStart }) {
   const previewRequestRef = useRef(0);
 
   useEffect(() => {
-    loadIndex()
+    preloadRecognition()
       .then((count) => { setIndexCount(count); setIndexStatus("ok"); })
       .catch(() => setIndexStatus("missing"));
   }, []);

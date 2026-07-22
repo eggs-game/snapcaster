@@ -40,7 +40,7 @@ Dependencies are deliberately few: `react`, `react-dom`, `@supabase/supabase-js`
 src/
   main.jsx              entry; lazy routes /snaptest and /turntest vs the app
   App.jsx               Lobby ↔ Game switch, theme
-  Lobby.jsx             create/join, device pick, index readiness
+  Lobby.jsx             create/join, device pick, core recognition warm-up/readiness
   Game.jsx              video tiles, life, turns, public chat/whispers, dice, capture clicks
   CardSidebar.jsx       results panel + ?debug=1 diagnostics
   chatCommands.js       /whisper parsing and @recipient matching

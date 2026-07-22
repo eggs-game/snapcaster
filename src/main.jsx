@@ -8,7 +8,7 @@ const SnapTest = lazy(() => import("./SnapTest.jsx"));
 const TurnTest = lazy(() => import("./TurnTest.jsx"));
 import "./styles.css";
 
-const BUILD = "outline-offclick-1 (bounded off-click contours + metadata evidence)";
+const BUILD = "warm-lobby-1 (lobby core preload + ready handshake)";
 window.__SNAP_BUILD = BUILD;
 console.log(`%c[snapcaster] build: ${BUILD}`, "color:#0a0;font-weight:bold");
 

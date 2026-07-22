@@ -313,6 +313,7 @@ function loadCV() {
 
 // ---------- card index ----------
 let index = null, cards = null, manifest = null, shardedIndex = false, indexPromise = null;
+let globalIndexPromise = null;
 let colorIndex = null, artIndex = null; // v3 companion tables
 const COLOR_BYTES = 13, ART_BYTES = 32;
 
@@ -337,36 +338,57 @@ function loadIndex() {
   return indexPromise;
 }
 
-async function loadGlobalIndex() {
-  if (index && cards) return cards.length;
-  const [hashResponse, cardsResponse] = await Promise.all([
-    fetch("/carddata/hashes.bin"),
-    fetch("/carddata/cards.json"),
-  ]);
-  if (!hashResponse.ok || !cardsResponse.ok) throw new Error("Global fallback index not found");
-  index = new Uint8Array(await hashResponse.arrayBuffer());
-  cards = await cardsResponse.json();
-  if (index.length !== cards.length * VEC_BYTES) throw new Error("Global fallback index corrupted");
-  // v3 companion tables: per-printing color histograms + art-region hashes.
-  // Optional — a v2 deployment simply proceeds grayscale-only.
-  if ((manifest?.version || 0) >= 3) {
-    try {
+function loadGlobalIndex() {
+  const companionsReady = (manifest?.version || 0) < 3 || (!!colorIndex && !!artIndex);
+  if (index && cards && companionsReady) return Promise.resolve(cards.length);
+  if (globalIndexPromise) return globalIndexPromise;
+  globalIndexPromise = (async () => {
+    if (!index || !cards) {
+      const [hashResponse, cardsResponse] = await Promise.all([
+        fetch("/carddata/hashes.bin"),
+        fetch("/carddata/cards.json"),
+      ]);
+      if (!hashResponse.ok || !cardsResponse.ok) throw new Error("Global fallback index not found");
+      index = new Uint8Array(await hashResponse.arrayBuffer());
+      cards = await cardsResponse.json();
+      if (index.length !== cards.length * VEC_BYTES) throw new Error("Global fallback index corrupted");
+    }
+    // v3 companion tables: per-printing color histograms + art-region hashes.
+    // A v2 deployment has none. On v3+, a failed fetch leaves the base grayscale
+    // index usable but rejects the warm-up handshake instead of claiming the
+    // full production core is ready.
+    if ((manifest?.version || 0) >= 3 && (!colorIndex || !artIndex)) {
       const [colorResp, artResp] = await Promise.all([
         fetch("/carddata/colors.bin"),
         fetch("/carddata/arthashes.bin"),
       ]);
-      if (colorResp.ok) {
-        const table = new Uint8Array(await colorResp.arrayBuffer());
-        if (table.length === cards.length * COLOR_BYTES) colorIndex = table;
+      if (!colorResp.ok || !artResp.ok) throw new Error("Companion visual indexes not found");
+      const colorTable = new Uint8Array(await colorResp.arrayBuffer());
+      const artTable = new Uint8Array(await artResp.arrayBuffer());
+      if (colorTable.length !== cards.length * COLOR_BYTES || artTable.length !== cards.length * ART_BYTES) {
+        throw new Error("Companion visual indexes corrupted");
       }
-      if (artResp.ok) {
-        const table = new Uint8Array(await artResp.arrayBuffer());
-        if (table.length === cards.length * ART_BYTES) artIndex = table;
-      }
+      colorIndex = colorTable;
+      artIndex = artTable;
       console.log(`[snapcaster worker] v3 tables: color=${!!colorIndex} art=${!!artIndex}`);
-    } catch (e) { /* grayscale-only */ }
-  }
-  return cards.length;
+    }
+    return cards.length;
+  })();
+  globalIndexPromise.catch(() => { globalIndexPromise = null; });
+  return globalIndexPromise;
+}
+
+async function warmCore() {
+  const startedAt = performance.now();
+  const indexCount = await loadIndex();
+  if (shardedIndex) await loadGlobalIndex();
+  await loadCV();
+  return {
+    indexCount,
+    indexReady: !!(index && cards && ((manifest?.version || 0) < 3 || (colorIndex && artIndex))),
+    cvStatus,
+    workerMs: Math.round(performance.now() - startedAt),
+  };
 }
 
 function cardMeta(i, distance) {
@@ -1856,7 +1878,14 @@ let lastTitleSource = { scanId: null, candidates: [] };
 
 self.onmessage = async (e) => {
   const { id, type, bmp, point, queryCandidates, scanId } = e.data || {};
-  if (type === "identify") {
+  if (type === "preload") {
+    try {
+      const ready = await warmCore();
+      self.postMessage({ id, preloaded: true, ...ready });
+    } catch (err) {
+      self.postMessage({ id, error: String((err && err.message) || err), cvStatus });
+    }
+  } else if (type === "identify") {
     try {
       const res = await identify(bmp, point);
       lastTitleSource = { scanId: id, candidates: res.titleSource || [] };

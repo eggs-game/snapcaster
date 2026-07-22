@@ -44,12 +44,56 @@ export function loadIndex() {
 
 export function indexSize() { return manifest?.count || cards?.length || 0; }
 
-// Warm the worker (and thus OpenCV + the index inside it) ahead of the first
-// click, e.g. when a game screen mounts, so recognition is ready sooner.
+let preloadPromise = null;
+let ocrWarmScheduled = false;
+
+function scheduleOCRWarm() {
+  if (ocrWarmScheduled) return;
+  ocrWarmScheduled = true;
+  const run = () => getOCRWorker().catch(() => {});
+  if (typeof requestIdleCallback === "function") requestIdleCallback(run, { timeout: 5000 });
+  else setTimeout(run, 1000);
+}
+
+// Warm the worker's actual recognition core ahead of the first click. This
+// waits for OpenCV and the full hash/card/color/art tables, not just the small
+// names.json file used by the lobby banner.
 export function preload() {
-  getWorker();
-  getOCRWorker().catch(() => {});
-  return loadIndex();
+  if (preloadPromise) return preloadPromise;
+  const startedAt = performance.now();
+  globalThis.__SNAP_RECOGNITION_WARMUP = { status: "warming", startedAt: Date.now() };
+  preloadPromise = Promise.all([loadIndex(), runCorePreload()])
+    .then(([count, core]) => {
+      if (!core.preloaded || !core.indexReady || core.cvStatus !== "ready") {
+        throw new Error("Recognition core did not finish warming.");
+      }
+      const durationMs = Math.round(performance.now() - startedAt);
+      globalThis.__SNAP_RECOGNITION_WARMUP = {
+        status: "ready",
+        startedAt: globalThis.__SNAP_RECOGNITION_WARMUP?.startedAt || Date.now(),
+        readyAt: Date.now(),
+        durationMs,
+        workerMs: core.workerMs,
+        cvStatus: core.cvStatus,
+        indexReady: core.indexReady,
+        count,
+      };
+      console.log(`[snapcaster] recognition core ready in ${durationMs}ms (worker ${core.workerMs}ms)`);
+      scheduleOCRWarm();
+      return count;
+    })
+    .catch((error) => {
+      globalThis.__SNAP_RECOGNITION_WARMUP = {
+        status: "failed",
+        startedAt: globalThis.__SNAP_RECOGNITION_WARMUP?.startedAt || Date.now(),
+        failedAt: Date.now(),
+        durationMs: Math.round(performance.now() - startedAt),
+        error: String(error?.message || error),
+      };
+      preloadPromise = null;
+      throw error;
+    });
+  return preloadPromise;
 }
 
 // ---------- recognition worker plumbing ----------
@@ -65,13 +109,20 @@ function getWorker() {
       const {
         id, matches, printingMatches, titleCandidates, metadataStrips, titleCount, queryCandidates,
         shardedIndex, cardFound, cvStatus, candidatesTried, cropsDropped, artBest, artChecked,
-        artDecisive, stageMs, wasmHeapMB, error,
+        artDecisive, stageMs, wasmHeapMB, preloaded, indexReady, indexCount, workerMs, error,
       } = e.data || {};
       const p = pending.get(id);
       if (!p) return;
       pending.delete(id);
       clearTimeout(p.timer);
       if (error) p.reject(new Error(error));
+      else if (p.kind === "preload") p.resolve({
+        preloaded: !!preloaded,
+        cvStatus: cvStatus || "unknown",
+        indexReady: !!indexReady,
+        indexCount: Number(indexCount) || 0,
+        workerMs: Number(workerMs) || 0,
+      });
       else if (p.kind === "title-strips") p.resolve(titleCandidates || []);
       else if (p.kind === "metadata-strips") p.resolve(metadataStrips || null);
       else p.resolve({
@@ -635,6 +686,19 @@ function runOnWorker(bmp, point = { nx: 0.5, ny: 0.5 }) {
     }, IDENTIFY_TIMEOUT_MS);
     pending.set(id, { resolve, reject, timer });
     w.postMessage({ type: "identify", id, bmp, point }, [bmp]);
+  });
+}
+
+function runCorePreload() {
+  const w = getWorker();
+  const id = ++seq;
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      pending.delete(id);
+      reject(new Error("Recognition warm-up timed out."));
+    }, 180000);
+    pending.set(id, { resolve, reject, timer, kind: "preload" });
+    w.postMessage({ type: "preload", id });
   });
 }
 

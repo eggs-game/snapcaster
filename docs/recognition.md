@@ -163,6 +163,18 @@ partial. If every visual candidate conflicts, the read is treated as faulty and
 the original shortlist is preserved. This pathway never runs before a decisive
 visual or art match, so the common fast path keeps its existing cost.
 
+## Cold-start warm-up
+
+The lobby immediately starts the recognition worker and does not label it
+ready until the worker confirms that OpenCV and the full hash/card/color/art
+tables are resident. The worker remains alive when the lobby transitions into
+the game, moving the unavoidable WASM compile and index parsing ahead of the
+first card click. A safe diagnostic is available at
+`window.__SNAP_RECOGNITION_WARMUP`; it contains status and timings but no card,
+camera, or player data. The first Tesseract worker warms only after the core is
+ready and the browser is idle, so optional OCR cannot compete with the common
+visual fast path.
+
 ## Where the time goes
 
 Median ~1.6s, p90 ~5.7s on realistic scenes:
@@ -196,5 +208,7 @@ far more contour quads (60–74 crops tried instead of ~39).
   breaks it, not how much is hidden.
 - **Pixels.** 720p across a 20-card playmat cannot work. 1080p is borderline,
   4K comfortable.
-- **First scan** after load pays for the OpenCV WASM compile and index warm.
+- **An immediate click during lobby warm-up** can still wait for OpenCV and the
+  index. Once the lobby reports “Recognition ready,” the first click uses the
+  same resident core as later scans.
 - **Brand-new sets** are missing until the monthly index rebuild.
