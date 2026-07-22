@@ -1299,12 +1299,16 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     // path found nothing plausible. Scanning every leftover crop sent Arcane
     // p90 into the tens of seconds without adding useful late candidates.
     if (bestCandidateDistance > 165) {
-      const ESCALATE_BUDGET = 5;
+      // Preserve the five proven rotation/outline rescues, then give the two
+      // 38%-scale art anchors a chance only after every ordinary seed was
+      // uncertain. These two additive scans target tableau-scale upright and
+      // inverted cards without displacing an existing recall pathway.
+      const ESCALATE_BUDGET = 7;
       const priority = [
         // Preserve both landscape orientations before spending the bounded
         // budget on more portrait crops.
         "tap-38l", "tap-38r", "outline-4", "outline-5", "outline-6",
-        "art-38", "art-28", "art-65",
+        "art-38", "artf-38", "art-28", "art-65",
         "center-35", "center-27", "off0,-18", "off0,-26", "tilt20@35",
         "tilt-20@35", "title-65",
       ];
