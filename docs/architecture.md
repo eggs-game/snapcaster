@@ -69,7 +69,8 @@ per-IP/room rate limit reduces casual credential abuse; production usage should
 also be watched in Cloudflare Realtime analytics.
 `await window.__scTestTurn()` performs a relay-only ICE gathering check without
 opening media devices and reports only candidate counts/protocols, never the
-short-lived credential.
+short-lived credential. `/turntest` exposes the same safe result as a small
+production health page.
 
 ## The card index
 

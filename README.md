@@ -95,7 +95,7 @@ Open your URL, allow camera + mic, **Create game**, send the 6-character code to
   connection (`ready` means relay credentials loaded; `fallback` means only
   direct/STUN connectivity is available). Run `await window.__scTestTurn()` in
   production devtools to gather a relay-only candidate without using the
-  camera or microphone.
+  camera or microphone, or open `/turntest` for the same credential-safe check.
 - **New sets** are picked up by the monthly automatic index rebuild (or run the Action manually).
 - Card data and images © Wizards of the Coast, via [Scryfall](https://scryfall.com) under the WotC Fan Content Policy. Unofficial fan project.
 
