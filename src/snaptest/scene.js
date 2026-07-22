@@ -222,7 +222,7 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080, 
   // 10 and mild. Pitch is expressed as a multiple of the card's worst-case
   // on-screen extent, so >1 always means a visible gap and <1 means real
   // overlap, independent of card size or tilt.
-  const layout = ["side-by-side", "side-by-side", "spaced", "side-by-side",
+  const layout = options.layout || ["side-by-side", "side-by-side", "spaced", "side-by-side",
     "side-by-side", "spaced", "side-by-side", "spaced", "side-by-side",
     "overlapping"][sceneIdx % 10];
   const PITCH = {

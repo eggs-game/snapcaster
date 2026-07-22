@@ -25,6 +25,11 @@ const MODES = {
     label: "Tableau 10 EDH dice (100 cards)",
     size: 100, scenes: 10, perScene: 10, popular: 15000, dice: true,
   },
+  fixedTableauDiceOverlap10: {
+    label: "Fixed tableau overlap dice (100 cards, targeted)",
+    size: 100, scenes: 10, perScene: 10, dice: true, fixed: true,
+    layout: "overlapping",
+  },
   tableauEdh100: {
     label: "Tableau 100 scenes — EDH staples (1000 cards)",
     size: 1000, scenes: 100, perScene: 10, popular: 15000,
@@ -271,7 +276,8 @@ export default function SnapTest() {
     const popular = MODES[mode].popular;
     if (popular) return samplePopular(MODES[mode].size, popular);
     if (mode === "random200") return sampleIndex(200);
-    if (mode.startsWith("tableau")) return sampleIndex(MODES[mode].size);
+    if (MODES[mode].fixed) return cards.slice(0, MODES[mode].size);
+    if (mode.startsWith("tableau") || MODES[mode].scenes) return sampleIndex(MODES[mode].size);
     if (MODES[mode].topEdge) {
       // Four deterministic repetitions of degrade-v2's hardest placement
       // block. Adding 64 changes the degradation seed while preserving the
@@ -296,7 +302,10 @@ export default function SnapTest() {
       if (!group.length) break;
       let scene = null;
       try {
-        scene = await buildScene(group, s, 1920, 1080, { dice: !!MODES[mode].dice });
+        scene = await buildScene(group, s, 1920, 1080, {
+          dice: !!MODES[mode].dice,
+          layout: MODES[mode].layout,
+        });
       } catch (e) {
         for (const card of group) {
           acc.push({ name: card.name, id: card.id, ok: false, ms: 0, errStage: "image-load", err: String((e && e.message) || e) });
@@ -365,7 +374,7 @@ export default function SnapTest() {
     let correct = 0, peakHeapMB = 0, keptMissImgs = 0, keptErrorImgs = 0;
     setResults([]); setSummary(null); setProgress({ done: 0, correct: 0 });
     setStatus("running");
-    if (mode.startsWith("tableau")) {
+    if (MODES[mode].scenes) {
       const ctr = { correct: 0, peak: 0, miss: 0, err: 0 };
       await runTableau(set, acc, ctr);
       peakHeapMB = ctr.peak;
