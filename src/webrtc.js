@@ -3,12 +3,27 @@
 import { joinRoom } from "./signaling.js";
 import { cropGeometry } from "./captureGeometry.js";
 
-const ICE_SERVERS = [{ urls: "stun:stun.l.google.com:19302" }];
-if (import.meta.env.VITE_TURN_URL) {
-  ICE_SERVERS.push({
-    urls: import.meta.env.VITE_TURN_URL,
-    username: import.meta.env.VITE_TURN_USER,
-    credential: import.meta.env.VITE_TURN_PASS,
+const FALLBACK_ICE_SERVERS = [
+  { urls: "stun:stun.cloudflare.com:3478" },
+  { urls: "stun:stun.l.google.com:19302" },
+];
+
+function safeIceServers(value) {
+  if (!Array.isArray(value)) return [];
+  return value.slice(0, 4).flatMap((server) => {
+    const urls = (Array.isArray(server?.urls) ? server.urls : [server?.urls])
+      .filter((url) => typeof url === "string")
+      .filter((url) => /^(stun|turn|turns):(stun|turn)\.cloudflare\.com:/i.test(url))
+      // Cloudflare documents port 53 as blocked by major browsers. Keeping it
+      // makes VPN/firewall fallback slower without adding browser coverage.
+      .filter((url) => !/\.cloudflare\.com:53(?:\?|$)/i.test(url));
+    if (!urls.length) return [];
+    const next = { urls };
+    if (server.username && server.credential) {
+      next.username = String(server.username).slice(0, 512);
+      next.credential = String(server.credential).slice(0, 512);
+    }
+    return [next];
   });
 }
 
@@ -49,6 +64,46 @@ export class GameConnection {
     this.roster = [];
     this.videoDeviceId = "";
     this.audioDeviceId = "";
+    this.iceServers = FALLBACK_ICE_SERVERS;
+    this.turnStatus = "fallback";
+  }
+
+  async _configureIceServers(code) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5000);
+    try {
+      const response = await fetch("/api/turn-credentials", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ roomCode: code }),
+        signal: controller.signal,
+      });
+      if (!response.ok) throw new Error(`TURN credentials unavailable (${response.status})`);
+      const payload = await response.json();
+      const iceServers = safeIceServers(payload?.iceServers);
+      if (!iceServers.some((server) => server.username && server.credential)) {
+        throw new Error("TURN response did not contain relay credentials");
+      }
+      this.iceServers = iceServers;
+      this.turnStatus = "ready";
+      globalThis.__SNAP_TURN_STATUS = {
+        status: "ready",
+        expiresAt: payload.expiresAt || null,
+        urls: iceServers.flatMap((server) => server.urls),
+      };
+    } catch (error) {
+      this.iceServers = FALLBACK_ICE_SERVERS;
+      this.turnStatus = "fallback";
+      globalThis.__SNAP_TURN_STATUS = {
+        status: "fallback",
+        reason: error?.name === "AbortError" ? "credential request timed out" : String(error?.message || error),
+      };
+      // TURN is a fallback, not a prerequisite. Direct connections should
+      // still work when the broker or Cloudflare is temporarily unavailable.
+      console.warn("[snapcaster] TURN fallback unavailable; trying direct WebRTC", error);
+    } finally {
+      clearTimeout(timer);
+    }
   }
 
   async initMedia({ audioOnly = false, videoDeviceId = "", audioDeviceId = "" } = {}) {
@@ -131,6 +186,7 @@ export class GameConnection {
 
   async join(code, name, role = "player") {
     this.role = role === "visitor" ? "visitor" : "player";
+    await this._configureIceServers(code);
     this.room = await joinRoom(code, name, this.role, {
       onRoster: (roster) => {
         // Presence can sync before joinRoom has returned our ID.
@@ -322,7 +378,7 @@ export class GameConnection {
 
   _getPeer(peerId) {
     if (this.peers.has(peerId)) return this.peers.get(peerId);
-    const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+    const pc = new RTCPeerConnection({ iceServers: this.iceServers });
     const entry = { pc, dc: null, chunks: new Map() };
     this.peers.set(peerId, entry);
     for (const t of this.localStream?.getTracks() || []) pc.addTrack(t, this.localStream);

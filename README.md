@@ -69,7 +69,15 @@ them in the Supabase dashboard.
 3. Before clicking Deploy, expand **Environment Variables** and add:
    - `VITE_SUPABASE_URL` = your Project URL
    - `VITE_SUPABASE_ANON_KEY` = your anon key
+   - `CLOUDFLARE_TURN_KEY_ID` = the UID of a Cloudflare Realtime TURN key
+   - `CLOUDFLARE_TURN_KEY_TOKEN` = that TURN key's secret bearer token
 4. **Deploy.** Done — you get a URL like `https://snapcaster.vercel.app`.
+
+The two Cloudflare values are server-only Vercel variables: never prefix them
+with `VITE_`. Snapcaster's `/api/turn-credentials` function exchanges them for
+12-hour credentials when a player enters a game. The browser never receives
+the long-lived TURN key. Create a production TURN key in **Cloudflare Dashboard
+→ Realtime → TURN**, then redeploy after adding both variables.
 
 If you ran the index build *after* deploying, go to Vercel → your project → **Deployments** → ⋯ → **Redeploy** so the site picks up the new index.
 
@@ -80,7 +88,12 @@ Open your URL, allow camera + mic, **Create game**, send the 6-character code to
 ## Notes
 
 - **Fast at full scale:** the main thread loads only a 0.67 MB name dictionary; the recognition worker keeps the hash index resident and scans it with a coarse-to-fine strategy rather than brute-forcing all 110,524 printings for every candidate crop. See [docs/recognition.md](docs/recognition.md).
-- **Strict NATs:** WebRTC is peer-to-peer; a small % of home networks need a TURN relay. Free option: [metered.ca TURN](https://www.metered.ca/tools/openrelay/) — add `VITE_TURN_URL`, `VITE_TURN_USER`, `VITE_TURN_PASS` env vars in Vercel and redeploy.
+- **Strict NATs and VPNs:** WebRTC prefers a direct peer connection, then falls
+  back to Cloudflare Realtime TURN over UDP, TCP, or TLS/443. Cloudflare's TURN
+  key stays in the server-side Vercel function; only expiring credentials reach
+  a player's browser. Inspect `window.__SNAP_TURN_STATUS` when diagnosing a
+  connection (`ready` means relay credentials loaded; `fallback` means only
+  direct/STUN connectivity is available).
 - **New sets** are picked up by the monthly automatic index rebuild (or run the Action manually).
 - Card data and images © Wizards of the Coast, via [Scryfall](https://scryfall.com) under the WotC Fan Content Policy. Unofficial fan project.
 

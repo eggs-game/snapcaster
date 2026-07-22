@@ -1,7 +1,7 @@
 # How Snapcaster is built
 
-There is no backend. The whole app is static files plus two free services, and
-everything that matters happens in the browser.
+There is no stateful application backend. The app is static files plus a small
+same-origin TURN credential function, and recognition remains in the browser.
 
 ```
 ┌─────────────┐   signaling only    ┌──────────────┐
@@ -9,7 +9,8 @@ everything that matters happens in the browser.
 └─────┬───────┘   (no media, no     │   Realtime   │  (SDP, ICE, life, chat)
       │            card images)     └──────────────┘
       │
-      │  WebRTC peer-to-peer mesh: audio, video, and capture data channels
+      │  encrypted WebRTC mesh: audio, video, and capture data channels
+      │  direct when possible; Cloudflare TURN relay when required
       │
 ┌─────▼───────┐                     ┌──────────────┐
 │  Browser B  │                     │    Vercel    │  static hosting:
@@ -23,7 +24,7 @@ everything that matters happens in the browser.
 | --- | --- | --- |
 | Build | Vite | Fast, and bundles the Web Worker without extra config |
 | UI | React 18 | No router — the app has two screens plus a benchmark page |
-| Transport | WebRTC mesh (≤4 players) | Media and card captures never touch a server |
+| Transport | WebRTC mesh (≤4 players) + Cloudflare TURN | Direct first; encrypted relay fallback for strict VPN/NAT/firewall paths |
 | Signaling | Supabase Realtime | Presence + broadcast, free tier, no server code |
 | Vision | OpenCV.js (WASM) in a Worker | Contour detection and ORB, off the main thread |
 | OCR | tesseract.js | Title reading, main thread, heavily gated (see below) |
@@ -59,6 +60,13 @@ scripts/
   test_hash_compat.py   asserts JS and Python hash identically
   check_hash_duplication.py  asserts the worker's copy has not drifted
 ```
+
+`api/turn-credentials.js` is the sole Vercel function. It keeps the Cloudflare
+TURN key server-side and issues 12-hour credentials after a same-origin,
+room-code-shaped request. It filters out Cloudflare's browser-blocked port 53
+URLs and returns UDP, TCP/80, TLS/5349 and TLS/443 options. A best-effort
+per-IP/room rate limit reduces casual credential abuse; production usage should
+also be watched in Cloudflare Realtime analytics.
 
 ## The card index
 
@@ -127,11 +135,15 @@ the main thread — an early bug that made the lobby unresponsive.
 
 ## Security posture
 
-- Camera stills go peer-to-peer only; no card image reaches a server.
+- Camera stills use the encrypted WebRTC data channel. They travel directly
+  when possible or through Cloudflare TURN when relaying is required; TURN
+  stores neither the still nor the live stream.
 - CSP, HSTS, `Permissions-Policy` (camera/mic scoped to self),
   `X-Frame-Options: DENY`, nosniff and a referrer policy are set in
   `vercel.json`.
 - No `dangerouslySetInnerHTML`, `innerHTML` or `eval` anywhere in `src/`.
+- The Cloudflare TURN key is held only in server-side Vercel environment
+  variables. Browsers receive expiring credentials, never the key itself.
 - The Supabase key is publishable. Realtime handles the game; opt-in
   recognition reports use a private Storage bucket plus a write-only table and
   token-scoped labeling function from `supabase/migrations/`. There is still
