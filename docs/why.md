@@ -77,10 +77,11 @@ another card, which is uncommon in real play.
 
 ## Constraints that shape everything
 
-- **No stateful application server.** Vercel serves the app and a small
-  stateless endpoint that exchanges a private Cloudflare TURN key for
-  short-lived browser credentials. Supabase Realtime carries signaling. Media
-  and captures travel over encrypted WebRTC: directly when possible, or
+- **No stateful application server.** Vercel serves the app and two small
+  stateless endpoints: one exchanges a private Cloudflare TURN key for
+  short-lived browser credentials, and one reports aggregate TURN usage.
+  Supabase Realtime carries signaling and public chat. Media, captures, and
+  private whispers travel over encrypted WebRTC: directly when possible, or
   through Cloudflare TURN when a VPN/NAT/firewall blocks the direct path.
   Opt-in wrong-card reports explicitly save a cropped capture plus diagnostics
   to private Supabase Storage for later curation. No live stream is stored.

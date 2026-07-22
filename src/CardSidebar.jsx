@@ -4,6 +4,9 @@ import {
   Send, Settings, Swords, ThumbsDown, UserPlus, UserRound, Video, VideoOff,
 } from "lucide-react";
 import { suggestCardNames } from "./cardSearch.js";
+import {
+  parseChatDraft, selectWhisperRecipient, whisperCommandMatches, whisperRecipientMatches,
+} from "./chatCommands.js";
 
 // Labels for the ?debug=1 diagnostics panel.
 const CV_LABEL = {
@@ -51,6 +54,7 @@ export default function CardSidebar({
   onUpdateRecognitionReport,
   chatMessages,
   currentUserId,
+  chatRecipients,
   onSendChat,
   onRollDie,
   onPick,
@@ -102,6 +106,9 @@ export default function CardSidebar({
   const [editingLobbyName, setEditingLobbyName] = useState(false);
   const [lobbyNameDraft, setLobbyNameDraft] = useState(lobbyName || "Untitled game");
   const [chatDraft, setChatDraft] = useState("");
+  const [chatWhisperTargetId, setChatWhisperTargetId] = useState("");
+  const [chatSuggestionIndex, setChatSuggestionIndex] = useState(0);
+  const [chatError, setChatError] = useState("");
   const [wrongReport, setWrongReport] = useState(null);
   const [truthQuery, setTruthQuery] = useState("");
   const [truthSuggestions, setTruthSuggestions] = useState([]);
@@ -118,6 +125,48 @@ export default function CardSidebar({
     ...(readyEvents || []).map((entry) => ({ ...entry, type: "ready" })),
   ].sort((a, b) => (b.at || 0) - (a.at || 0));
   const recentCards = [...(lookups || [])].reverse();
+  const safeChatRecipients = chatRecipients || [];
+  const chatCommandSuggestions = whisperCommandMatches(chatDraft);
+  const chatRecipientSuggestions = chatWhisperTargetId
+    ? []
+    : whisperRecipientMatches(chatDraft, safeChatRecipients);
+  const chatSuggestions = [
+    ...chatCommandSuggestions.map((command) => ({ type: "command", id: command, label: command })),
+    ...chatRecipientSuggestions.map((recipient) => ({
+      type: "recipient", id: recipient.id, label: recipient.name, recipient,
+    })),
+  ];
+  const whisperTarget = safeChatRecipients.find((recipient) => recipient.id === chatWhisperTargetId);
+
+  const chooseChatSuggestion = (suggestion) => {
+    if (!suggestion) return;
+    if (suggestion.type === "command") {
+      setChatDraft("/whisper @");
+      setChatWhisperTargetId("");
+    } else {
+      setChatDraft(selectWhisperRecipient(suggestion.recipient));
+      setChatWhisperTargetId(suggestion.recipient.id);
+    }
+    setChatSuggestionIndex(0);
+    setChatError("");
+  };
+
+  const submitChat = () => {
+    const parsed = parseChatDraft(chatDraft, safeChatRecipients, chatWhisperTargetId);
+    if (parsed.error) {
+      setChatError(parsed.error);
+      return;
+    }
+    const result = onSendChat?.(parsed);
+    if (result?.ok === false) {
+      setChatError(result.error || "Message could not be sent.");
+      return;
+    }
+    setChatDraft("");
+    setChatWhisperTargetId("");
+    setChatSuggestionIndex(0);
+    setChatError("");
+  };
 
   useEffect(() => {
     const q = truthQuery.trim();
@@ -807,11 +856,17 @@ export default function CardSidebar({
               <div className="chat-messages" aria-live="polite">
                 {chatMessages?.length ? chatMessages.map((message) => (
                   <div
-                    className={message.from === currentUserId ? "chat-message mine" : "chat-message"}
+                    className={`chat-message${message.from === currentUserId ? " mine" : ""}${message.whisper ? " whisper" : ""}`}
                     key={message.id}
                   >
                     <div className="chat-message-meta">
-                      <strong>{message.from === currentUserId ? "You" : message.name}</strong>
+                      <strong>
+                        {message.whisper
+                          ? message.from === currentUserId
+                            ? `Whisper to @${message.toName}`
+                            : `Whisper from @${message.name}`
+                          : message.from === currentUserId ? "You" : message.name}
+                      </strong>
                       <span>{new Date(message.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</span>
                     </div>
                     <p>{message.text}</p>
@@ -820,27 +875,68 @@ export default function CardSidebar({
                   <p className="chat-empty">Messages from players and visitors will appear here.</p>
                 )}
               </div>
+              {chatError && <p className="chat-compose-error" id="chat-compose-error" role="alert">{chatError}</p>}
               <form
                 className="chat-compose"
                 onSubmit={(event) => {
                   event.preventDefault();
-                  if (!chatDraft.trim()) return;
-                  onSendChat?.(chatDraft);
-                  setChatDraft("");
+                  submitChat();
                 }}
               >
+                {chatSuggestions.length > 0 && (
+                  <div className="chat-suggestions" role="listbox" aria-label={chatCommandSuggestions.length ? "Chat commands" : "Whisper recipients"}>
+                    {chatSuggestions.map((suggestion, index) => (
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={index === chatSuggestionIndex}
+                        className={index === chatSuggestionIndex ? "selected" : ""}
+                        key={`${suggestion.type}-${suggestion.id}`}
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => chooseChatSuggestion(suggestion)}
+                      >
+                        <strong>{suggestion.type === "recipient" ? `@${suggestion.label}` : suggestion.label}</strong>
+                        <span>
+                          {suggestion.type === "recipient"
+                            ? `${suggestion.recipient.role}${safeChatRecipients.filter((person) => person.name.toLocaleLowerCase() === suggestion.recipient.name.toLocaleLowerCase()).length > 1 ? ` · ${suggestion.recipient.id.slice(-4)}` : ""}`
+                            : "Private message"}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <textarea
                   value={chatDraft}
-                  onChange={(event) => setChatDraft(event.target.value)}
+                  onChange={(event) => {
+                    const next = event.target.value;
+                    setChatDraft(next);
+                    setChatError("");
+                    setChatSuggestionIndex(0);
+                    if (whisperTarget && !next.toLocaleLowerCase().startsWith(`/whisper @${whisperTarget.name}`.toLocaleLowerCase())) {
+                      setChatWhisperTargetId("");
+                    }
+                  }}
                   onKeyDown={(event) => {
+                    if (chatSuggestions.length && (event.key === "ArrowDown" || event.key === "ArrowUp")) {
+                      event.preventDefault();
+                      const direction = event.key === "ArrowDown" ? 1 : -1;
+                      setChatSuggestionIndex((index) => (index + direction + chatSuggestions.length) % chatSuggestions.length);
+                      return;
+                    }
+                    if (chatSuggestions.length && (event.key === "Tab" || event.key === "Enter")) {
+                      event.preventDefault();
+                      chooseChatSuggestion(chatSuggestions[chatSuggestionIndex] || chatSuggestions[0]);
+                      return;
+                    }
                     if (event.key === "Enter" && !event.shiftKey) {
                       event.preventDefault();
                       event.currentTarget.form?.requestSubmit();
                     }
                   }}
-                  placeholder="Message everyone"
+                  placeholder={whisperTarget ? `Whisper to @${whisperTarget.name}` : chatDraft.toLowerCase().startsWith("/whisper") ? "Choose @person, then write a message" : "Message everyone"}
                   aria-label="Chat message"
-                  maxLength={500}
+                  aria-describedby={chatError ? "chat-compose-error" : undefined}
+                  maxLength={640}
                   rows={1}
                 />
                 <button type="submit" aria-label="Send message" disabled={!chatDraft.trim()}>

@@ -303,9 +303,29 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   };
 
   const sendChat = (value) => {
-    const text = String(value || "").trim().slice(0, 500);
-    if (!text || !myId) return;
+    const payload = typeof value === "string" ? { text: value } : (value || {});
+    const text = String(payload.text || "").trim().slice(0, 500);
+    if (!text) return { ok: false, error: "Write a message first." };
+    if (!myId) return { ok: false, error: "Chat is still connecting." };
     const at = Date.now();
+    if (payload.kind === "whisper") {
+      const target = rosterRef.current.find((member) => member.id === payload.targetId && member.id !== myId);
+      if (!target) return { ok: false, error: "That person is no longer in the game." };
+      if (!connRef.current?.sendWhisper(target.id, text, at)) {
+        return { ok: false, error: `Private connection to @${target.name} is not ready yet.` };
+      }
+      setChatMessages((messages) => [...messages.slice(-99), {
+        id: `local-${myId}-${at}-${++chatIdRef.current}`,
+        from: myId,
+        name: session.name,
+        text,
+        at,
+        whisper: true,
+        to: target.id,
+        toName: target.name,
+      }]);
+      return { ok: true };
+    }
     setChatMessages((messages) => [...messages.slice(-99), {
       id: `local-${myId}-${at}-${++chatIdRef.current}`,
       from: myId,
@@ -314,6 +334,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       at,
     }]);
     connRef.current?.sendChat(text, at);
+    return { ok: true };
   };
 
   const rollDie = (requestedSides) => {
@@ -665,6 +686,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
             onUpdateRecognitionReport={updateRecognitionReport}
             chatMessages={chatMessages}
             currentUserId={myId}
+            chatRecipients={roster.filter((member) => member.id !== myId)}
             onSendChat={sendChat}
             onRollDie={rollDie}
             onPick={(m) => setCurrent({ matches: [m] })}

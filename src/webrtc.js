@@ -1,5 +1,6 @@
 // WebRTC 4-player mesh over Supabase signaling.
-// Data channels carry high-res capture requests/responses (chunked JSON).
+// Data channels carry high-res capture requests/responses (chunked JSON) and
+// recipient-only chat whispers that must never enter the room broadcast.
 import { joinRoom } from "./signaling.js";
 import { cropGeometry } from "./captureGeometry.js";
 
@@ -41,7 +42,7 @@ const MAX_VISITORS = 8; // peer-to-peer video fan-out is not an unlimited broadc
 export class GameConnection {
   constructor(handlers) {
     // handlers: onRoster, onRemoteStream, onPeerLeft, onLife,
-    // onCommander, onColor, onCardIdentified, onChat, onActivePlayer,
+    // onCommander, onColor, onCardIdentified, onChat (public or whisper), onActivePlayer,
     // onGridOrder, onReadyCheckStart, onReadyCheckResponse, onReadyCheckEnd,
     // onError
     this.h = handlers;
@@ -456,6 +457,20 @@ export class GameConnection {
           entry.chunks.delete(key);
           this._resolveCapture(key, { url: buf.parts.join(""), px: buf.px, py: buf.py });
         }
+      } else if (m.t === "whisper") {
+        const text = String(m.text || "").trim().slice(0, 500);
+        if (!text) return;
+        const sender = this.roster.find((member) => member.id === peerId);
+        if (!sender) return;
+        this.h.onChat?.({
+          from: peerId,
+          name: sender.name || (sender.role === "visitor" ? "Visitor" : "Player"),
+          text,
+          at: Number(m.at) || Date.now(),
+          whisper: true,
+          to: this.myId,
+          toName: this.roster.find((member) => member.id === this.myId)?.name || "You",
+        });
       }
     };
   }
@@ -494,7 +509,9 @@ export class GameConnection {
 
   _dcSend(peerId, obj) {
     const dc = this.peers.get(peerId)?.dc;
-    if (dc?.readyState === "open") dc.send(JSON.stringify(obj));
+    if (dc?.readyState !== "open") return false;
+    dc.send(JSON.stringify(obj));
+    return true;
   }
 
   _sendChunked(peerId, header, data) {
@@ -558,6 +575,18 @@ export class GameConnection {
     const message = String(text || "").trim().slice(0, 500);
     if (!message) return;
     this.room?.send({ type: "chat", text: message, at });
+  }
+  sendWhisper(peerId, text, at = Date.now()) {
+    const targetId = String(peerId || "").slice(0, 40);
+    const message = String(text || "").trim().slice(0, 500);
+    if (!targetId || targetId === this.myId || !message) return false;
+    if (!this.roster.some((member) => member.id === targetId)) return false;
+    return this._dcSend(targetId, {
+      t: "whisper",
+      id: crypto.randomUUID?.() || Math.random().toString(36).slice(2),
+      text: message,
+      at,
+    });
   }
   setActivePlayer(playerId) {
     if (this.role === "visitor") return;

@@ -89,7 +89,12 @@ If you ran the index build *after* deploying, go to Vercel → your project → 
 
 ### Step 6 — Play
 
-Open your URL, allow camera + mic, **Create game**, send the 6-character code to up to 3 friends. Click any card on any video to identify it.
+Open your URL, allow camera + mic, **Create game**, send the 6-character code
+to up to 3 friends. Click any card on any video to identify it. Players and
+visitors can use chat; type `/` and choose **/whisper**, then select an
+autocompleted `@name` to send that person a private, distinctly styled message.
+Whispers use the encrypted peer data channel and are never posted to the
+room-wide chat broadcast.
 
 ## Notes
 

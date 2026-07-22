@@ -1,7 +1,8 @@
 # How Snapcaster is built
 
-There is no stateful application backend. The app is static files plus a small
-same-origin TURN credential function, and recognition remains in the browser.
+There is no stateful application backend. The app is static files plus two
+small same-origin Cloudflare TURN functions (credentials and usage analytics),
+and recognition remains in the browser.
 
 ```
 ┌─────────────┐   signaling only    ┌──────────────┐
@@ -13,8 +14,8 @@ same-origin TURN credential function, and recognition remains in the browser.
       │  direct when possible; Cloudflare TURN relay when required
       │
 ┌─────▼───────┐                     ┌──────────────┐
-│  Browser B  │                     │    Vercel    │  static hosting:
-└─────────────┘                     │              │  app bundle + card index
+│  Browser B  │                     │    Vercel    │  app bundle + card index
+└─────────────┘                     │              │  + TURN serverless routes
                                     └──────────────┘
 ```
 
@@ -23,12 +24,12 @@ same-origin TURN credential function, and recognition remains in the browser.
 | Layer | Choice | Why |
 | --- | --- | --- |
 | Build | Vite | Fast, and bundles the Web Worker without extra config |
-| UI | React 18 | No router — the app has two screens plus a benchmark page |
+| UI | React 18 | No router — the app has lobby/game screens plus benchmark and TURN-health pages |
 | Transport | WebRTC mesh (≤4 players) + Cloudflare TURN | Direct first; encrypted relay fallback for strict VPN/NAT/firewall paths |
 | Signaling | Supabase Realtime | Presence + broadcast, free tier, no server code |
 | Vision | OpenCV.js (WASM) in a Worker | Contour detection and ORB, off the main thread |
 | OCR | tesseract.js | Title reading, main thread, heavily gated (see below) |
-| Hosting | Vercel | Auto-deploys `main`; static files only |
+| Hosting | Vercel | Auto-deploys `main`; static files plus two stateless serverless functions |
 
 Dependencies are deliberately few: `react`, `react-dom`, `@supabase/supabase-js`,
 `tesseract.js`, `lucide-react`. OpenCV loads at runtime from `docs.opencv.org`.
@@ -37,11 +38,13 @@ Dependencies are deliberately few: `react`, `react-dom`, `@supabase/supabase-js`
 
 ```
 src/
-  main.jsx              entry; routes /snaptest (lazy-loaded) vs the app
+  main.jsx              entry; lazy routes /snaptest and /turntest vs the app
   App.jsx               Lobby ↔ Game switch, theme
   Lobby.jsx             create/join, device pick, index readiness
-  Game.jsx              video tiles, life, turns, chat, dice, capture clicks
+  Game.jsx              video tiles, life, turns, public chat/whispers, dice, capture clicks
   CardSidebar.jsx       results panel + ?debug=1 diagnostics
+  chatCommands.js       /whisper parsing and @recipient matching
+  TurnTest.jsx          credential-safe production relay health page
   webrtc.js             mesh, data channels, capture request/response
   signaling.js          Supabase Realtime room join, room codes
   captureGeometry.js    crop maths shared by production and the benchmark
@@ -61,7 +64,7 @@ scripts/
   check_hash_duplication.py  asserts the worker's copy has not drifted
 ```
 
-`api/turn-credentials.js` is the sole Vercel function. It keeps the Cloudflare
+`api/turn-credentials.js` keeps the Cloudflare
 TURN key server-side and issues 12-hour credentials after a same-origin,
 room-code-shaped request. It filters out Cloudflare's browser-blocked port 53
 URLs and returns UDP, TCP/80, TLS/5349 and TLS/443 options. A best-effort
@@ -138,6 +141,13 @@ the main thread — an early bug that made the lobby unresponsive.
   sender role. WebRTC data channels carry capture requests and apply the same
   rule — a visitor cannot request a capture, requests are rate limited per
   peer, and every peer-controlled field is bounds-checked.
+- **Public chat and private whispers take different routes.** Ordinary chat is
+  a Supabase room broadcast. `/whisper @name` resolves the selected roster ID
+  and sends only over that participant's encrypted WebRTC data channel. Both
+  players and visitors can send and receive whispers. A sender keeps a local
+  copy, the recipient sees a separately styled “Whisper from” entry, and no
+  other room participant receives the message. If that private channel is not
+  ready, the UI reports the failure and does not fall back to public chat.
 - **Capture is never silent.** When a peer photographs your camera you see
   "<name> scanned your board" on your own tile.
 
@@ -146,6 +156,9 @@ the main thread — an early bug that made the lobby unresponsive.
 - Camera stills use the encrypted WebRTC data channel. They travel directly
   when possible or through Cloudflare TURN when relaying is required; TURN
   stores neither the still nor the live stream.
+- Whispers use the same encrypted peer channel and are addressed by roster ID,
+  not trusted display-name text. They are not placed on the Supabase public
+  chat broadcast.
 - CSP, HSTS, `Permissions-Policy` (camera/mic scoped to self),
   `X-Frame-Options: DENY`, nosniff and a referrer policy are set in
   `vercel.json`.
