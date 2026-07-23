@@ -1,4 +1,4 @@
-# Why Snapcaster exists
+# Why Snapcast exists
 
 ## The problem
 
@@ -37,7 +37,7 @@ modes are all the same shape:
 The result is that players stop trusting it and go back to reading cards
 aloud, which is the thing the tool was supposed to eliminate.
 
-## What Snapcaster does differently
+## What Snapcast does differently
 
 The guiding principle: **recognition must work on the board as it actually
 is, not on a card presented for scanning.**

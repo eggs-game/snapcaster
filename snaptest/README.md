@@ -11,7 +11,7 @@ This directory holds the record, not the explanation:
 
 ## Quick start
 
-1. Open <https://snapcaster.vercel.app/snaptest> and hard-refresh.
+1. Open <https://snapcast.app/snaptest> and hard-refresh.
 2. Confirm the console `BUILD` marker matches what you expect to be testing.
 3. Choose **Tableau 10 scenes — EDH staples (100 cards)** and press Run
    (~5 minutes; keep the tab focused).

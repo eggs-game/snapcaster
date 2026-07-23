@@ -1,4 +1,4 @@
-# Snapcaster — agent context
+# Snapcast — agent context
 
 Start with the docs; they are the authoritative description of this project.
 
@@ -12,9 +12,10 @@ Start with the docs; they are the authoritative description of this project.
 
 ## Working agreements
 
-- **Production:** <https://snapcaster.vercel.app>, auto-deploys on every push
-  to `main` (the only branch). Confirm a deploy via the commit's GitHub status
-  before telling anyone something is live.
+- **Production:** <https://snapcast.app> (Vercel-hosted at
+  `snapcaster.vercel.app`), auto-deploys on every push to `main` (the only
+  branch). Confirm a deploy via the commit's GitHub status before telling
+  anyone something is live.
 - **No local node/npm** is assumed on dev machines — pushes build on Vercel.
   Verify recognition changes against the live site with
   `window.__scIdentifyUrl(imageUrl, {nx, ny})` from the browser console, which

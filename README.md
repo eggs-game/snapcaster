@@ -1,11 +1,11 @@
-# Snapcaster
+# Snapcast
 
 A SpellTable-style web app for playing paper Magic: The Gathering remotely —
 with card recognition that actually works. Runs entirely on free hosting:
 Vercel (site), Supabase (multiplayer signaling), GitHub Actions (card index
 builder). No terminal required.
 
-**Live:** <https://snapcaster.vercel.app>
+**Live:** <https://snapcast.app>
 
 ## Documentation
 
@@ -35,8 +35,8 @@ builder). No terminal required.
 ### Step 1 — Put the code on GitHub
 
 1. Create a free account at [github.com](https://github.com) if you don't have one.
-2. Click **+** (top right) → **New repository** → name it `snapcaster`, keep it **Public** (or Private, both fine) → **Create repository**.
-3. On the new repo page click **uploading an existing file**, then drag **the contents of this folder** (all files and folders inside `snapcaster-web`, not the folder itself) into the upload area. Commit.
+2. Click **+** (top right) → **New repository** → name it `snapcast`, keep it **Public** (or Private, both fine) → **Create repository**.
+3. On the new repo page click **uploading an existing file**, then drag **the contents of this folder** (all files and folders inside `snapcast-web`, not the folder itself) into the upload area. Commit.
    - If your browser won't upload the `.github` folder by drag-and-drop: in the repo click **Add file → Create new file**, type `.github/workflows/build-index.yml` as the name, paste the contents of that file from this folder, and commit.
 
 ### Step 2 — Build the card index (automatic)
@@ -65,16 +65,18 @@ them in the Supabase dashboard.
 ### Step 5 — Deploy on Vercel
 
 1. Sign up at [vercel.com](https://vercel.com) **with your GitHub account**.
-2. **Add New → Project** → Import your `snapcaster` repo.
+2. **Add New → Project** → Import your `snapcast` repo.
 3. Before clicking Deploy, expand **Environment Variables** and add:
    - `VITE_SUPABASE_URL` = your Project URL
    - `VITE_SUPABASE_ANON_KEY` = your anon key
    - `CLOUDFLARE_TURN_KEY_ID` = the UID of a Cloudflare Realtime TURN key
    - `CLOUDFLARE_TURN_KEY_TOKEN` = that TURN key's secret bearer token
-4. **Deploy.** Done — you get a URL like `https://snapcaster.vercel.app`.
+4. **Deploy.** Done — you get a URL like `https://snapcast.vercel.app`,
+   then connect a custom domain (e.g. `snapcast.app`) in Vercel's Domains
+   settings if you have one.
 
 The two Cloudflare values are server-only Vercel variables: never prefix them
-with `VITE_`. Snapcaster's `/api/turn-credentials` function exchanges them for
+with `VITE_`. Snapcast's `/api/turn-credentials` function exchanges them for
 12-hour credentials when a player enters a game. The browser never receives
 the long-lived TURN key. Create a production TURN key in **Cloudflare Dashboard
 → Realtime → TURN**, then redeploy after adding both variables.

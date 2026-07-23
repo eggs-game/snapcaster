@@ -24,7 +24,7 @@ import urllib.parse
 import urllib.request
 
 API = "https://api.scryfall.com/cards/search"
-HEADERS = {"Accept": "application/json", "User-Agent": "snapcaster-popularity/1.0"}
+HEADERS = {"Accept": "application/json", "User-Agent": "snapcast-popularity/1.0"}
 CARDDATA = os.path.join(os.path.dirname(__file__), "..", "public", "carddata")
 OUT = os.path.join(CARDDATA, "popularity.json")
 OUT_TOKENS = os.path.join(CARDDATA, "tokens.json")

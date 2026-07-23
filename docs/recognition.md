@@ -1,4 +1,4 @@
-# How Snapcaster identifies cards quickly
+# How Snapcast identifies cards quickly
 
 One click, ~1.6s median, against 110,524 printings — without a server and
 without a trained model.

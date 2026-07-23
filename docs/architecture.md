@@ -1,4 +1,4 @@
-# How Snapcaster is built
+# How Snapcast is built
 
 There is no stateful application backend. The app is static files plus two
 small same-origin Cloudflare TURN functions (credentials and usage analytics),

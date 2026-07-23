@@ -242,7 +242,7 @@ let cvPromise = null;
 
 function loadCV() {
   if (cvPromise) return cvPromise;
-  console.log("[snapcaster worker] loadCV: start");
+  console.log("[snapcast worker] loadCV: start");
   cvPromise = new Promise((resolve, reject) => {
     const start = Date.now();
     let settled = false;
@@ -251,7 +251,7 @@ function loadCV() {
       settled = true;
       cvReady = true;
       cvStatus = "ready";
-      console.log(`[snapcaster worker] OpenCV ready in ${Date.now() - start}ms`);
+      console.log(`[snapcast worker] OpenCV ready in ${Date.now() - start}ms`);
       // Never resolve with `self.cv`. OpenCV's Emscripten module is a
       // self-resolving thenable, so native Promise assimilation would loop
       // forever and leave every identification stuck on "Identifying…".
@@ -262,14 +262,14 @@ function loadCV() {
     // safety net; onRuntimeInitialized is one of several ready signals we watch.
     self.Module = {
       locateFile: (p) => OPENCV_BASE + p,
-      onRuntimeInitialized: () => console.log("[snapcaster worker] onRuntimeInitialized fired"),
+      onRuntimeInitialized: () => console.log("[snapcast worker] onRuntimeInitialized fired"),
     };
     try {
-      console.log("[snapcaster worker] importScripts opencv.js…");
+      console.log("[snapcast worker] importScripts opencv.js…");
       importScripts(OPENCV_BASE + "opencv.js");
-      console.log(`[snapcaster worker] importScripts done (typeof cv=${typeof self.cv})`);
+      console.log(`[snapcast worker] importScripts done (typeof cv=${typeof self.cv})`);
     } catch (e) {
-      console.error("[snapcaster worker] importScripts failed", e);
+      console.error("[snapcast worker] importScripts failed", e);
       settled = true;
       cvStatus = "failed";
       return reject(e);
@@ -288,11 +288,11 @@ function loadCV() {
     let ticks = 0;
     const poll = () => {
       if (self.cv && self.cv.Mat) return finish();
-      if (++ticks % 20 === 0) console.log(`[snapcaster worker] waiting for OpenCV… ${Date.now() - start}ms`);
+      if (++ticks % 20 === 0) console.log(`[snapcast worker] waiting for OpenCV… ${Date.now() - start}ms`);
       if (Date.now() - start > CV_INIT_TIMEOUT_MS) {
         settled = true;
         cvStatus = "failed";
-        console.error(`[snapcaster worker] OpenCV init timeout (${CV_INIT_TIMEOUT_MS}ms)`);
+        console.error(`[snapcast worker] OpenCV init timeout (${CV_INIT_TIMEOUT_MS}ms)`);
         return reject(new Error("OpenCV init timeout"));
       }
       setTimeout(poll, 100);
@@ -370,7 +370,7 @@ function loadGlobalIndex() {
       }
       colorIndex = colorTable;
       artIndex = artTable;
-      console.log(`[snapcaster worker] v3 tables: color=${!!colorIndex} art=${!!artIndex}`);
+      console.log(`[snapcast worker] v3 tables: color=${!!colorIndex} art=${!!artIndex}`);
     }
     return cards.length;
   })();
@@ -977,7 +977,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
         candidates.push({ image: rectifyCard(srcImageData, quads[i]), strategy: `outline-${i + 1}` });
       }
     } catch (e) {
-      console.warn("[snapcaster worker] outline detection failed", e);
+      console.warn("[snapcast worker] outline detection failed", e);
     }
   }
   const contentBox = contentBoxCropImageData(getSourceImageData());
@@ -1060,7 +1060,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   // format ships hashes.bin too — without this load the initial ranking ran
   // against nothing and recognition depended entirely on OCR.
   if (shardedIndex && !index) {
-    try { await loadGlobalIndex(); } catch (e) { console.warn("[snapcaster worker] global index unavailable", e); }
+    try { await loadGlobalIndex(); } catch (e) { console.warn("[snapcast worker] global index unavailable", e); }
   }
   const n = cards?.length || 0;
   const dists = new Uint16Array(n).fill(0xffff);
@@ -1466,7 +1466,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       artChecked = verified.artChecked;
       artDecisive = verified.artDecisive;
     } catch (e) {
-      console.warn("[snapcaster worker] art verification failed", e);
+      console.warn("[snapcast worker] art verification failed", e);
     }
   }
   mark("orb");

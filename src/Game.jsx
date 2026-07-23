@@ -39,7 +39,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const [gridOrder, setGridOrder] = useState([]);
   const [recognitionReports, setRecognitionReports] = useState(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem("snapcaster-recognition-reports") || "[]");
+      const saved = JSON.parse(localStorage.getItem("snapcast-recognition-reports") || "[]");
       return Array.isArray(saved) ? saved.slice(-100) : [];
     } catch { return []; }
   });
@@ -48,7 +48,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const [commanderDamage, setCommanderDamage] = useState({});
   const [videoLayout, setVideoLayout] = useState(() => {
     try {
-      const saved = localStorage.getItem("snapcaster-video-layout");
+      const saved = localStorage.getItem("snapcast-video-layout");
       return ["tiles", "follow", "hero"].includes(saved) ? saved : "tiles";
     } catch {
       return "tiles";
@@ -406,7 +406,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const chooseVideoLayout = (layout) => {
     const next = ["tiles", "follow", "hero"].includes(layout) ? layout : "tiles";
     setVideoLayout(next);
-    try { localStorage.setItem("snapcaster-video-layout", next); } catch { /* preference remains in memory */ }
+    try { localStorage.setItem("snapcast-video-layout", next); } catch { /* preference remains in memory */ }
   };
 
   const saveRecognitionReports = (next) => {
@@ -415,7 +415,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     // index and its edit token locally, not a second large camera-image cache.
     try {
       const localIndex = next.slice(-100).map(({ captureImage, ocrImage, ...entry }) => entry);
-      localStorage.setItem("snapcaster-recognition-reports", JSON.stringify(localIndex));
+      localStorage.setItem("snapcast-recognition-reports", JSON.stringify(localIndex));
     } catch { /* Supabase save still works for this session */ }
   };
 
@@ -436,7 +436,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
           : entry);
         try {
           const localIndex = next.slice(-100).map(({ captureImage, ocrImage, ...entry }) => entry);
-          localStorage.setItem("snapcaster-recognition-reports", JSON.stringify(localIndex));
+          localStorage.setItem("snapcast-recognition-reports", JSON.stringify(localIndex));
         } catch { /* report remains in memory */ }
         return next;
       });

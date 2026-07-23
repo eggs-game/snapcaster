@@ -40,7 +40,7 @@ import requests
 from PIL import Image
 
 API = "https://api.scryfall.com"
-HEADERS = {"User-Agent": "Snapcaster/2.0 (fan project)", "Accept": "*/*"}
+HEADERS = {"User-Agent": "Snapcast/2.0 (fan project)", "Accept": "*/*"}
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_OUT = os.path.join(ROOT, "public", "carddata")
 DEFAULT_CACHE = os.path.join(ROOT, ".cache")

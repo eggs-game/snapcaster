@@ -296,7 +296,7 @@ export default function CardSidebar({
 
   const downloadRecognitionReports = () => {
     const payload = JSON.stringify({
-      format: "snapcaster-recognition-reports/v1",
+      format: "snapcast-recognition-reports/v1",
       exportedAt: new Date().toISOString(),
       // The edit token is intentionally never exported: it is the capability
       // used by this browser to attach a later true-card label.
@@ -305,7 +305,7 @@ export default function CardSidebar({
     const url = URL.createObjectURL(new Blob([payload], { type: "application/json" }));
     const link = document.createElement("a");
     link.href = url;
-    link.download = `snapcaster-recognition-reports-${new Date().toISOString().slice(0, 10)}.json`;
+    link.download = `snapcast-recognition-reports-${new Date().toISOString().slice(0, 10)}.json`;
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
@@ -1128,7 +1128,7 @@ function InvitePanel({
       <p className="invite-intro">Share the game code or send a direct link.</p>
       <InviteField
         label="Game code"
-        detail="Enter from the Snapcaster home page"
+        detail="Enter from the Snapcast home page"
         value={gameCode}
         copied={gameCodeCopied}
         onCopy={onCopyGameCode}

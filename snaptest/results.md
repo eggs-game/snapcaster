@@ -1,6 +1,6 @@
 # SNAPTEST results history
 
-Newest first. Run via `snapcaster.vercel.app/snaptest`.
+Newest first. Run via `snapcast.app/snaptest`.
 
 > **Degrade v2 (2026-07-20):** manual camera tests failed on speed-17 while
 > SNAPTEST stayed green — real players hold the card well above the click

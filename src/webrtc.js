@@ -101,7 +101,7 @@ export class GameConnection {
       };
       // TURN is a fallback, not a prerequisite. Direct connections should
       // still work when the broker or Cloudflare is temporarily unavailable.
-      console.warn("[snapcaster] TURN fallback unavailable; trying direct WebRTC", error);
+      console.warn("[snapcast] TURN fallback unavailable; trying direct WebRTC", error);
     } finally {
       clearTimeout(timer);
     }

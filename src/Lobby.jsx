@@ -4,6 +4,52 @@ import { isConfigured, makeCode, CODE_LENGTH } from "./signaling.js";
 import { preload as preloadRecognition } from "./recognition/matcher.js";
 import SiteFooter from "./SiteFooter.jsx";
 
+const HERO_BACKGROUNDS = Array.from(
+  { length: 13 },
+  (_, i) => `/hero/commanders/bg-${String(i + 1).padStart(2, "0")}.png`,
+);
+const HERO_ROTATE_MS = 5000;
+
+function HeroBackdrop() {
+  const [layerImages, setLayerImages] = useState(() => {
+    const first = Math.floor(Math.random() * HERO_BACKGROUNDS.length);
+    return [first, first];
+  });
+  const [activeLayer, setActiveLayer] = useState(0);
+
+  useEffect(() => {
+    if (HERO_BACKGROUNDS.length < 2) return undefined;
+    const id = setInterval(() => {
+      setLayerImages((prev) => {
+        const current = prev[activeLayer];
+        let next = current;
+        while (next === current) next = Math.floor(Math.random() * HERO_BACKGROUNDS.length);
+        const updated = [...prev];
+        updated[1 - activeLayer] = next;
+        return updated;
+      });
+      setActiveLayer((layer) => 1 - layer);
+    }, HERO_ROTATE_MS);
+    return () => clearInterval(id);
+  }, [activeLayer]);
+
+  return (
+    <>
+      {layerImages.map((imageIndex, layer) => (
+        <div
+          key={layer}
+          className="lobby-hero-bg-layer"
+          style={{
+            backgroundImage: `url(${HERO_BACKGROUNDS[imageIndex]})`,
+            opacity: layer === activeLayer ? 1 : 0,
+          }}
+        />
+      ))}
+      <div className="lobby-hero-bg-overlay" />
+    </>
+  );
+}
+
 export default function Lobby({ onStart }) {
   const params = new URLSearchParams(window.location.search);
   const visitorMode = params.get("visitor") === "1";
@@ -209,6 +255,7 @@ export default function Lobby({ onStart }) {
         <a className="site-brand" href="/">Snapcast</a>
       </header>
       <section className="lobby-hero lobby-hero-landing" aria-labelledby="snapcast-title">
+        <HeroBackdrop />
         <div className="lobby-hero-copy">
           <p className="lobby-hero-eyebrow">In early alpha</p>
           <h1 id="snapcast-title">Paper Magic, anywhere</h1>

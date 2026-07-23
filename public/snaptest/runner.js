@@ -1,4 +1,4 @@
-/* SNAPTEST — Snapcaster recognition benchmark.
+/* SNAPTEST — Snapcast recognition benchmark.
  *
  * A frozen, reproducible accuracy + speed benchmark. Always measures the SAME
  * 1000 cards (snaptest/cards.json, sampled with a fixed seed) under the SAME
@@ -7,7 +7,7 @@
  * a webcam pointed at a playmat).
  *
  * How to run (on the deployed site, which exposes window.__scIdentifyUrl):
- *   1. Open https://snapcaster.vercel.app/?debug=1 and hard-refresh.
+ *   1. Open https://snapcast.app/?debug=1 and hard-refresh.
  *   2. Paste this whole file into the DevTools console.
  *   3. fetch('/snaptest/cards.json').then(r=>r.json()).then(c => SNAPTEST.run(c));
  *   4. Watch window.__snap for live progress; the promise resolves with the summary.

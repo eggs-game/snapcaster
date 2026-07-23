@@ -1,7 +1,7 @@
 # How we know it works
 
 **SNAPTEST** is the benchmark, at
-**[snapcaster.vercel.app/snaptest](https://snapcaster.vercel.app/snaptest)**.
+**[snapcast.app/snaptest](https://snapcast.app/snaptest)**.
 Pick a sample, press Run, read the results, paste the JSON.
 
 Recognition cannot be verified by trying a few cards by hand — it fails in

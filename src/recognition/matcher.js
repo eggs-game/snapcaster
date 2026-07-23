@@ -78,7 +78,7 @@ export function preload() {
         indexReady: core.indexReady,
         count,
       };
-      console.log(`[snapcaster] recognition core ready in ${durationMs}ms (worker ${core.workerMs}ms)`);
+      console.log(`[snapcast] recognition core ready in ${durationMs}ms (worker ${core.workerMs}ms)`);
       scheduleOCRWarm();
       return count;
     })
@@ -800,7 +800,7 @@ if (typeof window !== "undefined") {
     });
     const bmp = await createImageBitmap(img);
     const r = await finishIdentify(await runOnWorker(bmp, point));
-    console.log("[snapcaster] __scIdentifyUrl top matches:", r.matches.map((m) => `${m.name} (d=${m.distance}, conf=${m.confidence.toFixed(2)})`));
+    console.log("[snapcast] __scIdentifyUrl top matches:", r.matches.map((m) => `${m.name} (d=${m.distance}, conf=${m.confidence.toFixed(2)})`));
     return r;
   };
 }
