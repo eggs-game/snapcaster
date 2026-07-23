@@ -204,11 +204,20 @@ export default function Lobby({ onStart }) {
 
   return (
     <main className="lobby-home">
-      <section className="lobby-hero" aria-labelledby="snapcaster-title">
-        <h1 id="snapcaster-title">Snapcaster</h1>
-        <div className="home-actions">
-          <button className="primary" onClick={() => openModal("create")}>Create game</button>
-          <button onClick={() => openModal("join-code")}>Join game</button>
+      <header className="site-header">
+        <a className="site-brand" href="/">Snapcaster</a>
+      </header>
+      <section className="lobby-hero lobby-hero-landing" aria-labelledby="snapcaster-title">
+        <div className="lobby-hero-copy">
+          <p className="lobby-hero-eyebrow">In early alpha</p>
+          <h1 id="snapcaster-title">Paper Magic, anywhere</h1>
+          <p className="lobby-hero-desc">
+            Come together for a real game night — even when you’re not in the same room.
+          </p>
+          <div className="home-actions">
+            <button className="primary" onClick={() => openModal("create")}>Create game</button>
+            <button onClick={() => openModal("join-code")}>Join game</button>
+          </div>
         </div>
       </section>
 
