@@ -205,7 +205,7 @@ export default function Lobby({ onStart }) {
   return (
     <main className="lobby-home">
       <header className="site-header">
-        <a className="site-brand" href="/">Snapcaster</a>
+        <a className="site-brand" href="/">Snapcast</a>
       </header>
       <section className="lobby-hero lobby-hero-landing" aria-labelledby="snapcaster-title">
         <div className="lobby-hero-copy">
