@@ -6,20 +6,23 @@ import App from "./App.jsx";
 // only when /snaptest is opened.
 const SnapTest = lazy(() => import("./SnapTest.jsx"));
 const TurnTest = lazy(() => import("./TurnTest.jsx"));
+const Privacy = lazy(() => import("./Privacy.jsx"));
+const Terms = lazy(() => import("./Terms.jsx"));
 import "./styles.css";
 
 const BUILD = "warm-lobby-1 (lobby core preload + ready handshake)";
 window.__SNAP_BUILD = BUILD;
-console.log(`%c[snapcaster] build: ${BUILD}`, "color:#0a0;font-weight:bold");
+console.log(`%c[snapcast] build: ${BUILD}`, "color:#0a0;font-weight:bold");
 
 // Recognition benchmark page at /snaptest (see snaptest/README.md).
 const route = window.location.pathname.replace(/\/+$/, "");
-const isSnapTest = route === "/snaptest";
-const isTurnTest = route === "/turntest";
+const page = route === "/snaptest" ? <SnapTest />
+  : route === "/turntest" ? <TurnTest />
+  : route === "/privacy" ? <Privacy />
+  : route === "/terms" ? <Terms />
+  : null;
 createRoot(document.getElementById("root")).render(
-  isSnapTest
-    ? <Suspense fallback={null}><SnapTest /></Suspense>
-    : isTurnTest
-      ? <Suspense fallback={null}><TurnTest /></Suspense>
+  page
+    ? <Suspense fallback={null}>{page}</Suspense>
     : <App />,
 );

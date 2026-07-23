@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { ArrowRight, Camera, Mic, X } from "lucide-react";
 import { isConfigured, makeCode, CODE_LENGTH } from "./signaling.js";
 import { preload as preloadRecognition } from "./recognition/matcher.js";
+import SiteFooter from "./SiteFooter.jsx";
 
 export default function Lobby({ onStart }) {
   const params = new URLSearchParams(window.location.search);
@@ -207,10 +208,10 @@ export default function Lobby({ onStart }) {
       <header className="site-header">
         <a className="site-brand" href="/">Snapcast</a>
       </header>
-      <section className="lobby-hero lobby-hero-landing" aria-labelledby="snapcaster-title">
+      <section className="lobby-hero lobby-hero-landing" aria-labelledby="snapcast-title">
         <div className="lobby-hero-copy">
           <p className="lobby-hero-eyebrow">In early alpha</p>
-          <h1 id="snapcaster-title">Paper Magic, anywhere</h1>
+          <h1 id="snapcast-title">Paper Magic, anywhere</h1>
           <p className="lobby-hero-desc">
             Come together for a real game night — even when you’re not in the same room.
           </p>
@@ -220,6 +221,8 @@ export default function Lobby({ onStart }) {
           </div>
         </div>
       </section>
+
+      <SiteFooter compact />
 
       {modal && (
         <div
