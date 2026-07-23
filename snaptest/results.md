@@ -9,6 +9,84 @@ Newest first. Run via `snapcaster.vercel.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-07-22 — `warm-lobby-1` — recognition cold-start preload
+
+**Hypothesis:** the slow first recognition is initialization latency, because
+the lobby previously loaded only the lightweight manifest/name tables while
+the Game screen created the worker, compiled OpenCV WASM and loaded the full
+hash/card/color/art indexes only after the player entered. Starting that core
+work in the lobby and exposing a real worker-ready handshake should move the
+cost before the first scan without changing recognition decisions or steady
+state speed.
+
+The smallest change that tests this now calls `preloadRecognition()` from the
+lobby, memoizes the worker/core-index load, and waits for OpenCV plus all core
+tables before showing **Recognition ready**. Optional OCR warm-up begins only
+after the core is ready and the browser is idle, so it cannot compete with the
+common visual/art path. The page also preconnects the Scryfall image host.
+Production A/B confirmed the new lobby state: immediately after opening it
+showed **Preparing card recognition**, then **Recognition ready · 110,533 card
+printings** after **2.324s** (worker core **1.569s**). Before this change the
+recognition worker did not exist until Game mounted, so the first identify had
+to pay this cost.
+
+Production regression results and distance from the 95% goal:
+
+- **Tableau 10 scenes / EDH staples:** **92/100 (92.0%)**, **3 short**;
+  median 2.068s, p90 4.083s. Layout: side-by-side 59/60, spaced 30/30,
+  overlapping 3/10; clear cards 90/91. Rotation: upright 49/55, tapped 29/31,
+  upside-down 14/14. All eight misses were absent. Art-match 85/85 and
+  visual-exact 5/5 were precise. WASM stayed 134MB; JS peaked at 39MB.
+- **Tableau 10 EDH dice:** **91/100 (91.0%)**, **4 short**; median 3.422s,
+  p90 20.270s. Layout: side-by-side 60/60, spaced 30/30, overlapping 1/10;
+  clear cards 90/94. Rotation: upright 48/55, tapped 29/31, upside-down 14/14.
+  Every miss was absent. Art-match 77/77 and visual-exact 11/11 were precise.
+  Die colours were white 18/20, black 19/20, blue 18/20, red 18/20 and pink
+  18/20. WASM stayed 134MB; JS peaked at 17MB.
+- **Random 200:** **186/200 (93.0%)**, **4 short**; median 8.858s, p90 21.539s.
+  Placement: mild-centered-a 56/56, above-click 48/48, mild-centered-b 48/48,
+  top-edge/clipped **34/48**. Thirteen misses were absent and one was rank 6+.
+  Art-match 181/181 and visual-exact 3/3 were precise. Rotation: upright
+  45/50, tilt 49/50, sideways 48/50, upside-down 44/50. WASM stayed 134MB;
+  JS peaked at 27MB.
+- **EDH staples 200:** **186/200 (93.0%)**, **4 short**; median 3.718s, p90
+  11.543s. Placement: the first three blocks were **152/152** and
+  top-edge/clipped was **34/48**. All 14 misses were absent. Rotation: upright
+  46/50, tilt 49/50, sideways 49/50, upside-down 42/50. Art-match was 185/186
+  precise; the lone false acceptance was an absent, clipped Market Gnome
+  matched to Gideon, Martial Paragon. WASM stayed 134MB; JS peaked at 27MB.
+- **Fixed 200 control:** **187/200 (93.5%)**; median 3.046s, p90 3.974s.
+  The first three placement blocks remained **152/152** and top-edge/clipped
+  was 35/48. All 13 misses were absent; art-match was 184/184 precise. Rotation
+  was 46/50 upright, 48/50 tilt, 47/50 sideways and 46/50 upside-down.
+
+Compared with the preceding same-day production run, normal and dice tableaux
+moved 89% -> 92% and 88% -> 91%; Random moved 95% -> 93% on a fresh random
+sample; EDH remained 93%. Fixed 200 moved only 94.0% -> 93.5%, and its first
+three blocks stayed perfect, so there is no deterministic evidence that the
+warm-up change altered recognition. The remaining losses still cluster in
+known overlap and top-edge framing failures. First/second-half accuracy was
+100%/84%, 100%/82%, 96%/90% and 96%/90%; flat WASM heaps and placement-aligned
+losses reject a time/resource degradation explanation.
+
+The latter sequential suites encountered bursty upstream image delivery after
+thousands of reference-image requests, inflating stage times (especially rank
+and ORB). A fresh dice page reproduced the slowdown immediately and completed
+its first 10 cards at 10/10 before the rate-limited repeat was stopped. Because
+SNAPTEST never mounts the lobby or calls its preload, these contaminated p90s
+are not attributable to this change and are not used as a steady-state speed
+comparison. The completed Fixed 200 control retained its prior 3.0s/4.0s
+median/p90 profile.
+
+Production build, hash duplication, cross-language hash compatibility, index
+metadata, metadata analysis/evidence and `git diff --check` all pass. GitHub's
+`hash-compat` check and the Vercel deployment succeeded for commit `a61a22e`;
+the live BUILD marker is `warm-lobby-1 (lobby core preload + ready handshake)`.
+The single best next recognition experiment remains a fixed top-edge A/B for
+cursor-connected target isolation/neighbor-edge rejection, requiring gains in
+all four rotations while keeping the three easy blocks, Fixed 200, clear
+tableaux and accepted-pathway precision intact.
+
 ## 2026-07-22 — `outline-offclick-1` — dice tableau + overlap A/B
 
 The Full Test Plan now targets 95% and includes a fourth daily production
