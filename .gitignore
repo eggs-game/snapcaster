@@ -8,7 +8,6 @@ dist/
 __pycache__/
 *.pyc
 
-# Raw source card scans for hand-processing (ascii-magic.com, etc.) — not
-# shipped assets; the processed outputs go in public/hero/commanders/.
-/assets/commanders-top200/
-/assets/commanders-top200-cropped/
+# Local working copies of hero card art — the shipped assets live in
+# public/hero/commanders/.
+/assets/commanders-top200-dithered/

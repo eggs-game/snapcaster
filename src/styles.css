@@ -421,10 +421,10 @@ input::placeholder { color: var(--text-tertiary); opacity: 1; }
   pointer-events: none;
   background-image: linear-gradient(
     0deg,
-    color-mix(in srgb, var(--bg-canvas) 82%, transparent) 0,
-    color-mix(in srgb, var(--bg-canvas) 82%, transparent) 100px,
-    color-mix(in srgb, var(--bg-canvas) 70%, transparent) 58%,
-    color-mix(in srgb, var(--bg-canvas) 55%, transparent) 100%
+    color-mix(in srgb, var(--bg-canvas) 92%, transparent) 0,
+    color-mix(in srgb, var(--bg-canvas) 92%, transparent) 100px,
+    color-mix(in srgb, var(--bg-canvas) 82%, transparent) 58%,
+    color-mix(in srgb, var(--bg-canvas) 68%, transparent) 100%
   );
 }
 .lobby-hero-copy {
