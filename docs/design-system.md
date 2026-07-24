@@ -129,7 +129,7 @@ circular), `.counter-stepper button` (poison/commander-damage ±), the
 life-badge's sword and ± buttons (`.life-btn`, `.life-sword-btn`).
 
 **Does not apply** to custom, purpose-built controls that only coincidentally
-fall in that size range — the dice picker's 44px grid buttons, the
+fall in that size range — the dice picker's select control, the
 `.counter-stepper`'s number display, avatar circles, image thumbnails. If a
 control isn't an icon-only button (has a visible text label, isn't a
 button at all), it isn't part of either tier regardless of its pixel size.
@@ -189,6 +189,73 @@ Keep tooltip copy short and imperative ("Mute", not "Mute microphone";
 "Add commander damage", not "Open commander damage") — it's a hover label,
 not a description.
 
+## Segmented controls
+
+The pill-shaped multi-option toggle (Settings' Game view / Video fit /
+Appearance rows): a bordered track (`--border-default`, 8px radius,
+`var(--input)` background) containing equal-width buttons with **2px gap**
+between them, 2px inner padding. Selected state is `aria-pressed="true"`
+driving a raised background (`--bg-surface-raised`) plus a subtle inset
+shadow — not a color change alone, so it reads correctly for colorblind
+users too.
+
+```css
+.some-segmented-control {
+  display: grid;
+  grid-template-columns: repeat(N, 1fr); /* N = option count */
+  gap: 2px;
+  height: var(--input-height);
+  padding: 2px;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  background: var(--input);
+}
+.some-segmented-control button:hover { background: var(--bg-hover); color: var(--text-primary); }
+.some-segmented-control button[aria-pressed="true"] { background: var(--bg-surface-raised); color: var(--text-primary); box-shadow: 0 1px 2px var(--inset-shadow), inset 0 0 0 1px var(--border-subtle); }
+```
+
+Current examples: `.theme-options` (3-up: Appearance; 2-up via the
+`.two-up` modifier: Video fit), `.view-options` (3-up: Game view). These
+two classes are near-duplicates that predate this doc — don't add a third
+one; extend `.theme-options` with a modifier the way `.two-up` does.
+
+## Settings-panel field spacing
+
+Every icon-only or text-only button, and every custom control, gets a
+`:hover` state — no exceptions. A control users can interact with but that
+looks identical before and after hovering reads as broken, not minimal.
+
+Vertical rhythm for stacked fields in the sidebar Settings panel and
+similar forms: **16px** between fields that belong to the same labeled
+group (a toggle button and the dropdown it controls, e.g. "Camera on" →
+camera select), **24px** before the next group's header. In practice this
+means the *last* field in a group carries the 24px margin (so the
+following header doesn't need its own top margin), while every other field
+in that group carries 16px:
+
+```
+[Header]
+field            } 16px margin-bottom (not last in group)
+field            } 16px margin-bottom
+field            } 24px margin-bottom (last in group)
+[Next header]
+field            } ...
+```
+
+`.control-row` and `.device-field` both default to a 24px bottom margin
+(i.e. "assume you're the last field in your group"); a `.device-field-tight`
+modifier (16px) exists for the one case so far where a field is
+mid-group — the camera toggle → camera select pairing, both followed by
+the Video-fit segmented control in the same "Video" section. Reach for
+that modifier (or add an equivalent) rather than a one-off margin value
+when a new field needs to sit mid-group.
+
+Field labels are handled the same way as icon buttons above — a control
+that already has an on-screen state (the "Camera on"/"Mic on" toggle text)
+doesn't need a repeated `<span>` label like "Camera" above its dropdown;
+use `aria-label` on the `<select>` instead and let the toggle button above
+it carry the visible label.
+
 ## Modals and panels
 
 Modals (`.lobby-modal`) and the sidebar (`.sidebar`, `.tile-menu`) share
@@ -197,3 +264,46 @@ elevation. Prejoin/create-setup flows reuse the same modal shell with a
 `prejoin-modal` modifier rather than a bespoke layout — new multi-step
 flows in the lobby should follow that pattern (same shell, a modifier
 class, and a `modal` state string per step) instead of a new component.
+
+The card lookup's expanded-card preview (`.card-preview-backdrop` /
+`.card-preview-tile`) is the compact exception: it uses the same scrim and
+glass material but contains only the card image, with no title or action
+bar. It closes on a backdrop click or Escape; do not add a separate close
+button unless the preview gains other controls.
+
+## Video tile fit modes
+
+Settings → Video fit controls how each player's camera stream fills its
+tile in the game grid, independent of `.grid`'s own layout mode
+(tiles/follow/hero):
+
+- **Cover** (default) — the `<video>` fills the entire tile, whatever
+  shape the CSS Grid cell happens to compute (`object-fit: cover`,
+  stretched to 100%×100%). This is the original behavior; it over-crops
+  when a tile's cell shape is more square than the camera's native 16:9,
+  which reads as "zoomed in."
+- **Fit** (`.grid-fit-16-9` on `.grid`, internal value `"16:9"`) — the
+  *tile itself keeps its normal grid-cell size* (banner, life badge, border
+  unchanged); only the `<video>` element inside is boxed to a centered
+  16:9 area that fits within the available space (`width: 100%; height:
+  auto; max-height: 100%; aspect-ratio: 16/9`), with `object-fit: contain`
+  scaling the full camera frame down to fit that box — nothing is cropped,
+  even if it means pillarboxing inside the box on top of any letterboxing
+  the box already has relative to the tile. This is deliberately different
+  from constraining the *tile's* aspect ratio — that would leave gaps in
+  the grid and shrink the banner/life-badge along with it, which isn't
+  what "Fit" should mean here. (An earlier version of this mode used
+  `object-fit: cover` here, which still cropped — changed after feedback
+  that it should show strictly *more* of the frame than Cover mode, never
+  less.)
+  - The banner's dark semi-transparent scrim (`.commander-banner`'s
+    `background`) exists so name text stays legible over moving video. In
+    16:9 mode the banner (pinned to the tile's top edge) frequently sits
+    over letterboxed background instead of actual video, so
+    `.grid-fit-16-9 .commander-banner` drops the scrim — the name text
+    itself is untouched, only the tint goes.
+
+If a third fit mode is ever needed, extend the `videoFit` state
+(`"cover" | "16:9"`, persisted to `localStorage` as `snapcast-video-fit`)
+and the two-option segmented control in Settings rather than introducing a
+parallel toggle.

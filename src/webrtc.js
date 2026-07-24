@@ -9,6 +9,50 @@ const FALLBACK_ICE_SERVERS = [
   { urls: "stun:stun.l.google.com:19302" },
 ];
 
+// Without an explicit target, WebRTC's default video bitrate cap sits well
+// below what 1080p needs to look sharp, and the encoder's default
+// degradation preference favors smooth motion over resolution — the wrong
+// tradeoff for a mostly-static shot of a card table. 5 Mbps gives 1080p
+// headroom for a clean 1080p30 feed when the link can sustain it; WebRTC's
+// own congestion control still scales down automatically on a bad link.
+const VIDEO_MAX_BITRATE = 5_000_000;
+const VIDEO_QUALITY_VALUES = ["auto", "720p", "1080p"];
+
+function normalizeVideoQuality(value) {
+  return VIDEO_QUALITY_VALUES.includes(value) ? value : "auto";
+}
+
+// Tell the encoder this is a detail-heavy, mostly-static feed (a card table,
+// not a talking head) so it prioritizes keeping resolution/sharpness over
+// frame-rate smoothness when it has to trade one for the other.
+function tuneVideoTrack(track) {
+  if (!track || track.kind !== "video") return;
+  try { track.contentHint = "detail"; } catch { /* not supported in this browser */ }
+}
+
+async function tuneVideoSender(sender, quality = "auto") {
+  if (!sender || sender.track?.kind !== "video") return;
+  try {
+    const params = sender.getParameters();
+    params.encodings = params.encodings?.length ? params.encodings : [{}];
+    const encoding = params.encodings[0];
+    const safeQuality = normalizeVideoQuality(quality);
+    const targetWidth = safeQuality === "720p" ? 1280 : safeQuality === "1080p" ? 1920 : 0;
+    const sourceWidth = Number(sender.track.getSettings?.().width) || 1920;
+    if (targetWidth && sourceWidth > targetWidth) {
+      // scaleResolutionDownBy cannot upscale a 720p source into 1080p. When
+      // the camera is higher resolution, use the smallest scale that reaches
+      // the requested target while preserving WebRTC's aspect-ratio handling.
+      encoding.scaleResolutionDownBy = Math.max(1, Math.min(4, sourceWidth / targetWidth));
+    } else {
+      delete encoding.scaleResolutionDownBy;
+    }
+    encoding.maxBitrate = safeQuality === "720p" ? 1_800_000 : VIDEO_MAX_BITRATE;
+    params.degradationPreference = "maintain-resolution";
+    await sender.setParameters(params);
+  } catch { /* setParameters can reject before the first negotiation completes */ }
+}
+
 function safeIceServers(value) {
   if (!Array.isArray(value)) return [];
   return value.slice(0, 4).flatMap((server) => {
@@ -61,6 +105,7 @@ export class GameConnection {
     this.poison = 0;
     this.commanderDamage = {};
     this.gridOrder = [];
+    this.videoQuality = new Map(); // peerId -> receiver's requested quality
     this.role = "player";
     this.roster = [];
     this.videoDeviceId = "";
@@ -126,6 +171,7 @@ export class GameConnection {
     });
     this.videoDeviceId = this.localStream.getVideoTracks()[0]?.getSettings?.().deviceId || "";
     this.audioDeviceId = this.localStream.getAudioTracks()[0]?.getSettings?.().deviceId || "";
+    for (const track of this.localStream.getVideoTracks()) tuneVideoTrack(track);
     return this.localStream;
   }
 
@@ -167,11 +213,15 @@ export class GameConnection {
 
     const oldTrack = this.localStream.getTracks().find((t) => t.kind === kind);
     newTrack.enabled = oldTrack ? oldTrack.enabled : true;
+    if (kind === "video") tuneVideoTrack(newTrack);
 
     // Push the new track to peers before tearing down the old one.
-    for (const { pc } of this.peers.values()) {
+    for (const [peerId, { pc }] of this.peers) {
       const sender = pc.getSenders().find((s) => s.track?.kind === kind);
-      if (sender) await sender.replaceTrack(newTrack);
+      if (sender) {
+        await sender.replaceTrack(newTrack);
+        if (kind === "video") await tuneVideoSender(sender, this.videoQuality.get(peerId) || "auto");
+      }
     }
 
     if (oldTrack) {
@@ -268,6 +318,7 @@ export class GameConnection {
         await p.pc.setRemoteDescription({ type: "offer", sdp: msg.sdp });
         const answer = await p.pc.createAnswer();
         await p.pc.setLocalDescription(answer);
+        await this._tunePeerVideo(msg.from);
         this.room.send({ type: "answer", sdp: answer.sdp }, msg.from);
         break;
       }
@@ -277,6 +328,16 @@ export class GameConnection {
       case "ice":
         try { await this.peers.get(msg.from)?.pc.addIceCandidate(msg.candidate); } catch { /* ignore */ }
         break;
+      case "video-quality": {
+        if (!this.roster.some((member) => member.id === msg.from)) break;
+        const quality = normalizeVideoQuality(msg.quality);
+        this.videoQuality.set(msg.from, quality);
+        const entry = this.peers.get(msg.from);
+        if (entry) {
+          await Promise.all(entry.pc.getSenders().map((sender) => tuneVideoSender(sender, quality)));
+        }
+        break;
+      }
       case "life":
         if (senderRole !== "visitor") this.h.onLife?.(msg.from, msg.life);
         break;
@@ -382,7 +443,10 @@ export class GameConnection {
     const pc = new RTCPeerConnection({ iceServers: this.iceServers });
     const entry = { pc, dc: null, chunks: new Map() };
     this.peers.set(peerId, entry);
-    for (const t of this.localStream?.getTracks() || []) pc.addTrack(t, this.localStream);
+    for (const t of this.localStream?.getTracks() || []) {
+      const sender = pc.addTrack(t, this.localStream);
+      if (t.kind === "video") void tuneVideoSender(sender, this.videoQuality.get(peerId) || "auto");
+    }
     // An audio-only visitor still needs a video m-line in offers so players
     // can send their camera feed back to the visitor.
     if (this.role === "visitor") pc.addTransceiver("video", { direction: "recvonly" });
@@ -392,11 +456,18 @@ export class GameConnection {
     return entry;
   }
 
+  async _tunePeerVideo(peerId) {
+    const entry = this.peers.get(peerId);
+    if (!entry) return;
+    await Promise.all(entry.pc.getSenders().map((sender) => tuneVideoSender(sender, this.videoQuality.get(peerId) || "auto")));
+  }
+
   async _makeOffer(peerId) {
     const p = this._getPeer(peerId);
     this._setupDC(peerId, p.pc.createDataChannel("ctrl"));
     const offer = await p.pc.createOffer();
     await p.pc.setLocalDescription(offer);
+    await this._tunePeerVideo(peerId);
     this.room.send({ type: "offer", sdp: offer.sdp }, peerId);
   }
 
@@ -567,9 +638,9 @@ export class GameConnection {
     this.muted = !!muted;
     this.room?.send({ type: "muted", muted: this.muted });
   }
-  announceCard(card, byName) {
+  announceCard(card, byName, at = Date.now()) {
     if (this.role === "visitor") return;
-    this.room?.send({ type: "card-identified", card, byName });
+    this.room?.send({ type: "card-identified", card, byName, at });
   }
   sendChat(text, at = Date.now()) {
     const message = String(text || "").trim().slice(0, 500);
@@ -643,6 +714,14 @@ export class GameConnection {
     const safeSides = Math.max(2, Math.min(20, Number(sides) || 20));
     const roll = Math.max(1, Math.min(safeSides, Number(value) || 1));
     this.room?.send({ type: "dice-roll", value: roll, sides: safeSides, at });
+  }
+
+  requestVideoQuality(peerId, quality) {
+    const targetId = String(peerId || "").slice(0, 40);
+    const safeQuality = normalizeVideoQuality(quality);
+    if (!targetId || targetId === this.myId || !this.roster.some((member) => member.id === targetId)) return false;
+    this.room?.send({ type: "video-quality", quality: safeQuality }, targetId);
+    return true;
   }
 
   toggleTrack(kind, enabled) {

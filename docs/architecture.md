@@ -150,6 +150,16 @@ the main thread — an early bug that made the lobby unresponsive.
   ready, the UI reports the failure and does not fall back to public chat.
 - **Capture is never silent.** When a peer photographs your camera you see
   "<name> scanned your board" on your own tile.
+- **Cards can be shared deliberately.** A player can reveal a hover-only chat
+  button on a recent card to add it to the shared game Log. Card entries carry
+  the normal card details and image, and every participant can click one to
+  open it locally; no camera capture is repeated.
+- **Video quality is per receiver.** Each remote tile can request Auto, 720p or
+  1080p. The camera owner applies that preference only to the sender for that
+  peer, so one viewer can request a sharper feed without forcing every other
+  viewer to spend the same bandwidth. WebRTC may still adapt down when the
+  source camera or network cannot sustain the request; the tile reports the
+  decoded resolution it is actually receiving.
 
 ## Security posture
 

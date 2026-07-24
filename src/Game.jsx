@@ -18,6 +18,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const chatIdRef = useRef(0);
   const diceLogIdRef = useRef(0);
   const readyLogIdRef = useRef(0);
+  const cardLogIdRef = useRef(0);
   const readyCheckRef = useRef(null);
   const [myId, setMyId] = useState(null);
   const [roster, setRoster] = useState([]);
@@ -26,12 +27,14 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const [colors, setColors] = useState({}); // id -> hex color
   const [mutedPlayers, setMutedPlayers] = useState({}); // id -> bool
   const [streams, setStreams] = useState({});
+  const [videoQualityByPlayer, setVideoQualityByPlayer] = useState({});
   const [localStream, setLocalStream] = useState(null);
   const [lobbyName, setLobbyName] = useState(() => session.lobbyName || "");
   const [error, setError] = useState(null);
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(true);
   const [lookups, setLookups] = useState([]);
+  const [cardEvents, setCardEvents] = useState([]);
   const [lifeEvents, setLifeEvents] = useState([]);
   const [chatMessages, setChatMessages] = useState([]);
   const [diceRolls, setDiceRolls] = useState([]);
@@ -53,6 +56,14 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       return ["tiles", "follow", "hero"].includes(saved) ? saved : "tiles";
     } catch {
       return "tiles";
+    }
+  });
+  const [videoFit, setVideoFit] = useState(() => {
+    try {
+      const saved = localStorage.getItem("snapcast-video-fit");
+      return ["cover", "16:9"].includes(saved) ? saved : "cover";
+    } catch {
+      return "cover";
     }
   });
   const [heroPlayerId, setHeroPlayerId] = useState("");
@@ -103,7 +114,16 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       onCommander: (id, commander) => setCommanders((values) => ({ ...values, [id]: commander })),
       onColor: (id, color) => setColors((values) => ({ ...values, [id]: color })),
       onMuted: (id, muted) => setMutedPlayers((values) => ({ ...values, [id]: muted })),
-      onCardIdentified: (msg) => setLookups((l) => [...l.slice(-11), { by: msg.byName, card: msg.card, at: Date.now() }]),
+      onCardIdentified: (msg) => {
+        const at = Number(msg.at) || Date.now();
+        setLookups((lookedUp) => [...lookedUp.slice(-11), { by: msg.byName, card: msg.card, at }]);
+        setCardEvents((events) => [...events.slice(-49), {
+          id: `remote-${msg.from || "player"}-${at}-${++cardLogIdRef.current}`,
+          by: msg.byName || "Player",
+          card: msg.card,
+          at,
+        }]);
+      },
       onChat: (message) => setChatMessages((messages) => [...messages.slice(-99), {
         ...message,
         id: `remote-${message.from}-${message.at}-${++chatIdRef.current}`,
@@ -223,6 +243,18 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     }
   }, [activePlayerId, isVisitor, myId, roster]);
 
+  const shareCard = useCallback((card) => {
+    if (isVisitor || !card?.name) return;
+    const at = Date.now();
+    setCardEvents((events) => [...events.slice(-49), {
+      id: `local-${myId || "player"}-${at}-${++cardLogIdRef.current}`,
+      by: session.name,
+      card,
+      at,
+    }]);
+    connRef.current?.announceCard(card, session.name, at);
+  }, [isVisitor, myId, session.name]);
+
   // captureClientY lets flipped tiles pass the reflected point for capture
   // while the click flash stays where the player actually clicked.
   const identify = useCallback(async (tileId, videoEl, clientX, clientY, captureClientY = clientY) => {
@@ -278,13 +310,13 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       });
       const top = data.matches?.[0];
       if (top && (top.identified_by === "ocr-title" || top.distance <= 170)) {
-        if (!isVisitor) conn.announceCard(top, session.name);
+        shareCard(top);
         setLookups((l) => [...l.slice(-11), { by: session.name, card: top, at: Date.now() }]);
       }
     } catch (e) {
       setCurrent({ error: String(e.message || e) });
     }
-  }, [isVisitor, myId, session.name]);
+  }, [myId, session.name, shareCard]);
 
   // Clicking an opponent's commander name does a plain text lookup (same
   // Scryfall path as the sidebar search box) rather than the visual capture
@@ -433,6 +465,12 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     const next = ["tiles", "follow", "hero"].includes(layout) ? layout : "tiles";
     setVideoLayout(next);
     try { localStorage.setItem("snapcast-video-layout", next); } catch { /* preference remains in memory */ }
+  };
+
+  const chooseVideoFit = (fit) => {
+    const next = ["cover", "16:9"].includes(fit) ? fit : "cover";
+    setVideoFit(next);
+    try { localStorage.setItem("snapcast-video-fit", next); } catch { /* preference remains in memory */ }
   };
 
   const saveRecognitionReports = (next) => {
@@ -600,6 +638,12 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     }
   };
 
+  const chooseVideoQuality = useCallback((playerId, quality) => {
+    if (!playerId || !["auto", "720p", "1080p"].includes(quality)) return;
+    setVideoQualityByPlayer((values) => ({ ...values, [playerId]: quality }));
+    connRef.current?.requestVideoQuality(playerId, quality);
+  }, []);
+
   const makeJoinLink = (visitor = false) => {
     const url = new URL(window.location.href);
     url.search = "";
@@ -704,6 +748,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
           <CardSidebar
             current={current}
             lookups={lookups}
+            cardEvents={cardEvents}
             lifeEvents={lifeEvents}
             diceRolls={diceRolls}
             readyEvents={readyEvents}
@@ -716,6 +761,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
             onSendChat={sendChat}
             onRollDie={rollDie}
             onPick={(m) => setCurrent({ matches: [m] })}
+            onShareCard={shareCard}
             onSearch={(cardOrError) => {
               if (cardOrError.error) {
                 setCurrent({ error: cardOrError.error });
@@ -747,6 +793,8 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
             onThemePreferenceChange={onThemePreferenceChange}
             videoLayout={videoLayout}
             onVideoLayoutChange={chooseVideoLayout}
+            videoFit={videoFit}
+            onVideoFitChange={chooseVideoFit}
             counterPlayers={counterPlayers}
             onChangePoison={changePoison}
             onChangeCommanderDamage={changeCommanderDamage}
@@ -807,7 +855,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
               </div>
             </div>
           )}
-          <div className={videoLayout === "follow" ? "grid follow-active" : videoLayout === "hero" ? "grid hero-view" : "grid"}>
+          <div className={`${videoLayout === "follow" ? "grid follow-active" : videoLayout === "hero" ? "grid hero-view" : "grid"}${videoFit === "16:9" ? " grid-fit-16-9" : ""}`}>
             {visibleTiles.map((t, i) => (
               <VideoTile
                 key={t.id}
@@ -827,6 +875,8 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
                 micOn={micOn}
                 onToggleCam={toggleCam}
                 onToggleMic={toggleMic}
+                videoQuality={t.isMe ? "auto" : (videoQualityByPlayer[t.id] || "auto")}
+                onVideoQualityChange={t.isMe ? undefined : (quality) => chooseVideoQuality(t.id, quality)}
                 canRandomizeGrid={session.creator && t.isMe}
                 onRandomizeGrid={randomizeGrid}
                 onStartReadyCheck={startReadyCheck}
@@ -948,7 +998,17 @@ const TILE_COLORS = [
   "#3f8fd2", "#38b8cf", "#31957e", "#58a75c", "#a6b94a", "#7c8796",
 ];
 
-function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseCommander, onLookupCommander, onChangeLife, onOpenCounters, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, isReadyCheckActive, readyStatus, onReady, onNotReady, heroRole, onSelectHero, flash, scanNotice, camOn, micOn, onToggleCam, onToggleMic }) {
+function formatVideoResolution(resolution) {
+  const height = Number(resolution?.height) || 0;
+  if (!height) return "";
+  if (height >= 2160) return "4K";
+  if (height >= 1440) return "1440p";
+  if (height >= 1080) return "1080p";
+  if (height >= 720) return "720p";
+  return `${height}p`;
+}
+
+function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseCommander, onLookupCommander, onChangeLife, onOpenCounters, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, isReadyCheckActive, readyStatus, onReady, onNotReady, heroRole, onSelectHero, flash, scanNotice, camOn, micOn, onToggleCam, onToggleMic, videoQuality, onVideoQualityChange }) {
   // Seats 3 and 4 (the bottom row of a 4-player grid) mirror their banner to
   // the bottom edge and their life badge to the top corner, since those
   // tiles sit upside-down relative to the viewer's side of the table.
@@ -960,10 +1020,36 @@ function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseComm
   const bannerAtBottom = isSeat3 || isSeat4;
   const videoRef = useRef(null);
   const [flipped, setFlipped] = useState(false);
+  const [videoResolution, setVideoResolution] = useState(null);
   const speaking = useSpeaking(tile.stream, tile.muted);
   useEffect(() => {
     if (videoRef.current && tile.stream) videoRef.current.srcObject = tile.stream;
   }, [tile.stream]);
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !tile.stream) {
+      setVideoResolution(null);
+      return undefined;
+    }
+    const update = () => {
+      const settings = tile.isMe ? tile.stream.getVideoTracks?.()[0]?.getSettings?.() : null;
+      // A local track exposes the camera's negotiated capture dimensions even
+      // before the preview has emitted loadedmetadata. Remote tiles continue
+      // to report the dimensions actually decoded by this browser.
+      const width = video.videoWidth || Number(settings?.width) || 0;
+      const height = video.videoHeight || Number(settings?.height) || 0;
+      setVideoResolution(width && height ? { width, height } : null);
+    };
+    video.addEventListener("loadedmetadata", update);
+    video.addEventListener("resize", update);
+    const timer = setInterval(update, 2000);
+    update();
+    return () => {
+      video.removeEventListener("loadedmetadata", update);
+      video.removeEventListener("resize", update);
+      clearInterval(timer);
+    };
+  }, [tile.stream, tile.isMe]);
 
   if (tile.empty) {
     return (
@@ -1001,6 +1087,9 @@ function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseComm
         micOn={micOn}
         onToggleCam={onToggleCam}
         onToggleMic={onToggleMic}
+        videoQuality={videoQuality}
+        videoResolution={videoResolution}
+        onVideoQualityChange={onVideoQualityChange}
         atBottom={bannerAtBottom}
       />
       <div
@@ -1017,13 +1106,15 @@ function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseComm
           onIdentify(tile.id, videoRef.current, e.clientX, e.clientY, captureY);
         }}
       >
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          muted={tile.isMe}
-          style={flipped ? { transform: "scaleY(-1)" } : undefined}
-        />
+        <div className="video-fit-box">
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted={tile.isMe}
+            style={flipped ? { transform: "scaleY(-1)" } : undefined}
+          />
+        </div>
         {flash && <div className="click-flash" style={{ left: flash.x, top: flash.y }} />}
         {isReadyCheckActive && (
           <div className="ready-check-overlay" role="status">
@@ -1110,21 +1201,12 @@ function ManaCost({ cost }) {
 
 // Three-dot video-options menu on the banner's first row. On your own tile
 // it also carries quick mic/camera toggles right next to the menu button.
-function TileMenu({ flipped, onToggleFlip, canPassTurn, onPassTurn, canRandomizeGrid, onRandomizeGrid, canStartReadyCheck, onStartReadyCheck, showMediaControls, camOn, micOn, onToggleCam, onToggleMic }) {
+function TileMenu({ flipped, onToggleFlip, canPassTurn, onPassTurn, canRandomizeGrid, onRandomizeGrid, canStartReadyCheck, onStartReadyCheck, showMediaControls, camOn, micOn, onToggleCam, onToggleMic, videoQuality, videoResolution, onVideoQualityChange }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="banner-menu" onClick={(e) => e.stopPropagation()}>
       {showMediaControls && (
         <>
-          <button
-            className={micOn ? "menu-btn" : "menu-btn menu-btn-danger"}
-            onClick={() => onToggleMic?.()}
-            aria-label={micOn ? "Mute" : "Unmute"}
-            data-tooltip={micOn ? "Mute" : "Unmute"}
-            data-tooltip-pos="right-top"
-          >
-            {micOn ? <Mic size={16} /> : <MicOff size={16} />}
-          </button>
           <button
             className={camOn ? "menu-btn" : "menu-btn menu-btn-danger"}
             onClick={() => onToggleCam?.()}
@@ -1133,6 +1215,15 @@ function TileMenu({ flipped, onToggleFlip, canPassTurn, onPassTurn, canRandomize
             data-tooltip-pos="right-top"
           >
             {camOn ? <Video size={16} /> : <VideoOff size={16} />}
+          </button>
+          <button
+            className={micOn ? "menu-btn" : "menu-btn menu-btn-danger"}
+            onClick={() => onToggleMic?.()}
+            aria-label={micOn ? "Mute" : "Unmute"}
+            data-tooltip={micOn ? "Mute" : "Unmute"}
+            data-tooltip-pos="right-top"
+          >
+            {micOn ? <Mic size={16} /> : <MicOff size={16} />}
           </button>
         </>
       )}
@@ -1145,6 +1236,17 @@ function TileMenu({ flipped, onToggleFlip, canPassTurn, onPassTurn, canRandomize
       </button>
       {open && (
         <div className="tile-menu">
+          {onVideoQualityChange && (
+            <label className="tile-quality-control">
+              <span>Video quality</span>
+              <select value={videoQuality || "auto"} onChange={(event) => onVideoQualityChange(event.target.value)}>
+                <option value="auto">Auto (recommended)</option>
+                <option value="720p">720p</option>
+                <option value="1080p">1080p</option>
+              </select>
+              <small>{videoResolution ? `Receiving ${formatVideoResolution(videoResolution)}` : "Waiting for video…"}</small>
+            </label>
+          )}
           <button
             type="button"
             onClick={() => {
@@ -1170,7 +1272,7 @@ function TileMenu({ flipped, onToggleFlip, canPassTurn, onPassTurn, canRandomize
           {canRandomizeGrid && (
             <button type="button" onClick={() => { onRandomizeGrid?.(); setOpen(false); }}>
               <Shuffle size={18} />
-              <span>Randomize video positions</span>
+              <span>Shuffle position</span>
             </button>
           )}
           {canStartReadyCheck && (
@@ -1185,7 +1287,7 @@ function TileMenu({ flipped, onToggleFlip, canPassTurn, onPassTurn, canRandomize
   );
 }
 
-function CommanderBanner({ tile, onChoose, onLookupCommander, speaking, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, flipped, onToggleFlip, camOn, micOn, onToggleCam, onToggleMic, atBottom }) {
+function CommanderBanner({ tile, onChoose, onLookupCommander, speaking, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, flipped, onToggleFlip, camOn, micOn, onToggleCam, onToggleMic, videoQuality, videoResolution, onVideoQualityChange, atBottom }) {
   const [draft, setDraft] = useState(tile.commander);
   const [suggestions, setSuggestions] = useState([]);
   const [highlight, setHighlight] = useState(-1);
@@ -1258,7 +1360,7 @@ function CommanderBanner({ tile, onChoose, onLookupCommander, speaking, onPassTu
   if (!tile.isMe) {
     return (
       <div className={atBottom ? "commander-banner banner-at-bottom" : "commander-banner"}>
-        <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} />
+        <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} videoQuality={videoQuality} videoResolution={videoResolution} onVideoQualityChange={onVideoQualityChange} />
         {nameRow}
         <div className="banner-row">
           {tile.commander ? (
@@ -1287,7 +1389,7 @@ function CommanderBanner({ tile, onChoose, onLookupCommander, speaking, onPassTu
         className={atBottom ? "commander-banner commander-set banner-at-bottom" : "commander-banner commander-set"}
         onClick={() => setEditing(true)}
       >
-        <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canPassTurn={tile.activeTurn} onPassTurn={onPassTurn} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} canStartReadyCheck={canRandomizeGrid} onStartReadyCheck={onStartReadyCheck} showMediaControls camOn={camOn} micOn={micOn} onToggleCam={onToggleCam} onToggleMic={onToggleMic} />
+        <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canPassTurn={tile.activeTurn} onPassTurn={onPassTurn} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} canStartReadyCheck={canRandomizeGrid} onStartReadyCheck={onStartReadyCheck} showMediaControls camOn={camOn} micOn={micOn} onToggleCam={onToggleCam} onToggleMic={onToggleMic} videoResolution={videoResolution} />
         {nameRow}
         <div className="banner-row">
           <span className={tile.commander ? "commander-name" : "commander-name unset"}>
@@ -1311,7 +1413,7 @@ function CommanderBanner({ tile, onChoose, onLookupCommander, speaking, onPassTu
   };
   return (
     <form className={atBottom ? "commander-banner commander-picker banner-at-bottom" : "commander-banner commander-picker"} onSubmit={submit}>
-      <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canPassTurn={tile.activeTurn} onPassTurn={onPassTurn} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} canStartReadyCheck={canRandomizeGrid} onStartReadyCheck={onStartReadyCheck} showMediaControls camOn={camOn} micOn={micOn} onToggleCam={onToggleCam} onToggleMic={onToggleMic} />
+      <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canPassTurn={tile.activeTurn} onPassTurn={onPassTurn} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} canStartReadyCheck={canRandomizeGrid} onStartReadyCheck={onStartReadyCheck} showMediaControls camOn={camOn} micOn={micOn} onToggleCam={onToggleCam} onToggleMic={onToggleMic} videoResolution={videoResolution} />
       {nameRow}
       <div className="commander-search">
         <input

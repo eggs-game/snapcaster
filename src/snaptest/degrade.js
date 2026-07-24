@@ -130,6 +130,162 @@ export function degrade(img, idx) {
   return { url: c.toDataURL("image/jpeg", 0.72), rotationClass, occ, placementClass };
 }
 
+const PERSPECTIVE_PRESETS = [
+  { name: "near-left", top: 0.82, bottom: 1.08, lean: -0.10, roll: -5 },
+  { name: "near-right", top: 0.84, bottom: 1.10, lean: 0.12, roll: 5 },
+  { name: "far-left", top: 1.04, bottom: 0.84, lean: -0.14, roll: -7 },
+  { name: "far-right", top: 1.06, bottom: 0.86, lean: 0.15, roll: 7 },
+];
+
+function affineForTriangle(src, dst) {
+  const [s0, s1, s2] = src;
+  const [d0, d1, d2] = dst;
+  const sx1 = s1.x - s0.x, sy1 = s1.y - s0.y;
+  const sx2 = s2.x - s0.x, sy2 = s2.y - s0.y;
+  const dx1 = d1.x - d0.x, dy1 = d1.y - d0.y;
+  const dx2 = d2.x - d0.x, dy2 = d2.y - d0.y;
+  const det = sx1 * sy2 - sx2 * sy1;
+  const a = (dx1 * sy2 - dx2 * sy1) / det;
+  const c = (-dx1 * sx2 + dx2 * sx1) / det;
+  const b = (dy1 * sy2 - dy2 * sy1) / det;
+  const d = (-dy1 * sx2 + dy2 * sx1) / det;
+  return { a, b, c, d, e: d0.x - a * s0.x - c * s0.y, f: d0.y - b * s0.x - d * s0.y };
+}
+
+// Canvas 2D has affine transforms but no projective transform. Four clipped
+// triangles are enough for a card: each maps one corner and the card centre,
+// avoiding the obvious diagonal seam a two-triangle split can produce.
+function drawImageOnQuad(x, img, quad) {
+  const sw = img.width, sh = img.height;
+  const srcCenter = { x: sw / 2, y: sh / 2 };
+  const dstCenter = {
+    x: (quad[0].x + quad[1].x + quad[2].x + quad[3].x) / 4,
+    y: (quad[0].y + quad[1].y + quad[2].y + quad[3].y) / 4,
+  };
+  for (let i = 0; i < 4; i++) {
+    const next = (i + 1) % 4;
+    const transform = affineForTriangle(
+      [srcCenter, { x: i === 1 || i === 2 ? sw : 0, y: i >= 2 ? sh : 0 }, { x: next === 1 || next === 2 ? sw : 0, y: next >= 2 ? sh : 0 }],
+      [dstCenter, quad[i], quad[next]],
+    );
+    x.save();
+    x.beginPath();
+    x.moveTo(dstCenter.x, dstCenter.y);
+    x.lineTo(quad[i].x, quad[i].y);
+    x.lineTo(quad[next].x, quad[next].y);
+    x.closePath();
+    x.clip();
+    x.setTransform(transform.a, transform.b, transform.c, transform.d, transform.e, transform.f);
+    x.drawImage(img, 0, 0);
+    x.restore();
+  }
+}
+
+function rotatePoint(point, cx, cy, deg) {
+  const a = deg * Math.PI / 180;
+  const dx = point.x - cx, dy = point.y - cy;
+  return { x: cx + dx * Math.cos(a) - dy * Math.sin(a), y: cy + dx * Math.sin(a) + dy * Math.cos(a) };
+}
+
+function paintPerspectiveBackground(x, rnd, warm) {
+  const base = warm ? [207, 198, 183] : [191, 195, 200];
+  x.fillStyle = `rgb(${base[0]},${base[1]},${base[2]})`;
+  x.fillRect(0, 0, FRAME, FRAME);
+  for (let i = 0; i < 70; i++) {
+    const shade = (rnd() * 2 - 1) * 24;
+    x.fillStyle = `rgba(${(base[0] + shade) | 0},${(base[1] + shade) | 0},${(base[2] + shade) | 0},0.24)`;
+    x.save();
+    x.translate(rnd() * FRAME, rnd() * FRAME);
+    x.rotate(rnd() * Math.PI);
+    x.beginPath();
+    x.ellipse(0, 0, FRAME * (0.06 + rnd() * 0.18), FRAME * (0.01 + rnd() * 0.04), 0, 0, 7);
+    x.fill();
+    x.restore();
+  }
+}
+
+function addPerspectiveLighting(x, rnd, warm) {
+  const g = x.createRadialGradient(FRAME * (0.2 + rnd() * 0.6), FRAME * (0.12 + rnd() * 0.5), 0, FRAME / 2, FRAME / 2, FRAME * 0.85);
+  g.addColorStop(0, warm ? "rgba(255,242,220,0.18)" : "rgba(255,255,255,0.12)");
+  g.addColorStop(0.62, "rgba(0,0,0,0.06)");
+  g.addColorStop(1, "rgba(0,0,0,0.34)");
+  x.fillStyle = g;
+  x.fillRect(0, 0, FRAME, FRAME);
+}
+
+// A single-card camera-perspective set. The card remains planar, but its four
+// corners are mapped to a trapezoid so the image resembles a phone looking at
+// a card on a table rather than a straight-on Scryfall scan.
+export function perspectiveDegrade(img, idx) {
+  const rnd = mulberry32(((idx + 1) * 2246822519) >>> 0);
+  const preset = PERSPECTIVE_PRESETS[idx % PERSPECTIVE_PRESETS.length];
+  const warm = rnd() < 0.65;
+  const c = document.createElement("canvas");
+  c.width = FRAME; c.height = FRAME;
+  const x = c.getContext("2d");
+  paintPerspectiveBackground(x, rnd, warm);
+
+  const cardH = Math.round(FRAME * (0.44 + rnd() * 0.14));
+  const cardW = Math.round(cardH * img.width / img.height);
+  const cx = FRAME / 2 + (rnd() * 2 - 1) * 42;
+  const cy = FRAME / 2 + (rnd() * 2 - 1) * 34;
+  const topW = cardW * preset.top;
+  const bottomW = cardW * preset.bottom;
+  const topY = cy - cardH / 2;
+  const bottomY = cy + cardH / 2;
+  const lean = cardW * preset.lean;
+  let quad = [
+    { x: cx - topW / 2 + lean, y: topY },
+    { x: cx + topW / 2 + lean, y: topY },
+    { x: cx + bottomW / 2 + lean, y: bottomY },
+    { x: cx - bottomW / 2 + lean, y: bottomY },
+  ].map((p) => rotatePoint(p, cx + lean, cy, preset.roll + (rnd() * 2 - 1) * 3));
+
+  // A soft shadow is painted from the same projected corners, keeping the
+  // card grounded on the cloth instead of looking like a floating overlay.
+  x.save();
+  x.filter = `blur(${(cardW * 0.035).toFixed(1)}px)`;
+  x.fillStyle = "rgba(0,0,0,0.34)";
+  x.beginPath();
+  x.moveTo(quad[0].x + 5, quad[0].y + 8);
+  for (const p of quad.slice(1)) x.lineTo(p.x + 5, p.y + 8);
+  x.closePath();
+  x.fill();
+  x.restore();
+
+  x.save();
+  x.filter = `blur(${(0.45 + rnd() * 1.25).toFixed(2)}px)`;
+  drawImageOnQuad(x, img, quad);
+  x.restore();
+
+  if (rnd() < 0.55) {
+    x.save();
+    x.beginPath();
+    x.moveTo(quad[0].x, quad[0].y);
+    for (const p of quad.slice(1)) x.lineTo(p.x, p.y);
+    x.closePath();
+    x.clip();
+    const glare = x.createLinearGradient(0, 0, FRAME, FRAME);
+    glare.addColorStop(0.25, "rgba(255,255,255,0)");
+    glare.addColorStop(0.5, `rgba(255,255,250,${(0.14 + rnd() * 0.20).toFixed(2)})`);
+    glare.addColorStop(0.75, "rgba(255,255,255,0)");
+    x.fillStyle = glare;
+    x.fillRect(0, 0, FRAME, FRAME);
+    x.restore();
+  }
+
+  addPerspectiveLighting(x, rnd, warm);
+  const url = c.toDataURL("image/jpeg", 0.72);
+  c.width = c.height = 0;
+  return {
+    url,
+    rotationClass: "perspective",
+    perspectiveClass: preset.name,
+    occ: "none",
+    click: { nx: +((quad[0].x + quad[1].x + quad[2].x + quad[3].x) / 4 / FRAME).toFixed(4), ny: +((quad[0].y + quad[1].y + quad[2].y + quad[3].y) / 4 / FRAME).toFixed(4) },
+  };
+}
+
 export function summarize(results) {
   const done = results.filter((r) => !r.err);
   const acc = done.length ? done.filter((r) => r.ok).length / done.length : 0;

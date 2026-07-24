@@ -521,3 +521,16 @@ Fixed in `leak-fix-1` and verified directly: **WASM heap flat at 134MB across
 Lesson: the earlier orbScore homography fix was a real bug and fixing it felt
 like progress, but it was not the cause. Only the measurement distinguished
 them — which is the whole argument for instrumenting before believing a fix.
+
+## 2026-07-24 — `warm-lobby-1` — Perspective EDH staples (100 random cards) — **100.0%**
+
+Fresh sample of 100 cards from the top 15,000 EDHREC-ranked card names, with
+tokens and basics excluded. Each card was rendered in an isolated 640×640
+phone-like frame with a deterministic trapezoidal perspective, blur, cloth
+lighting, shadow and occasional glare. All four buckets were perfect:
+`near-left` 25/25, `near-right` 25/25, `far-left` 25/25, `far-right` 25/25.
+
+- 100/100 correct, 0 errors; 1st half 100%, 2nd half 100%.
+- Median 3.7s, average 3.8s, p90 4.2s, slowest 4.4s.
+- WASM heap stayed flat at 134→134MB; JS heap peaked at 48MB.
+- Art-match decided 99 scans; one correct result had no pathway label.

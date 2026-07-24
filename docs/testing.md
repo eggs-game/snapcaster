@@ -38,6 +38,15 @@ Each card is then clicked at a **random point on its visible artwork** — never
 dead centre, and never on a spot a neighbour covers, since naming the card
 actually under the cursor would not be a miss.
 
+The **Perspective EDH staples** mode keeps one card isolated per frame, but
+maps the card onto a four-corner trapezoid before adding warm cloth lighting,
+blur, shadow and glare like the supplied phone photos. The four buckets
+(`near-left`, `near-right`, `far-left`, `far-right`) rotate deterministically
+through a fresh random draw of 100 cards from the EDH staples pool. This
+uses only the top 15,000 EDHREC-ranked card names (not the separate token or
+basic-land click pools). This isolates camera/card-plane perspective from
+neighbour occlusion.
+
 The frame is cropped using **the same geometry as production**
 (`captureGeometry.js`), so a run exercises the real capture path rather than
 handing the recogniser a clean render.
@@ -76,6 +85,7 @@ add ~1%.
 | **Tableau 10 EDH dice (100 cards)** | Same EDH tableau, with one white/black/blue/red/pink die on every card |
 | **Fixed tableau overlap dice (100 cards)** | Same 100 frozen cards in forced-overlap dice scenes; repeatable targeted A/B, not a production score |
 | **Tableau 100 — EDH staples (1000 cards)** | Separates confounded signals; ~45 min |
+| **Perspective EDH staples (100 random cards)** | One random EDH-staples card per run item, rendered at four deterministic oblique camera angles |
 | **Tableau 10 / 100** | Same scenes, uniform draw from the whole index |
 | **Random 200** | Single cards, fresh sample — discovers new failure cases |
 | **Fixed 200 / 1000** | Single cards, identical every run — regression checking |

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { identify as identifyCard, preload } from "./recognition/matcher.js";
-import { degrade, loadImage, scryfallImageUrl, summarize } from "./snaptest/degrade.js";
+import { degrade, loadImage, perspectiveDegrade, scryfallImageUrl, summarize } from "./snaptest/degrade.js";
 import { buildScene, cropScene, perfectCrop, releaseScene } from "./snaptest/scene.js";
 
 const STAGE_LABEL = {
@@ -35,6 +35,10 @@ const MODES = {
     size: 1000, scenes: 100, perScene: 10, popular: 15000,
   },
   edh200: { label: "EDH staples 200 (single cards)", size: 200, popular: 15000 },
+  perspectiveEdh100: {
+    label: "Perspective EDH staples (100 random cards)",
+    size: 100, popular: 15000, perspective: true, cardsOnly: true,
+  },
   // Third-party test set (arcane-table-card-recognition-test-data): the SAME
   // 200 cards photographed/cropped at three severities. Fed to the recogniser
   // exactly as supplied — no scene generation, no degradation of our own — so
@@ -109,6 +113,7 @@ function buildResultPayload(mode, summary, results) {
       cv: r.cv, tried: r.tried, dropped: r.dropped,
       artBest: r.artBest, artChecked: r.artChecked,
       ocr: r.ocr, ocrConf: r.ocrConf, titleScore: r.titleScore,
+      perspective: r.perspective,
       metadata: r.metadata, metadataVetoed: r.metadataVetoed,
       metadataConflictAll: r.metadataConflictAll, metadataError: r.metadataError,
       stages: r.stages,
@@ -121,7 +126,7 @@ function buildResultPayload(mode, summary, results) {
     errors: results.filter((r) => r.err).map((r) => ({
       name: r.name, id: r.id, stage: r.errStage, ms: r.ms, message: r.err,
       i: r.i, degradeIndex: r.degradeIndex, placement: r.placementClass,
-      rot: r.rotationClass, occ: r.occ,
+      rot: r.rotationClass, perspective: r.perspective, occ: r.occ,
       ...(r.scene !== undefined ? { scene: r.scene, coverage: r.coverage, click: r.click } : {}),
     })),
   };
@@ -220,7 +225,7 @@ export default function SnapTest() {
   // are numerous but almost never need identifying.
   const CLICK_MIX = { tokens: 0.25, basics: 0.05 }; // remainder: ranked cards
 
-  const samplePopular = async (n, topN) => {
+  const samplePopular = async (n, topN, options = {}) => {
     const { cards, tokens, basics } = await loadPopular();
     const ranked = cards.slice(0, topN);
     const picked = [];
@@ -228,8 +233,9 @@ export default function SnapTest() {
     let guard = 0;
     while (picked.length < n && guard++ < n * 50) {
       const roll = Math.random();
-      const pool = roll < CLICK_MIX.tokens ? tokens
-        : roll < CLICK_MIX.tokens + CLICK_MIX.basics ? basics : ranked;
+      const pool = options.cardsOnly ? ranked
+        : roll < CLICK_MIX.tokens ? tokens
+          : roll < CLICK_MIX.tokens + CLICK_MIX.basics ? basics : ranked;
       const j = (Math.random() * pool.length) | 0;
       const entry = pool[j];
       if (!entry) continue;
@@ -274,7 +280,9 @@ export default function SnapTest() {
   const buildRunSet = async () => {
     if (MODES[mode].arcane) return loadArcane(MODES[mode].arcane);
     const popular = MODES[mode].popular;
-    if (popular) return samplePopular(MODES[mode].size, popular);
+    if (popular) return samplePopular(MODES[mode].size, popular, {
+      cardsOnly: MODES[mode].cardsOnly,
+    });
     if (mode === "random200") return sampleIndex(200);
     if (MODES[mode].fixed) return cards.slice(0, MODES[mode].size);
     if (mode.startsWith("tableau") || MODES[mode].scenes) return sampleIndex(MODES[mode].size);
@@ -406,16 +414,20 @@ export default function SnapTest() {
             throw e;
           }
           const degradeIndex = card.degradeIndex ?? i;
-          const deg = degrade(img, degradeIndex);
+          const deg = MODES[mode].perspective
+            ? perspectiveDegrade(img, i)
+            : degrade(img, degradeIndex);
           rec.degradeIndex = degradeIndex;
           rec.rotationClass = deg.rotationClass;
           rec.occ = deg.occ;
           rec.placementClass = deg.placementClass;
+          rec.perspective = deg.perspectiveClass;
+          rec.click = deg.click;
           degradedUrl = deg.url;
         }
         let data;
         try {
-          data = await identifyCard(degradedUrl, { nx: 0.5, ny: 0.5 });
+          data = await identifyCard(degradedUrl, rec.click || { nx: 0.5, ny: 0.5 });
         } catch (e) {
           const msg = String((e && e.message) || e);
           rec.errStage = /timed out/i.test(msg) ? "timeout" : "identify-error";
@@ -498,6 +510,9 @@ export default function SnapTest() {
     if (okList.some((r) => r.placementClass)) {
       sum.byPlacement = groupAcc(okList, (r) => r.placementClass);
     }
+    if (okList.some((r) => r.perspective)) {
+      sum.byPerspective = groupAcc(okList, (r) => r.perspective);
+    }
     // Tableau-only: how much of the loss is the table being packed vs the
     // recognizer simply failing on an isolated card.
     if (okList.some((r) => r.layout)) sum.byLayout = groupAcc(okList, (r) => r.layout);
@@ -578,7 +593,9 @@ export default function SnapTest() {
           index every run. <b>Arcane set</b> modes run a third-party test set as supplied —
           the same 200 cards at light / medium / heavy crop severity, with no degradation of
           ours applied on top — good for discovering new failure cases. <b>Fixed</b> sets always use
-          the same cards, for measuring whether a change helped or regressed.
+          the same cards, for measuring whether a change helped or regressed. <b>Perspective EDH
+          staples</b> draws 100 random cards from the EDH staples pool and renders each one with
+          a deterministic oblique camera angle like a phone looking down at a card on a table.
         </p>
         <p style={S.sub}>
           <b>Tableau</b> modes are the realistic case: 10 random cards laid out on a table in one
@@ -662,6 +679,7 @@ export default function SnapTest() {
             <div style={S.breakRow}>
               <Breakdown title="By pathway (how it was identified)" data={summary.byPathway} />
               {summary.byPlacement && <Breakdown title="By card placement" data={summary.byPlacement} />}
+              {summary.byPerspective && <Breakdown title="By perspective" data={summary.byPerspective} />}
               {summary.byCoverage && <Breakdown title="By neighbour coverage" data={summary.byCoverage} />}
               {summary.byLayout && <Breakdown title="By table layout" data={summary.byLayout} />}
               {summary.byClipped && <Breakdown title="By frame clipping" data={summary.byClipped} />}

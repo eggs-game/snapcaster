@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
-  ArrowLeft, Copy, Dices, Download, ExternalLink, Link2, Mic, MicOff, PanelLeft, Search,
+  ArrowLeft, Copy, Dices, Download, ExternalLink, Link2, MessageCircle, Mic, MicOff, PanelLeft, Search,
   Send, Settings, Swords, ThumbsDown, UserPlus, UserRound, Video, VideoOff,
 } from "lucide-react";
 import { suggestCardNames } from "./cardSearch.js";
@@ -46,6 +46,7 @@ function reportUuid() {
 export default function CardSidebar({
   current,
   lookups,
+  cardEvents,
   lifeEvents,
   diceRolls,
   readyEvents,
@@ -58,6 +59,7 @@ export default function CardSidebar({
   onSendChat,
   onRollDie,
   onPick,
+  onShareCard,
   onClose,
   closing,
   onClosed,
@@ -78,6 +80,8 @@ export default function CardSidebar({
   onThemePreferenceChange,
   videoLayout,
   onVideoLayoutChange,
+  videoFit,
+  onVideoFitChange,
   counterPlayers,
   onChangePoison,
   onChangeCommanderDamage,
@@ -113,6 +117,7 @@ export default function CardSidebar({
   const [truthQuery, setTruthQuery] = useState("");
   const [truthSuggestions, setTruthSuggestions] = useState([]);
   const [truthHighlight, setTruthHighlight] = useState(-1);
+  const [cardPreview, setCardPreview] = useState(null);
   // One-shot open slide; cleared after the panel settles into place.
   const [entering, setEntering] = useState(true);
   const settings = view === "settings";
@@ -120,6 +125,7 @@ export default function CardSidebar({
   const invite = view === "invite";
   const dice = view === "dice";
   const logEntries = [
+    ...(cardEvents || []).map((entry) => ({ ...entry, type: "card" })),
     ...(lifeEvents || []).map((entry) => ({ ...entry, type: "life" })),
     ...(diceRolls || []).map((entry) => ({ ...entry, type: "dice" })),
     ...(readyEvents || []).map((entry) => ({ ...entry, type: "ready" })),
@@ -137,6 +143,12 @@ export default function CardSidebar({
     })),
   ];
   const whisperTarget = safeChatRecipients.find((recipient) => recipient.id === chatWhisperTargetId);
+
+  const openCard = (card) => {
+    if (!card) return;
+    onPick?.(card);
+    setLookupTab("cards");
+  };
 
   const chooseChatSuggestion = (suggestion) => {
     if (!suggestion) return;
@@ -193,6 +205,15 @@ export default function CardSidebar({
   useEffect(() => {
     if (!editingLobbyName) setLobbyNameDraft(lobbyName || "Untitled game");
   }, [lobbyName, editingLobbyName]);
+
+  useEffect(() => {
+    if (!cardPreview) return undefined;
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") setCardPreview(null);
+    };
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [cardPreview]);
 
   useEffect(() => {
     const q = query.trim();
@@ -327,7 +348,8 @@ export default function CardSidebar({
     && new URLSearchParams(window.location.search).has("debug");
 
   return (
-    <aside
+    <>
+      <aside
       className={[
         "sidebar",
         settings ? "settings-view" : "",
@@ -472,9 +494,9 @@ export default function CardSidebar({
                 {camOn ? <Video size={18} /> : <VideoOff size={18} />}
                 <span>{camOn ? "Camera on" : "Camera off"}</span>
               </button>
-              <label className="device-field">
-                <span className="color-label">Camera</span>
+              <label className="device-field device-field-tight">
                 <select
+                  aria-label="Camera"
                   value={videoDeviceId}
                   onChange={(e) => onChooseCamera(e.target.value)}
                   disabled={!cameras.length}
@@ -487,6 +509,23 @@ export default function CardSidebar({
                   ))}
                 </select>
               </label>
+              <fieldset className="theme-field" aria-label="Video fit">
+                <div className="theme-options two-up">
+                  {[
+                    ["cover", "Cover"],
+                    ["16:9", "16:9"],
+                  ].map(([option, label]) => (
+                    <button
+                      key={option}
+                      type="button"
+                      aria-pressed={videoFit === option}
+                      onClick={() => onVideoFitChange(option)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
             </>
           )}
 
@@ -499,8 +538,8 @@ export default function CardSidebar({
             <span>{micOn ? "Mic on" : "Mic muted"}</span>
           </button>
           <label className="device-field">
-            <span className="color-label">Microphone</span>
             <select
+              aria-label="Microphone"
               value={audioDeviceId}
               onChange={(e) => onChooseMic(e.target.value)}
               disabled={!mics.length}
@@ -662,7 +701,14 @@ export default function CardSidebar({
             {best && !top && <div className="lookup-status">No confident match. Try clicking closer to the card center.</div>}
             {top && (
               <div className="card-hit">
-                <img src={top.image} alt={top.name} />
+                <button
+                  type="button"
+                  className="card-hit-image"
+                  onClick={() => setCardPreview(top)}
+                  aria-label={`Expand ${top.name}`}
+                >
+                  <img src={top.image} alt={top.name} />
+                </button>
                 <div className="card-meta">
                   <b>{top.name}</b>
                   <div className="card-actions">
@@ -763,17 +809,29 @@ export default function CardSidebar({
               {recentCards.length ? (
                 <div className="recent-card-list">
                   {recentCards.map((entry, index) => (
-                    <button
-                      type="button"
+                    <div
                       className="recent-card-row"
                       key={`${entry.at || 0}-${entry.card?.scryfall_id || entry.card?.name || index}-${index}`}
-                      onClick={() => onPick(entry.card)}
                     >
-                      {entry.card?.image && <img src={entry.card.image} alt="" />}
-                      <span className="recent-card-copy">
-                        <strong>{entry.card?.name}</strong>
-                      </span>
-                    </button>
+                      <button type="button" className="recent-card-open" onClick={() => openCard(entry.card)}>
+                        {entry.card?.image && <img src={entry.card.image} alt="" />}
+                        <span className="recent-card-copy">
+                          <strong>{entry.card?.name}</strong>
+                        </span>
+                      </button>
+                      {!isVisitor && (
+                        <button
+                          type="button"
+                          className="recent-card-share"
+                          onClick={() => onShareCard?.(entry.card)}
+                          aria-label={`Share ${entry.card?.name || "card"} to game log`}
+                          data-tooltip="Share to game log"
+                          data-tooltip-pos="left-bottom"
+                        >
+                          <MessageCircle size={16} />
+                        </button>
+                      )}
+                    </div>
                   ))}
                 </div>
               ) : (
@@ -822,19 +880,27 @@ export default function CardSidebar({
           </> : lookupTab === "log" ? (
             <div className="lookup-log">
               {!logEntries.length ? (
-                <p className="lookup-status">Life changes, dice rolls, and ready checks will appear here.</p>
+                <p className="lookup-status">Shared cards, life changes, dice rolls, and ready checks will appear here.</p>
               ) : (
                 <ul className="lookups">
                   {logEntries.map((entry) => (
                     <li
                       key={`${entry.type}-${entry.id}`}
-                      className={entry.type === "dice" ? "dice-log-entry" : entry.type === "ready" ? "ready-log-entry" : "life-log-entry"}
+                      className={entry.type === "card" ? "card-log-entry" : entry.type === "dice" ? "dice-log-entry" : entry.type === "ready" ? "ready-log-entry" : "life-log-entry"}
                     >
-                      {entry.type === "dice" ? (
+                      {entry.type === "card" ? (
+                        <button type="button" className="card-log-button" onClick={() => openCard(entry.card)}>
+                          {entry.card?.image && <img src={entry.card.image} alt="" />}
+                          <span>
+                            <strong>{entry.by} shared {entry.card?.name || "a card"}</strong>
+                            <small>{new Date(entry.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</small>
+                          </span>
+                        </button>
+                      ) : entry.type === "dice" ? (
                         <>
-                          <span className="log-dice-roll">{entry.name} rolled a {entry.value}</span>
+                          <span className="log-dice-roll">{entry.name} rolled {formatDiceResult(entry.value, entry.sides)}</span>
                           <span className="log-detail">
-                            d{entry.sides || 20} · {new Date(entry.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                            {formatDiceSides(entry.sides)} · {new Date(entry.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
                           </span>
                         </>
                       ) : entry.type === "ready" ? (
@@ -957,40 +1023,65 @@ export default function CardSidebar({
           )}
         </>
       )}
-    </aside>
+      </aside>
+      {cardPreview?.image && (
+        <div className="card-preview-backdrop" onMouseDown={() => setCardPreview(null)}>
+          <div
+            className="card-preview-tile"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Expanded ${cardPreview.name}`}
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <img src={cardPreview.image} alt={cardPreview.name} />
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
 function DicePanel({ lastRoll, onRoll }) {
   const [selectedSides, setSelectedSides] = useState(lastRoll?.sides || 20);
-  const diceOptions = Array.from({ length: 19 }, (_, index) => index + 2);
+  const diceOptions = Array.from({ length: 18 }, (_, index) => index + 3);
+  useEffect(() => {
+    if (lastRoll?.sides) setSelectedSides(lastRoll.sides);
+  }, [lastRoll?.sides]);
   return (
     <div className="dice-panel">
       <p>Choose a die to roll. Results are shared with everyone and added to Log.</p>
       <div className="dice-result" key={lastRoll?.id || "empty"}>
         <Dices size={28} />
-        <strong>{lastRoll?.value || "—"}</strong>
-        <span>{lastRoll ? `d${lastRoll.sides || 20} · ${lastRoll.name} · ${new Date(lastRoll.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}` : "No rolls yet"}</span>
+        <strong>{lastRoll ? formatDiceResult(lastRoll.value, lastRoll.sides) : "—"}</strong>
+        <span>{lastRoll ? `${formatDiceSides(lastRoll.sides)} · ${lastRoll.name} · ${new Date(lastRoll.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}` : "No rolls yet"}</span>
       </div>
-      <div className="dice-option-grid" aria-label="Choose a die to roll">
-        {diceOptions.map((sides) => (
-          <button
-            type="button"
-            className={selectedSides === sides ? "dice-option selected" : "dice-option"}
-            key={sides}
-            onClick={() => {
-              setSelectedSides(sides);
-              onRoll?.(sides);
-            }}
-            aria-label={sides === 2 ? "Flip a coin" : `Roll d${sides}`}
-          >
-            <span>{sides === 2 ? "Coin" : `D${sides}`}</span>
-          </button>
-        ))}
-        <span className="dice-option-spacer" aria-hidden="true" />
-      </div>
+      <label className="dice-select-field">
+        <span className="color-label">Die</span>
+        <select
+          className="dice-select"
+          aria-label="Choose a die to roll"
+          value={selectedSides}
+          onChange={(event) => {
+            const sides = Number(event.target.value);
+            setSelectedSides(sides);
+            onRoll?.(sides);
+          }}
+        >
+          <option value={2}>Coin</option>
+          {diceOptions.map((sides) => <option key={sides} value={sides}>D{sides}</option>)}
+        </select>
+      </label>
     </div>
   );
+}
+
+function formatDiceSides(sides) {
+  return Number(sides) === 2 ? "Coin" : `d${Number(sides) || 20}`;
+}
+
+function formatDiceResult(value, sides) {
+  if (Number(sides) === 2) return Number(value) === 1 ? "Heads" : "Tails";
+  return String(value ?? "—");
 }
 
 function CounterPanel({ players, onChangePoison, onChangeCommanderDamage }) {

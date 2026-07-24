@@ -17,5 +17,13 @@ This directory holds the record, not the explanation:
    (~5 minutes; keep the tab focused).
 4. Press **Copy results** and paste the JSON.
 
+For the oblique-card experiment, choose **Perspective EDH staples (100 random
+cards)**. It draws a fresh 100-card sample from the top 15,000 EDHREC-ranked
+card names (excluding tokens and basics) and cycles through four deterministic
+camera-angle buckets. Read
+`byPerspective` alongside `byPathway` and `missTrueRank` to see whether a
+failure is specific to one viewing direction or to candidate generation or
+ranking generally.
+
 Read `byLayout`, `byRotation`, `byPool` and `missTrueRank` before the headline
 accuracy — the headline moves by a couple of cards on noise alone.
