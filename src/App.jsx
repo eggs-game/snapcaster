@@ -7,7 +7,7 @@ const THEME_OPTIONS = new Set(["light", "dark", "system"]);
 
 function initialThemePreference() {
   const saved = localStorage.getItem(THEME_KEY);
-  return THEME_OPTIONS.has(saved) ? saved : "system";
+  return THEME_OPTIONS.has(saved) ? saved : "dark";
 }
 
 function applyTheme(preference) {

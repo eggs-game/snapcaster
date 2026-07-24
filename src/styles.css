@@ -957,12 +957,11 @@ input::placeholder { color: var(--text-tertiary); opacity: 1; }
 .dice-result { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 170px; padding: 20px; border: 1px solid var(--border-subtle); border-radius: 14px; background: var(--bg-surface); color: var(--text-secondary); animation: dice-result-in 0.18s ease-out; }
 .dice-result strong { margin: 8px 0 4px; color: var(--text-primary); font-size: 48px; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
 .dice-result span { color: var(--text-tertiary); font-size: var(--text-xs); }
-.dice-option-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.dice-option { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 0; height: 68px; padding: 6px; border: 1px solid var(--border-default); border-radius: 8px; background: var(--bg-surface-raised); color: var(--text-secondary); font-family: inherit; font-size: var(--text-xs); cursor: pointer; }
-.die-outline { display: block; width: 30px; height: 30px; }
+.dice-option-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.dice-option { display: flex; align-items: center; justify-content: center; min-width: 0; height: 44px; padding: 6px; border: 1px solid var(--border-default); border-radius: 8px; background: var(--bg-surface-raised); color: var(--text-secondary); font-family: inherit; font-size: var(--text-sm); font-weight: 600; cursor: pointer; }
 .dice-option:hover { background: var(--bg-hover); border-color: var(--border-strong); color: var(--text-primary); }
 .dice-option.selected { background: var(--selected-bg); border-color: var(--focus-border); color: var(--text-primary); box-shadow: inset 0 0 0 1px var(--focus-ring); }
-.dice-option-spacer { min-height: 68px; }
+.dice-option-spacer { min-height: 44px; }
 @keyframes dice-result-in { from { opacity: 0.55; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
 footer.hint { text-align: center; padding: 4px; }
 
