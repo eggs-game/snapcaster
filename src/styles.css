@@ -708,7 +708,7 @@ input::placeholder { color: var(--text-tertiary); opacity: 1; }
 .tile video { display: block; width: 100%; height: 100%; object-fit: cover; }
 .tile.empty { display: flex; align-items: center; justify-content: center; color: var(--text-tertiary); background: var(--bg-sidebar); cursor: default; }
 /* Compact two-row video label with a soft fade into the moving image. */
-.commander-banner { position: absolute; z-index: 2; top: 0; left: 0; right: 0; height: 56px; display: flex; flex-direction: column; justify-content: flex-start; align-items: stretch; gap: 0; padding: 6px 10px 5px; background: rgba(52, 52, 50, 0.7); border: 0; box-shadow: none; -webkit-backdrop-filter: blur(10px) saturate(105%); backdrop-filter: blur(10px) saturate(105%); }
+.commander-banner { position: absolute; z-index: 2; top: 0; left: 0; right: 0; height: 52px; display: flex; flex-direction: column; justify-content: flex-start; align-items: stretch; gap: 0; padding: 6px 10px 5px; background: rgba(52, 52, 50, 0.7); border: 0; box-shadow: none; -webkit-backdrop-filter: blur(10px) saturate(105%); backdrop-filter: blur(10px) saturate(105%); }
 /* In 16:9 fit mode the video is letterboxed and centered, so the banner
    (pinned to the tile's top edge) often sits over the tile's plain
    background rather than actual video — the dark scrim exists to keep name
@@ -718,7 +718,7 @@ input::placeholder { color: var(--text-tertiary); opacity: 1; }
 .commander-banner.banner-at-bottom { top: auto; bottom: 0; }
 .banner-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
 .banner-name-row { min-height: 24px; padding-right: 28px; transform: translateY(-4px); }
-.banner-row + .banner-row { margin-top: -1px; }
+.banner-row + .banner-row { margin-top: -5px; }
 .banner-player-row { display: flex; align-items: center; gap: 5px; min-width: 0; }
 .banner-player { color: var(--text-secondary); font-size: 13px; letter-spacing: 0.03em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-shadow: none; }
 .speaking-meter { display: flex; align-items: center; gap: 2px; flex: none; width: 17px; height: 14px; }
@@ -734,7 +734,7 @@ input::placeholder { color: var(--text-tertiary); opacity: 1; }
 .commander-name.unset { display: flex; align-items: center; gap: 5px; color: rgba(255,255,255,0.72); font-weight: 400; }
 .commander-name-link { border: none; background: none; padding: 0; font-family: inherit; text-align: left; cursor: pointer; }
 .commander-name-link:hover { color: #fff; text-decoration: underline; }
-.commander-search { position: relative; min-width: 80px; }
+.commander-search { position: relative; min-width: 80px; margin-top: -5px; }
 .commander-picker input { width: 100%; height: 18px; padding: 0; appearance: none; background: transparent; border: 0; border-radius: 0; color: rgba(255,255,255,0.94); caret-color: #fff; font-family: inherit; font-size: 14px; font-weight: 400; line-height: 18px; box-shadow: none; }
 .commander-picker input::placeholder { color: rgba(255,255,255,0.72); }
 .commander-picker input:focus { outline: none; border: 0; box-shadow: none; }
@@ -743,8 +743,9 @@ input::placeholder { color: var(--text-tertiary); opacity: 1; }
 .commander-suggest li.active { background: var(--selected-bg); }
 .commander-set { cursor: pointer; }
 .commander-set:hover .commander-name { color: #fff; }
-.mana-cost { flex: none; display: flex; align-items: center; gap: 4px; }
-.mana-symbol { width: 9px; height: 9px; border-radius: 50%; }
+.commander-detail { justify-content: flex-start; }
+.mana-cost { flex: none; display: flex; align-items: center; gap: 4px; transform: translateY(2px); }
+.mana-symbol { width: 11px; height: 11px; border: 1px solid rgba(255,255,255,0.5); border-radius: 50%; }
 .banner-menu { position: absolute; inset: 4px 6px auto auto; z-index: 5; display: flex; align-items: center; gap: 2px; width: auto; height: 24px; flex: none; margin: 0; cursor: default; transform: none; }
 .menu-btn { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; padding: 0; background: none; border: none; border-radius: 6px; color: rgba(255,255,255,0.82); cursor: pointer; filter: none; box-shadow: none; }
 .menu-btn:hover { color: #fff; background: rgba(255,255,255,0.12); }

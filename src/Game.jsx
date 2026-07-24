@@ -1173,10 +1173,10 @@ function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseComm
   );
 }
 
-// Small, unadorned pips keep the commander's colors visible without competing
-// with the name in the compact video overlay.
+// Small, mana-inspired pips keep the commander's colors visible without
+// competing with the name in the compact video overlay.
 const MANA_BG = {
-  W: "#f6f2dc", U: "#bcd7ea", B: "#c6bcb6", R: "#e8997c", G: "#a9c9a4", C: "#cdc4be",
+  W: "#c9c2aa", U: "#4f88b8", B: "#3d3a38", R: "#b5463e", G: "#4a7853", C: "#77736e",
 };
 
 function ManaCost({ cost }) {
@@ -1254,7 +1254,7 @@ function TileMenu({ flipped, onToggleFlip, canPassTurn, onPassTurn, canRandomize
               setOpen(false);
             }}
           >
-            <FlipVertical2 size={18} />
+            <FlipVertical2 size={16} />
             <span>{flipped ? "Unflip video" : "Flip video"}</span>
           </button>
           {canPassTurn && (
@@ -1265,19 +1265,19 @@ function TileMenu({ flipped, onToggleFlip, canPassTurn, onPassTurn, canRandomize
                 setOpen(false);
               }}
             >
-              <SkipForward size={18} />
+              <SkipForward size={16} />
               <span>Pass turn</span>
             </button>
           )}
           {canRandomizeGrid && (
             <button type="button" onClick={() => { onRandomizeGrid?.(); setOpen(false); }}>
-              <Shuffle size={18} />
+              <Shuffle size={16} />
               <span>Shuffle position</span>
             </button>
           )}
           {canStartReadyCheck && (
             <button type="button" onClick={() => { onStartReadyCheck?.(); setOpen(false); }}>
-              <Check size={18} />
+              <Check size={16} />
               <span>Check ready</span>
             </button>
           )}
@@ -1362,7 +1362,7 @@ function CommanderBanner({ tile, onChoose, onLookupCommander, speaking, onPassTu
       <div className={atBottom ? "commander-banner banner-at-bottom" : "commander-banner"}>
         <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} videoQuality={videoQuality} videoResolution={videoResolution} onVideoQualityChange={onVideoQualityChange} />
         {nameRow}
-        <div className="banner-row">
+        <div className="banner-row commander-detail">
           {tile.commander ? (
             <button
               type="button"
@@ -1391,7 +1391,7 @@ function CommanderBanner({ tile, onChoose, onLookupCommander, speaking, onPassTu
       >
         <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canPassTurn={tile.activeTurn} onPassTurn={onPassTurn} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} canStartReadyCheck={canRandomizeGrid} onStartReadyCheck={onStartReadyCheck} showMediaControls camOn={camOn} micOn={micOn} onToggleCam={onToggleCam} onToggleMic={onToggleMic} videoResolution={videoResolution} />
         {nameRow}
-        <div className="banner-row">
+        <div className="banner-row commander-detail">
           <span className={tile.commander ? "commander-name" : "commander-name unset"}>
             {tile.commander || "Add commander"}
           </span>

@@ -96,6 +96,11 @@ theme-aware token there would go invisible in light mode.
 Current examples: `.menu-btn`, `.wrong-card-btn` (thumbs-down report
 button), `.scryfall-link` (arrow-out-of-box link to Scryfall).
 
+Icons in labeled dropdown action rows use the same **16px** visual size, so
+the video options actions (flip, pass turn, shuffle position, and check
+ready) align with the small controls that open the menu without overpowering
+their text labels.
+
 ## 32px icon buttons
 
 **Any icon-only button larger than 24px and smaller than 40px uses this
@@ -272,6 +277,14 @@ bar. It closes on a backdrop click or Escape; do not add a separate close
 button unless the preview gains other controls.
 
 ## Video tile fit modes
+
+Commander color pips sit directly after the commander name on the left of
+the 52px-tall video overlay. The commander row is pulled 5px toward the player-name
+row; its pips are 11px circles with a 1px 50%-opacity white outline and a 2px
+downward optical offset, using darker mana-inspired white, blue, black, red,
+and green tones so their colors read clearly against the translucent banner.
+The commander edit field occupies that same row position, so entering edit
+mode does not shift the name downward.
 
 Settings → Video fit controls how each player's camera stream fills its
 tile in the game grid, independent of `.grid`'s own layout mode
