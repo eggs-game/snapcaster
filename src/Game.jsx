@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
-  Check, FlipVertical2, MicOff, MoreVertical, PanelLeft, Shuffle, SkipForward, X,
+  Check, FlipVertical2, Mic, MicOff, MoreVertical, PanelLeft, Shuffle, SkipForward, Swords,
+  Video, VideoOff, X,
 } from "lucide-react";
 import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
 import { labelRecognitionReport, saveRecognitionReport } from "./signaling.js";
 import { suggestCardNames } from "./cardSearch.js";
 import { identify as identifyCard, preload as preloadRecognition } from "./recognition/matcher.js";
-import CardSidebar from "./CardSidebar.jsx";
+import CardSidebar, { cardFromScryfall } from "./CardSidebar.jsx";
 
 export default function Game({ session, onLeave, themePreference, onThemePreferenceChange }) {
   const isVisitor = session.role === "visitor";
@@ -284,6 +285,31 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       setCurrent({ error: String(e.message || e) });
     }
   }, [isVisitor, myId, session.name]);
+
+  // Clicking an opponent's commander name does a plain text lookup (same
+  // Scryfall path as the sidebar search box) rather than the visual capture
+  // pipeline, so it works without needing to click their video.
+  const lookupCommanderName = useCallback(async (name) => {
+    const cardName = String(name || "").trim();
+    if (!cardName) return;
+    setSidebarView("lookup");
+    setSidebarOpen(true);
+    setCurrent({ loading: true });
+    try {
+      const response = await fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(cardName)}`);
+      if (!response.ok) throw new Error("Card not found");
+      const card = cardFromScryfall(await response.json());
+      setCurrent({ matches: [card] });
+      setLookups((l) => [...l.slice(-11), { by: session.name, card, at: Date.now() }]);
+    } catch (e) {
+      setCurrent({ error: String(e.message || e) });
+    }
+  }, [session.name]);
+
+  const openCounters = () => {
+    setSidebarView("counters");
+    setSidebarOpen(true);
+  };
 
   const changeLife = (delta) => {
     if (isVisitor) return;
@@ -792,8 +818,14 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
                 scanNotice={t.isMe ? scanNotice : null}
                 onIdentify={identify}
                 onChooseCommander={chooseCommander}
+                onLookupCommander={lookupCommanderName}
                 onChangeLife={changeLife}
+                onOpenCounters={openCounters}
                 onPassTurn={passTurn}
+                camOn={camOn}
+                micOn={micOn}
+                onToggleCam={toggleCam}
+                onToggleMic={toggleMic}
                 canRandomizeGrid={session.creator && t.isMe}
                 onRandomizeGrid={randomizeGrid}
                 onStartReadyCheck={startReadyCheck}
@@ -915,7 +947,7 @@ const TILE_COLORS = [
   "#3f8fd2", "#38b8cf", "#31957e", "#58a75c", "#a6b94a", "#7c8796",
 ];
 
-function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, onChangeLife, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, isReadyCheckActive, readyStatus, onReady, onNotReady, heroRole, onSelectHero, flash, scanNotice }) {
+function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, onLookupCommander, onChangeLife, onOpenCounters, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, isReadyCheckActive, readyStatus, onReady, onNotReady, heroRole, onSelectHero, flash, scanNotice, camOn, micOn, onToggleCam, onToggleMic }) {
   const videoRef = useRef(null);
   const [flipped, setFlipped] = useState(false);
   const speaking = useSpeaking(tile.stream, tile.muted);
@@ -947,6 +979,7 @@ function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, onCh
       <CommanderBanner
         tile={tile}
         onChoose={onChooseCommander}
+        onLookupCommander={onLookupCommander}
         speaking={speaking}
         onPassTurn={onPassTurn}
         canRandomizeGrid={canRandomizeGrid}
@@ -954,6 +987,10 @@ function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, onCh
         onStartReadyCheck={onStartReadyCheck}
         flipped={flipped}
         onToggleFlip={() => setFlipped((f) => !f)}
+        camOn={camOn}
+        micOn={micOn}
+        onToggleCam={onToggleCam}
+        onToggleMic={onToggleMic}
       />
       <div
         className="video-wrap"
@@ -1010,6 +1047,14 @@ function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, onCh
           {tile.isMe && (
             <button className="life-btn" onClick={() => onChangeLife(+1)} aria-label="Gain 1 life">+</button>
           )}
+          {tile.isMe && (
+            <>
+              <span className="life-divider" aria-hidden="true" />
+              <button className="life-btn life-sword-btn" onClick={() => onOpenCounters?.()} aria-label="Open commander damage">
+                <Swords size={14} />
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -1042,11 +1087,32 @@ function ManaCost({ cost }) {
   );
 }
 
-// Three-dot video-options menu on the banner's first row.
-function TileMenu({ flipped, onToggleFlip, canPassTurn, onPassTurn, canRandomizeGrid, onRandomizeGrid, canStartReadyCheck, onStartReadyCheck }) {
+// Three-dot video-options menu on the banner's first row. On your own tile
+// it also carries quick mic/camera toggles right next to the menu button.
+function TileMenu({ flipped, onToggleFlip, canPassTurn, onPassTurn, canRandomizeGrid, onRandomizeGrid, canStartReadyCheck, onStartReadyCheck, showMediaControls, camOn, micOn, onToggleCam, onToggleMic }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="banner-menu" onClick={(e) => e.stopPropagation()}>
+      {showMediaControls && (
+        <>
+          <button
+            className="menu-btn"
+            onClick={() => onToggleMic?.()}
+            aria-label={micOn ? "Mute microphone" : "Unmute microphone"}
+            title={micOn ? "Mute microphone" : "Unmute microphone"}
+          >
+            {micOn ? <Mic size={16} /> : <MicOff size={16} />}
+          </button>
+          <button
+            className="menu-btn"
+            onClick={() => onToggleCam?.()}
+            aria-label={camOn ? "Turn camera off" : "Turn camera on"}
+            title={camOn ? "Turn camera off" : "Turn camera on"}
+          >
+            {camOn ? <Video size={16} /> : <VideoOff size={16} />}
+          </button>
+        </>
+      )}
       <button
         className="menu-btn"
         onClick={() => setOpen((o) => !o)}
@@ -1097,7 +1163,7 @@ function TileMenu({ flipped, onToggleFlip, canPassTurn, onPassTurn, canRandomize
   );
 }
 
-function CommanderBanner({ tile, onChoose, speaking, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, flipped, onToggleFlip }) {
+function CommanderBanner({ tile, onChoose, onLookupCommander, speaking, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, flipped, onToggleFlip, camOn, micOn, onToggleCam, onToggleMic }) {
   const [draft, setDraft] = useState(tile.commander);
   const [suggestions, setSuggestions] = useState([]);
   const [highlight, setHighlight] = useState(-1);
@@ -1173,9 +1239,18 @@ function CommanderBanner({ tile, onChoose, speaking, onPassTurn, canRandomizeGri
         <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} />
         {nameRow}
         <div className="banner-row">
-          <span className={tile.commander ? "commander-name" : "commander-name unset"}>
-            {tile.commander || "Not selected"}
-          </span>
+          {tile.commander ? (
+            <button
+              type="button"
+              className="commander-name commander-name-link"
+              onClick={(event) => { event.stopPropagation(); onLookupCommander?.(tile.commander); }}
+              title="Look up this commander"
+            >
+              {tile.commander}
+            </button>
+          ) : (
+            <span className="commander-name unset">Not selected</span>
+          )}
           <ManaCost cost={manaCost} />
         </div>
       </div>
@@ -1191,7 +1266,7 @@ function CommanderBanner({ tile, onChoose, speaking, onPassTurn, canRandomizeGri
         onClick={() => setEditing(true)}
         title={tile.commander ? "Click to change commander" : "Click to add commander"}
       >
-        <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canPassTurn={tile.activeTurn} onPassTurn={onPassTurn} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} canStartReadyCheck={canRandomizeGrid} onStartReadyCheck={onStartReadyCheck} />
+        <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canPassTurn={tile.activeTurn} onPassTurn={onPassTurn} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} canStartReadyCheck={canRandomizeGrid} onStartReadyCheck={onStartReadyCheck} showMediaControls camOn={camOn} micOn={micOn} onToggleCam={onToggleCam} onToggleMic={onToggleMic} />
         {nameRow}
         <div className="banner-row">
           <span className={tile.commander ? "commander-name" : "commander-name unset"}>
@@ -1215,7 +1290,7 @@ function CommanderBanner({ tile, onChoose, speaking, onPassTurn, canRandomizeGri
   };
   return (
     <form className="commander-banner commander-picker" onSubmit={submit}>
-      <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canPassTurn={tile.activeTurn} onPassTurn={onPassTurn} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} canStartReadyCheck={canRandomizeGrid} onStartReadyCheck={onStartReadyCheck} />
+      <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canPassTurn={tile.activeTurn} onPassTurn={onPassTurn} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} canStartReadyCheck={canRandomizeGrid} onStartReadyCheck={onStartReadyCheck} showMediaControls camOn={camOn} micOn={micOn} onToggleCam={onToggleCam} onToggleMic={onToggleMic} />
       {nameRow}
       <div className="commander-search">
         <input

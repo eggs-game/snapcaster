@@ -678,8 +678,8 @@ input::placeholder { color: var(--text-tertiary); opacity: 1; }
 .tile { position: relative; display: flex; flex-direction: column; background: var(--bg-sidebar); border: 2px solid var(--border-default); border-radius: 10px; overflow: hidden; transition: border-color 120ms ease, box-shadow 120ms ease; }
 .tile.active-turn { z-index: 2; border-color: var(--speaker-color); animation: active-turn-halo 1.5s ease-in-out infinite; }
 @keyframes active-turn-halo {
-  0%, 100% { box-shadow: 0 0 0 2px var(--speaker-color), 0 0 0 3px rgba(255,255,255,0.92), 0 0 9px color-mix(in srgb, var(--speaker-color) 34%, transparent); }
-  50% { box-shadow: 0 0 0 2px var(--speaker-color), 0 0 0 3px rgba(255,255,255,0.92), 0 0 20px color-mix(in srgb, var(--speaker-color) 68%, transparent); }
+  0%, 100% { box-shadow: 0 0 0 2px var(--speaker-color), 0 0 10px color-mix(in srgb, var(--speaker-color) 45%, transparent); }
+  50% { box-shadow: 0 0 0 4px var(--speaker-color), 0 0 28px color-mix(in srgb, var(--speaker-color) 90%, transparent); }
 }
 .video-wrap { position: relative; flex: 1; min-height: 0; cursor: crosshair; }
 .tile video { display: block; width: 100%; height: 100%; object-fit: cover; }
@@ -702,6 +702,8 @@ input::placeholder { color: var(--text-tertiary); opacity: 1; }
 .commander-name { min-width: 0; overflow: hidden; color: rgba(255,255,255,0.94); font-size: var(--text-md); font-weight: 600; text-overflow: ellipsis; white-space: nowrap; text-shadow: none; }
 .commander-set .commander-name { font-size: 14px; font-weight: 600; }
 .commander-name.unset { display: flex; align-items: center; gap: 5px; color: rgba(255,255,255,0.72); font-weight: 400; }
+.commander-name-link { border: none; background: none; padding: 0; font-family: inherit; text-align: left; cursor: pointer; }
+.commander-name-link:hover { color: #fff; text-decoration: underline; }
 .commander-search { position: relative; min-width: 80px; }
 .commander-picker input { width: 100%; height: 18px; padding: 0; appearance: none; background: transparent; border: 0; border-radius: 0; color: rgba(255,255,255,0.94); caret-color: #fff; font-family: inherit; font-size: 14px; font-weight: 400; line-height: 18px; box-shadow: none; }
 .commander-picker input::placeholder { color: rgba(255,255,255,0.72); }
@@ -713,7 +715,7 @@ input::placeholder { color: var(--text-tertiary); opacity: 1; }
 .commander-set:hover .commander-name { color: #fff; }
 .mana-cost { flex: none; display: flex; align-items: center; gap: 4px; }
 .mana-symbol { width: 9px; height: 9px; border-radius: 50%; }
-.banner-menu { position: absolute; inset: 6px 6px auto auto; z-index: 5; width: 24px; height: 24px; flex: none; margin: 0; cursor: default; transform: none; }
+.banner-menu { position: absolute; inset: 6px 6px auto auto; z-index: 5; display: flex; align-items: center; gap: 2px; width: auto; height: 24px; flex: none; margin: 0; cursor: default; transform: none; }
 .menu-btn { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; padding: 0; background: none; border: none; border-radius: 6px; color: rgba(255,255,255,0.82); cursor: pointer; filter: none; box-shadow: none; }
 .menu-btn:hover { color: #fff; background: rgba(255,255,255,0.12); }
 .tile-menu { position: absolute; top: 26px; right: 0; z-index: 5; min-width: 180px; padding: 5px; background: var(--overlay-bg); border: 1px solid var(--border-default); border-radius: 12px; -webkit-backdrop-filter: blur(18px) saturate(var(--glass-saturation)); backdrop-filter: blur(18px) saturate(var(--glass-saturation)); box-shadow: inset 0 1px 0 var(--glass-highlight), var(--overlay-shadow); }
@@ -723,10 +725,13 @@ input::placeholder { color: var(--text-tertiary); opacity: 1; }
 .life-badge { position: absolute; z-index: 2; bottom: 0; display: flex; align-items: center; justify-content: center; min-width: 56px; min-height: 44px; padding: 0 12px; color: #000; font-size: 1.6rem; font-weight: 600; line-height: 1; text-align: center; opacity: 0.88; transition: opacity 0.15s ease; pointer-events: none; }
 .life-badge.mine { pointer-events: auto; cursor: default; }
 .life-badge:hover { opacity: 1; }
-.life-btn { width: 0; padding: 0; overflow: hidden; opacity: 0; border: none; background: none; color: #10131a; font-size: 1.35rem; font-weight: 800; line-height: 1; cursor: pointer; transition: width 0.15s ease, opacity 0.15s ease; }
+.life-btn { width: 0; padding: 0; overflow: hidden; opacity: 0; border: none; background: none; color: #10131a; font-size: 1.35rem; font-weight: 800; line-height: 1; cursor: pointer; transition: width 0.15s ease, opacity 0.15s ease; transform: translateY(2px); }
 .life-badge.mine:hover .life-btn { width: 28px; opacity: 1; }
 .life-btn:hover { color: #fff; }
-.life-value { display: block; min-width: 2ch; line-height: 1; padding: 0; font-variant-numeric: tabular-nums; /* Inter digits sit a hair high in the em box. */ transform: translateY(1px); }
+.life-sword-btn { display: flex; align-items: center; justify-content: center; transform: none; }
+.life-divider { width: 0; height: 20px; border-left: 1px solid rgba(0,0,0,0.25); margin: 0; opacity: 0; transition: opacity 0.15s ease, margin 0.15s ease; }
+.life-badge.mine:hover .life-divider { opacity: 1; margin: 0 2px; }
+.life-value { display: block; min-width: 2ch; line-height: 1; padding: 0; font-variant-numeric: tabular-nums; /* Inter digits sit a hair high and left in the em box. */ transform: translate(2px, 1px); }
 /* Shown on your OWN tile when a peer pulls a still from your camera. Capture
    is a legitimate feature, but it must never happen invisibly. */
 .scan-notice { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); z-index: 5;

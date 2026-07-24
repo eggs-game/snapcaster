@@ -16,7 +16,7 @@ const CV_LABEL = {
   unknown: "OpenCV status unknown",
 };
 
-function cardFromScryfall(card) {
+export function cardFromScryfall(card) {
   const face = card.card_faces?.[0];
   return {
     name: card.name,
