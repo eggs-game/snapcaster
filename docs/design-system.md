@@ -128,10 +128,29 @@ circular/minimal ones, 8px for the modal/drawer family).
 <SomeIcon size={20} />
 ```
 
-Current examples: `.modal-close`, `.drawer-toggle` (sidebar header — back/
-close/invite/counters/dice/settings), `.counter-stepper button`
+Current examples: `.modal-close`, `.drawer-toggle` (the sidebar’s 48px-wide
+navigation rail — card lookup/invite/counters/dice/settings), `.counter-stepper button`
 (poison/commander-damage ±), the life-badge's sword and ± buttons
 (`.life-btn`, `.life-sword-btn`).
+
+The sidebar navigation is a dedicated 48px left rail on the app background;
+the glass panel begins at the scrollable content column without a separator.
+Rail actions stay vertically aligned, with a subtle divider separating the
+Settings gear from the game actions. Closing the panel collapses only the
+content column: the 48px rail remains visible; hovering its panel icon reveals
+a right arrow that opens the drawer. While open, that same icon reveals a left
+arrow to close it. The panel icon is active for card lookup and yields the
+active treatment to whichever game panel is open; its highlight aligns to the
+content panel’s top edge.
+
+Rail tooltips use the left-edge anchor (`left-bottom`) so their text expands
+rightward into the app instead of clipping off the viewport’s left edge.
+
+First-use card lookup uses a full-size card tile beneath search: a dashed
+card-outline illustration and a short explanation of where selected or looked-up
+cards will appear. It is replaced as soon as the player has a current or recent
+card result; the Recent section itself is hidden until there is at least one
+recent card.
 
 The chat composer’s sound-picker trigger uses this exact 32px tier. It opens
 a compact, 360px-wide glass-material picker through a document-level portal

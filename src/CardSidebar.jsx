@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
-  ArrowLeft, Cat, ChevronDown, Copy, Dices, Download, Drum, ExternalLink, Laugh, Link2, MessageCircle, Mic, MicOff,
-  PanelLeft, Play, Search, Settings, Swords, ThumbsDown, UserPlus, UserRound, Video, VideoOff, Volume2,
+  Cat, ChevronDown, ChevronLeft, ChevronRight, Copy, Dices, Download, Drum, ExternalLink, Laugh, Link2, MessageCircle, Mic, MicOff,
+  PanelLeft, Play, Search, Settings, Sparkles, Swords, ThumbsDown, UserPlus, UserRound, Video, VideoOff, Volume2,
   VolumeX, X,
 } from "lucide-react";
 import { suggestCardNames } from "./cardSearch.js";
@@ -72,6 +72,8 @@ export default function CardSidebar({
   onClose,
   closing,
   onClosed,
+  collapsed = false,
+  onOpen,
   onSearch,
   view,
   onViewChange,
@@ -427,6 +429,39 @@ export default function CardSidebar({
   const decisive = !!top && ["ocr-title", "art-match", "search", "visual-exact"].includes(top.identified_by);
   const debugMode = typeof window !== "undefined"
     && new URLSearchParams(window.location.search).has("debug");
+  const gameNameControl = editingLobbyName && !isVisitor ? (
+    <form
+      className="sidebar-game-name-edit"
+      onSubmit={(event) => {
+        event.preventDefault();
+        onRenameLobby?.(lobbyNameDraft);
+        setEditingLobbyName(false);
+      }}
+    >
+      <input
+        value={lobbyNameDraft}
+        onChange={(event) => setLobbyNameDraft(event.target.value)}
+        onBlur={() => {
+          onRenameLobby?.(lobbyNameDraft || lobbyName || "Untitled game");
+          setEditingLobbyName(false);
+        }}
+        maxLength={48}
+        aria-label="Game name"
+        autoFocus
+      />
+    </form>
+  ) : (
+    <button
+      type="button"
+      className={isVisitor ? "sidebar-game-name readonly" : "sidebar-game-name"}
+      title={isVisitor ? lobbyName : "Click to rename game"}
+      onClick={() => {
+        if (!isVisitor) setEditingLobbyName(true);
+      }}
+    >
+      {lobbyName || "Untitled game"}
+    </button>
+  );
 
   return (
     <>
@@ -437,6 +472,7 @@ export default function CardSidebar({
         counters ? "counters-view" : "",
         invite ? "invite-view" : "",
         dice ? "dice-view" : "",
+        collapsed ? "collapsed" : "",
         !settings && lookupTab === "chat" ? "chat-view" : "",
         entering && !closing ? "slide-in" : "",
         closing ? "slide-out" : "",
@@ -455,73 +491,86 @@ export default function CardSidebar({
         }
       }}
     >
-      <div className="sidebar-head">
-        {settings || counters || invite || dice ? (
-          <>
-            <button
-              className="drawer-toggle"
-              onClick={() => onViewChange("lookup")}
-              aria-label="Back to card lookup"
-              data-tooltip="Back to card lookup"
-              data-tooltip-pos="left-bottom"
-            >
-              <ArrowLeft size={20} />
-            </button>
-            <span className="logo">{settings ? "Settings" : counters ? "Counters" : invite ? "Invite" : "Dice"}</span>
-          </>
-        ) : (
-          <>
-            <div className="sidebar-head-actions">
-              <button
-                className="drawer-toggle"
-                onClick={onClose}
-                aria-label="Close card lookup"
-                data-tooltip="Close card lookup"
-                data-tooltip-pos="left-bottom"
-              >
-                <PanelLeft size={20} />
-              </button>
-              {!isVisitor && (
-                <button
-                  className="drawer-toggle"
-                  onClick={() => onViewChange("invite")}
-                  aria-label="Invite players"
-                  data-tooltip="Invite players"
-                  data-tooltip-pos="bottom"
-                >
-                  <UserPlus size={20} />
-                </button>
-              )}
-              <button
-                className="drawer-toggle"
-                onClick={() => onViewChange("counters")}
-                aria-label="Open combat counters"
-                data-tooltip="Combat counters"
-                data-tooltip-pos="bottom"
-              >
-                <Swords size={20} />
-              </button>
-              <button
-                className="drawer-toggle"
-                onClick={() => onViewChange("dice")}
-                aria-label="Open dice roller"
-                data-tooltip="Dice roller"
-                data-tooltip-pos="bottom"
-              >
-                <Dices size={20} />
-              </button>
-              <button
-                className="drawer-toggle"
-                onClick={() => onViewChange("settings")}
-                aria-label="Open settings"
-                data-tooltip="Open settings"
-                data-tooltip-pos="right-bottom"
-              >
-                <Settings size={20} />
-              </button>
-            </div>
-          </>
+      <nav className="sidebar-rail" aria-label="Sidebar navigation">
+        <button
+          className={!settings && !counters && !invite && !dice ? "drawer-toggle active" : "drawer-toggle"}
+          onClick={() => {
+            if (collapsed) onOpen?.();
+            else onClose?.();
+          }}
+          aria-label={collapsed ? "Open card panel" : "Close card panel"}
+          data-tooltip={collapsed ? "Open card panel" : "Close card panel"}
+          data-tooltip-pos="left-bottom"
+        >
+          {collapsed ? <>
+            <PanelLeft className="collapsed-rail-panel" size={20} />
+            <ChevronRight className="collapsed-rail-arrow" size={20} />
+          </> : <>
+            <PanelLeft className="expanded-rail-panel" size={20} />
+            <ChevronLeft className="expanded-rail-arrow" size={20} />
+          </>}
+        </button>
+        {!isVisitor && (
+          <button
+            className={invite ? "drawer-toggle active" : "drawer-toggle"}
+            onClick={() => {
+              if (collapsed) onOpen?.();
+              onViewChange("invite");
+            }}
+            aria-label="Invite players"
+            data-tooltip="Invite players"
+            data-tooltip-pos="left-bottom"
+          >
+            <UserPlus size={20} />
+          </button>
         )}
+        {!isVisitor && <>
+          <button
+            className={counters ? "drawer-toggle active" : "drawer-toggle"}
+            onClick={() => {
+              if (collapsed) onOpen?.();
+              onViewChange("counters");
+            }}
+            aria-label="Open combat counters"
+            data-tooltip="Combat counters"
+            data-tooltip-pos="left-bottom"
+          >
+            <Swords size={20} />
+          </button>
+          <button
+            className={dice ? "drawer-toggle active" : "drawer-toggle"}
+            onClick={() => {
+              if (collapsed) onOpen?.();
+              onViewChange("dice");
+            }}
+            aria-label="Open dice roller"
+            data-tooltip="Dice roller"
+            data-tooltip-pos="left-bottom"
+          >
+            <Dices size={20} />
+          </button>
+        </>}
+        <span className="sidebar-rail-divider" aria-hidden="true" />
+        <button
+          className={settings ? "drawer-toggle active" : "drawer-toggle"}
+          onClick={() => {
+            if (collapsed) onOpen?.();
+            onViewChange("settings");
+          }}
+          aria-label="Open settings"
+          data-tooltip="Open settings"
+          data-tooltip-pos="left-bottom"
+        >
+          <Settings size={20} />
+        </button>
+      </nav>
+
+      <div className="sidebar-content" aria-hidden={collapsed}>
+      <div className="sidebar-head">
+        {(settings || counters || invite || dice) && (
+          <span className="logo">{settings ? "Settings" : counters ? "Counters" : invite ? "Invite" : "Dice"}</span>
+        )}
+        {!settings && !counters && !invite && !dice && gameNameControl}
       </div>
 
       {settings ? (
@@ -704,39 +753,6 @@ export default function CardSidebar({
         />
       ) : (
         <>
-          {editingLobbyName && !isVisitor ? (
-            <form
-              className="sidebar-game-name-edit"
-              onSubmit={(event) => {
-                event.preventDefault();
-                onRenameLobby?.(lobbyNameDraft);
-                setEditingLobbyName(false);
-              }}
-            >
-              <input
-                value={lobbyNameDraft}
-                onChange={(event) => setLobbyNameDraft(event.target.value)}
-                onBlur={() => {
-                  onRenameLobby?.(lobbyNameDraft || lobbyName || "Untitled game");
-                  setEditingLobbyName(false);
-                }}
-                maxLength={48}
-                aria-label="Game name"
-                autoFocus
-              />
-            </form>
-          ) : (
-            <button
-              type="button"
-              className={isVisitor ? "sidebar-game-name readonly" : "sidebar-game-name"}
-              title={isVisitor ? lobbyName : "Click to rename game"}
-              onClick={() => {
-                if (!isVisitor) setEditingLobbyName(true);
-              }}
-            >
-              {lobbyName || "Untitled game"}
-            </button>
-          )}
           <div className="lookup-tabs" role="group" aria-label="Card sidebar view">
             {[
               ["cards", "Cards"],
@@ -808,6 +824,14 @@ export default function CardSidebar({
             )}
             </div>
 
+            {!current && !recentCards.length && (
+              <div className="card-empty-state">
+                <div className="card-empty-illustration" aria-hidden="true">
+                  <div className="card-empty-art"><Sparkles size={28} /></div>
+                </div>
+                <p>Cards you click on or look up will be displayed here.</p>
+              </div>
+            )}
             {(current?.loading || searching) && <div className="lookup-status">Identifying…</div>}
             {current?.error && <div className="lookup-status error">{current.error}</div>}
             {current?.matches?.length === 0 && <div className="lookup-status">No match found. Try clicking closer to the card center.</div>}
@@ -917,9 +941,9 @@ export default function CardSidebar({
                 ))}
               </div>
             )}
-            <section className="recent-cards" aria-labelledby="recent-cards-title">
-              <h3 id="recent-cards-title">Recent</h3>
-              {recentCards.length ? (
+            {recentCards.length > 0 && (
+              <section className="recent-cards" aria-labelledby="recent-cards-title">
+                <h3 id="recent-cards-title">Recent</h3>
                 <div className="recent-card-list">
                   {recentCards.map((entry, index) => (
                     <div
@@ -947,10 +971,8 @@ export default function CardSidebar({
                     </div>
                   ))}
                 </div>
-              ) : (
-                <p className="recent-empty">Looked-up and identified cards will appear here.</p>
-              )}
-            </section>
+              </section>
+            )}
             {debugMode && current && !current.loading && (
               <div className="scan-debug">
                 <span>{CV_LABEL[current.cvStatus] || CV_LABEL.unknown}</span>
@@ -1206,6 +1228,7 @@ export default function CardSidebar({
           )}
         </>
       )}
+      </div>
       </aside>
       {cardPreview?.image && (
         <div className="card-preview-backdrop" onMouseDown={() => setCardPreview(null)}>

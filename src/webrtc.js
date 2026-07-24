@@ -735,6 +735,7 @@ export class GameConnection {
     this.room?.send({ type: "commander-damage", attackerId: safeAttackerId, value: safeValue });
   }
   sendDiceRoll(value, sides = 20, at = Date.now()) {
+    if (this.role === "visitor") return;
     const safeSides = Math.max(2, Math.min(20, Number(sides) || 20));
     const roll = Math.max(1, Math.min(safeSides, Number(value) || 1));
     this.room?.send({ type: "dice-roll", value: roll, sides: safeSides, at });

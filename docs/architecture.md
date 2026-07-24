@@ -136,7 +136,9 @@ the main thread — an early bug that made the lobby unresponsive.
 - **Room codes** are 6 characters from `crypto.getRandomValues` (~887M). A code
   is the only thing protecting a game, so it must not be guessable.
 - **Roles**: up to 4 `player`s (camera + mic) and up to 8 `visitor`s (audio
-  only, cannot be captured, cannot change game state).
+  only, cannot be captured, cannot change game state). Visitors receive every
+  player video and audio stream, can use card lookup and Chat (including sound
+  effects), but do not see interactive Dice or combat-counter controls.
 - **Two transports, one authorisation model.** Supabase broadcast carries game
   state (life, commander, turn, chat) and gates every privileged message on
   sender role. WebRTC data channels carry capture requests and apply the same

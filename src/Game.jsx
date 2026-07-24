@@ -77,6 +77,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const [scanNotice, setScanNotice] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [sidebarClosing, setSidebarClosing] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [edgeTabY, setEdgeTabY] = useState(null);
   const [sidebarView, setSidebarView] = useState("lookup"); // "lookup" | "settings"
   const [linkCopied, setLinkCopied] = useState(false);
@@ -496,7 +497,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   };
 
   const rollDie = (requestedSides) => {
-    if (!myId) return;
+    if (isVisitor || !myId) return;
     const sides = Math.max(2, Math.min(20, Number(requestedSides) || 20));
     const value = Math.floor(Math.random() * sides) + 1;
     const at = Date.now();
@@ -969,8 +970,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
         ))}
 
       <div className="main">
-        {sidebarOpen && (
-          <CardSidebar
+        <CardSidebar
             current={current}
             lookups={lookups}
             recognitionReports={recognitionReports}
@@ -1012,7 +1012,13 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
             closing={sidebarClosing}
             onClosed={() => {
               setSidebarClosing(false);
-              setSidebarOpen(false);
+              setSidebarCollapsed(true);
+              setSidebarView("lookup");
+            }}
+            collapsed={sidebarCollapsed}
+            onOpen={() => {
+              setSidebarCollapsed(false);
+              setSidebarOpen(true);
               setSidebarView("lookup");
             }}
             view={sidebarView}
@@ -1053,9 +1059,8 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
             lobbyName={lobbyName || "Untitled game"}
             onRenameLobby={chooseLobbyName}
           />
-        )}
         <div className="video-panel">
-          {!sidebarOpen && (
+          {!sidebarOpen && !sidebarCollapsed && (
             <div
               className="sidebar-edge-zone"
               onPointerMove={(event) => {
