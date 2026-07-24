@@ -140,8 +140,8 @@ Settings gear from the game actions. Closing the panel collapses only the
 content column: the 48px rail remains visible; hovering its panel icon reveals
 a right arrow that opens the drawer. While open, that same icon reveals a left
 arrow to close it. The panel icon is active for card lookup and yields the
-active treatment to whichever game panel is open; its highlight aligns to the
-content panel’s top edge.
+active treatment to whichever game panel is open; its center aligns with the
+content panel’s game-name text.
 
 Rail tooltips use the left-edge anchor (`left-bottom`) so their text expands
 rightward into the app instead of clipping off the viewport’s left edge.

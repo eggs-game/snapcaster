@@ -857,7 +857,7 @@ input::placeholder { color: var(--text-tertiary); opacity: 1; }
 }
 .sidebar.collapsed { width: 48px; grid-template-columns: 48px; }
 .sidebar.collapsed .sidebar-content { display: none; }
-.sidebar-rail { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0 7px 8px; }
+.sidebar-rail { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 7px; }
 .sidebar-rail .drawer-toggle { width: 32px; height: 32px; }
 .sidebar-rail .drawer-toggle.active { color: var(--text-primary); background: var(--secondary-hover); }
 .sidebar-rail-divider { width: 24px; margin: 12px 0 4px; border-top: 1px solid var(--border-subtle); }
