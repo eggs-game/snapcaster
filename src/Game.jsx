@@ -18,11 +18,8 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const connRef = useRef(null);
   const rosterRef = useRef([]);
   const livesRef = useRef({});
-  const lifeLogIdRef = useRef(0);
   const chatIdRef = useRef(0);
-  const diceLogIdRef = useRef(0);
-  const readyLogIdRef = useRef(0);
-  const cardLogIdRef = useRef(0);
+  const pendingLifeChatsRef = useRef(new Map());
   const readyCheckRef = useRef(null);
   const diceOverlayTimerRef = useRef(null);
   const soundPreferencesRef = useRef({ enabled: true, volume: 0.5 });
@@ -41,16 +38,12 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(true);
   const [lookups, setLookups] = useState([]);
-  const [cardEvents, setCardEvents] = useState([]);
-  const [lifeEvents, setLifeEvents] = useState([]);
   const [chatMessages, setChatMessages] = useState([]);
-  const [diceRolls, setDiceRolls] = useState([]);
   const [diceOverlay, setDiceOverlay] = useState(null);
   const [counterDraft, setCounterDraft] = useState(null);
   const [videoCounters, setVideoCounters] = useState({});
   const [videoCounterDragPreview, setVideoCounterDragPreview] = useState(null);
   const [counterPointerDrag, setCounterPointerDrag] = useState(null);
-  const [readyEvents, setReadyEvents] = useState([]);
   const [readyCheck, setReadyCheck] = useState(null);
   const [gridOrder, setGridOrder] = useState([]);
   const [recognitionReports, setRecognitionReports] = useState(() => {
@@ -113,6 +106,33 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     diceOverlayTimerRef.current = window.setTimeout(() => setDiceOverlay(null), 3000);
   }, []);
 
+  // Life totals still synchronize on every click, but the room gets one
+  // readable net change after the player pauses instead of a message per step.
+  const queueLifeChat = useCallback((id, name, previous, life) => {
+    const pending = pendingLifeChatsRef.current.get(id);
+    const next = pending
+      ? { ...pending, name: name || pending.name, life }
+      : { id, name: name || "Player", previous, life, timer: null };
+    window.clearTimeout(next.timer);
+    next.timer = window.setTimeout(() => {
+      pendingLifeChatsRef.current.delete(id);
+      const delta = next.life - next.previous;
+      if (!delta) return;
+      const at = Date.now();
+      setChatMessages((messages) => [...messages.slice(-99), {
+        id: `life-${id}-${at}-${++chatIdRef.current}`,
+        kind: "life",
+        from: id,
+        name: next.name,
+        previous: next.previous,
+        life: next.life,
+        delta,
+        at,
+      }]);
+    }, 2000);
+    pendingLifeChatsRef.current.set(id, next);
+  }, []);
+
   const acceptIncomingSound = (senderId, soundId) => {
     const sound = getSoundEffect(soundId);
     if (!sound) return "";
@@ -145,17 +165,9 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
         const previous = livesRef.current[id];
         livesRef.current = { ...livesRef.current, [id]: life };
         setLives((values) => ({ ...values, [id]: life }));
-        // The first value received is state synchronization, not a change.
         if (previous == null || previous === life) return;
-        const player = rosterRef.current.find((member) => member.id === id)?.name || "Player";
-        setLifeEvents((events) => [...events.slice(-49), {
-          id: ++lifeLogIdRef.current,
-          player,
-          previous,
-          life,
-          delta: life - previous,
-          at: Date.now(),
-        }]);
+        const player = rosterRef.current.find((member) => member.id === id);
+        queueLifeChat(id, player?.name, previous, life);
       },
       onLobbyName: setLobbyName,
       onCommander: (id, commander) => setCommanders((values) => ({ ...values, [id]: commander })),
@@ -164,9 +176,11 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       onCardIdentified: (msg) => {
         const at = Number(msg.at) || Date.now();
         setLookups((lookedUp) => [...lookedUp.slice(-11), { by: msg.byName, card: msg.card, at }]);
-        setCardEvents((events) => [...events.slice(-49), {
-          id: `remote-${msg.from || "player"}-${at}-${++cardLogIdRef.current}`,
-          by: msg.byName || "Player",
+        setChatMessages((messages) => [...messages.slice(-99), {
+          id: `remote-card-${msg.from || msg.byName}-${at}-${++chatIdRef.current}`,
+          kind: "card",
+          from: msg.from || "",
+          name: msg.byName || "Player",
           card: msg.card,
           at,
         }]);
@@ -188,9 +202,10 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       onDiceRoll: (roll) => {
         const entry = {
           ...roll,
-          id: `remote-${roll.from}-${roll.at}-${++diceLogIdRef.current}`,
+          kind: "dice",
+          id: `remote-dice-${roll.from}-${roll.at}-${++chatIdRef.current}`,
         };
-        setDiceRolls((rolls) => [...rolls.slice(-49), entry]);
+        setChatMessages((messages) => [...messages.slice(-99), entry]);
         showDiceOverlay(entry);
       },
       onVideoCounter: (ownerId, counter) => setVideoCounters((counters) => {
@@ -267,9 +282,11 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     return () => {
       navigator.mediaDevices?.removeEventListener?.("devicechange", onDeviceChange);
       window.clearTimeout(diceOverlayTimerRef.current);
+      pendingLifeChatsRef.current.forEach((entry) => window.clearTimeout(entry.timer));
+      pendingLifeChatsRef.current.clear();
       conn.close();
     };
-  }, [isVisitor, session.code, session.name, session.videoDeviceId, session.audioDeviceId]);
+  }, [isVisitor, queueLifeChat, session.code, session.name, session.videoDeviceId, session.audioDeviceId]);
 
   useEffect(() => {
     try { localStorage.setItem("snapcast-sound-effects-enabled", String(soundEffectsEnabled)); } catch { /* ignore */ }
@@ -322,9 +339,11 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const shareCard = useCallback((card) => {
     if (isVisitor || !card?.name) return;
     const at = Date.now();
-    setCardEvents((events) => [...events.slice(-49), {
-      id: `local-${myId || "player"}-${at}-${++cardLogIdRef.current}`,
-      by: session.name,
+    setChatMessages((messages) => [...messages.slice(-99), {
+      id: `local-card-${myId}-${at}-${++chatIdRef.current}`,
+      kind: "card",
+      from: myId,
+      name: session.name,
       card,
       at,
     }]);
@@ -425,14 +444,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     const life = previous + delta;
     livesRef.current = { ...livesRef.current, [myId]: life };
     setLives((l) => ({ ...l, [myId]: life }));
-    setLifeEvents((events) => [...events.slice(-49), {
-      id: ++lifeLogIdRef.current,
-      player: session.name,
-      previous,
-      life,
-      delta,
-      at: Date.now(),
-    }]);
+    queueLifeChat(myId, session.name, previous, life);
     connRef.current.setLife(life);
   };
 
@@ -489,14 +501,15 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     const value = Math.floor(Math.random() * sides) + 1;
     const at = Date.now();
     const entry = {
-      id: `local-${myId}-${at}-${++diceLogIdRef.current}`,
+      id: `local-dice-${myId}-${at}-${++chatIdRef.current}`,
+      kind: "dice",
       from: myId,
       name: session.name,
       value,
       sides,
       at,
     };
-    setDiceRolls((rolls) => [...rolls.slice(-49), entry]);
+    setChatMessages((messages) => [...messages.slice(-99), entry]);
     showDiceOverlay(entry);
     connRef.current?.sendDiceRoll(value, sides, at);
   };
@@ -746,16 +759,17 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     if (!currentCheck || !checkId || currentCheck.checkId !== checkId) return;
     readyCheckRef.current = null;
     setReadyCheck(null);
+    const at = Date.now();
+    const player = rosterRef.current.find((member) => member.id === byId);
+    setChatMessages((messages) => [...messages.slice(-99), {
+      id: `ready-${checkId}-${at}-${++chatIdRef.current}`,
+      kind: "ready",
+      from: byId || "",
+      name: player?.name || "Player",
+      outcome,
+      at,
+    }]);
     if (announce) connRef.current?.endReadyCheck(checkId, outcome);
-    if (outcome === "ready" || outcome === "not-ready") {
-      const player = rosterRef.current.find((member) => member.id === byId)?.name || (byId === myId ? session.name : "A player");
-      setReadyEvents((events) => [...events.slice(-49), {
-        id: ++readyLogIdRef.current,
-        outcome,
-        player,
-        at: Date.now(),
-      }]);
-    }
   }, [myId, session.name]);
 
   const randomizeGrid = useCallback(() => {
@@ -959,10 +973,6 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
           <CardSidebar
             current={current}
             lookups={lookups}
-            cardEvents={cardEvents}
-            lifeEvents={lifeEvents}
-            diceRolls={diceRolls}
-            readyEvents={readyEvents}
             recognitionReports={recognitionReports}
             onAddRecognitionReport={addRecognitionReport}
             onUpdateRecognitionReport={updateRecognitionReport}

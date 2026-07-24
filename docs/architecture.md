@@ -156,10 +156,13 @@ the main thread — an early bug that made the lobby unresponsive.
   arbitrary audio URLs or uploads. Private whispers remain text-only. Sender UI and
   recipient playback both enforce a two-minute per-sender sound cooldown;
   listeners can mute or lower sound effects locally.
-- **Dice rolls are shared events with transient feedback.** Choosing a die
+- **Shared game events live in Chat.** Dice rolls, shared cards, life-total
+  changes, and ready-check outcomes are compact structured Chat objects. Consecutive
+  life clicks synchronize immediately but coalesce into one net Chat entry after a
+  two-second pause. Choosing a die
   does not roll it; the explicit Roll dice/Flip coin action broadcasts the
-  result, adds it to Log, and shows every participant a centered three-second
-  video-panel overlay. Coin results are displayed as Heads or Tails.
+  result and shows every participant a centered three-second video-panel overlay.
+  Coin results are displayed as Heads or Tails.
 - **Video counters are owner-scoped, allow-listed room state.** A player can
   generate a known Magic counter type in the Dice panel and drag it onto only
   their own video. The owner broadcasts normalized coordinates and may later
@@ -171,9 +174,9 @@ the main thread — an early bug that made the lobby unresponsive.
 - **Capture is never silent.** When a peer photographs your camera you see
   "<name> scanned your board" on your own tile.
 - **Cards can be shared deliberately.** A player can reveal a hover-only chat
-  button on a recent card to add it to the shared game Log. Card entries carry
-  the normal card details and image, and every participant can click one to
-  open it locally; no camera capture is repeated.
+  button on a recent card to share it with the room. Every participant receives
+  the normal card details and image in Recent and can click it to open locally;
+  no camera capture is repeated.
 - **Video quality is per receiver.** Each remote tile can request Auto, 720p or
   1080p. The camera owner applies that preference only to the sender for that
   peer, so one viewer can request a sharper feed without forcing every other

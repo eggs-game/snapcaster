@@ -50,10 +50,6 @@ function reportUuid() {
 export default function CardSidebar({
   current,
   lookups,
-  cardEvents,
-  lifeEvents,
-  diceRolls,
-  readyEvents,
   recognitionReports,
   onAddRecognitionReport,
   onUpdateRecognitionReport,
@@ -120,6 +116,7 @@ export default function CardSidebar({
   const [highlight, setHighlight] = useState(-1);
   const [searching, setSearching] = useState(false);
   const [lookupTab, setLookupTab] = useState("cards");
+  const [hasUnreadChat, setHasUnreadChat] = useState(false);
   const [editingLobbyName, setEditingLobbyName] = useState(false);
   const [lobbyNameDraft, setLobbyNameDraft] = useState(lobbyName || "Untitled game");
   const [chatDraft, setChatDraft] = useState("");
@@ -141,18 +138,13 @@ export default function CardSidebar({
   const soundPickerTriggerRef = useRef(null);
   const soundPickerRef = useRef(null);
   const previewStopRef = useRef(null);
+  const lastChatMessageIdRef = useRef(chatMessages?.[chatMessages.length - 1]?.id || "");
   // One-shot open slide; cleared after the panel settles into place.
   const [entering, setEntering] = useState(true);
   const settings = view === "settings";
   const counters = view === "counters";
   const invite = view === "invite";
   const dice = view === "dice";
-  const logEntries = [
-    ...(cardEvents || []).map((entry) => ({ ...entry, type: "card" })),
-    ...(lifeEvents || []).map((entry) => ({ ...entry, type: "life" })),
-    ...(diceRolls || []).map((entry) => ({ ...entry, type: "dice" })),
-    ...(readyEvents || []).map((entry) => ({ ...entry, type: "ready" })),
-  ].sort((a, b) => (b.at || 0) - (a.at || 0));
   const recentCards = [...(lookups || [])].reverse();
   const safeChatRecipients = chatRecipients || [];
   const chatCommandSuggestions = whisperCommandMatches(chatDraft);
@@ -176,6 +168,15 @@ export default function CardSidebar({
     : whisperTarget || chatDraft.toLowerCase().startsWith("/whisper")
       ? "Sound effects are public only"
       : "Add sound effect";
+
+  useEffect(() => {
+    const latestId = chatMessages?.[chatMessages.length - 1]?.id || "";
+    if (latestId && latestId !== lastChatMessageIdRef.current && lookupTab !== "chat") {
+      setHasUnreadChat(true);
+    }
+    lastChatMessageIdRef.current = latestId;
+    if (lookupTab === "chat") setHasUnreadChat(false);
+  }, [chatMessages, lookupTab]);
 
   const openCard = (card) => {
     if (!card) return;
@@ -739,16 +740,20 @@ export default function CardSidebar({
           <div className="lookup-tabs" role="group" aria-label="Card sidebar view">
             {[
               ["cards", "Cards"],
-              ["log", "Log"],
               ["chat", "Chat"],
             ].map(([option, label]) => (
               <button
                 key={option}
                 type="button"
                 aria-pressed={lookupTab === option}
-                onClick={() => setLookupTab(option)}
+                aria-label={option === "chat" && hasUnreadChat ? "Chat, new messages" : label}
+                onClick={() => {
+                  setLookupTab(option);
+                  if (option === "chat") setHasUnreadChat(false);
+                }}
               >
                 {label}
+                {option === "chat" && hasUnreadChat && <span className="chat-unread-dot" aria-hidden="true" />}
               </button>
             ))}
           </div>
@@ -932,8 +937,8 @@ export default function CardSidebar({
                           type="button"
                           className="recent-card-share"
                           onClick={() => onShareCard?.(entry.card)}
-                          aria-label={`Share ${entry.card?.name || "card"} to game log`}
-                          data-tooltip="Share to game log"
+                          aria-label={`Share ${entry.card?.name || "card"}`}
+                          data-tooltip="Share card"
                           data-tooltip-pos="left-bottom"
                         >
                           <MessageCircle size={16} />
@@ -985,57 +990,7 @@ export default function CardSidebar({
                 )}
               </div>
             )}
-          </> : lookupTab === "log" ? (
-            <div className="lookup-log">
-              {!logEntries.length ? (
-                <p className="lookup-status">Shared cards, life changes, dice rolls, and ready checks will appear here.</p>
-              ) : (
-                <ul className="lookups">
-                  {logEntries.map((entry) => (
-                    <li
-                      key={`${entry.type}-${entry.id}`}
-                      className={entry.type === "card" ? "card-log-entry" : entry.type === "dice" ? "dice-log-entry" : entry.type === "ready" ? "ready-log-entry" : "life-log-entry"}
-                    >
-                      {entry.type === "card" ? (
-                        <button type="button" className="card-log-button" onClick={() => openCard(entry.card)}>
-                          {entry.card?.image && <img src={entry.card.image} alt="" />}
-                          <span>
-                            <strong>{entry.card?.name || "A card"}</strong>
-                            <small>Shared by {entry.by} · {new Date(entry.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</small>
-                          </span>
-                        </button>
-                      ) : entry.type === "dice" ? (
-                        <>
-                          <span className="log-dice-roll">{entry.name} rolled {formatDiceResult(entry.value, entry.sides)}</span>
-                          <span className="log-detail">
-                            {formatDiceSides(entry.sides)} · {new Date(entry.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
-                          </span>
-                        </>
-                      ) : entry.type === "ready" ? (
-                        <>
-                          <span className={entry.outcome === "ready" ? "log-ready-check ready" : "log-ready-check not-ready"}>
-                            {entry.outcome === "ready" ? "Everyone is ready" : `${entry.player} is not ready`}
-                          </span>
-                          <span className="log-detail">
-                            {new Date(entry.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          <span className={entry.delta > 0 ? "log-life-change gained" : "log-life-change lost"}>
-                            {entry.player} {entry.delta > 0 ? "gained" : "lost"} {Math.abs(entry.delta)} life
-                          </span>
-                          <span className="log-detail">
-                            {entry.previous} → {entry.life} · {new Date(entry.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
-                          </span>
-                        </>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          ) : (
+          </> : (
             <div className="chat-panel">
               <div className="chat-messages" aria-live="polite">
                 {chatMessages?.length ? chatMessages.map((message) => (
@@ -1045,7 +1000,15 @@ export default function CardSidebar({
                   >
                     <div className="chat-message-meta">
                       <strong>
-                        {message.whisper
+                        {message.kind === "dice"
+                          ? message.from === currentUserId ? "You rolled" : `${message.name || "Player"} rolled`
+                          : message.kind === "card"
+                          ? message.from === currentUserId ? "You shared" : `${message.name || "Player"} shared`
+                          : message.kind === "life"
+                          ? message.from === currentUserId ? "Your life total" : `${message.name || "Player"}'s life total`
+                          : message.kind === "ready"
+                          ? "Ready check"
+                          : message.whisper
                           ? message.from === currentUserId
                             ? `Whisper to @${message.toName}`
                             : `Whisper from @${message.name}`
@@ -1053,8 +1016,35 @@ export default function CardSidebar({
                       </strong>
                       <span>{new Date(message.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</span>
                     </div>
-                    {message.soundId && <span className="chat-sound-message"><Drum size={14} /> {getSoundEffect(message.soundId)?.label || "Sound effect"}</span>}
-                    {message.text && <p>{message.text}</p>}
+                    {message.kind === "dice" ? (
+                      <div className="chat-dice-object">
+                        <Dices size={18} aria-hidden="true" />
+                        <strong>{formatDiceResult(message.value, message.sides)}</strong>
+                        <span>{formatDiceSides(message.sides)}</span>
+                      </div>
+                    ) : message.kind === "card" ? (
+                      <button type="button" className="chat-card-object" onClick={() => message.card && openCard(message.card)}>
+                        {message.card?.image && <img src={message.card.image} alt="" />}
+                        <span>
+                          <strong>{message.card?.name || "Shared card"}</strong>
+                          <small>Open card details</small>
+                        </span>
+                      </button>
+                    ) : message.kind === "life" ? (
+                      <div className={`chat-life-object ${message.delta >= 0 ? "gained" : "lost"}`}>
+                        <strong>{message.delta >= 0 ? "+" : ""}{message.delta} life</strong>
+                        <span>{message.previous} → {message.life}</span>
+                      </div>
+                    ) : message.kind === "ready" ? (
+                      <div className={`chat-ready-object ${message.outcome}`}>
+                        <strong>{message.outcome === "ready" ? "Everyone is ready" : message.outcome === "not-ready" ? `${message.name} is not ready` : "Ready check timed out"}</strong>
+                      </div>
+                    ) : (
+                      <>
+                        {message.soundId && <span className="chat-sound-message"><Drum size={14} /> {getSoundEffect(message.soundId)?.label || "Sound effect"}</span>}
+                        {message.text && <p>{message.text}</p>}
+                      </>
+                    )}
                   </div>
                 )) : (
                   <p className="chat-empty">Messages from players and visitors will appear here.</p>

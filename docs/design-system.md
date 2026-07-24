@@ -149,7 +149,11 @@ over the video panel. It reuses the former sidebar result-card proportions,
 keeps coin values human-readable as Heads/Tails, and fades away after three
 seconds. The dice sidebar keeps the selector and a separate full-width Roll
 dice/Flip coin action together, so changing the selection never triggers a
-roll; the action sits 12px below the selector.
+roll; the action sits 12px below the selector. Dice rolls, shared cards,
+life-total changes, and ready-check outcomes each appear as compact structured
+objects in Chat; life clicks wait for a two-second pause and report the net
+change. The sidebar no longer has a Log tab; when Cards is active, a new Chat
+entry adds a small notification dot to the Chat segment until it is opened.
 
 The Dice panel’s counter generator begins 24px below that action. Its staging
 well is headed by the same secondary 14px field label as the Die selector and
