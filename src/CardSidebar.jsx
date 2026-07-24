@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
-  ArrowLeft, ArrowUpRight, Copy, Dices, Download, Link2, Mic, MicOff, PanelLeft, Search,
+  ArrowLeft, Copy, Dices, Download, ExternalLink, Link2, Mic, MicOff, PanelLeft, Search,
   Send, Settings, Swords, ThumbsDown, UserPlus, UserRound, Video, VideoOff,
 } from "lucide-react";
 import { suggestCardNames } from "./cardSearch.js";
@@ -359,9 +359,10 @@ export default function CardSidebar({
               className="drawer-toggle"
               onClick={() => onViewChange("lookup")}
               aria-label="Back to card lookup"
-              title="Back to card lookup"
+              data-tooltip="Back to card lookup"
+              data-tooltip-pos="left-bottom"
             >
-              <ArrowLeft size={18} />
+              <ArrowLeft size={20} />
             </button>
             <span className="logo">{settings ? "Settings" : counters ? "Counters" : invite ? "Invite" : "Dice"}</span>
           </>
@@ -372,43 +373,48 @@ export default function CardSidebar({
                 className="drawer-toggle"
                 onClick={onClose}
                 aria-label="Close card lookup"
-                title="Close card lookup"
+                data-tooltip="Close card lookup"
+                data-tooltip-pos="left-bottom"
               >
-                <PanelLeft size={18} />
+                <PanelLeft size={20} />
               </button>
               {!isVisitor && (
                 <button
                   className="drawer-toggle"
                   onClick={() => onViewChange("invite")}
                   aria-label="Invite players"
-                  title="Invite players"
+                  data-tooltip="Invite players"
+                  data-tooltip-pos="bottom"
                 >
-                  <UserPlus size={18} />
+                  <UserPlus size={20} />
                 </button>
               )}
               <button
                 className="drawer-toggle"
                 onClick={() => onViewChange("counters")}
                 aria-label="Open combat counters"
-                title="Combat counters"
+                data-tooltip="Combat counters"
+                data-tooltip-pos="bottom"
               >
-                <Swords size={18} />
+                <Swords size={20} />
               </button>
               <button
                 className="drawer-toggle"
                 onClick={() => onViewChange("dice")}
                 aria-label="Open dice roller"
-                title="Dice roller"
+                data-tooltip="Dice roller"
+                data-tooltip-pos="bottom"
               >
-                <Dices size={18} />
+                <Dices size={20} />
               </button>
               <button
                 className="drawer-toggle"
                 onClick={() => onViewChange("settings")}
                 aria-label="Open settings"
-                title="Open settings"
+                data-tooltip="Open settings"
+                data-tooltip-pos="right-bottom"
               >
-                <Settings size={18} />
+                <Settings size={20} />
               </button>
             </div>
           </>
@@ -659,29 +665,33 @@ export default function CardSidebar({
                 <img src={top.image} alt={top.name} />
                 <div className="card-meta">
                   <b>{top.name}</b>
-                  {current.captureImage && (
-                    <button
-                      type="button"
-                      className="wrong-card-btn"
-                      onClick={beginWrongCardReport}
-                      aria-label="Wrong card"
-                      title="Wrong card"
-                    >
-                      <ThumbsDown size={17} />
-                    </button>
-                  )}
-                  {top.scryfall_uri && (
-                    <a
-                      className="scryfall-link"
-                      href={top.scryfall_uri}
-                      target="_blank"
-                      rel="noreferrer"
-                      aria-label="View on Scryfall"
-                      title="View on Scryfall"
-                    >
-                      <ArrowUpRight size={18} />
-                    </a>
-                  )}
+                  <div className="card-actions">
+                    {current.captureImage && (
+                      <button
+                        type="button"
+                        className="wrong-card-btn"
+                        onClick={beginWrongCardReport}
+                        aria-label="Wrong card"
+                        data-tooltip="Wrong card"
+                        data-tooltip-pos="right-top"
+                      >
+                        <ThumbsDown size={16} />
+                      </button>
+                    )}
+                    {top.scryfall_uri && (
+                      <a
+                        className="scryfall-link"
+                        href={top.scryfall_uri}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label="View on Scryfall"
+                        data-tooltip="View on Scryfall"
+                        data-tooltip-pos="right-top"
+                      >
+                        <ExternalLink size={16} />
+                      </a>
+                    )}
+                  </div>
                 </div>
                 {!decisive && <span className="match-qualifier">Possible match — not certain</span>}
               </div>
@@ -939,8 +949,8 @@ export default function CardSidebar({
                   maxLength={640}
                   rows={1}
                 />
-                <button type="submit" aria-label="Send message" disabled={!chatDraft.trim()}>
-                  <Send size={17} />
+                <button type="submit" aria-label="Send message" data-tooltip="Send message" disabled={!chatDraft.trim()}>
+                  <Send size={20} />
                 </button>
               </form>
             </div>
@@ -1047,9 +1057,9 @@ function CounterPanel({ players, onChangePoison, onChangeCommanderDamage }) {
 function CounterStepper({ value, lethal, editable, label, onDecrease, onIncrease }) {
   return (
     <div className={lethal ? "counter-stepper lethal" : "counter-stepper"} aria-label={label}>
-      {editable && <button type="button" onClick={onDecrease} aria-label={`Decrease ${label}`}>−</button>}
+      {editable && <button type="button" onClick={onDecrease} aria-label={`Decrease ${label}`} data-tooltip={`Decrease ${label}`}>−</button>}
       <strong>{value}</strong>
-      {editable && <button type="button" onClick={onIncrease} aria-label={`Increase ${label}`}>+</button>}
+      {editable && <button type="button" onClick={onIncrease} aria-label={`Increase ${label}`} data-tooltip={`Increase ${label}`}>+</button>}
     </div>
   );
 }

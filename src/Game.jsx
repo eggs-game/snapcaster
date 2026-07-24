@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
-  Check, FlipVertical2, Mic, MicOff, MoreVertical, PanelLeft, Shuffle, SkipForward, Swords,
-  Video, VideoOff, X,
+  Check, FlipVertical2, Mic, MicOff, Minus, MoreVertical, PanelLeft, Plus, Shuffle, SkipForward,
+  Swords, Video, VideoOff, X,
 } from "lucide-react";
 import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
 import { labelRecognitionReport, saveRecognitionReport } from "./signaling.js";
@@ -813,6 +813,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
                 key={t.id}
                 tile={t}
                 color={t.color || TILE_COLORS[i % TILE_COLORS.length]}
+                seatIndex={i}
                 innerSide={videoLayout === "follow" || i % 2 === 0 ? "right" : "left"}
                 flash={flash?.tileId === t.id ? flash : null}
                 scanNotice={t.isMe ? scanNotice : null}
@@ -947,7 +948,16 @@ const TILE_COLORS = [
   "#3f8fd2", "#38b8cf", "#31957e", "#58a75c", "#a6b94a", "#7c8796",
 ];
 
-function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, onLookupCommander, onChangeLife, onOpenCounters, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, isReadyCheckActive, readyStatus, onReady, onNotReady, heroRole, onSelectHero, flash, scanNotice, camOn, micOn, onToggleCam, onToggleMic }) {
+function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseCommander, onLookupCommander, onChangeLife, onOpenCounters, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, isReadyCheckActive, readyStatus, onReady, onNotReady, heroRole, onSelectHero, flash, scanNotice, camOn, micOn, onToggleCam, onToggleMic }) {
+  // Seats 3 and 4 (the bottom row of a 4-player grid) mirror their banner to
+  // the bottom edge and their life badge to the top corner, since those
+  // tiles sit upside-down relative to the viewer's side of the table.
+  const isSeat3 = seatIndex === 2;
+  const isSeat4 = seatIndex === 3;
+  // The life badge's own tooltips must point away from whichever screen
+  // edge the badge is flush against, or they'd render off-screen.
+  const lifeBadgeAlign = isSeat3 ? "right" : isSeat4 ? "left" : innerSide;
+  const bannerAtBottom = isSeat3 || isSeat4;
   const videoRef = useRef(null);
   const [flipped, setFlipped] = useState(false);
   const speaking = useSpeaking(tile.stream, tile.muted);
@@ -966,7 +976,7 @@ function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, onLo
   return (
     <div
       className={`tile${tile.activeTurn ? " active-turn" : ""}${heroRole === "thumbnail" ? " hero-thumbnail" : heroRole === "main" ? " hero-main" : ""}`}
-      style={{ borderColor: color, "--speaker-color": color }}
+      style={tile.activeTurn ? { "--speaker-color": color } : { borderColor: color, "--speaker-color": color }}
     >
       {heroRole === "thumbnail" && (
         <button
@@ -991,6 +1001,7 @@ function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, onLo
         micOn={micOn}
         onToggleCam={onToggleCam}
         onToggleMic={onToggleMic}
+        atBottom={bannerAtBottom}
       />
       <div
         className="video-wrap"
@@ -1032,28 +1043,38 @@ function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, onLo
         )}
         <div
           className={tile.isMe ? "life-badge mine" : "life-badge"}
-          style={{
-            background: color,
-            [innerSide]: 0,
-            // Flush against the corner: only round the corner facing the video.
-            borderRadius: innerSide === "right" ? "10px 0 0 0" : "0 10px 0 0",
-          }}
+          style={
+            isSeat3
+              ? { background: color, top: 0, bottom: "auto", right: 0, borderRadius: "0 0 0 10px" }
+              : isSeat4
+              ? { background: color, top: 0, bottom: "auto", left: 0, borderRadius: "0 0 10px 0" }
+              : {
+                  background: color,
+                  [innerSide]: 0,
+                  // Flush against the corner: only round the corner facing the video.
+                  borderRadius: innerSide === "right" ? "10px 0 0 0" : "0 10px 0 0",
+                }
+          }
           onClick={(e) => e.stopPropagation()}
         >
           {tile.isMe && (
             <>
-              <button className="life-btn life-sword-btn" onClick={() => onOpenCounters?.()} aria-label="Open commander damage">
-                <Swords size={24} fill="currentColor" />
+              <button className="life-btn life-sword-btn" onClick={() => onOpenCounters?.()} aria-label="Add commander damage" data-tooltip="Add commander damage" data-tooltip-pos={lifeBadgeAlign === "left" ? "left-top" : "right-top"}>
+                <Swords size={20} fill="currentColor" />
               </button>
               <span className="life-divider" aria-hidden="true" />
             </>
           )}
           {tile.isMe && (
-            <button className="life-btn" onClick={() => onChangeLife(-1)} aria-label="Lose 1 life">−</button>
+            <button className="life-btn" onClick={() => onChangeLife(-1)} aria-label="Lose 1 life" data-tooltip="Lose 1 life" data-tooltip-pos={lifeBadgeAlign === "left" ? "left-top" : "right-top"}>
+              <Minus size={20} />
+            </button>
           )}
           <span className="life-value">{tile.life}</span>
           {tile.isMe && (
-            <button className="life-btn" onClick={() => onChangeLife(+1)} aria-label="Gain 1 life">+</button>
+            <button className="life-btn" onClick={() => onChangeLife(+1)} aria-label="Gain 1 life" data-tooltip="Gain 1 life" data-tooltip-pos={lifeBadgeAlign === "left" ? "left-top" : "right-top"}>
+              <Plus size={20} />
+            </button>
           )}
         </div>
       </div>
@@ -1098,16 +1119,18 @@ function TileMenu({ flipped, onToggleFlip, canPassTurn, onPassTurn, canRandomize
           <button
             className={micOn ? "menu-btn" : "menu-btn menu-btn-danger"}
             onClick={() => onToggleMic?.()}
-            aria-label={micOn ? "Mute microphone" : "Unmute microphone"}
-            title={micOn ? "Mute microphone" : "Unmute microphone"}
+            aria-label={micOn ? "Mute" : "Unmute"}
+            data-tooltip={micOn ? "Mute" : "Unmute"}
+            data-tooltip-pos="right-top"
           >
             {micOn ? <Mic size={16} /> : <MicOff size={16} />}
           </button>
           <button
-            className="menu-btn"
+            className={camOn ? "menu-btn" : "menu-btn menu-btn-danger"}
             onClick={() => onToggleCam?.()}
             aria-label={camOn ? "Turn camera off" : "Turn camera on"}
-            title={camOn ? "Turn camera off" : "Turn camera on"}
+            data-tooltip={camOn ? "Turn camera off" : "Turn camera on"}
+            data-tooltip-pos="right-top"
           >
             {camOn ? <Video size={16} /> : <VideoOff size={16} />}
           </button>
@@ -1117,9 +1140,8 @@ function TileMenu({ flipped, onToggleFlip, canPassTurn, onPassTurn, canRandomize
         className="menu-btn"
         onClick={() => setOpen((o) => !o)}
         aria-label="Video options"
-        title="Video options"
       >
-        <MoreVertical size={18} />
+        <MoreVertical size={16} />
       </button>
       {open && (
         <div className="tile-menu">
@@ -1163,7 +1185,7 @@ function TileMenu({ flipped, onToggleFlip, canPassTurn, onPassTurn, canRandomize
   );
 }
 
-function CommanderBanner({ tile, onChoose, onLookupCommander, speaking, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, flipped, onToggleFlip, camOn, micOn, onToggleCam, onToggleMic }) {
+function CommanderBanner({ tile, onChoose, onLookupCommander, speaking, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, flipped, onToggleFlip, camOn, micOn, onToggleCam, onToggleMic, atBottom }) {
   const [draft, setDraft] = useState(tile.commander);
   const [suggestions, setSuggestions] = useState([]);
   const [highlight, setHighlight] = useState(-1);
@@ -1235,7 +1257,7 @@ function CommanderBanner({ tile, onChoose, onLookupCommander, speaking, onPassTu
 
   if (!tile.isMe) {
     return (
-      <div className="commander-banner">
+      <div className={atBottom ? "commander-banner banner-at-bottom" : "commander-banner"}>
         <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} />
         {nameRow}
         <div className="banner-row">
@@ -1262,9 +1284,8 @@ function CommanderBanner({ tile, onChoose, onLookupCommander, speaking, onPassTu
   if (!editing) {
     return (
       <div
-        className="commander-banner commander-set"
+        className={atBottom ? "commander-banner commander-set banner-at-bottom" : "commander-banner commander-set"}
         onClick={() => setEditing(true)}
-        title={tile.commander ? "Click to change commander" : "Click to add commander"}
       >
         <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canPassTurn={tile.activeTurn} onPassTurn={onPassTurn} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} canStartReadyCheck={canRandomizeGrid} onStartReadyCheck={onStartReadyCheck} showMediaControls camOn={camOn} micOn={micOn} onToggleCam={onToggleCam} onToggleMic={onToggleMic} />
         {nameRow}
@@ -1289,7 +1310,7 @@ function CommanderBanner({ tile, onChoose, onLookupCommander, speaking, onPassTu
     if (commander) choose(commander);
   };
   return (
-    <form className="commander-banner commander-picker" onSubmit={submit}>
+    <form className={atBottom ? "commander-banner commander-picker banner-at-bottom" : "commander-banner commander-picker"} onSubmit={submit}>
       <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canPassTurn={tile.activeTurn} onPassTurn={onPassTurn} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} canStartReadyCheck={canRandomizeGrid} onStartReadyCheck={onStartReadyCheck} showMediaControls camOn={camOn} micOn={micOn} onToggleCam={onToggleCam} onToggleMic={onToggleMic} />
       {nameRow}
       <div className="commander-search">

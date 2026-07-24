@@ -8,6 +8,7 @@ Start with the docs; they are the authoritative description of this project.
 | [docs/architecture.md](docs/architecture.md) | Stack, file layout, card index, multiplayer, security |
 | [docs/recognition.md](docs/recognition.md) | The identification pipeline, stage by stage |
 | [docs/testing.md](docs/testing.md) | SNAPTEST — how to verify a change |
+| [docs/design-system.md](docs/design-system.md) | Shared UI tokens and patterns — colors, spacing, radii, tiny buttons |
 | [snaptest/results.md](snaptest/results.md) | Benchmark history with per-run analysis |
 
 ## Working agreements
@@ -30,6 +31,11 @@ Start with the docs; they are the authoritative description of this project.
 - **A crop must be a seed to introduce an answer.** Non-seed crops only refine
   the shortlist the seeds built, so adding a candidate crop without adding it
   to `SEED_PRIORITY` usually does nothing.
+- **Keep `docs/design-system.md` in sync.** Any change to a shared UI token,
+  size, color role, or reusable pattern (icon-button sizing, radius scale,
+  modal shell, etc.) updates that doc in the same change. It documents intent
+  (why a value is what it is), not just the current CSS, so it stays useful
+  even as the stylesheet moves — a stale design doc is worse than none.
 
 ## Hard-won lessons
 

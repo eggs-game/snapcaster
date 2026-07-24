@@ -273,7 +273,7 @@ export default function Lobby({ onStart }) {
           <section className={`lobby-modal${modal === "join" || modal === "create-setup" ? " prejoin-modal" : ""}`} role="dialog" aria-modal="true" aria-labelledby="lobby-modal-title">
             {!visitorMode && (
               <button className="modal-close" onClick={() => setModal(null)} aria-label="Close">
-                <X size={19} />
+                <X size={20} />
               </button>
             )}
 
