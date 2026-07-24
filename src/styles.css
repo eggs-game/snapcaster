@@ -676,7 +676,7 @@ input::placeholder { color: var(--text-tertiary); opacity: 1; }
 .hero-thumbnail .life-badge { display: none; }
 .hero-thumbnail .video-wrap { cursor: pointer; }
 .tile { position: relative; display: flex; flex-direction: column; background: var(--bg-sidebar); border: 2px solid var(--border-default); border-radius: 10px; overflow: hidden; transition: border-color 120ms ease, box-shadow 120ms ease; }
-.tile.active-turn { z-index: 2; border-color: var(--speaker-color); animation: active-turn-halo 1.5s ease-in-out infinite; }
+.tile.active-turn { z-index: 2; border-color: var(--speaker-color); animation: active-turn-halo 3s ease-in-out infinite; }
 @keyframes active-turn-halo {
   0%, 100% { box-shadow: 0 0 0 2px var(--speaker-color), 0 0 10px color-mix(in srgb, var(--speaker-color) 45%, transparent); }
   50% { box-shadow: 0 0 0 4px var(--speaker-color), 0 0 28px color-mix(in srgb, var(--speaker-color) 90%, transparent); }
@@ -718,6 +718,8 @@ input::placeholder { color: var(--text-tertiary); opacity: 1; }
 .banner-menu { position: absolute; inset: 6px 6px auto auto; z-index: 5; display: flex; align-items: center; gap: 2px; width: auto; height: 24px; flex: none; margin: 0; cursor: default; transform: none; }
 .menu-btn { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; padding: 0; background: none; border: none; border-radius: 6px; color: rgba(255,255,255,0.82); cursor: pointer; filter: none; box-shadow: none; }
 .menu-btn:hover { color: #fff; background: rgba(255,255,255,0.12); }
+.menu-btn-danger { color: var(--danger-text); }
+.menu-btn-danger:hover { color: var(--danger-text); background: rgba(255,255,255,0.12); }
 .tile-menu { position: absolute; top: 26px; right: 0; z-index: 5; min-width: 180px; padding: 5px; background: var(--overlay-bg); border: 1px solid var(--border-default); border-radius: 12px; -webkit-backdrop-filter: blur(18px) saturate(var(--glass-saturation)); backdrop-filter: blur(18px) saturate(var(--glass-saturation)); box-shadow: inset 0 1px 0 var(--glass-highlight), var(--overlay-shadow); }
 .tile-menu button { display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 9px; background: none; border: none; border-radius: 6px; color: var(--text); font-family: inherit; font-size: var(--text-md); text-align: left; cursor: pointer; }
 .tile-menu button:hover { background: var(--secondary-hover); }

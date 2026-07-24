@@ -115,7 +115,7 @@ export default function Lobby({ onStart }) {
   };
 
   useEffect(() => {
-    if (modal !== "join") {
+    if (modal !== "join" && modal !== "create-setup") {
       stopPreview();
       return undefined;
     }
@@ -201,10 +201,20 @@ export default function Lobby({ onStart }) {
       setError("Give your game a name to continue.");
       return;
     }
-    go(makeCode(), "player", lobbyName, {
+    setError("");
+    setCode(makeCode());
+    setModal("create-setup");
+  };
+
+  const finishCreate = (event) => {
+    event.preventDefault();
+    stopPreview();
+    go(code, "player", lobbyName, {
       bracket: Number(bracket),
       seatLimit: Number(seatLimit),
       creator: true,
+      videoDeviceId,
+      audioDeviceId,
     });
   };
 
@@ -260,7 +270,7 @@ export default function Lobby({ onStart }) {
             if (event.target === event.currentTarget && !visitorMode) setModal(null);
           }}
         >
-          <section className={`lobby-modal${modal === "join" ? " prejoin-modal" : ""}`} role="dialog" aria-modal="true" aria-labelledby="lobby-modal-title">
+          <section className={`lobby-modal${modal === "join" || modal === "create-setup" ? " prejoin-modal" : ""}`} role="dialog" aria-modal="true" aria-labelledby="lobby-modal-title">
             {!visitorMode && (
               <button className="modal-close" onClick={() => setModal(null)} aria-label="Close">
                 <X size={19} />
@@ -356,9 +366,11 @@ export default function Lobby({ onStart }) {
                 </footer>
               </form>
             ) : (
-              <form onSubmit={joinGame}>
+              <form onSubmit={modal === "create-setup" ? finishCreate : joinGame}>
                 <header className="modal-head compact">
-                  <h2 id="lobby-modal-title">{visitorMode ? "Join as a visitor" : `Join room ${code}`}</h2>
+                  <h2 id="lobby-modal-title">
+                    {modal === "create-setup" ? `Set up before creating ${lobbyName}` : visitorMode ? "Join as a visitor" : `Join room ${code}`}
+                  </h2>
                 </header>
 
                 <div className="prejoin-layout">
@@ -439,9 +451,13 @@ export default function Lobby({ onStart }) {
                 {error && <p className="modal-error" role="alert">{error}</p>}
 
                 <footer className="modal-actions">
-                  {!visitorMode && <button type="button" onClick={() => setModal(null)}>Cancel</button>}
+                  {!visitorMode && (
+                    <button type="button" onClick={() => (modal === "create-setup" ? setModal("create") : setModal(null))}>
+                      {modal === "create-setup" ? "Back" : "Cancel"}
+                    </button>
+                  )}
                   <button className="primary" type="submit">
-                    {visitorMode ? "Join as visitor" : "Join game"} <ArrowRight size={17} />
+                    {modal === "create-setup" ? "Create game" : visitorMode ? "Join as visitor" : "Join game"} <ArrowRight size={17} />
                   </button>
                 </footer>
               </form>

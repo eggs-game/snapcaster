@@ -1041,19 +1041,19 @@ function VideoTile({ tile, color, innerSide, onIdentify, onChooseCommander, onLo
           onClick={(e) => e.stopPropagation()}
         >
           {tile.isMe && (
+            <>
+              <button className="life-btn life-sword-btn" onClick={() => onOpenCounters?.()} aria-label="Open commander damage">
+                <Swords size={24} fill="currentColor" />
+              </button>
+              <span className="life-divider" aria-hidden="true" />
+            </>
+          )}
+          {tile.isMe && (
             <button className="life-btn" onClick={() => onChangeLife(-1)} aria-label="Lose 1 life">−</button>
           )}
           <span className="life-value">{tile.life}</span>
           {tile.isMe && (
             <button className="life-btn" onClick={() => onChangeLife(+1)} aria-label="Gain 1 life">+</button>
-          )}
-          {tile.isMe && (
-            <>
-              <span className="life-divider" aria-hidden="true" />
-              <button className="life-btn life-sword-btn" onClick={() => onOpenCounters?.()} aria-label="Open commander damage">
-                <Swords size={14} />
-              </button>
-            </>
           )}
         </div>
       </div>
@@ -1096,7 +1096,7 @@ function TileMenu({ flipped, onToggleFlip, canPassTurn, onPassTurn, canRandomize
       {showMediaControls && (
         <>
           <button
-            className="menu-btn"
+            className={micOn ? "menu-btn" : "menu-btn menu-btn-danger"}
             onClick={() => onToggleMic?.()}
             aria-label={micOn ? "Mute microphone" : "Unmute microphone"}
             title={micOn ? "Mute microphone" : "Unmute microphone"}
@@ -1217,7 +1217,7 @@ function CommanderBanner({ tile, onChoose, onLookupCommander, speaking, onPassTu
   const playerLabel = `${tile.name}${tile.isMe ? " (you)" : ""}`;
   const playerRow = (
     <span className="banner-player-row">
-      {tile.muted && <MicOff size={18} className="banner-muted" aria-label="Muted" />}
+      {tile.muted && !tile.isMe && <MicOff size={18} className="banner-muted" aria-label="Muted" />}
       <span className="banner-player">{playerLabel}</span>
       {speaking && (
         <span className="speaking-meter" role="img" aria-label="Speaking">
