@@ -9,6 +9,7 @@ import { suggestCardNames } from "./cardSearch.js";
 import { identify as identifyCard, preload as preloadRecognition } from "./recognition/matcher.js";
 import CardSidebar, { cardFromScryfall, formatDiceResult, formatDiceSides } from "./CardSidebar.jsx";
 import { getSoundEffect, playSoundEffect } from "./soundEffects.js";
+import { getCounterTextColor, getVideoCounterType, normalizeVideoCounter } from "./videoCounters.js";
 
 const SOUND_COOLDOWN_MS = 120000;
 
@@ -45,6 +46,10 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const [chatMessages, setChatMessages] = useState([]);
   const [diceRolls, setDiceRolls] = useState([]);
   const [diceOverlay, setDiceOverlay] = useState(null);
+  const [counterDraft, setCounterDraft] = useState(null);
+  const [videoCounters, setVideoCounters] = useState({});
+  const [videoCounterDragPreview, setVideoCounterDragPreview] = useState(null);
+  const [counterPointerDrag, setCounterPointerDrag] = useState(null);
   const [readyEvents, setReadyEvents] = useState([]);
   const [readyCheck, setReadyCheck] = useState(null);
   const [gridOrder, setGridOrder] = useState([]);
@@ -132,7 +137,10 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
         setRoster(nextRoster);
       },
       onRemoteStream: (id, stream) => setStreams((s) => ({ ...s, [id]: stream })),
-      onPeerLeft: (id) => setStreams((s) => { const c = { ...s }; delete c[id]; return c; }),
+      onPeerLeft: (id) => {
+        setStreams((s) => { const c = { ...s }; delete c[id]; return c; });
+        setVideoCounters((counters) => { const next = { ...counters }; delete next[id]; return next; });
+      },
       onLife: (id, life) => {
         const previous = livesRef.current[id];
         livesRef.current = { ...livesRef.current, [id]: life };
@@ -185,6 +193,18 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
         setDiceRolls((rolls) => [...rolls.slice(-49), entry]);
         showDiceOverlay(entry);
       },
+      onVideoCounter: (ownerId, counter) => setVideoCounters((counters) => {
+        const ownerCounters = counters[ownerId] || [];
+        const existingIndex = ownerCounters.findIndex((item) => item.id === counter.id);
+        const nextOwnerCounters = existingIndex < 0
+          ? [...ownerCounters, counter]
+          : ownerCounters.map((item, index) => index === existingIndex ? counter : item);
+        return { ...counters, [ownerId]: nextOwnerCounters.slice(-24) };
+      }),
+      onVideoCounterRemove: (ownerId, counterId) => setVideoCounters((counters) => ({
+        ...counters,
+        [ownerId]: (counters[ownerId] || []).filter((counter) => counter.id !== counterId),
+      })),
       onGridOrder: (order) => setGridOrder(order),
       onReadyCheckStart: (check) => {
         const next = { ...check, responses: {} };
@@ -480,6 +500,127 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     showDiceOverlay(entry);
     connRef.current?.sendDiceRoll(value, sides, at);
   };
+
+  const generateVideoCounter = (typeId) => {
+    const type = getVideoCounterType(typeId);
+    if (!type || !myId || isVisitor) return;
+    setCounterDraft({
+      id: crypto.randomUUID?.() || `counter-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      type: type.id,
+    });
+  };
+
+  const upsertOwnVideoCounter = (counter) => {
+    const safeCounter = normalizeVideoCounter(counter);
+    if (!safeCounter || !myId || isVisitor) return;
+    setVideoCounters((counters) => {
+      const mine = counters[myId] || [];
+      const exists = mine.some((item) => item.id === safeCounter.id);
+      return {
+        ...counters,
+        [myId]: (exists
+          ? mine.map((item) => item.id === safeCounter.id ? safeCounter : item)
+          : [...mine, safeCounter]).slice(-24),
+      };
+    });
+    connRef.current?.setVideoCounter(safeCounter);
+  };
+
+  const placeOwnVideoCounter = (draggedCounter, x, y) => {
+    const type = getVideoCounterType(draggedCounter?.type);
+    if (!type || !draggedCounter?.id) return;
+    const existing = (videoCounters[myId] || []).find((counter) => counter.id === draggedCounter.id);
+    upsertOwnVideoCounter({
+      id: draggedCounter.id,
+      type: type.id,
+      x,
+      y,
+      value: existing?.value ?? (type.adjustable ? 1 : 0),
+      zeroSince: existing?.zeroSince || 0,
+    });
+    if (draggedCounter.source === "generator") setCounterDraft(null);
+  };
+
+  const previewOwnVideoCounter = (draggedCounter, x, y) => {
+    const type = getVideoCounterType(draggedCounter?.type);
+    if (!type) return;
+    setVideoCounterDragPreview({ type: type.id, x, y });
+  };
+
+  useEffect(() => {
+    if (!counterPointerDrag) return undefined;
+    const dropPointAt = (event) => {
+      const target = document.querySelector('[data-counter-drop-target="true"]');
+      const rect = target?.getBoundingClientRect();
+      if (!rect || event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) return null;
+      return {
+        x: (event.clientX - rect.left) / rect.width,
+        y: (event.clientY - rect.top) / rect.height,
+      };
+    };
+    const move = (event) => {
+      const point = dropPointAt(event);
+      if (point) previewOwnVideoCounter(counterPointerDrag, point.x, point.y);
+      else setVideoCounterDragPreview(null);
+    };
+    const finish = (event) => {
+      const point = dropPointAt(event);
+      if (point) placeOwnVideoCounter(counterPointerDrag, point.x, point.y);
+      setCounterPointerDrag(null);
+      setVideoCounterDragPreview(null);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", finish, { once: true });
+    window.addEventListener("pointercancel", finish, { once: true });
+    return () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", finish);
+      window.removeEventListener("pointercancel", finish);
+    };
+  }, [counterPointerDrag]);
+
+  const changeOwnVideoCounter = (counterId, delta) => {
+    const counter = (videoCounters[myId] || []).find((item) => item.id === counterId);
+    const type = getVideoCounterType(counter?.type);
+    if (!counter || !type?.adjustable) return;
+    const value = Math.max(0, Math.min(99, counter.value + delta));
+    upsertOwnVideoCounter({
+      ...counter,
+      value,
+      zeroSince: value === 0 ? Date.now() : 0,
+    });
+  };
+
+  const removeOwnVideoCounter = (counterId) => {
+    if (!myId) return;
+    setVideoCounters((counters) => ({
+      ...counters,
+      [myId]: (counters[myId] || []).filter((counter) => counter.id !== counterId),
+    }));
+    connRef.current?.removeVideoCounter(counterId);
+  };
+
+  useEffect(() => {
+    if (!myId) return undefined;
+    const zeroCounters = (videoCounters[myId] || []).filter((counter) => (
+      getVideoCounterType(counter.type)?.adjustable && counter.value === 0 && counter.zeroSince
+    ));
+    if (!zeroCounters.length) return undefined;
+    const nextExpiry = Math.min(...zeroCounters.map((counter) => counter.zeroSince + 10000));
+    const timer = window.setTimeout(() => {
+      const now = Date.now();
+      const expiredIds = new Set(zeroCounters
+        .filter((counter) => counter.zeroSince + 10000 <= now)
+        .map((counter) => counter.id));
+      if (!expiredIds.size) return;
+      setVideoCounters((counters) => ({
+        ...counters,
+        [myId]: (counters[myId] || []).filter((counter) => !expiredIds.has(counter.id)),
+      }));
+      expiredIds.forEach((counterId) => connRef.current?.removeVideoCounter(counterId));
+    }, Math.max(0, nextExpiry - Date.now()));
+    return () => window.clearTimeout(timer);
+  }, [myId, videoCounters]);
 
   const passTurn = useCallback(() => {
     if (isVisitor) return;
@@ -844,6 +985,9 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
               );
             }}
             onRollDie={rollDie}
+            counterDraft={counterDraft}
+            onGenerateVideoCounter={generateVideoCounter}
+            onStartVideoCounterDrag={setCounterPointerDrag}
             onPick={(m) => setCurrent({ matches: [m] })}
             onShareCard={shareCard}
             onSearch={(cardOrError) => {
@@ -981,6 +1125,11 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
                 onSelectHero={() => {
                   if (!t.empty) setHeroPlayerId(t.id);
                 }}
+                videoCounters={videoCounters[t.id] || []}
+                counterDragPreview={t.isMe ? videoCounterDragPreview : null}
+                onStartVideoCounterDrag={t.isMe ? setCounterPointerDrag : undefined}
+                onChangeVideoCounter={t.isMe ? changeOwnVideoCounter : undefined}
+                onRemoveVideoCounter={t.isMe ? removeOwnVideoCounter : undefined}
               />
             ))}
           </div>
@@ -1101,7 +1250,7 @@ function formatVideoResolution(resolution) {
   return `${height}p`;
 }
 
-function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseCommander, onLookupCommander, onChangeLife, onOpenCounters, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, isReadyCheckActive, readyStatus, onReady, onNotReady, heroRole, onSelectHero, flash, scanNotice, camOn, micOn, onToggleCam, onToggleMic, videoQuality, onVideoQualityChange }) {
+function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseCommander, onLookupCommander, onChangeLife, onOpenCounters, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, isReadyCheckActive, readyStatus, onReady, onNotReady, heroRole, onSelectHero, flash, scanNotice, camOn, micOn, onToggleCam, onToggleMic, videoQuality, onVideoQualityChange, videoCounters, counterDragPreview, onStartVideoCounterDrag, onChangeVideoCounter, onRemoveVideoCounter }) {
   // Seats 3 and 4 (the bottom row of a 4-player grid) mirror their banner to
   // the bottom edge and their life badge to the top corner, since those
   // tiles sit upside-down relative to the viewer's side of the table.
@@ -1187,6 +1336,7 @@ function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseComm
       />
       <div
         className="video-wrap"
+        data-counter-drop-target={tile.isMe ? "true" : undefined}
         onClick={(e) => {
           if (!videoRef.current) return;
           // A flipped video shows the source upside down; reflect the click so
@@ -1209,6 +1359,30 @@ function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseComm
           />
         </div>
         {flash && <div className="click-flash" style={{ left: flash.x, top: flash.y }} />}
+        {(videoCounters || []).map((counter) => (
+          <VideoCounterSticker
+            key={counter.id}
+            counter={counter}
+            color={color}
+            editable={tile.isMe}
+            onStartDrag={onStartVideoCounterDrag}
+            onChange={onChangeVideoCounter}
+            onRemove={onRemoveVideoCounter}
+          />
+        ))}
+        {counterDragPreview && (
+          <VideoCounterSticker
+            counter={{
+              id: "drag-preview",
+              type: counterDragPreview.type,
+              x: counterDragPreview.x,
+              y: counterDragPreview.y,
+              value: getVideoCounterType(counterDragPreview.type)?.adjustable ? 1 : 0,
+            }}
+            color={color}
+            preview
+          />
+        )}
         {isReadyCheckActive && (
           <div className="ready-check-overlay" role="status">
             <strong>{readyStatus === true ? "Ready" : readyStatus === false ? "Not ready" : tile.isMe ? "Are you ready?" : "Waiting…"}</strong>
@@ -1262,6 +1436,54 @@ function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseComm
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function VideoCounterSticker({ counter, color, editable, preview, onStartDrag, onChange, onRemove }) {
+  const type = getVideoCounterType(counter.type);
+  if (!type) return null;
+  const label = type.id === "plus-one"
+    ? `+${counter.value}/+${counter.value}`
+    : type.id === "minus-one"
+      ? `−${counter.value}/−${counter.value}`
+      : type.label;
+  const hasLongSingleWord = !label.includes(" ") && label.length > 8;
+  return (
+    <div
+      className={`video-counter-sticker${editable ? " editable" : ""}${preview ? " drag-preview" : ""}${hasLongSingleWord ? " long-single-word" : ""}`}
+      style={{
+        left: `${counter.x * 100}%`,
+        top: `${counter.y * 100}%`,
+        background: color,
+        color: getCounterTextColor(color),
+      }}
+      onPointerDown={(event) => {
+        if (!editable) return;
+        if (event.target.closest("button")) return;
+        event.preventDefault();
+        event.stopPropagation();
+        onStartDrag?.({
+          id: counter.id,
+          type: counter.type,
+          source: "video",
+        });
+      }}
+      onClick={(event) => event.stopPropagation()}
+      aria-label={`${label} counter`}
+    >
+      <span>{label}</span>
+      {editable && (
+        <div className="video-counter-actions">
+          {type.adjustable && (
+            <>
+              <button type="button" onClick={(event) => { event.stopPropagation(); onChange?.(counter.id, -1); }} aria-label={`Decrease ${type.label}`}><Minus size={14} /></button>
+              <button type="button" onClick={(event) => { event.stopPropagation(); onChange?.(counter.id, 1); }} aria-label={`Increase ${type.label}`}><Plus size={14} /></button>
+            </>
+          )}
+          <button type="button" className="video-counter-remove" onClick={(event) => { event.stopPropagation(); onRemove?.(counter.id); }} aria-label={`Remove ${type.label}`}><X size={14} /></button>
+        </div>
+      )}
     </div>
   );
 }

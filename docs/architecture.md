@@ -160,6 +160,14 @@ the main thread — an early bug that made the lobby unresponsive.
   does not roll it; the explicit Roll dice/Flip coin action broadcasts the
   result, adds it to Log, and shows every participant a centered three-second
   video-panel overlay. Coin results are displayed as Heads or Tails.
+- **Video counters are owner-scoped, allow-listed room state.** A player can
+  generate a known Magic counter type in the Dice panel and drag it onto only
+  their own video. The owner broadcasts normalized coordinates and may later
+  move, adjust, or remove that sticker; receivers validate the type and render
+  it read-only. Current stickers are rebroadcast during roster synchronization
+  for late joiners. +1/+1 and −1/−1 counters track a magnitude from 0–99 and
+  render it directly in their label (for example, +2/+2); a value that remains
+  exactly zero for ten seconds is removed automatically.
 - **Capture is never silent.** When a peer photographs your camera you see
   "<name> scanned your board" on your own tile.
 - **Cards can be shared deliberately.** A player can reveal a hover-only chat

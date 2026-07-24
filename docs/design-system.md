@@ -147,8 +147,36 @@ autoplay is blocked.
 Dice and coin results use a temporary, non-interactive glass card centered
 over the video panel. It reuses the former sidebar result-card proportions,
 keeps coin values human-readable as Heads/Tails, and fades away after three
-seconds. The dice sidebar contains only the selector and a separate full-width
-Roll dice/Flip coin action so changing the selection never triggers a roll.
+seconds. The dice sidebar keeps the selector and a separate full-width Roll
+dice/Flip coin action together, so changing the selection never triggers a
+roll; the action sits 12px below the selector.
+
+The Dice panel’s counter generator begins 24px below that action. Its staging
+well is headed by the same secondary 14px field label as the Die selector and
+shows one 96px circular sticker that can be dragged onto the local video. The
+counter picker does not repeat a redundant label: its Generate counter action
+and accessible name make its purpose clear. It opens upward into a compact
+search field plus a 224px scrolling list, avoiding an unwieldy native menu.
+Counter placement uses pointer-driven dragging rather than the browser's native
+drag cursor. While a counter is over the local video tile, that tile renders
+the exact 40px placement preview with no browser icon to communicate position.
+Placed stickers use a uniform 40px player-colored circle with centered, balanced text;
+hover/focus expands them into a 60px circle. Multi-word labels may wrap over
+two lines, but individual words never break; unusually long single words use a
+slightly smaller label to fit. Owner-only 22px controls appear in that state,
+while remote stickers remain read-only. Sticker positions are normalized to the
+video area so they remain stable across tile and viewport sizes. This is a
+board annotation, so it uses the owning player's chosen tile color in either
+application theme rather than a semantic status color. A clean 3px white rim,
+without an inset border, gives every sticker a physical-sticker edge. On
+adjustable stickers, the owner-only Lucide Minus/Plus buttons are fixed 22px
+circles above the sticker; the Lucide X dismiss control stays just outside its
+upper-right edge with the same 8px gap, so it remains distinct from value adjustment. Their current
+magnitude is part of the label itself (for example, +2/+2), never a separate
+number beneath it. An invisible hover bridge spans the gap to these controls,
+so moving the pointer out of the circle never dismisses them before they can
+be clicked. On exit, the controls complete their normal opacity fade before
+the sticker returns to its compact size, so they never appear squeezed.
 
 **Does not apply** to custom, purpose-built controls that only coincidentally
 fall in that size range — the dice picker's select control, the
@@ -290,8 +318,10 @@ class, and a `modal` state string per step) instead of a new component.
 The card lookup's expanded-card preview (`.card-preview-backdrop` /
 `.card-preview-tile`) is the compact exception: it uses the same scrim and
 glass material but contains only the card image, with no title or action
-bar. It closes on a backdrop click or Escape; do not add a separate close
-button unless the preview gains other controls.
+bar. Its 40px shell and 32px image corners deliberately crop the printed card
+art at the larger zoomed scale, removing visible white card corners. It closes
+on a backdrop click or Escape; do not add a separate close button unless the
+preview gains other controls.
 
 ## Video tile fit modes
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
-  ArrowLeft, Cat, Copy, Dices, Download, Drum, ExternalLink, Laugh, Link2, MessageCircle, Mic, MicOff,
+  ArrowLeft, Cat, ChevronDown, Copy, Dices, Download, Drum, ExternalLink, Laugh, Link2, MessageCircle, Mic, MicOff,
   PanelLeft, Play, Search, Settings, Swords, ThumbsDown, UserPlus, UserRound, Video, VideoOff, Volume2,
   VolumeX, X,
 } from "lucide-react";
@@ -10,6 +10,7 @@ import {
   parseChatDraft, selectWhisperRecipient, whisperCommandMatches, whisperRecipientMatches,
 } from "./chatCommands.js";
 import { getSoundEffect, searchSoundEffects } from "./soundEffects.js";
+import { getCounterTextColor, getVideoCounterType, VIDEO_COUNTER_TYPES } from "./videoCounters.js";
 
 // Labels for the ?debug=1 diagnostics panel.
 const CV_LABEL = {
@@ -67,6 +68,9 @@ export default function CardSidebar({
   onSoundEffectsVolumeChange,
   onPreviewSound,
   onRollDie,
+  counterDraft,
+  onGenerateVideoCounter,
+  onStartVideoCounterDrag,
   onPick,
   onShareCard,
   onClose,
@@ -690,7 +694,13 @@ export default function CardSidebar({
           onCopyVisitorLink={onCopyVisitorLink}
         />
       ) : dice ? (
-        <DicePanel onRoll={onRollDie} />
+        <DicePanel
+          onRoll={onRollDie}
+          counterDraft={counterDraft}
+          onGenerateVideoCounter={onGenerateVideoCounter}
+          counterColor={myColor}
+          onStartVideoCounterDrag={onStartVideoCounterDrag}
+        />
       ) : (
         <>
           {editingLobbyName && !isVisitor ? (
@@ -990,8 +1000,8 @@ export default function CardSidebar({
                         <button type="button" className="card-log-button" onClick={() => openCard(entry.card)}>
                           {entry.card?.image && <img src={entry.card.image} alt="" />}
                           <span>
-                            <strong>{entry.by} shared {entry.card?.name || "a card"}</strong>
-                            <small>{new Date(entry.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</small>
+                            <strong>{entry.card?.name || "A card"}</strong>
+                            <small>Shared by {entry.by} · {new Date(entry.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</small>
                           </span>
                         </button>
                       ) : entry.type === "dice" ? (
@@ -1224,27 +1234,143 @@ export default function CardSidebar({
   );
 }
 
-function DicePanel({ onRoll }) {
+function DicePanel({ onRoll, counterDraft, onGenerateVideoCounter, counterColor, onStartVideoCounterDrag }) {
   const [selectedSides, setSelectedSides] = useState(20);
   const diceOptions = Array.from({ length: 18 }, (_, index) => index + 3);
   return (
     <div className="dice-panel">
-      <p>Choose a die to roll. Results are shared with everyone and added to Log.</p>
-      <label className="dice-select-field">
-        <span className="color-label">Die</span>
-        <select
-          className="dice-select"
-          aria-label="Choose a die to roll"
-          value={selectedSides}
-          onChange={(event) => setSelectedSides(Number(event.target.value))}
-        >
-          <option value={2}>Coin</option>
-          {diceOptions.map((sides) => <option key={sides} value={sides}>D{sides}</option>)}
-        </select>
-      </label>
-      <button type="button" className="dice-roll-button" onClick={() => onRoll?.(selectedSides)}>
-        {selectedSides === 2 ? "Flip coin" : "Roll dice"}
+      <div className="dice-controls">
+        <label className="dice-select-field">
+          <span className="color-label">Die</span>
+          <select
+            className="dice-select"
+            aria-label="Choose a die to roll"
+            value={selectedSides}
+            onChange={(event) => setSelectedSides(Number(event.target.value))}
+          >
+            <option value={2}>Coin</option>
+            {diceOptions.map((sides) => <option key={sides} value={sides}>D{sides}</option>)}
+          </select>
+        </label>
+        <button type="button" className="dice-roll-button" onClick={() => onRoll?.(selectedSides)}>
+          {selectedSides === 2 ? "Flip coin" : "Roll dice"}
+        </button>
+      </div>
+      <CounterGenerator
+        counterDraft={counterDraft}
+        onGenerate={onGenerateVideoCounter}
+        counterColor={counterColor}
+        onStartVideoCounterDrag={onStartVideoCounterDrag}
+      />
+    </div>
+  );
+}
+
+function CounterGenerator({ counterDraft, onGenerate, counterColor, onStartVideoCounterDrag }) {
+  const [selectedType, setSelectedType] = useState(VIDEO_COUNTER_TYPES[0].id);
+  const draftType = getVideoCounterType(counterDraft?.type);
+  return (
+    <section className="counter-generator">
+      <span className="color-label">Generate counter</span>
+      <div className="counter-generator-preview">
+        {draftType ? (
+          <div
+            className="counter-sticker counter-sticker-source"
+            style={{ background: counterColor, color: getCounterTextColor(counterColor) }}
+            onPointerDown={(event) => {
+              event.preventDefault();
+              onStartVideoCounterDrag?.({
+                id: counterDraft.id,
+                type: counterDraft.type,
+                source: "generator",
+              });
+            }}
+            aria-label={`Drag ${draftType.label} counter onto your video`}
+          >
+            <span>{draftType.label}</span>
+          </div>
+        ) : (
+          <span>Generate a counter, then drag it onto your video.</span>
+        )}
+      </div>
+      <div className="counter-generator-controls">
+        <CounterTypePicker
+          value={selectedType}
+          onChange={setSelectedType}
+        />
+        <button type="button" className="dice-roll-button" onClick={() => onGenerate?.(selectedType)}>
+          Generate counter
+        </button>
+      </div>
+    </section>
+  );
+}
+
+function CounterTypePicker({ value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const pickerRef = useRef(null);
+  const selected = getVideoCounterType(value) || VIDEO_COUNTER_TYPES[0];
+  const matches = VIDEO_COUNTER_TYPES.filter((counter) => (
+    counter.label.toLowerCase().includes(query.trim().toLowerCase())
+  ));
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const close = (event) => {
+      if (event.key === "Escape") setOpen(false);
+      if (event.type === "pointerdown" && !pickerRef.current?.contains(event.target)) setOpen(false);
+    };
+    document.addEventListener("keydown", close);
+    document.addEventListener("pointerdown", close);
+    return () => {
+      document.removeEventListener("keydown", close);
+      document.removeEventListener("pointerdown", close);
+    };
+  }, [open]);
+
+  return (
+    <div className="counter-type-picker" ref={pickerRef}>
+      <button
+        type="button"
+        className="counter-type-trigger"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label="Choose a counter to generate"
+        onClick={() => setOpen((isOpen) => !isOpen)}
+      >
+        <span>{selected.label}</span>
+        <ChevronDown size={16} aria-hidden="true" />
       </button>
+      {open && (
+        <div className="counter-type-menu" role="listbox" aria-label="Choose a counter to generate">
+          <label className="counter-type-search">
+            <Search size={16} aria-hidden="true" />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search counters"
+              aria-label="Search counters"
+              autoFocus
+            />
+          </label>
+          <div className="counter-type-options">
+            {matches.length ? matches.map((counter) => (
+              <button
+                key={counter.id}
+                type="button"
+                role="option"
+                aria-selected={counter.id === selected.id}
+                onClick={() => {
+                  onChange(counter.id);
+                  setQuery("");
+                  setOpen(false);
+                }}
+              >{counter.label}</button>
+            )) : <p>No counters match that search.</p>}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

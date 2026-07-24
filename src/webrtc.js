@@ -4,6 +4,7 @@
 import { joinRoom } from "./signaling.js";
 import { cropGeometry } from "./captureGeometry.js";
 import { getSoundEffect } from "./soundEffects.js";
+import { normalizeVideoCounter } from "./videoCounters.js";
 
 const FALLBACK_ICE_SERVERS = [
   { urls: "stun:stun.cloudflare.com:3478" },
@@ -89,6 +90,7 @@ export class GameConnection {
     // handlers: onRoster, onRemoteStream, onPeerLeft, onLife,
     // onCommander, onColor, onCardIdentified, onChat (public or whisper), onActivePlayer,
     // onGridOrder, onReadyCheckStart, onReadyCheckResponse, onReadyCheckEnd,
+    // onVideoCounter, onVideoCounterRemove,
     // onError
     this.h = handlers;
     this.peers = new Map();     // peerId -> {pc, dc, chunks: Map}
@@ -106,6 +108,7 @@ export class GameConnection {
     this.poison = 0;
     this.commanderDamage = {};
     this.gridOrder = [];
+    this.videoCounters = [];
     this.videoQuality = new Map(); // peerId -> receiver's requested quality
     this.role = "player";
     this.roster = [];
@@ -307,6 +310,9 @@ export class GameConnection {
       for (const [attackerId, value] of Object.entries(this.commanderDamage)) {
         if (value) this.room?.send({ type: "commander-damage", attackerId, value });
       }
+      for (const counter of this.videoCounters) {
+        this.room?.send({ type: "video-counter", counter });
+      }
     }
     if (this.muted) this.room?.send({ type: "muted", muted: true });
   }
@@ -438,6 +444,18 @@ export class GameConnection {
           sides,
           at: Number(msg.at) || Date.now(),
         });
+        break;
+      }
+      case "video-counter": {
+        if (senderRole === "visitor") break;
+        const counter = normalizeVideoCounter(msg.counter);
+        if (counter) this.h.onVideoCounter?.(msg.from, counter);
+        break;
+      }
+      case "video-counter-remove": {
+        if (senderRole === "visitor") break;
+        const counterId = String(msg.counterId || "").slice(0, 64);
+        if (counterId) this.h.onVideoCounterRemove?.(msg.from, counterId);
         break;
       }
     }
@@ -720,6 +738,23 @@ export class GameConnection {
     const safeSides = Math.max(2, Math.min(20, Number(sides) || 20));
     const roll = Math.max(1, Math.min(safeSides, Number(value) || 1));
     this.room?.send({ type: "dice-roll", value: roll, sides: safeSides, at });
+  }
+  setVideoCounter(counter) {
+    if (this.role === "visitor") return;
+    const safeCounter = normalizeVideoCounter(counter);
+    if (!safeCounter) return;
+    const exists = this.videoCounters.some((item) => item.id === safeCounter.id);
+    this.videoCounters = (exists
+      ? this.videoCounters.map((item) => item.id === safeCounter.id ? safeCounter : item)
+      : [...this.videoCounters, safeCounter]).slice(-24);
+    this.room?.send({ type: "video-counter", counter: safeCounter });
+  }
+  removeVideoCounter(counterId) {
+    if (this.role === "visitor") return;
+    const safeId = String(counterId || "").slice(0, 64);
+    if (!safeId) return;
+    this.videoCounters = this.videoCounters.filter((counter) => counter.id !== safeId);
+    this.room?.send({ type: "video-counter-remove", counterId: safeId });
   }
 
   requestVideoQuality(peerId, quality) {
