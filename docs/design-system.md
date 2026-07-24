@@ -129,9 +129,26 @@ circular/minimal ones, 8px for the modal/drawer family).
 ```
 
 Current examples: `.modal-close`, `.drawer-toggle` (sidebar header — back/
-close/invite/counters/dice/settings), `.chat-compose button` (send,
-circular), `.counter-stepper button` (poison/commander-damage ±), the
-life-badge's sword and ± buttons (`.life-btn`, `.life-sword-btn`).
+close/invite/counters/dice/settings), `.counter-stepper button`
+(poison/commander-damage ±), the life-badge's sword and ± buttons
+(`.life-btn`, `.life-sword-btn`).
+
+The chat composer’s sound-picker trigger uses this exact 32px tier. It opens
+a compact, 360px-wide glass-material picker through a document-level portal
+above the composer so neither the sidebar’s clipped scroll area nor its
+backdrop layer can cut it off or place video above it. The two-option
+Creatures/Emotes segmented control sits above a category-scoped search field.
+Picker rows use Lucide Cat/Laugh icons and a single-line effect name rather
+than repeating the selected category as a subtitle. The chosen effect is shown
+as a compact, dismissible chip in the composer; its matching message chip
+remains visible in chat even if a recipient has sound effects muted or browser
+autoplay is blocked.
+
+Dice and coin results use a temporary, non-interactive glass card centered
+over the video panel. It reuses the former sidebar result-card proportions,
+keeps coin values human-readable as Heads/Tails, and fades away after three
+seconds. The dice sidebar contains only the selector and a separate full-width
+Roll dice/Flip coin action so changing the selection never triggers a roll.
 
 **Does not apply** to custom, purpose-built controls that only coincidentally
 fall in that size range — the dice picker's select control, the

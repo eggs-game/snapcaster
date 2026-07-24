@@ -1,12 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
-  ArrowLeft, Copy, Dices, Download, ExternalLink, Link2, MessageCircle, Mic, MicOff, PanelLeft, Search,
-  Send, Settings, Swords, ThumbsDown, UserPlus, UserRound, Video, VideoOff,
+  ArrowLeft, Cat, Copy, Dices, Download, Drum, ExternalLink, Laugh, Link2, MessageCircle, Mic, MicOff,
+  PanelLeft, Play, Search, Settings, Swords, ThumbsDown, UserPlus, UserRound, Video, VideoOff, Volume2,
+  VolumeX, X,
 } from "lucide-react";
 import { suggestCardNames } from "./cardSearch.js";
 import {
   parseChatDraft, selectWhisperRecipient, whisperCommandMatches, whisperRecipientMatches,
 } from "./chatCommands.js";
+import { getSoundEffect, searchSoundEffects } from "./soundEffects.js";
 
 // Labels for the ?debug=1 diagnostics panel.
 const CV_LABEL = {
@@ -57,6 +60,12 @@ export default function CardSidebar({
   currentUserId,
   chatRecipients,
   onSendChat,
+  soundCooldownUntil = 0,
+  soundEffectsEnabled = true,
+  soundEffectsVolume = 0.5,
+  onSoundEffectsEnabledChange,
+  onSoundEffectsVolumeChange,
+  onPreviewSound,
   onRollDie,
   onPick,
   onShareCard,
@@ -113,11 +122,21 @@ export default function CardSidebar({
   const [chatWhisperTargetId, setChatWhisperTargetId] = useState("");
   const [chatSuggestionIndex, setChatSuggestionIndex] = useState(0);
   const [chatError, setChatError] = useState("");
+  const [selectedSoundId, setSelectedSoundId] = useState("");
+  const [soundPickerOpen, setSoundPickerOpen] = useState(false);
+  const [soundPickerTab, setSoundPickerTab] = useState("creatures");
+  const [soundQuery, setSoundQuery] = useState("");
+  const [soundPickerStyle, setSoundPickerStyle] = useState({});
+  const [now, setNow] = useState(Date.now());
+  const [previewingSoundId, setPreviewingSoundId] = useState("");
   const [wrongReport, setWrongReport] = useState(null);
   const [truthQuery, setTruthQuery] = useState("");
   const [truthSuggestions, setTruthSuggestions] = useState([]);
   const [truthHighlight, setTruthHighlight] = useState(-1);
   const [cardPreview, setCardPreview] = useState(null);
+  const soundPickerTriggerRef = useRef(null);
+  const soundPickerRef = useRef(null);
+  const previewStopRef = useRef(null);
   // One-shot open slide; cleared after the panel settles into place.
   const [entering, setEntering] = useState(true);
   const settings = view === "settings";
@@ -143,6 +162,16 @@ export default function CardSidebar({
     })),
   ];
   const whisperTarget = safeChatRecipients.find((recipient) => recipient.id === chatWhisperTargetId);
+  const selectedSound = getSoundEffect(selectedSoundId);
+  const soundResults = searchSoundEffects(soundQuery, soundPickerTab);
+  const soundCooldownRemaining = Math.max(0, soundCooldownUntil - now);
+  const soundIsCoolingDown = soundCooldownRemaining > 0;
+  const soundPickerBlocked = Boolean(whisperTarget || chatDraft.toLowerCase().startsWith("/whisper") || soundIsCoolingDown);
+  const soundPickerTooltip = soundIsCoolingDown
+    ? `Wait ${Math.floor(Math.ceil(soundCooldownRemaining / 1000) / 60)}:${String(Math.ceil(soundCooldownRemaining / 1000) % 60).padStart(2, "0")}`
+    : whisperTarget || chatDraft.toLowerCase().startsWith("/whisper")
+      ? "Sound effects are public only"
+      : "Add sound effect";
 
   const openCard = (card) => {
     if (!card) return;
@@ -169,15 +198,38 @@ export default function CardSidebar({
       setChatError(parsed.error);
       return;
     }
-    const result = onSendChat?.(parsed);
+    const result = onSendChat?.({ ...parsed, soundId: selectedSound?.id || "" });
     if (result?.ok === false) {
       setChatError(result.error || "Message could not be sent.");
       return;
     }
     setChatDraft("");
     setChatWhisperTargetId("");
+    setSelectedSoundId("");
     setChatSuggestionIndex(0);
     setChatError("");
+  };
+
+  const openSoundPicker = () => {
+    if (soundPickerBlocked || !soundPickerTriggerRef.current) return;
+    const rect = soundPickerTriggerRef.current.getBoundingClientRect();
+    const width = Math.min(360, window.innerWidth - 24);
+    setSoundPickerStyle({
+      width: `${width}px`,
+      left: `${Math.max(12, Math.min(window.innerWidth - width - 12, rect.right - width))}px`,
+      bottom: `${Math.max(12, window.innerHeight - rect.top + 8)}px`,
+    });
+    setSoundPickerOpen(true);
+  };
+
+  const previewSound = (soundId) => {
+    previewStopRef.current?.();
+    setPreviewingSoundId(soundId);
+    const stop = onPreviewSound?.(soundId, (error) => {
+      setChatError(error?.message || "The preview could not load or play. Check that this tab is not muted.");
+    });
+    previewStopRef.current = stop || null;
+    window.setTimeout(() => setPreviewingSoundId((currentId) => currentId === soundId ? "" : currentId), 3100);
   };
 
   useEffect(() => {
@@ -214,6 +266,30 @@ export default function CardSidebar({
     document.addEventListener("keydown", closeOnEscape);
     return () => document.removeEventListener("keydown", closeOnEscape);
   }, [cardPreview]);
+
+  useEffect(() => {
+    if (!soundIsCoolingDown) return undefined;
+    const timer = window.setInterval(() => setNow(Date.now()), 500);
+    return () => window.clearInterval(timer);
+  }, [soundIsCoolingDown]);
+
+  useEffect(() => {
+    if (!soundPickerOpen) return undefined;
+    const closePicker = (event) => {
+      if (event.key === "Escape") setSoundPickerOpen(false);
+      if (event.type === "pointerdown"
+        && !soundPickerRef.current?.contains(event.target)
+        && !soundPickerTriggerRef.current?.contains(event.target)) setSoundPickerOpen(false);
+    };
+    document.addEventListener("keydown", closePicker);
+    document.addEventListener("pointerdown", closePicker);
+    return () => {
+      document.removeEventListener("keydown", closePicker);
+      document.removeEventListener("pointerdown", closePicker);
+    };
+  }, [soundPickerOpen]);
+
+  useEffect(() => () => previewStopRef.current?.(), []);
 
   useEffect(() => {
     const q = query.trim();
@@ -554,6 +630,28 @@ export default function CardSidebar({
           </label>
           {deviceError && <p className="device-error">{deviceError}</p>}
 
+          <h3 className="drawer-section">Sound effects</h3>
+          <button
+            className={soundEffectsEnabled ? "control-row" : "control-row off"}
+            onClick={() => onSoundEffectsEnabledChange?.(!soundEffectsEnabled)}
+          >
+            {soundEffectsEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
+            <span>{soundEffectsEnabled ? "Sound effects on" : "Sound effects muted"}</span>
+          </button>
+          <label className="sound-volume-field">
+            <span>Volume {Math.round(soundEffectsVolume * 100)}%</span>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.05"
+              value={soundEffectsVolume}
+              onChange={(event) => onSoundEffectsVolumeChange?.(Number(event.target.value))}
+              disabled={!soundEffectsEnabled}
+              aria-label="Sound effect volume"
+            />
+          </label>
+
           {!isVisitor && (
             <div className="color-picker">
               <span className="color-label">Your color</span>
@@ -592,7 +690,7 @@ export default function CardSidebar({
           onCopyVisitorLink={onCopyVisitorLink}
         />
       ) : dice ? (
-        <DicePanel lastRoll={diceRolls?.[diceRolls.length - 1]} onRoll={onRollDie} />
+        <DicePanel onRoll={onRollDie} />
       ) : (
         <>
           {editingLobbyName && !isVisitor ? (
@@ -945,7 +1043,8 @@ export default function CardSidebar({
                       </strong>
                       <span>{new Date(message.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</span>
                     </div>
-                    <p>{message.text}</p>
+                    {message.soundId && <span className="chat-sound-message"><Drum size={14} /> {getSoundEffect(message.soundId)?.label || "Sound effect"}</span>}
+                    {message.text && <p>{message.text}</p>}
                   </div>
                 )) : (
                   <p className="chat-empty">Messages from players and visitors will appear here.</p>
@@ -981,44 +1080,128 @@ export default function CardSidebar({
                     ))}
                   </div>
                 )}
-                <textarea
-                  value={chatDraft}
-                  onChange={(event) => {
-                    const next = event.target.value;
-                    setChatDraft(next);
-                    setChatError("");
-                    setChatSuggestionIndex(0);
-                    if (whisperTarget && !next.toLocaleLowerCase().startsWith(`/whisper @${whisperTarget.name}`.toLocaleLowerCase())) {
-                      setChatWhisperTargetId("");
-                    }
-                  }}
-                  onKeyDown={(event) => {
-                    if (chatSuggestions.length && (event.key === "ArrowDown" || event.key === "ArrowUp")) {
-                      event.preventDefault();
-                      const direction = event.key === "ArrowDown" ? 1 : -1;
-                      setChatSuggestionIndex((index) => (index + direction + chatSuggestions.length) % chatSuggestions.length);
-                      return;
-                    }
-                    if (chatSuggestions.length && (event.key === "Tab" || event.key === "Enter")) {
-                      event.preventDefault();
-                      chooseChatSuggestion(chatSuggestions[chatSuggestionIndex] || chatSuggestions[0]);
-                      return;
-                    }
-                    if (event.key === "Enter" && !event.shiftKey) {
-                      event.preventDefault();
-                      event.currentTarget.form?.requestSubmit();
-                    }
-                  }}
-                  placeholder={whisperTarget ? `Whisper to @${whisperTarget.name}` : chatDraft.toLowerCase().startsWith("/whisper") ? "Choose @person, then write a message" : "Message everyone"}
-                  aria-label="Chat message"
-                  aria-describedby={chatError ? "chat-compose-error" : undefined}
-                  maxLength={640}
-                  rows={1}
-                />
-                <button type="submit" aria-label="Send message" data-tooltip="Send message" disabled={!chatDraft.trim()}>
-                  <Send size={20} />
+                <div className="chat-compose-main">
+                  {selectedSound && (
+                    <span className="selected-sound-chip">
+                      <Drum size={14} />
+                      <span>{selectedSound.label}</span>
+                      <button
+                        type="button"
+                        aria-label={`Remove ${selectedSound.label}`}
+                        data-tooltip="Remove sound"
+                        onClick={() => setSelectedSoundId("")}
+                      >
+                        <X size={14} />
+                      </button>
+                    </span>
+                  )}
+                  <textarea
+                    value={chatDraft}
+                    onChange={(event) => {
+                      const next = event.target.value;
+                      setChatDraft(next);
+                      setChatError("");
+                      setChatSuggestionIndex(0);
+                      if (whisperTarget && !next.toLocaleLowerCase().startsWith(`/whisper @${whisperTarget.name}`.toLocaleLowerCase())) {
+                        setChatWhisperTargetId("");
+                      }
+                    }}
+                    onKeyDown={(event) => {
+                      if (chatSuggestions.length && (event.key === "ArrowDown" || event.key === "ArrowUp")) {
+                        event.preventDefault();
+                        const direction = event.key === "ArrowDown" ? 1 : -1;
+                        setChatSuggestionIndex((index) => (index + direction + chatSuggestions.length) % chatSuggestions.length);
+                        return;
+                      }
+                      if (chatSuggestions.length && (event.key === "Tab" || event.key === "Enter")) {
+                        event.preventDefault();
+                        chooseChatSuggestion(chatSuggestions[chatSuggestionIndex] || chatSuggestions[0]);
+                        return;
+                      }
+                      if (event.key === "Enter" && !event.shiftKey) {
+                        event.preventDefault();
+                        event.currentTarget.form?.requestSubmit();
+                      }
+                    }}
+                    placeholder={whisperTarget ? `Whisper to @${whisperTarget.name}` : chatDraft.toLowerCase().startsWith("/whisper") ? "Choose @person, then write a message" : "Message everyone"}
+                    aria-label="Chat message"
+                    aria-describedby={chatError ? "chat-compose-error" : undefined}
+                    maxLength={640}
+                    rows={1}
+                  />
+                </div>
+                <button
+                  type="button"
+                  className="sound-picker-trigger"
+                  ref={soundPickerTriggerRef}
+                  disabled={soundPickerBlocked}
+                  aria-label="Add sound effect"
+                  data-tooltip={soundPickerTooltip}
+                  data-tooltip-pos="right-top"
+                  onClick={openSoundPicker}
+                >
+                  <Drum size={20} />
                 </button>
               </form>
+              {soundPickerOpen && createPortal(
+                <div className="sound-picker" style={soundPickerStyle} ref={soundPickerRef} role="dialog" aria-label="Choose a sound effect">
+                  <div className="sound-picker-head">
+                    <div>
+                      <strong>Add sound effect</strong>
+                      <span>Plays for everyone · 2–3 seconds</span>
+                    </div>
+                    <button type="button" aria-label="Close sound picker" data-tooltip="Close" onClick={() => setSoundPickerOpen(false)}><X size={16} /></button>
+                  </div>
+                  <div className="sound-picker-tabs" role="tablist" aria-label="Sound effect category">
+                    {[["creatures", "Creatures"], ["emotes", "Emotes"]].map(([tab, label]) => (
+                      <button
+                        key={tab}
+                        type="button"
+                        role="tab"
+                        aria-selected={soundPickerTab === tab}
+                        onClick={() => {
+                          setSoundPickerTab(tab);
+                          setSoundQuery("");
+                        }}
+                      >{label}</button>
+                    ))}
+                  </div>
+                  <input
+                    className="sound-picker-search"
+                    value={soundQuery}
+                    onChange={(event) => setSoundQuery(event.target.value)}
+                    placeholder={soundPickerTab === "creatures" ? "Search creatures" : "Search emotes"}
+                    aria-label={soundPickerTab === "creatures" ? "Search creatures" : "Search emotes"}
+                    autoFocus
+                  />
+                  <div className="sound-picker-list">
+                    {soundResults.length ? soundResults.map((sound) => (
+                      <div className="sound-picker-item" key={sound.id}>
+                        <button type="button" className="sound-picker-select" onClick={() => {
+                          setSelectedSoundId(sound.id);
+                          setSoundPickerOpen(false);
+                          setChatError("");
+                        }}>
+                          {sound.category === "creatures" ? <Cat size={16} /> : <Laugh size={16} />}
+                          <span><strong>{sound.label}</strong></span>
+                        </button>
+                        <button
+                          type="button"
+                          className={previewingSoundId === sound.id ? "sound-preview playing" : "sound-preview"}
+                          aria-label={`Preview ${sound.label}`}
+                          data-tooltip="Preview"
+                          data-tooltip-pos="right-top"
+                          onClick={() => previewSound(sound.id)}
+                        ><Play size={16} /></button>
+                      </div>
+                    )) : (
+                      <p className="sound-picker-empty">
+                        No vetted {soundPickerTab === "creatures" ? "creature" : "emote"} matches that search yet.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              , document.body)}
             </div>
           )}
         </>
@@ -1041,45 +1224,36 @@ export default function CardSidebar({
   );
 }
 
-function DicePanel({ lastRoll, onRoll }) {
-  const [selectedSides, setSelectedSides] = useState(lastRoll?.sides || 20);
+function DicePanel({ onRoll }) {
+  const [selectedSides, setSelectedSides] = useState(20);
   const diceOptions = Array.from({ length: 18 }, (_, index) => index + 3);
-  useEffect(() => {
-    if (lastRoll?.sides) setSelectedSides(lastRoll.sides);
-  }, [lastRoll?.sides]);
   return (
     <div className="dice-panel">
       <p>Choose a die to roll. Results are shared with everyone and added to Log.</p>
-      <div className="dice-result" key={lastRoll?.id || "empty"}>
-        <Dices size={28} />
-        <strong>{lastRoll ? formatDiceResult(lastRoll.value, lastRoll.sides) : "—"}</strong>
-        <span>{lastRoll ? `${formatDiceSides(lastRoll.sides)} · ${lastRoll.name} · ${new Date(lastRoll.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}` : "No rolls yet"}</span>
-      </div>
       <label className="dice-select-field">
         <span className="color-label">Die</span>
         <select
           className="dice-select"
           aria-label="Choose a die to roll"
           value={selectedSides}
-          onChange={(event) => {
-            const sides = Number(event.target.value);
-            setSelectedSides(sides);
-            onRoll?.(sides);
-          }}
+          onChange={(event) => setSelectedSides(Number(event.target.value))}
         >
           <option value={2}>Coin</option>
           {diceOptions.map((sides) => <option key={sides} value={sides}>D{sides}</option>)}
         </select>
       </label>
+      <button type="button" className="dice-roll-button" onClick={() => onRoll?.(selectedSides)}>
+        {selectedSides === 2 ? "Flip coin" : "Roll dice"}
+      </button>
     </div>
   );
 }
 
-function formatDiceSides(sides) {
+export function formatDiceSides(sides) {
   return Number(sides) === 2 ? "Coin" : `d${Number(sides) || 20}`;
 }
 
-function formatDiceResult(value, sides) {
+export function formatDiceResult(value, sides) {
   if (Number(sides) === 2) return Number(value) === 1 ? "Heads" : "Tails";
   return String(value ?? "—");
 }

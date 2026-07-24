@@ -1,13 +1,16 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
-  Check, FlipVertical2, Mic, MicOff, Minus, MoreVertical, PanelLeft, Plus, Shuffle, SkipForward,
+  Check, Dices, FlipVertical2, Mic, MicOff, Minus, MoreVertical, PanelLeft, Plus, Shuffle, SkipForward,
   Swords, Video, VideoOff, X,
 } from "lucide-react";
 import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
 import { labelRecognitionReport, saveRecognitionReport } from "./signaling.js";
 import { suggestCardNames } from "./cardSearch.js";
 import { identify as identifyCard, preload as preloadRecognition } from "./recognition/matcher.js";
-import CardSidebar, { cardFromScryfall } from "./CardSidebar.jsx";
+import CardSidebar, { cardFromScryfall, formatDiceResult, formatDiceSides } from "./CardSidebar.jsx";
+import { getSoundEffect, playSoundEffect } from "./soundEffects.js";
+
+const SOUND_COOLDOWN_MS = 120000;
 
 export default function Game({ session, onLeave, themePreference, onThemePreferenceChange }) {
   const isVisitor = session.role === "visitor";
@@ -20,6 +23,9 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const readyLogIdRef = useRef(0);
   const cardLogIdRef = useRef(0);
   const readyCheckRef = useRef(null);
+  const diceOverlayTimerRef = useRef(null);
+  const soundPreferencesRef = useRef({ enabled: true, volume: 0.5 });
+  const recentSoundBySenderRef = useRef({});
   const [myId, setMyId] = useState(null);
   const [roster, setRoster] = useState([]);
   const [lives, setLives] = useState({}); // id -> life
@@ -38,6 +44,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const [lifeEvents, setLifeEvents] = useState([]);
   const [chatMessages, setChatMessages] = useState([]);
   const [diceRolls, setDiceRolls] = useState([]);
+  const [diceOverlay, setDiceOverlay] = useState(null);
   const [readyEvents, setReadyEvents] = useState([]);
   const [readyCheck, setReadyCheck] = useState(null);
   const [gridOrder, setGridOrder] = useState([]);
@@ -82,6 +89,38 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const [videoDeviceId, setVideoDeviceId] = useState("");
   const [audioDeviceId, setAudioDeviceId] = useState("");
   const [deviceError, setDeviceError] = useState("");
+  const [soundEffectsEnabled, setSoundEffectsEnabled] = useState(() => {
+    try { return localStorage.getItem("snapcast-sound-effects-enabled") !== "false"; } catch { return true; }
+  });
+  const [soundEffectsVolume, setSoundEffectsVolume] = useState(() => {
+    try {
+      const saved = Number(localStorage.getItem("snapcast-sound-effects-volume"));
+      return Number.isFinite(saved) ? Math.max(0, Math.min(1, saved)) : 0.5;
+    } catch { return 0.5; }
+  });
+  const [soundCooldownUntil, setSoundCooldownUntil] = useState(0);
+
+  soundPreferencesRef.current = { enabled: soundEffectsEnabled, volume: soundEffectsVolume };
+
+  const showDiceOverlay = useCallback((roll) => {
+    window.clearTimeout(diceOverlayTimerRef.current);
+    setDiceOverlay(roll);
+    diceOverlayTimerRef.current = window.setTimeout(() => setDiceOverlay(null), 3000);
+  }, []);
+
+  const acceptIncomingSound = (senderId, soundId) => {
+    const sound = getSoundEffect(soundId);
+    if (!sound) return "";
+    const now = Date.now();
+    const lastSoundAt = recentSoundBySenderRef.current[senderId] || 0;
+    // The receiver also applies the two-minute rule. This prevents a modified
+    // sender from making a room noisy even before a server-side limiter exists.
+    if (now - lastSoundAt < SOUND_COOLDOWN_MS) return "";
+    recentSoundBySenderRef.current[senderId] = now;
+    const preferences = soundPreferencesRef.current;
+    if (preferences.enabled) playSoundEffect(sound, preferences.volume);
+    return sound.id;
+  };
 
   useEffect(() => {
     // Spin up the recognition worker now so OpenCV compiles in the background
@@ -124,20 +163,28 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
           at,
         }]);
       },
-      onChat: (message) => setChatMessages((messages) => [...messages.slice(-99), {
-        ...message,
-        id: `remote-${message.from}-${message.at}-${++chatIdRef.current}`,
-      }]),
+      onChat: (message) => {
+        const soundId = acceptIncomingSound(message.from, message.soundId);
+        setChatMessages((messages) => [...messages.slice(-99), {
+          ...message,
+          soundId,
+          id: `remote-${message.from}-${message.at}-${++chatIdRef.current}`,
+        }]);
+      },
       onActivePlayer: setActivePlayerId,
       onPoison: (id, value) => setPoisonCounters((values) => ({ ...values, [id]: value })),
       onCommanderDamage: (victimId, attackerId, value) => setCommanderDamage((values) => ({
         ...values,
         [victimId]: { ...(values[victimId] || {}), [attackerId]: value },
       })),
-      onDiceRoll: (roll) => setDiceRolls((rolls) => [...rolls.slice(-49), {
-        ...roll,
-        id: `remote-${roll.from}-${roll.at}-${++diceLogIdRef.current}`,
-      }]),
+      onDiceRoll: (roll) => {
+        const entry = {
+          ...roll,
+          id: `remote-${roll.from}-${roll.at}-${++diceLogIdRef.current}`,
+        };
+        setDiceRolls((rolls) => [...rolls.slice(-49), entry]);
+        showDiceOverlay(entry);
+      },
       onGridOrder: (order) => setGridOrder(order),
       onReadyCheckStart: (check) => {
         const next = { ...check, responses: {} };
@@ -199,9 +246,18 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     navigator.mediaDevices?.addEventListener?.("devicechange", onDeviceChange);
     return () => {
       navigator.mediaDevices?.removeEventListener?.("devicechange", onDeviceChange);
+      window.clearTimeout(diceOverlayTimerRef.current);
       conn.close();
     };
   }, [isVisitor, session.code, session.name, session.videoDeviceId, session.audioDeviceId]);
+
+  useEffect(() => {
+    try { localStorage.setItem("snapcast-sound-effects-enabled", String(soundEffectsEnabled)); } catch { /* ignore */ }
+  }, [soundEffectsEnabled]);
+
+  useEffect(() => {
+    try { localStorage.setItem("snapcast-sound-effects-volume", String(soundEffectsVolume)); } catch { /* ignore */ }
+  }, [soundEffectsVolume]);
 
   // A readiness prompt is deliberately ephemeral. The timer is local so a
   // lost broadcast cannot leave a stale prompt on one player's screen.
@@ -363,10 +419,12 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const sendChat = (value) => {
     const payload = typeof value === "string" ? { text: value } : (value || {});
     const text = String(payload.text || "").trim().slice(0, 500);
-    if (!text) return { ok: false, error: "Write a message first." };
+    const soundId = getSoundEffect(payload.soundId)?.id || "";
+    if (!text && !soundId) return { ok: false, error: "Write a message or choose a sound." };
     if (!myId) return { ok: false, error: "Chat is still connecting." };
     const at = Date.now();
     if (payload.kind === "whisper") {
+      if (soundId) return { ok: false, error: "Sound effects are shared with everyone, not sent as whispers." };
       const target = rosterRef.current.find((member) => member.id === payload.targetId && member.id !== myId);
       if (!target) return { ok: false, error: "That person is no longer in the game." };
       if (!connRef.current?.sendWhisper(target.id, text, at)) {
@@ -384,14 +442,24 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       }]);
       return { ok: true };
     }
+    if (soundId && at < soundCooldownUntil) {
+      const seconds = Math.ceil((soundCooldownUntil - at) / 1000);
+      return { ok: false, error: `Wait ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")} before sending another sound.` };
+    }
+    if (soundId) {
+      recentSoundBySenderRef.current[myId] = at;
+      setSoundCooldownUntil(at + SOUND_COOLDOWN_MS);
+      if (soundPreferencesRef.current.enabled) playSoundEffect(soundId, soundPreferencesRef.current.volume);
+    }
     setChatMessages((messages) => [...messages.slice(-99), {
       id: `local-${myId}-${at}-${++chatIdRef.current}`,
       from: myId,
       name: session.name,
       text,
+      soundId,
       at,
     }]);
-    connRef.current?.sendChat(text, at);
+    connRef.current?.sendChat(text, at, soundId);
     return { ok: true };
   };
 
@@ -400,14 +468,16 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     const sides = Math.max(2, Math.min(20, Number(requestedSides) || 20));
     const value = Math.floor(Math.random() * sides) + 1;
     const at = Date.now();
-    setDiceRolls((rolls) => [...rolls.slice(-49), {
+    const entry = {
       id: `local-${myId}-${at}-${++diceLogIdRef.current}`,
       from: myId,
       name: session.name,
       value,
       sides,
       at,
-    }]);
+    };
+    setDiceRolls((rolls) => [...rolls.slice(-49), entry]);
+    showDiceOverlay(entry);
     connRef.current?.sendDiceRoll(value, sides, at);
   };
 
@@ -759,6 +829,20 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
             currentUserId={myId}
             chatRecipients={roster.filter((member) => member.id !== myId)}
             onSendChat={sendChat}
+            soundCooldownUntil={soundCooldownUntil}
+            soundEffectsEnabled={soundEffectsEnabled}
+            soundEffectsVolume={soundEffectsVolume}
+            onSoundEffectsEnabledChange={setSoundEffectsEnabled}
+            onSoundEffectsVolumeChange={setSoundEffectsVolume}
+            onPreviewSound={(soundId, onError) => {
+              // Preview is an explicit action, so it remains audible even when
+              // automatic room sounds are muted or their slider is at zero.
+              return playSoundEffect(
+                soundId,
+                Math.max(0.5, soundPreferencesRef.current.volume),
+                onError,
+              );
+            }}
             onRollDie={rollDie}
             onPick={(m) => setCurrent({ matches: [m] })}
             onShareCard={shareCard}
@@ -852,6 +936,15 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
                     {mutedPlayers[visitor.id] && <MicOff size={9} className="visitor-muted" />}
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+          {diceOverlay && (
+            <div className="dice-result-overlay" key={diceOverlay.id} aria-live="polite">
+              <div className="dice-result-card">
+                <Dices size={28} />
+                <strong>{formatDiceResult(diceOverlay.value, diceOverlay.sides)}</strong>
+                <span>{formatDiceSides(diceOverlay.sides)} · {diceOverlay.name}</span>
               </div>
             </div>
           )}

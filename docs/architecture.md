@@ -44,6 +44,7 @@ src/
   Game.jsx              video tiles, life, turns, public chat/whispers, dice, capture clicks
   CardSidebar.jsx       results panel + ?debug=1 diagnostics
   chatCommands.js       /whisper parsing and @recipient matching
+  soundEffects.js       vetted local sound catalogue and 3-second playback cap
   TurnTest.jsx          credential-safe production relay health page
   webrtc.js             mesh, data channels, capture request/response
   signaling.js          Supabase Realtime room join, room codes
@@ -148,6 +149,17 @@ the main thread — an early bug that made the lobby unresponsive.
   copy, the recipient sees a separately styled “Whisper from” entry, and no
   other room participant receives the message. If that private channel is not
   ready, the UI reports the failure and does not fall back to public chat.
+- **Chat sounds are public, short, and allow-listed.** A public chat message
+  may carry one catalogue `soundId`, which each browser resolves to a bundled
+  local clip. A shared Web Audio context decodes it, seeks to the curated
+  audible offset, and stops after 2–3 seconds. The room never receives
+  arbitrary audio URLs or uploads. Private whispers remain text-only. Sender UI and
+  recipient playback both enforce a two-minute per-sender sound cooldown;
+  listeners can mute or lower sound effects locally.
+- **Dice rolls are shared events with transient feedback.** Choosing a die
+  does not roll it; the explicit Roll dice/Flip coin action broadcasts the
+  result, adds it to Log, and shows every participant a centered three-second
+  video-panel overlay. Coin results are displayed as Heads or Tails.
 - **Capture is never silent.** When a peer photographs your camera you see
   "<name> scanned your board" on your own tile.
 - **Cards can be shared deliberately.** A player can reveal a hover-only chat

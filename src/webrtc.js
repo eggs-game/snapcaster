@@ -3,6 +3,7 @@
 // recipient-only chat whispers that must never enter the room broadcast.
 import { joinRoom } from "./signaling.js";
 import { cropGeometry } from "./captureGeometry.js";
+import { getSoundEffect } from "./soundEffects.js";
 
 const FALLBACK_ICE_SERVERS = [
   { urls: "stun:stun.cloudflare.com:3478" },
@@ -360,12 +361,16 @@ export class GameConnection {
         break;
       case "chat": {
         const text = String(msg.text || "").trim().slice(0, 500);
-        if (!text) break;
+        // A chat packet can name only one bundled, allow-listed sound. Never
+        // accept a peer-provided media URL here.
+        const soundId = getSoundEffect(msg.soundId)?.id || "";
+        if (!text && !soundId) break;
         const sender = this.roster.find((member) => member.id === msg.from);
         this.h.onChat?.({
           from: msg.from,
           name: sender?.name || (senderRole === "visitor" ? "Visitor" : "Player"),
           text,
+          soundId,
           at: Number(msg.at) || Date.now(),
         });
         break;
@@ -642,10 +647,11 @@ export class GameConnection {
     if (this.role === "visitor") return;
     this.room?.send({ type: "card-identified", card, byName, at });
   }
-  sendChat(text, at = Date.now()) {
+  sendChat(text, at = Date.now(), soundId = "") {
     const message = String(text || "").trim().slice(0, 500);
-    if (!message) return;
-    this.room?.send({ type: "chat", text: message, at });
+    const safeSoundId = getSoundEffect(soundId)?.id || "";
+    if (!message && !safeSoundId) return;
+    this.room?.send({ type: "chat", text: message, soundId: safeSoundId || undefined, at });
   }
   sendWhisper(peerId, text, at = Date.now()) {
     const targetId = String(peerId || "").slice(0, 40);
