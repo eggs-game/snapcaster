@@ -330,8 +330,8 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     connRef.current?.announceCard(card, session.name, at);
   }, [isVisitor, myId, session.name]);
 
-  // captureClientY lets flipped tiles pass the reflected point for capture
-  // while the click flash stays where the player actually clicked.
+  // Flipped tiles pass the reflected vertical point for capture while the
+  // click flash stays where the player actually clicked.
   const identify = useCallback(async (tileId, videoEl, clientX, clientY, captureClientY = clientY) => {
     const conn = connRef.current;
     const pt = clickToNormalized(videoEl, clientX, captureClientY);
@@ -1321,7 +1321,7 @@ function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseComm
         data-counter-drop-target={tile.isMe ? "true" : undefined}
         onClick={(e) => {
           if (!videoRef.current) return;
-          // A flipped video shows the source upside down; reflect the click so
+          // Flipped video reverses the vertical axis. Reflect the click so
           // recognition still targets the card the player actually clicked.
           let captureY = e.clientY;
           if (flipped) {
