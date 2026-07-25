@@ -36,6 +36,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const [error, setError] = useState(null);
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(true);
+  const [outgoingVideoFlipped, setOutgoingVideoFlipped] = useState(false);
   const [lookups, setLookups] = useState([]);
   const [chatMessages, setChatMessages] = useState([]);
   const [diceOverlay, setDiceOverlay] = useState(null);
@@ -813,6 +814,16 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     setMutedPlayers((values) => ({ ...values, [myId]: !next }));
     connRef.current?.setMuted(!next);
   };
+
+  const toggleOutgoingVideoFlip = async () => {
+    const next = !outgoingVideoFlipped;
+    try {
+      const changed = await connRef.current?.setOutgoingVideoFlipped(next);
+      if (changed) setOutgoingVideoFlipped(next);
+    } catch (error) {
+      setError(String(error?.message || "Could not flip the outgoing video."));
+    }
+  };
   const toggleCam = () => {
     if (isVisitor) return;
     connRef.current.toggleTrack("video", !camOn);
@@ -1094,6 +1105,8 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
                 micOn={micOn}
                 onToggleCam={toggleCam}
                 onToggleMic={toggleMic}
+                outgoingVideoFlipped={t.isMe ? outgoingVideoFlipped : undefined}
+                onToggleOutgoingVideoFlip={t.isMe ? toggleOutgoingVideoFlip : undefined}
                 videoQuality={t.isMe ? "auto" : (videoQualityByPlayer[t.id] || "auto")}
                 onVideoQualityChange={t.isMe ? undefined : (quality) => chooseVideoQuality(t.id, quality)}
                 canRandomizeGrid={session.creator && t.isMe}
@@ -1232,7 +1245,7 @@ function formatVideoResolution(resolution) {
   return `${height}p`;
 }
 
-function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseCommander, onLookupCommander, onChangeLife, onOpenCounters, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, isReadyCheckActive, readyStatus, onReady, onNotReady, heroRole, onSelectHero, flash, scanNotice, camOn, micOn, onToggleCam, onToggleMic, videoQuality, onVideoQualityChange, videoCounters, counterDragPreview, onStartVideoCounterDrag, onChangeVideoCounter, onRemoveVideoCounter }) {
+function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseCommander, onLookupCommander, onChangeLife, onOpenCounters, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, isReadyCheckActive, readyStatus, onReady, onNotReady, heroRole, onSelectHero, flash, scanNotice, camOn, micOn, onToggleCam, onToggleMic, outgoingVideoFlipped, onToggleOutgoingVideoFlip, videoQuality, onVideoQualityChange, videoCounters, counterDragPreview, onStartVideoCounterDrag, onChangeVideoCounter, onRemoveVideoCounter }) {
   // Seats 3 and 4 (the bottom row of a 4-player grid) mirror their banner to
   // the bottom edge and their life badge to the top corner, since those
   // tiles sit upside-down relative to the viewer's side of the table.
@@ -1243,7 +1256,8 @@ function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseComm
   const lifeBadgeAlign = isSeat3 ? "right" : isSeat4 ? "left" : innerSide;
   const bannerAtBottom = isSeat3 || isSeat4;
   const videoRef = useRef(null);
-  const [flipped, setFlipped] = useState(false);
+  const [localFlipped, setLocalFlipped] = useState(false);
+  const flipped = tile.isMe ? Boolean(outgoingVideoFlipped) : localFlipped;
   const [videoResolution, setVideoResolution] = useState(null);
   const speaking = useSpeaking(tile.stream, tile.muted);
   useEffect(() => {
@@ -1306,7 +1320,7 @@ function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseComm
         onRandomizeGrid={onRandomizeGrid}
         onStartReadyCheck={onStartReadyCheck}
         flipped={flipped}
-        onToggleFlip={() => setFlipped((f) => !f)}
+        onToggleFlip={() => tile.isMe ? onToggleOutgoingVideoFlip?.() : setLocalFlipped((f) => !f)}
         camOn={camOn}
         micOn={micOn}
         onToggleCam={onToggleCam}
@@ -1498,7 +1512,7 @@ function ManaCost({ cost }) {
 
 // Three-dot video-options menu on the banner's first row. On your own tile
 // it also carries quick mic/camera toggles right next to the menu button.
-function TileMenu({ flipped, onToggleFlip, canPassTurn, onPassTurn, canRandomizeGrid, onRandomizeGrid, canStartReadyCheck, onStartReadyCheck, showMediaControls, camOn, micOn, onToggleCam, onToggleMic, videoQuality, videoResolution, onVideoQualityChange }) {
+function TileMenu({ flipped, onToggleFlip, canPassTurn, onPassTurn, canRandomizeGrid, onRandomizeGrid, canStartReadyCheck, onStartReadyCheck, showMediaControls, camOn, micOn, onToggleCam, onToggleMic, videoQuality, videoResolution, onVideoQualityChange, menuUp = false }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="banner-menu" onClick={(e) => e.stopPropagation()}>
@@ -1532,7 +1546,7 @@ function TileMenu({ flipped, onToggleFlip, canPassTurn, onPassTurn, canRandomize
         <MoreVertical size={16} />
       </button>
       {open && (
-        <div className="tile-menu">
+        <div className={menuUp ? "tile-menu menu-up" : "tile-menu"}>
           {onVideoQualityChange && (
             <label className="tile-quality-control">
               <span>Video quality</span>
@@ -1657,7 +1671,7 @@ function CommanderBanner({ tile, onChoose, onLookupCommander, speaking, onPassTu
   if (!tile.isMe) {
     return (
       <div className={atBottom ? "commander-banner banner-at-bottom" : "commander-banner"}>
-        <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} videoQuality={videoQuality} videoResolution={videoResolution} onVideoQualityChange={onVideoQualityChange} />
+        <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} videoQuality={videoQuality} videoResolution={videoResolution} onVideoQualityChange={onVideoQualityChange} menuUp={atBottom} />
         {nameRow}
         <div className="banner-row commander-detail">
           {tile.commander ? (
@@ -1686,7 +1700,7 @@ function CommanderBanner({ tile, onChoose, onLookupCommander, speaking, onPassTu
         className={atBottom ? "commander-banner commander-set banner-at-bottom" : "commander-banner commander-set"}
         onClick={() => setEditing(true)}
       >
-        <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canPassTurn={tile.activeTurn} onPassTurn={onPassTurn} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} canStartReadyCheck={canRandomizeGrid} onStartReadyCheck={onStartReadyCheck} showMediaControls camOn={camOn} micOn={micOn} onToggleCam={onToggleCam} onToggleMic={onToggleMic} videoResolution={videoResolution} />
+        <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canPassTurn={tile.activeTurn} onPassTurn={onPassTurn} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} canStartReadyCheck={canRandomizeGrid} onStartReadyCheck={onStartReadyCheck} showMediaControls camOn={camOn} micOn={micOn} onToggleCam={onToggleCam} onToggleMic={onToggleMic} videoResolution={videoResolution} menuUp={atBottom} />
         {nameRow}
         <div className="banner-row commander-detail">
           <span className={tile.commander ? "commander-name" : "commander-name unset"}>
@@ -1710,7 +1724,7 @@ function CommanderBanner({ tile, onChoose, onLookupCommander, speaking, onPassTu
   };
   return (
     <form className={atBottom ? "commander-banner commander-picker banner-at-bottom" : "commander-banner commander-picker"} onSubmit={submit}>
-      <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canPassTurn={tile.activeTurn} onPassTurn={onPassTurn} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} canStartReadyCheck={canRandomizeGrid} onStartReadyCheck={onStartReadyCheck} showMediaControls camOn={camOn} micOn={micOn} onToggleCam={onToggleCam} onToggleMic={onToggleMic} videoResolution={videoResolution} />
+      <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canPassTurn={tile.activeTurn} onPassTurn={onPassTurn} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} canStartReadyCheck={canRandomizeGrid} onStartReadyCheck={onStartReadyCheck} showMediaControls camOn={camOn} micOn={micOn} onToggleCam={onToggleCam} onToggleMic={onToggleMic} videoResolution={videoResolution} menuUp={atBottom} />
       {nameRow}
       <div className="commander-search">
         <input

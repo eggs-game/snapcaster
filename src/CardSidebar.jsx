@@ -1036,7 +1036,7 @@ export default function CardSidebar({
                           style={{ backgroundColor: tileColors[senderColorIndex] }}
                           aria-label={senderName}
                           data-tooltip={senderName}
-                          data-tooltip-pos="right-top"
+                          data-tooltip-pos="left-top"
                         >
                           {senderName.trim().charAt(0).toUpperCase()}
                         </span>

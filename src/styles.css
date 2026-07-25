@@ -752,6 +752,7 @@ input::placeholder { color: var(--text-tertiary); opacity: 1; }
 .menu-btn-danger { color: var(--danger-text); }
 .menu-btn-danger:hover { color: var(--danger-text); background: rgba(255,255,255,0.12); }
 .tile-menu { position: absolute; top: 26px; right: 0; z-index: 5; min-width: 180px; padding: 5px; background: var(--overlay-bg); border: 1px solid var(--border-default); border-radius: 12px; -webkit-backdrop-filter: blur(18px) saturate(var(--glass-saturation)); backdrop-filter: blur(18px) saturate(var(--glass-saturation)); box-shadow: inset 0 1px 0 var(--glass-highlight), var(--overlay-shadow); }
+.tile-menu.menu-up { top: auto; bottom: 26px; }
 .tile-quality-control { display: grid; gap: 5px; padding: 7px 9px 8px; color: var(--text-secondary); font-size: var(--text-sm); }
 .tile-quality-control > span { color: var(--text-primary); font-weight: 500; }
 .tile-quality-control select { width: 100%; height: 30px; padding: 0 28px 0 8px; appearance: none; border: 1px solid var(--border-default); border-radius: 6px; background-color: var(--bg-surface-raised); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23888078' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; background-size: 14px; color: var(--text-primary); font: inherit; font-size: var(--text-sm); cursor: pointer; }
