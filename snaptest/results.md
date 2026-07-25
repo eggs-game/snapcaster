@@ -9,6 +9,150 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-07-25 — `isolation-retrieval-7` — above-click edge isolation
+
+The production-build candidate was tested from a stable local `vite preview`
+after one long dev-server run reloaded mid-suite. The implementation adds a
+bounded top-edge proposal family that can place the click below the card,
+requires the proposed card to meet the capture boundary, suppresses that
+family when a card-shaped contour already contains the click, and keeps
+edge-retrieval distance separate from the ordinary image selected for ORB.
+The existing two-exact-crops-per-orientation wild-playmat bridge remains
+intact; reducing it to one caused a clear Vegas regression and was discarded.
+
+- **Fixed top-edge 64:** **51/64 (79.7%)**, up from **42/64 (65.6%)** on the
+  same cards (**+9**, well outside noise). No-occlusion was 15/16; rotation was
+  upright 12/16, tilt 14/16, sideways 15/16 and upside-down 10/16. Accepted
+  art matches were 50/50 precise. Average was 5.032s versus 5.497s, p90 8.626s
+  versus 9.460s; median was effectively flat/slightly slower (5.609s versus
+  5.553s).
+- **Tableau EDH 100:** **96/100 (96.0%)**, meeting the 95% gate. Side-by-side
+  and spaced layouts were 60/60 and 30/30; all 91 fully clear cards were
+  correct. The four misses were confined to the intentionally overlapping
+  scene. One accepted neighbor-card art match came from the pre-existing
+  ordinary path at 15.8% overlap, not the edge family; this is the remaining
+  cursor-target isolation problem.
+- **Magic Con Vegas 200:** **180/200 (90.0%)**, 0 errors. Accepted art/visual
+  pathways were **170/170 precise** and the perfect-crop control was 20/20.
+  Clear cards were 171/187, edge-clipped cards 3/3, side-by-side 113/120,
+  spaced 52/60 and overlapping 15/20. Rotation was upright 104/114, tapped
+  48/53 and upside-down 28/33. Median was 7.093s (previous 7.4s); p90 was
+  8.800s (previous 8.3s). Overall met the 90% gate; clear, side-by-side and
+  upside-down sub-gates each missed by one card or less, within the documented
+  two-card sampling noise.
+- **Tableau EDH dice 100:** **95/99 (96.0%)** with one 30s timeout. Accepted
+  art/visual pathways were **91/91 precise**. Clear cards were 92/93; every
+  die-color bucket was 94.7–100%. Median/p90 were 3.168s/5.814s versus the
+  prior 3.4s/7.2s.
+- **Random 200:** **193/199 (97.0%)** with one Scryfall image-load error, up
+  from **185/200 (92.5%)**. Accepted pathways were **189/189 precise**.
+  Ordinary placements were 151/152 and top-edge/clipped improved from 33/48
+  to **42/47 (89.4%)**. Median/p90 improved from 3.6s/6.5s to
+  3.439s/6.180s.
+- **EDH staples 200:** **192/199 (96.5%)** with one Scryfall image-load error,
+  up from **186/200 (93.0%)**. Accepted pathways were **192/192 precise**.
+  Top-edge/clipped improved from 35/48 to **43/48 (89.6%)**. Median/p90
+  improved from 3.5s/6.3s to 3.282s/6.135s.
+
+The broad Random and EDH gains are seven completed cards each and therefore
+real under the project's two-card noise rule. Across the final five-suite
+plan, accepted visual pathways were 100% precise except for the one documented
+ordinary-path overlap error. The remaining route to 99% is no longer general
+top-edge framing: it is partial-card retrieval under fingers/dice and explicit
+cursor-connected isolation in overlapping scenes. Expanding global crop or
+exact-scan budgets was tested and did not help.
+
+## 2026-07-25 — production Full Test Plan + post-deploy Fixed control
+
+The three required suites began sequentially on production BUILD
+`warm-lobby-1 (lobby core preload + ready handshake)`. While they were
+running, `main` and production advanced independently to
+`isolation-retrieval-6`; the three baseline payloads therefore retain their
+actual old-build marker rather than being attributed to the later deployment.
+All complete Copy-results payloads are preserved under `snaptest/runs/`.
+
+- **Tableau 10 scenes / EDH staples:** **89/100 (89.0%)**, 0 errors; average
+  2.290s, median **1.967s**, p90 **3.572s**, max 5.861s. Stage means: prep
+  0.517s, rank 1.136s, ORB 0.565s, OCR 0.842s, total 2.281s. Layout:
+  side-by-side 58/60, spaced 27/30, overlapping 4/10. Clear cards were 86/91;
+  coverage buckets were 86/91, 2/4, 1/4 and 0/1 from clear through 30%+.
+  Rotation was upright 46/55, tapped 30/31, upside-down 13/14. Art-match
+  83/83 and visual-exact 5/5 were precise; the no-match path was 1/12.
+  Ten misses were absent and one rank 6+. Card/token/basic accuracy was
+  61/71, 24/25 and 4/4. First/second-half accuracy was 98%/80%; JS peaked at
+  43MB and WASM stayed 134→134MB.
+- **Random 200:** **186/200 (93.0%)**, 0 errors; average 2.743s, median
+  **2.955s**, p90 **3.897s**, max 4.422s. Stage means: prep 0.497s, rank
+  1.463s, ORB 0.641s, OCR 0.531s, total 2.641s. The first three placement
+  blocks were **152/152**; top-edge/clipped was **34/48**. Rotation was
+  upright 45/50, tilt 48/50, sideways 48/50, upside-down 45/50. Occlusion was
+  none 50/52, fingers 47/52, dice 44/48, fingers+dice 45/48. Art-match
+  181/181 and visual-exact 1/1 were precise; the no-match path was 4/18.
+  Thirteen misses were absent and one rank 6+. First/second-half accuracy was
+  97%/89%; JS peaked at 41MB and WASM stayed 134→134MB.
+- **EDH staples 200:** **186/200 (93.0%)**, 0 errors; average 3.852s, median
+  **3.276s**, p90 **6.352s**, max 17.073s. Stage means: prep 0.706s, rank
+  2.174s, ORB 0.827s, OCR 0.586s, total 3.745s. The first three placement
+  blocks were **152/152**; top-edge/clipped was **34/48**. Rotation was
+  upright 44/50, tilt 50/50, sideways 49/50, upside-down 43/50. Occlusion was
+  none 49/52, fingers 48/52, dice 45/48, fingers+dice 44/48. Card/token/basic
+  accuracy was 134/146, 45/47 and 7/7. Art-match 180/180 and visual-exact 2/2
+  were precise; the no-match path was 4/18. All 14 misses were absent.
+  First/second-half accuracy was 98%/88%; JS peaked at 27MB and WASM stayed
+  134→134MB.
+
+Across the 500 scans there were no errors. Accepted art/visual pathways were
+**452/452 precise**; 37 of 39 misses were absent and two were rank 6+, with no
+rank 2–5 misses. Metadata did not participate in any miss: observations were
+null, veto counts were zero, `metadataConflictAll` was false and there were no
+metadata errors. This rules out metadata gates, OCR thresholds and ORB
+acceptance as the current recall bottleneck. The single-card losses remain
+entirely top-edge/clipped, while tableau losses concentrate in overlap plus a
+few clear-card framing failures.
+
+Compared with the prior same-build run, tableau moved 92%→89%, at the edge of
+the documented small-run noise and matching an earlier 89% run; no code story
+is built from it. Random stayed exactly 186/200 with the same 34/48 clipped
+score and the same 13-absent/one-rank-6+ split. EDH stayed exactly 186/200
+with the same 34/48 clipped score and all 14 misses absent. Random timing
+returned to a normal 3.0s/3.9s median/p90 after the prior contaminated
+8.9s/21.5s run. EDH was also faster than that prior contaminated p90
+(6.4s versus 11.5s), but the third sequential suite again encountered bursty
+image delivery and should not be treated as a clean speed A/B. Flat WASM heaps
+and placement-aligned losses reject resource degradation; the half-run gaps
+come from deterministic late overlap/clipped blocks.
+
+After `isolation-retrieval-6` reached production, a fresh-tab **Fixed 200**
+regression completed **186/199 (93.5%)** with one Scryfall image-load error.
+The first three blocks remained **152/152**; top-edge/clipped was 34/47. All
+13 completed misses were absent, and art-match was 183/183 precise. Rotation
+was upright 46/50, tilt 48/50, sideways 46/49 and upside-down 46/50.
+First/second-half accuracy was 94.9%/92.0%; WASM stayed 134→134MB and JS
+peaked at 12MB. Completion-adjusted accuracy is unchanged from the prior
+187/200 control, whose clipped block was 35/48.
+
+The Fixed control exposes a speed cost without a top-edge gain: median moved
+3.046s→3.303s and p90 **3.974s→5.994s**. Weak clipped misses now try roughly
+156–169 candidates, with rank alone taking 3.7–5.3s, because the new
+isolation fallback activates but still leaves every true card absent. This
+does not invalidate its measured wild-playmat benefit, but it proves the
+fallback is not a general top-edge fix and should not be expanded further.
+
+No recognition code was changed by this Full Test Plan run and no new commit
+was created. The independently pushed commit `2a8a28a` passed GitHub's 1/1
+status check and production exposes BUILD `isolation-retrieval-6`. Its
+existing evidence is a 53.3%→90.3% partial wild-playmat A/B plus a 98/100
+standard-cloth run; the required complete 200-card Vegas gate remains the
+release-evidence gap.
+
+**Best next experiment:** complete the full Vegas 200 suite in a fresh
+session, then A/B a bounded activation gate for `isolate-*` using a measurable
+wild-background signal (for example contour-cluster density) on Vegas versus
+Fixed top-edge 64. Require the Vegas gain to remain, keep Fixed 200's three
+easy blocks perfect and clipped recall unchanged, and restore the Fixed p90
+toward 4s. Do not tune ORB, OCR, metadata or hashing: the true card is absent
+before those gates, and rules-box text remains supporting metadata only.
+
 ## 2026-07-24 — `isolation-retrieval-6` — wild-playmat retrieval redesign
 
 **Failure reproduced:** the new 200-card Magic Con Vegas mode renders the

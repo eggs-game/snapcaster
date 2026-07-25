@@ -126,6 +126,16 @@ but a printing must agree in at least two tables before exact 512-bit scoring.
 That rejects random playmat collisions while allowing every plausible
 isolation crop—not only the ten full-scan seeds—to surface a printing.
 
+Edge-clipped cards use one additional bounded isolation family. Unlike the
+ordinary click-local grid, it allows the click to sit below the physical card
+and only keeps rectangles whose top edge meets the capture boundary. This
+models a card held above the cursor or partially outside the camera frame.
+The family is disabled when a card-shaped contour already contains the click,
+which prevents a card higher in an overlapping tableau from replacing the
+card the player selected. Its retrieval distance is tracked independently from
+the ordinary crop used for ORB; the edge image joins visual verification only
+when an edge-sourced printing actually reaches the verification shortlist.
+
 Query crops are white-balanced first: a warm room casts the whole image, and
 the index is built from neutral scans.
 

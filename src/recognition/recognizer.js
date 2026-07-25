@@ -511,6 +511,27 @@ function pointInQuad(point, corners) {
   return inside;
 }
 
+function cardLikeQuadContains(point, corners, imageWidth, imageHeight) {
+  if (!pointInQuad(point, corners)) return false;
+  const ordered = orderCorners(corners);
+  const sides = ordered.map((p, i) => {
+    const next = ordered[(i + 1) % ordered.length];
+    return Math.hypot(next.x - p.x, next.y - p.y);
+  });
+  const width = (sides[0] + sides[2]) / 2;
+  const height = (sides[1] + sides[3]) / 2;
+  const aspect = Math.max(width, height) / Math.max(1, Math.min(width, height));
+  const area = Math.abs(ordered.reduce((sum, p, i) => {
+    const next = ordered[(i + 1) % ordered.length];
+    return sum + p.x * next.y - next.x * p.y;
+  }, 0) / 2);
+  const areaRatio = area / (imageWidth * imageHeight);
+  // Ignore tiny frame ornaments and giant background blobs. This gate should
+  // suppress above-click retrieval only when OpenCV already found a plausible
+  // physical card under the cursor.
+  return aspect >= 1.22 && aspect <= 1.62 && areaRatio >= 0.025 && areaRatio <= 0.55;
+}
+
 function quadGeometry(pts, imageWidth, imageHeight, area, click) {
   const [tl, tr, br, bl] = orderCorners(pts);
   const corners = [tl, tr, br, bl];
@@ -854,10 +875,27 @@ function cardBoundaryScore(gray, point, angleDeg, scale, anchorV, anchorH, lands
   return median + upper * 0.45 + supported * 16;
 }
 
-function localCardIsolationCandidates(src, point) {
+function localCardIsolationCandidates(src, point, { allowAboveClick = true } = {}) {
   const gray = toGray(src);
   const proposals = [];
   const add = (angle, scale, anchorV, anchorH, landscape = false, family = "portrait") => {
+    if (family === "top-edge") {
+      const aw = landscape ? CARD_H : CARD_W;
+      const ah = landscape ? CARD_W : CARD_H;
+      let ch = gray.h * scale, cw = (ch * aw) / ah;
+      if (cw > gray.w) { cw = gray.w * scale; ch = (cw * ah) / aw; }
+      const radians = angle * Math.PI / 180;
+      const ux = { x: Math.cos(radians), y: Math.sin(radians) };
+      const uy = { x: -Math.sin(radians), y: Math.cos(radians) };
+      const localX = (anchorH - 0.5) * cw;
+      const localY = (anchorV - 0.5) * ch;
+      const cy = point.ny * gray.h - ux.y * localX - uy.y * localY;
+      const minY = cy - Math.abs(ux.y) * cw / 2 - Math.abs(uy.y) * ch / 2;
+      // This family exists only for a card physically clipped by the source
+      // frame. Reject proposals that merely place some unrelated card above
+      // the click: their top edge does not meet the capture boundary.
+      if (minY < -ch * 0.30 || minY > ch * 0.10) return;
+    }
     const score = cardBoundaryScore(gray, point, angle, scale, anchorV, anchorH, landscape);
     if (!Number.isFinite(score)) return;
     proposals.push({ angle, scale, anchorV, anchorH, landscape, family, score });
@@ -876,6 +914,25 @@ function localCardIsolationCandidates(src, point) {
       for (const anchorH of anchors) {
         for (const anchorV of anchors) {
           add(angle, scale, anchorV, anchorH, false, "portrait");
+        }
+      }
+    }
+  }
+  // Edge-clipped / forehead-held cards can sit entirely above the click. The
+  // ordinary anchor grid stops at 0.86 because it models a click *inside* the
+  // card; degrade-v2 and real captures regularly need the click to land
+  // 1.0–1.8 card heights below the proposed top edge. Keep this as a separate
+  // family so it receives a bounded retrieval quota instead of widening every
+  // ordinary crop family.
+  const topEdgeScales = [0.28, 0.34, 0.40, 0.46, 0.52, 0.58];
+  const belowCardAnchors = [0.92, 1.08, 1.24, 1.40, 1.58, 1.76];
+  if (allowAboveClick) {
+    for (const angle of angles) {
+      for (const scale of topEdgeScales) {
+        for (const anchorH of anchors) {
+          for (const anchorV of belowCardAnchors) {
+            add(angle, scale, anchorV, anchorH, false, "top-edge");
+          }
         }
       }
     }
@@ -909,14 +966,18 @@ function localCardIsolationCandidates(src, point) {
   // pixels, which matters because even a 5–8% framing error can move a 512-bit
   // perceptual hash out of retrieval range.
   proposals.sort((a, b) => b.score - a.score);
-  for (const family of ["portrait", "sideways-raw", "sideways-rotated"]) {
+  const isolationFamilies = allowAboveClick
+    ? ["portrait", "top-edge", "sideways-raw", "sideways-rotated"]
+    : ["portrait", "sideways-raw", "sideways-rotated"];
+  for (const family of isolationFamilies) {
     for (const base of proposals.filter((p) => p.family === family).slice(0, 12)) {
       for (const da of [-2, 0, 2]) {
         for (const ds of [-0.015, 0, 0.015]) {
           for (const dh of [-0.06, -0.03, 0, 0.03, 0.06]) {
             for (const dv of [-0.06, -0.03, 0, 0.03, 0.06]) {
               const anchorH = Math.max(0.05, Math.min(0.95, base.anchorH + dh));
-              const anchorV = Math.max(0.05, Math.min(0.95, base.anchorV + dv));
+              const maxAnchorV = family === "top-edge" ? 1.9 : 0.95;
+              const anchorV = Math.max(0.05, Math.min(maxAnchorV, base.anchorV + dv));
               add(base.angle + da, base.scale + ds, anchorV, anchorH, base.landscape, base.family);
             }
           }
@@ -926,7 +987,7 @@ function localCardIsolationCandidates(src, point) {
   }
   proposals.sort((a, b) => b.score - a.score);
   const selected = [];
-  for (const family of ["portrait", "sideways-raw", "sideways-rotated"]) {
+  for (const family of isolationFamilies) {
     const familySelected = [];
     for (const proposal of proposals) {
       if (proposal.family !== family) continue;
@@ -937,7 +998,7 @@ function localCardIsolationCandidates(src, point) {
         && Math.abs(kept.anchorV - proposal.anchorV) <= 0.015
       ));
       if (!nearDuplicate) familySelected.push(proposal);
-      if (familySelected.length >= 48) break;
+      if (familySelected.length >= (family === "top-edge" ? 32 : 48)) break;
     }
     selected.push(...familySelected);
   }
@@ -1220,6 +1281,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     if (!sourceImageData) sourceImageData = bitmapToImageData(bmp);
     return sourceImageData;
   };
+  let clickInsideCardLikeQuad = false;
   if (cvReady) {
     try {
       const srcImageData = getSourceImageData();
@@ -1232,6 +1294,9 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       }
       const quads = findCardQuads(srcImageData, click);
       cardFound = quads.length > 0;
+      clickInsideCardLikeQuad = quads.some((quad) => (
+        cardLikeQuadContains(click, quad, bmp.width, bmp.height)
+      ));
       for (let i = 0; i < quads.length; i++) {
         candidates.push({ image: rectifyCard(srcImageData, quads[i]), strategy: `outline-${i + 1}` });
       }
@@ -1349,7 +1414,27 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   let bestCandidateImage = null;
   let bestCandidateStrategy = "";
   let bestCandidateDistance = 0xffff;
+  let bestCandidateImageDistance = 0xffff;
+  let bestAboveClickImage = null;
+  let bestAboveClickDistance = 0xffff;
   let isolationDebug = null;
+  const recordCandidateBest = (p, candidateBest) => {
+    const aboveClick = p.candidate.strategy.startsWith("isolate-top-edge-");
+    if (aboveClick && candidateBest < bestAboveClickDistance) {
+      bestAboveClickDistance = candidateBest;
+      bestAboveClickImage = p.candidate.image;
+    }
+    if (candidateBest < bestCandidateDistance) bestCandidateDistance = candidateBest;
+    // An above-click proposal may introduce the right printing, but it should
+    // not replace the ordinary crop used for ORB unless that printing actually
+    // reaches the verification shortlist. On wild playmats, a decorative
+    // texture can have a lower gray distance than the real card.
+    if (!aboveClick && candidateBest < bestCandidateImageDistance) {
+      bestCandidateImageDistance = candidateBest;
+      bestCandidateImage = p.candidate.image;
+      bestCandidateStrategy = p.candidate.strategy;
+    }
+  };
   // Prepare every candidate's hashes (cheap). The expensive full-index scans
   // below are limited to a few diverse SEED crops; scoring all ~27 crops
   // against 110k cards (8 hash variants each) was the dominant per-scan cost.
@@ -1527,11 +1612,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
         if (score < rank[i]) { rank[i] = score; strategies[i] = p.candidate.strategy; }
       }
     }
-    if (candidateBest < bestCandidateDistance) {
-      bestCandidateDistance = candidateBest;
-      bestCandidateImage = p.candidate.image;
-      bestCandidateStrategy = p.candidate.strategy;
-    }
+    recordCandidateBest(p, candidateBest);
     return candidateBest;
   };
 
@@ -1573,11 +1654,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
             if (score < rank[idx]) { rank[idx] = score; strategies[idx] = p.candidate.strategy; }
           }
         }
-        if (candidateBest < bestCandidateDistance) {
-          bestCandidateDistance = candidateBest;
-          bestCandidateImage = p.candidate.image;
-          bestCandidateStrategy = p.candidate.strategy;
-        }
+        recordCandidateBest(p, candidateBest);
         if (candidateBest <= 60) break;
       }
     }
@@ -1619,7 +1696,9 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     // scans keep their existing fast path, while a busy printed playmat earns
     // the extra work needed to isolate the actual card rather than its art.
     if (bestCandidateDistance > 120) {
-      const isolation = localCardIsolationCandidates(getSourceImageData(), normalizedPoint)
+      const isolation = localCardIsolationCandidates(getSourceImageData(), normalizedPoint, {
+        allowAboveClick: !clickInsideCardLikeQuad,
+      })
         .map(prepareCandidate)
         .sort((a, b) => b.frame - a.frame);
       isolationDebug = isolation.slice(0, 12).map((p) => ({
@@ -1627,11 +1706,14 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
         score: +p.frame.toFixed(2),
       }));
       // ANN is intentionally selective, so give the two strongest rectangles
-      // from every protected orientation family an exact full-index scan. This
-      // bounded six-crop bridge prevents a good geometric isolation from being
-      // lost solely because its noisy hash missed the two-table LSH gate.
+      // from every protected orientation family an exact full-index scan. The
+      // ordinary two-per-family bridge is needed
+      // on illustrated playmats; reducing it to one measurably regressed Vegas.
+      // The edge-only family extends that proven bridge without taxing normal
+      // scans. Do not short-circuit this bridge on gray distance: an unrelated
+      // playmat texture can score <=60 before the true card's proposal runs.
       const exactIsolation = new Set();
-      for (const family of ["portrait", "sideways-raw", "sideways-rotated"]) {
+      for (const family of ["portrait", "top-edge", "sideways-raw", "sideways-rotated"]) {
         for (const p of isolation
           .filter((candidate) => candidate.candidate.strategy.startsWith(`isolate-${family}-`))
           .slice(0, 2)) {
@@ -1664,11 +1746,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
             if (score < rank[idx]) { rank[idx] = score; strategies[idx] = p.candidate.strategy; }
           }
         }
-        if (candidateBest < bestCandidateDistance) {
-          bestCandidateDistance = candidateBest;
-          bestCandidateImage = p.candidate.image;
-          bestCandidateStrategy = p.candidate.strategy;
-        }
+        recordCandidateBest(p, candidateBest);
       }
     }
   }
@@ -1762,8 +1840,12 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       // Sourced from `prepared` (background crops already removed) so ORB is
       // never handed an empty wall/skin crop to match against.
       const kept = prepared.map((p) => p.candidate);
+      const verifyAboveClick = bestAboveClickImage && verificationCandidates.some((candidate) => (
+        String(candidate.strategy || "").startsWith("isolate-top-edge-")
+      ));
       const queryImages = [
         bestCandidateImage,
+        verifyAboveClick ? bestAboveClickImage : null,
         kept.find((c) => c.strategy === "content-box")?.image,
         ...kept.filter((c) => c.strategy.startsWith("outline-")).slice(0, 2).map((c) => c.image),
         // The art-anchored crop centres the artwork, which is exactly what ORB
@@ -1772,7 +1854,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
         kept.find((c) => c.strategy === "art-65")?.image,
         kept.find((c) => c.strategy === "off0,-11")?.image,
         kept.find((c) => c.strategy === "center-45")?.image,
-      ].filter((img, i, arr) => img && arr.indexOf(img) === i).slice(0, 5);
+      ].filter((img, i, arr) => img && arr.indexOf(img) === i).slice(0, 6);
       const verified = await verifyTopMatches(verificationCandidates, queryImages, cardShaped);
       // Keep the result UI compact after printing-level verification. The best
       // verified treatment wins for each name, and a decisive exact artwork

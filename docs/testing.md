@@ -96,6 +96,32 @@ add ~1%.
 Ground truth always comes from the live index, so a miss is always a real
 recognition failure, never a coverage gap.
 
+## Full recognition test plan
+
+Run the complete plan after any crop, retrieval, hashing, card-isolation, ORB,
+or OCR decision change and before releasing that recognition build:
+
+| Order | Suite | Release gate |
+| --- | --- | --- |
+| 1 | **Tableau 10 — EDH staples (100 cards)** | At least 95% overall; no accepted-pathway precision regression; inspect layout and rotation breakdowns. |
+| 2 | **Tableau Magic Con Vegas playmat — EDH staples (200 cards)** | Complete all 200 cards in a fresh browser session. At least 90% overall, 92% on clear cards, 95% on side-by-side cards, and 85% in every rotation bucket. `art-match` and `visual-exact` must remain 100% precise. |
+| 3 | **Tableau 10 EDH dice (100 cards)** | At least 90% overall; inspect every die-colour bucket and compare clear-card accuracy with the ordinary tableau. |
+| 4 | **Random 200** | At least 95% overall; inspect the top-edge/clipped placement separately. |
+| 5 | **EDH staples 200** | At least 93% overall; no regression in the first three placement blocks or the top-edge block. |
+
+The Vegas suite is a required playmat-stress gate, not an optional targeted
+experiment. Its illustrated background reproduces the real failure where
+decorative contours and card art compete during isolation. Always report
+`byLayout`, `byRotation`, `byCoverage`, `missTrueRank`, accepted-pathway
+precision, median/p90 latency, first/second-half accuracy, and the perfect-crop
+control. A partial Vegas run may guide development but cannot satisfy the
+release gate.
+
+Run each long suite in a fresh browser session. Sequential runs have previously
+hit bursty reference-image delivery and produced misleading latency tails. A
+recognition change ships only when the target suite improves beyond the
+documented two-card noise band and the other suites stay within their gates.
+
 ## Reading the results
 
 The headline accuracy is the least useful number. These are the ones that
