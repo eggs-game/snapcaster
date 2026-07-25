@@ -897,14 +897,30 @@ export async function captureLocalFrame(stream, nx = 0.5, ny = 0.5) {
   return { url: best.toDataURL("image/jpeg", 0.9), px: geom.px, py: geom.py };
 }
 
-// Map click on an object-fit:cover video to normalized source coords.
-export function clickToNormalized(videoEl, clientX, clientY) {
+// Map a click on a fitted video to normalized source coordinates. A local 180°
+// display flip changes only where the image is painted, so reflect both axes
+// before translating the visible point back into the unmodified stream.
+export function clickToNormalized(videoEl, clientX, clientY, flipped = false) {
   const rect = videoEl.getBoundingClientRect();
   const vw = videoEl.videoWidth, vh = videoEl.videoHeight;
   if (!vw || !vh) return null;
-  const scale = Math.max(rect.width / vw, rect.height / vh);
-  const offX = (vw * scale - rect.width) / 2, offY = (vh * scale - rect.height) / 2;
-  const sx = (clientX - rect.left + offX) / scale;
-  const sy = (clientY - rect.top + offY) / scale;
+  const fit = getComputedStyle(videoEl).objectFit;
+  const scale = fit === "contain"
+    ? Math.min(rect.width / vw, rect.height / vh)
+    : Math.max(rect.width / vw, rect.height / vh);
+  const renderedWidth = vw * scale;
+  const renderedHeight = vh * scale;
+  const offX = (rect.width - renderedWidth) / 2;
+  const offY = (rect.height - renderedHeight) / 2;
+  let x = clientX - rect.left;
+  let y = clientY - rect.top;
+  if (flipped) {
+    x = rect.width - x;
+    y = rect.height - y;
+  }
+  // A letterbox/pillarbox click is not a card click.
+  if (fit === "contain" && (x < offX || x > offX + renderedWidth || y < offY || y > offY + renderedHeight)) return null;
+  const sx = (x - offX) / scale;
+  const sy = (y - offY) / scale;
   return { nx: Math.max(0, Math.min(1, sx / vw)), ny: Math.max(0, Math.min(1, sy / vh)) };
 }

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
-  Cat, ChevronDown, ChevronLeft, ChevronRight, Copy, Dices, Download, Drum, ExternalLink, Laugh, Link2, MessageCircle, Mic, MicOff,
+  Cat, ChevronDown, ChevronLeft, ChevronRight, Copy, Dices, Drum, ExternalLink, Laugh, Link2, MessageCircle, Mic, MicOff,
   PanelLeft, Play, Search, Settings, Sparkles, Swords, ThumbsDown, UserPlus, UserRound, Video, VideoOff, X,
 } from "lucide-react";
 import { suggestCardNames } from "./cardSearch.js";
@@ -152,10 +152,12 @@ export default function CardSidebar({
   const [truthQuery, setTruthQuery] = useState("");
   const [truthSuggestions, setTruthSuggestions] = useState([]);
   const [truthHighlight, setTruthHighlight] = useState(-1);
+  const [labelingWrongReport, setLabelingWrongReport] = useState(false);
   const [cardPreview, setCardPreview] = useState(null);
   const soundPickerTriggerRef = useRef(null);
   const soundPickerRef = useRef(null);
   const previewStopRef = useRef(null);
+  const chatMessagesRef = useRef(null);
   const lastChatMessageIdRef = useRef(chatMessages?.[chatMessages.length - 1]?.id || "");
   // One-shot open slide; cleared after the panel settles into place.
   const [entering, setEntering] = useState(true);
@@ -195,6 +197,17 @@ export default function CardSidebar({
     lastChatMessageIdRef.current = latestId;
     if (lookupTab === "chat") setHasUnreadChat(false);
   }, [chatMessages, lookupTab]);
+
+  const scrollChatToLatest = () => {
+    const messages = chatMessagesRef.current;
+    if (messages) messages.scrollTop = messages.scrollHeight;
+  };
+
+  useEffect(() => {
+    if (lookupTab !== "chat") return undefined;
+    const frame = requestAnimationFrame(scrollChatToLatest);
+    return () => cancelAnimationFrame(frame);
+  }, [lookupTab]);
 
   const openCard = (card) => {
     if (!card) return;
@@ -396,7 +409,8 @@ export default function CardSidebar({
 
   const labelWrongCard = async (name) => {
     const cardName = String(name || "").trim();
-    if (!wrongReport || !cardName) return;
+    if (!wrongReport || !cardName || labelingWrongReport) return;
+    setLabelingWrongReport(true);
     try {
       const response = await fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(cardName)}`);
       if (!response.ok) throw new Error("Card not found");
@@ -404,30 +418,15 @@ export default function CardSidebar({
       const truth = { ...card, recordedName: card.name };
       const saved = await onUpdateRecognitionReport?.(wrongReport.id, truth);
       if (saved === false) throw new Error("Could not save the label to Supabase");
-      const next = { ...wrongReport, truth, labeledAt: Date.now() };
-      setWrongReport(next);
+      setWrongReport(null);
       setTruthQuery("");
       setTruthSuggestions([]);
     } catch (error) {
       setTruthSuggestions([]);
       setTruthQuery(String(error.message || error));
+    } finally {
+      setLabelingWrongReport(false);
     }
-  };
-
-  const downloadRecognitionReports = () => {
-    const payload = JSON.stringify({
-      format: "snapcast-recognition-reports/v1",
-      exportedAt: new Date().toISOString(),
-      // The edit token is intentionally never exported: it is the capability
-      // used by this browser to attach a later true-card label.
-      reports: (recognitionReports || []).map(({ editToken, ...report }) => report),
-    }, null, 2);
-    const url = URL.createObjectURL(new Blob([payload], { type: "application/json" }));
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `snapcast-recognition-reports-${new Date().toISOString().slice(0, 10)}.json`;
-    link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   const best = current?.matches?.[0];
@@ -529,10 +528,11 @@ export default function CardSidebar({
         </button>
         <button
           type="button"
-          className={!settings && !counters && !invite && !dice ? "drawer-toggle active" : "drawer-toggle"}
+          className={!settings && !counters && !invite && !dice && lookupTab === "cards" ? "drawer-toggle active" : "drawer-toggle"}
           onClick={() => {
             if (collapsed) onOpen?.();
             onViewChange("lookup");
+            setLookupTab("cards");
           }}
           aria-label="Open card lookup"
           data-tooltip="Card lookup"
@@ -540,20 +540,23 @@ export default function CardSidebar({
         >
           <CardStackIcon />
         </button>
-        {!isVisitor && (
-          <button
-            className={invite ? "drawer-toggle active" : "drawer-toggle"}
-            onClick={() => {
-              if (collapsed) onOpen?.();
-              onViewChange("invite");
-            }}
-            aria-label="Invite players"
-            data-tooltip="Invite players"
-            data-tooltip-pos="left-bottom"
-          >
-            <UserPlus size={20} />
-          </button>
-        )}
+        <button
+          type="button"
+          className={!settings && !counters && !invite && !dice && lookupTab === "chat" ? "drawer-toggle sidebar-chat-toggle active" : "drawer-toggle sidebar-chat-toggle"}
+          onClick={() => {
+            if (collapsed) onOpen?.();
+            onViewChange("lookup");
+            setLookupTab("chat");
+            setHasUnreadChat(false);
+            requestAnimationFrame(scrollChatToLatest);
+          }}
+          aria-label={hasUnreadChat ? "Open chat, new messages" : "Open chat"}
+          data-tooltip="Chat"
+          data-tooltip-pos="left-bottom"
+        >
+          <MessageCircle size={20} />
+          {hasUnreadChat && <span className="chat-unread-dot" aria-hidden="true" />}
+        </button>
         {!isVisitor && <>
           <button
             className={counters ? "drawer-toggle active" : "drawer-toggle"}
@@ -581,6 +584,20 @@ export default function CardSidebar({
           </button>
         </>}
         <span className="sidebar-rail-divider" aria-hidden="true" />
+        {!isVisitor && (
+          <button
+            className={invite ? "drawer-toggle active" : "drawer-toggle"}
+            onClick={() => {
+              if (collapsed) onOpen?.();
+              onViewChange("invite");
+            }}
+            aria-label="Invite players"
+            data-tooltip="Invite players"
+            data-tooltip-pos="left-bottom"
+          >
+            <UserPlus size={20} />
+          </button>
+        )}
         <button
           className={settings ? "drawer-toggle active" : "drawer-toggle"}
           onClick={() => {
@@ -761,27 +778,6 @@ export default function CardSidebar({
         />
       ) : (
         <>
-          <div className="lookup-tabs" role="group" aria-label="Card sidebar view">
-            {[
-              ["cards", "Cards"],
-              ["chat", "Chat"],
-            ].map(([option, label]) => (
-              <button
-                key={option}
-                type="button"
-                aria-pressed={lookupTab === option}
-                aria-label={option === "chat" && hasUnreadChat ? "Chat, new messages" : label}
-                onClick={() => {
-                  setLookupTab(option);
-                  if (option === "chat") setHasUnreadChat(false);
-                }}
-              >
-                {label}
-                {option === "chat" && hasUnreadChat && <span className="chat-unread-dot" aria-hidden="true" />}
-              </button>
-            ))}
-          </div>
-
           {lookupTab === "cards" ? <>
             <div className="sidebar-search">
             <Search size={18} className="search-icon" aria-hidden="true" />
@@ -891,17 +887,15 @@ export default function CardSidebar({
               <section className="wrong-card-report" aria-label="Wrong card report">
                 <div className="wrong-card-report-head">
                   <strong>Wrong card report</strong>
-                  <span>{wrongReport.syncStatus === "saving" ? "Saving…" : wrongReport.syncStatus === "error" ? "Save failed" : wrongReport.truth ? "Labeled" : "Needs card label"}</span>
                 </div>
                 <div className="wrong-card-evidence">
                   {wrongReport.captureImage && <img src={wrongReport.captureImage} alt="Clicked card capture" title="Clicked card capture" />}
                   {wrongReport.predictedImage && <img src={wrongReport.predictedImage} alt="Predicted card" title={`Predicted: ${wrongReport.predictedCard?.name || "Unknown"}`} />}
                   {wrongReport.truth?.image && <img src={wrongReport.truth.image} alt="Recorded true card" title={`True card: ${wrongReport.truth.name}`} />}
                 </div>
-                {wrongReport.syncStatus === "saving" && <p className="wrong-card-sync-note">Saving evidence to Supabase…</p>}
-                {wrongReport.syncStatus === "error" && <p className="wrong-card-sync-note error">{wrongReport.syncError || "Could not save to Supabase. Download the report to keep it."}</p>}
                 {!wrongReport.truth && wrongReport.syncStatus !== "saving" && (
                   <div className="truth-card-field">
+                    <Search size={16} className="truth-card-search-icon" aria-hidden="true" />
                     <input
                       value={truthQuery}
                       onChange={(event) => setTruthQuery(event.target.value)}
@@ -917,8 +911,8 @@ export default function CardSidebar({
                           labelWrongCard(truthHighlight >= 0 ? truthSuggestions[truthHighlight] : truthQuery);
                         }
                       }}
-                      placeholder="What card was it?"
-                      aria-label="Record true card"
+                      placeholder="Search for the correct card"
+                      aria-label="Search for the correct card"
                       autoComplete="off"
                     />
                     {truthSuggestions.length > 0 && (
@@ -927,7 +921,12 @@ export default function CardSidebar({
                           <li
                             key={name}
                             className={index === truthHighlight ? "active" : ""}
-                            onMouseDown={(event) => { event.preventDefault(); labelWrongCard(name); }}
+                            onMouseDown={(event) => {
+                              event.preventDefault();
+                              setTruthQuery(name);
+                              setTruthSuggestions([]);
+                              setTruthHighlight(-1);
+                            }}
                           >{name}</li>
                         ))}
                       </ul>
@@ -935,10 +934,13 @@ export default function CardSidebar({
                   </div>
                 )}
                 <div className="wrong-card-report-actions">
-                  <span>{recognitionReports?.filter((entry) => entry.syncStatus === "saved").length || 0} saved</span>
-                  {!!recognitionReports?.length && (
-                    <button type="button" onClick={downloadRecognitionReports}><Download size={15} /> Download reports</button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => labelWrongCard(truthHighlight >= 0 ? truthSuggestions[truthHighlight] : truthQuery)}
+                    disabled={!truthQuery.trim() || wrongReport.syncStatus === "saving" || labelingWrongReport}
+                  >
+                    {labelingWrongReport ? "Submitting…" : "Submit report"}
+                  </button>
                 </div>
               </section>
             )}
@@ -1022,7 +1024,7 @@ export default function CardSidebar({
             )}
           </> : (
             <div className="chat-panel">
-              <div className="chat-messages" aria-live="polite">
+              <div className="chat-messages" ref={chatMessagesRef} aria-live="polite">
                 {chatMessages?.length ? chatMessages.map((message) => {
                   const isMine = message.from === currentUserId;
                   const showSenderAvatar = !isMine && !message.kind && !message.whisper;

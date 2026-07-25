@@ -156,8 +156,9 @@ the main thread — an early bug that made the lobby unresponsive.
   local clip. A shared Web Audio context decodes it, seeks to the curated
   audible offset, and stops after 2–3 seconds. The room never receives
   arbitrary audio URLs or uploads. Private whispers remain text-only. Sender UI and
-  recipient playback both enforce a two-minute per-sender sound cooldown;
-  listeners can mute or lower sound effects locally.
+recipient playback both enforce a two-minute per-sender sound cooldown. Clips
+use a fixed 85% gain relative to the listener's browser/tab volume; there is
+no separate in-app sound setting.
 - **Shared game events live in Chat.** Dice rolls, shared cards, life-total
   changes, and ready-check outcomes are compact structured Chat objects. Consecutive
   life clicks synchronize immediately but coalesce into one net Chat entry after a

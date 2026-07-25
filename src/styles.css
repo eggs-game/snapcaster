@@ -869,7 +869,7 @@ input::placeholder { color: var(--text-tertiary); opacity: 1; }
 .sidebar.collapsed .panel-toggle:hover .collapsed-panel-arrow { display: block; }
 .sidebar:not(.collapsed) .panel-toggle:hover .expanded-panel-icon { display: none; }
 .sidebar:not(.collapsed) .panel-toggle:hover .expanded-panel-arrow { display: block; }
-.sidebar-content { display: flex; min-width: 0; min-height: 0; overflow-y: auto; flex-direction: column; gap: 10px; padding: 8px 14px 14px; border: 1px solid var(--glass-border); border-left: 0; border-radius: 12px; background: linear-gradient(180deg, var(--panel-gradient-top), var(--panel-gradient-bottom)), var(--glass-bg-dense); -webkit-backdrop-filter: blur(12px) saturate(var(--glass-saturation)); backdrop-filter: blur(12px) saturate(var(--glass-saturation)); box-shadow: inset 0 1px 0 var(--glass-highlight), inset 1px 0 0 var(--panel-edge), var(--panel-shadow); }
+.sidebar-content { display: flex; min-width: 0; min-height: 0; overflow-x: hidden; overflow-y: auto; flex-direction: column; gap: 10px; padding: 8px 14px 14px; border: 1px solid var(--glass-border); border-left: 0; border-radius: 12px; background: linear-gradient(180deg, var(--panel-gradient-top), var(--panel-gradient-bottom)), var(--glass-bg-dense); -webkit-backdrop-filter: blur(12px) saturate(var(--glass-saturation)); backdrop-filter: blur(12px) saturate(var(--glass-saturation)); box-shadow: inset 0 1px 0 var(--glass-highlight), inset 1px 0 0 var(--panel-edge), var(--panel-shadow); }
 .sidebar-content > * { flex-shrink: 0; }
 /* One-shot open: ease-out so it decelerates into place. */
 .sidebar.slide-in {
@@ -922,11 +922,8 @@ input::placeholder { color: var(--text-tertiary); opacity: 1; }
 .sidebar-game-name-edit { display: flex; align-items: center; flex: 1; min-width: 0; height: 32px; }
 .sidebar-game-name-edit input { width: 100%; height: 28px; padding: 0 7px; border: 1px solid var(--focus-border); border-radius: 6px; background: var(--input); color: var(--text-primary); font-family: inherit; font-size: 16px; font-weight: 400; text-align: left; box-shadow: 0 0 0 3px var(--focus-ring), inset 0 1px 2px var(--inset-shadow); }
 .sidebar-game-name-edit input:focus { outline: none; }
-.lookup-tabs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px; height: var(--input-height); min-height: var(--input-height); flex: none; padding: 2px; margin-top: 8px; border: 1px solid var(--border-default); border-radius: 8px; background: var(--input); }
-.lookup-tabs button { position: relative; border: 0; border-radius: 6px; background: transparent; color: var(--text-secondary); font-family: inherit; font-size: var(--text-sm); font-weight: 400; cursor: pointer; }
-.lookup-tabs button:hover { background: var(--bg-hover); color: var(--text-primary); }
-.lookup-tabs button[aria-pressed="true"] { background: var(--bg-surface-raised); color: var(--text-primary); box-shadow: 0 1px 2px var(--inset-shadow), inset 0 0 0 1px var(--border-subtle); }
-.chat-unread-dot { position: absolute; top: 6px; right: 7px; width: 6px; height: 6px; border: 1px solid var(--bg-surface-raised); border-radius: 50%; background: var(--danger); }
+.sidebar-chat-toggle { position: relative; }
+.chat-unread-dot { position: absolute; top: 3px; right: 3px; width: 6px; height: 6px; border: 1px solid var(--bg-surface-raised); border-radius: 50%; background: var(--danger); }
 .sidebar-search { position: relative; margin-top: 8px; }
 .sidebar-search .search-icon { position: absolute; top: 50%; left: 11px; transform: translateY(-50%); color: var(--dim); pointer-events: none; }
 .sidebar-search input {
@@ -969,22 +966,21 @@ input::placeholder { color: var(--text-tertiary); opacity: 1; }
 .scryfall-link { display: flex; align-items: center; justify-content: center; flex: none; width: 24px; height: 24px; border-radius: 6px; color: var(--text-tertiary); }
 .scryfall-link:hover { color: var(--accent-primary-hover); background: var(--secondary-hover); }
 .wrong-card-report { position: relative; margin-top: 10px; padding: 10px; border: 1px solid var(--border-subtle); border-radius: 10px; background: var(--bg-surface-raised); }
-.wrong-card-report-head, .wrong-card-report-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.wrong-card-report-head, .wrong-card-report-actions { display: flex; align-items: center; gap: 8px; }
 .wrong-card-report-head strong { font-size: var(--text-sm); font-weight: 600; }
-.wrong-card-report-head span, .wrong-card-report-actions > span { color: var(--text-tertiary); font-size: var(--text-xs); }
-.wrong-card-sync-note { margin: 8px 0 0; color: var(--text-tertiary); font-size: var(--text-xs); }
-.wrong-card-sync-note.error { color: var(--danger-text); }
 .wrong-card-evidence { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 9px 0; }
 .wrong-card-evidence img { display: block; width: 100%; aspect-ratio: 0.72; border-radius: 6px; object-fit: cover; background: var(--bg-surface); }
 .truth-card-field { position: relative; }
-.truth-card-field input { width: 100%; height: 34px; padding: 0 9px; border: 1px solid var(--border-default); border-radius: 7px; background: var(--input); color: var(--text-primary); font: inherit; font-size: var(--text-sm); }
+.truth-card-search-icon { position: absolute; top: 50%; left: 9px; z-index: 1; transform: translateY(-50%); color: var(--text-tertiary); pointer-events: none; }
+.truth-card-field input { width: 100%; height: 34px; padding: 0 9px 0 32px; border: 1px solid var(--border-default); border-radius: 7px; background: var(--input); color: var(--text-primary); font: inherit; font-size: var(--text-sm); }
 .truth-card-field input:focus { outline: none; border-color: var(--border-strong); }
 .truth-card-suggest { position: absolute; z-index: 8; right: 0; left: 0; max-height: 160px; overflow-y: auto; margin: 4px 0 0; padding: 4px; list-style: none; border: 1px solid var(--border-default); border-radius: 8px; background: var(--overlay-bg); box-shadow: var(--overlay-shadow); }
 .truth-card-suggest li { padding: 6px 8px; border-radius: 5px; color: var(--text-primary); font-size: var(--text-sm); cursor: pointer; }
 .truth-card-suggest li:hover, .truth-card-suggest li.active { background: var(--selected-bg); }
-.wrong-card-report-actions { margin-top: 9px; }
+.wrong-card-report-actions { justify-content: flex-end; margin-top: 9px; }
 .wrong-card-report-actions button { display: inline-flex; align-items: center; gap: 5px; padding: 5px 7px; border: 0; border-radius: 6px; background: var(--secondary-hover); color: var(--text-secondary); font: inherit; font-size: var(--text-xs); cursor: pointer; }
 .wrong-card-report-actions button:hover { color: var(--text-primary); background: var(--selected-bg); }
+.wrong-card-report-actions button:disabled { cursor: not-allowed; opacity: 0.45; }
 .recent-cards { margin-top: 18px; }
 .recent-cards h3 { margin-bottom: 8px; }
 .recent-card-list { display: flex; flex-direction: column; gap: 8px; }

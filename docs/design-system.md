@@ -129,10 +129,15 @@ circular/minimal ones, 8px for the modal/drawer family).
 ```
 
 Current examples: `.modal-close`, `.drawer-toggle` (the sidebar’s 48px-wide
-navigation rail — card lookup/invite/counters/dice/settings — and the close
+navigation rail — card lookup/counters/dice, then invite/settings below the
+divider — and the close
 action at the right of every panel header), `.counter-stepper button`
 (poison/commander-damage ±), the life-badge's sword and ± buttons
 (`.life-btn`, `.life-sword-btn`).
+
+Life-badge ± buttons use a normal click for a one-point adjustment. Holding
+either button makes repeated five-point adjustments, so common life changes
+stay fast without making a one-point correction awkward.
 
 The sidebar navigation is a dedicated 48px left rail on the app background;
 the glass panel begins at the scrollable content column without a separator.
@@ -165,8 +170,8 @@ Picker rows use Lucide Cat/Laugh icons and a single-line effect name rather
 than repeating the selected category as a subtitle. The chosen effect is shown
 as a compact, dismissible chip in the composer; its matching message chip
 remains visible in chat even if browser playback is blocked. Effects play at
-the listener’s normal browser/tab volume, without a separate in-app mute or
-volume control.
+85% of the listener’s normal browser/tab volume, without a separate in-app
+mute or volume control.
 
 Incoming standard chat messages use a compact 24px circular initial avatar to
 the left of the bubble. The sender’s name is exposed in the avatar tooltip,
@@ -180,8 +185,9 @@ dice/Flip coin action together, so changing the selection never triggers a
 roll; the action sits 12px below the selector. Dice rolls, shared cards,
 life-total changes, and ready-check outcomes each appear as compact structured
 objects in Chat; life clicks wait for a two-second pause and report the net
-change. The sidebar no longer has a Log tab; when Cards is active, a new Chat
-entry adds a small notification dot to the Chat segment until it is opened.
+change. Cards and Chat are separate left-rail actions rather than a segmented
+control; a new Chat entry adds a small notification dot to the Chat icon until
+it is opened. Opening Chat always returns its message list to the latest entry.
 
 The Dice panel’s counter generator begins 24px below that action. Its staging
 well is headed by the same secondary 14px field label as the Die selector and
@@ -357,11 +363,13 @@ preview gains other controls.
 
 ## Video tile fit modes
 
-Commander color pips sit directly after the commander name on the left of
-the 52px-tall video overlay. The commander row is pulled 5px toward the player-name
-row; its pips are 11px circles with a 1px 50%-opacity white outline and a 2px
-downward optical offset, using darker mana-inspired white, blue, black, red,
-and green tones so their colors read clearly against the translucent banner.
+Commander color-identity pips sit directly after the commander name on the left
+of the 52px-tall video overlay. Only colored identity pips are shown — generic
+and colorless mana are not repeated — while a fully colorless commander gets a
+single neutral pip. The commander row is pulled 5px toward the player-name row;
+its pips are 11px circles with a 1px 50%-opacity white outline and a 2px downward
+optical offset, using darker mana-inspired white, blue, black, red, and green
+tones so their colors read clearly against the translucent banner.
 The commander edit field occupies that same row position, so entering edit
 mode does not shift the name downward.
 

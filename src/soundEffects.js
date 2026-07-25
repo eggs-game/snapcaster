@@ -1,3 +1,7 @@
+// Sound effects sit slightly below the rest of the app's audio so short clips
+// don't overpower voices or other media at the user's browser/tab volume.
+const SOUND_EFFECT_LEVEL = 0.85;
+
 // The room broadcast carries only these stable IDs, never a remote audio URL.
 // That keeps playback predictable and means every browser uses the same vetted
 // local asset. `durationMs` is deliberately capped below three seconds.
@@ -338,7 +342,7 @@ export function playSoundEffect(soundOrId, volume = 0.5, onError) {
     const buffer = await loadSoundBuffer(context, sound.src);
     if (stopped) return;
     const gain = context.createGain();
-    gain.gain.value = Math.max(0, Math.min(1, Number(volume) || 0));
+    gain.gain.value = Math.max(0, Math.min(1, Number(volume) || 0)) * SOUND_EFFECT_LEVEL;
     source = context.createBufferSource();
     source.buffer = buffer;
     source.connect(gain);

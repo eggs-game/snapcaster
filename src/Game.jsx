@@ -41,6 +41,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const [diceOverlay, setDiceOverlay] = useState(null);
   const [counterDraft, setCounterDraft] = useState(null);
   const [videoCounters, setVideoCounters] = useState({});
+  const [flippedVideos, setFlippedVideos] = useState({});
   const [videoCounterDragPreview, setVideoCounterDragPreview] = useState(null);
   const [counterPointerDrag, setCounterPointerDrag] = useState(null);
   const [readyCheck, setReadyCheck] = useState(null);
@@ -330,15 +331,22 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     connRef.current?.announceCard(card, session.name, at);
   }, [isVisitor, myId, session.name]);
 
+  const openCardPanel = useCallback(() => {
+    setSidebarView("lookup");
+    setSidebarCollapsed(false);
+    setSidebarOpen(true);
+  }, []);
+
   // Flipped tiles pass reflected coordinates for capture while the click flash
   // stays where the player actually clicked.
-  const identify = useCallback(async (tileId, videoEl, clientX, clientY, captureClientX = clientX, captureClientY = clientY) => {
+  const identify = useCallback(async (tileId, videoEl, clientX, clientY, flipped = false) => {
     const conn = connRef.current;
-    const pt = clickToNormalized(videoEl, captureClientX, captureClientY);
+    const pt = clickToNormalized(videoEl, clientX, clientY, flipped);
     if (!pt) return;
     const rect = videoEl.getBoundingClientRect();
     setFlash({ tileId, x: clientX - rect.left, y: clientY - rect.top });
     setTimeout(() => setFlash(null), 600);
+    openCardPanel();
     setCurrent({ loading: true });
     try {
       // Captures are native-resolution crops around the clicked point (both
@@ -391,7 +399,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     } catch (e) {
       setCurrent({ error: String(e.message || e) });
     }
-  }, [myId, session.name, shareCard]);
+  }, [myId, openCardPanel, session.name, shareCard]);
 
   // Clicking an opponent's commander name does a plain text lookup (same
   // Scryfall path as the sidebar search box) rather than the visual capture
@@ -399,8 +407,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const lookupCommanderName = useCallback(async (name) => {
     const cardName = String(name || "").trim();
     if (!cardName) return;
-    setSidebarView("lookup");
-    setSidebarOpen(true);
+    openCardPanel();
     setCurrent({ loading: true });
     try {
       const response = await fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(cardName)}`);
@@ -411,7 +418,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     } catch (e) {
       setCurrent({ error: String(e.message || e) });
     }
-  }, [session.name]);
+  }, [openCardPanel, session.name]);
 
   const openCounters = () => {
     setSidebarView("counters");
@@ -798,11 +805,22 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
 
   const changeCommanderDamage = (attackerId, delta) => {
     if (isVisitor || !myId || !attackerId || attackerId === myId) return;
-    const value = Math.max(0, Math.min(99, (commanderDamage[myId]?.[attackerId] || 0) + delta));
+    const previousDamage = commanderDamage[myId]?.[attackerId] || 0;
+    const value = Math.max(0, Math.min(99, previousDamage + delta));
+    const appliedDamage = value - previousDamage;
+    if (!appliedDamage) return;
     setCommanderDamage((values) => ({
       ...values,
       [myId]: { ...(values[myId] || {}), [attackerId]: value },
     }));
+    // Commander damage is damage received: adding it lowers life, while
+    // correcting it downward restores the corresponding life total.
+    const previousLife = livesRef.current[myId] ?? lives[myId] ?? 40;
+    const life = previousLife - appliedDamage;
+    livesRef.current = { ...livesRef.current, [myId]: life };
+    setLives((values) => ({ ...values, [myId]: life }));
+    queueLifeChat(myId, session.name, previousLife, life);
+    connRef.current?.setLife(life);
     connRef.current?.setCommanderDamage(attackerId, value);
   };
 
@@ -1113,6 +1131,8 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
                 onStartVideoCounterDrag={t.isMe ? setCounterPointerDrag : undefined}
                 onChangeVideoCounter={t.isMe ? changeOwnVideoCounter : undefined}
                 onRemoveVideoCounter={t.isMe ? removeOwnVideoCounter : undefined}
+                flipped={!!flippedVideos[t.id]}
+                onToggleFlip={() => setFlippedVideos((values) => ({ ...values, [t.id]: !values[t.id] }))}
               />
             ))}
           </div>
@@ -1233,7 +1253,7 @@ function formatVideoResolution(resolution) {
   return `${height}p`;
 }
 
-function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseCommander, onLookupCommander, onChangeLife, onOpenCounters, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, isReadyCheckActive, readyStatus, onReady, onNotReady, heroRole, onSelectHero, flash, scanNotice, camOn, micOn, onToggleCam, onToggleMic, videoQuality, onVideoQualityChange, videoCounters, counterDragPreview, onStartVideoCounterDrag, onChangeVideoCounter, onRemoveVideoCounter }) {
+function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseCommander, onLookupCommander, onChangeLife, onOpenCounters, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, isReadyCheckActive, readyStatus, onReady, onNotReady, heroRole, onSelectHero, flash, scanNotice, camOn, micOn, onToggleCam, onToggleMic, videoQuality, onVideoQualityChange, videoCounters, counterDragPreview, onStartVideoCounterDrag, onChangeVideoCounter, onRemoveVideoCounter, flipped, onToggleFlip }) {
   // Seats 3 and 4 (the bottom row of a 4-player grid) mirror their banner to
   // the bottom edge and their life badge to the top corner, since those
   // tiles sit upside-down relative to the viewer's side of the table.
@@ -1244,9 +1264,34 @@ function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseComm
   const lifeBadgeAlign = isSeat3 ? "right" : isSeat4 ? "left" : innerSide;
   const bannerAtBottom = isSeat3 || isSeat4;
   const videoRef = useRef(null);
-  const [flipped, setFlipped] = useState(false);
+  const lifeHoldTimerRef = useRef(null);
+  const lifeHoldIntervalRef = useRef(null);
+  const lifeHoldTriggeredRef = useRef(false);
   const [videoResolution, setVideoResolution] = useState(null);
   const speaking = useSpeaking(tile.stream, tile.muted);
+  const stopLifeHold = () => {
+    clearTimeout(lifeHoldTimerRef.current);
+    clearInterval(lifeHoldIntervalRef.current);
+    lifeHoldTimerRef.current = null;
+    lifeHoldIntervalRef.current = null;
+  };
+  const startLifeHold = (delta) => {
+    stopLifeHold();
+    lifeHoldTriggeredRef.current = false;
+    lifeHoldTimerRef.current = setTimeout(() => {
+      lifeHoldTriggeredRef.current = true;
+      onChangeLife(delta * 5);
+      lifeHoldIntervalRef.current = setInterval(() => onChangeLife(delta * 5), 180);
+    }, 350);
+  };
+  const changeLifeFromButton = (delta) => {
+    if (lifeHoldTriggeredRef.current) {
+      lifeHoldTriggeredRef.current = false;
+      return;
+    }
+    onChangeLife(delta);
+  };
+  useEffect(() => stopLifeHold, []);
   useEffect(() => {
     if (videoRef.current && tile.stream) videoRef.current.srcObject = tile.stream;
   }, [tile.stream]);
@@ -1307,7 +1352,7 @@ function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseComm
         onRandomizeGrid={onRandomizeGrid}
         onStartReadyCheck={onStartReadyCheck}
         flipped={flipped}
-        onToggleFlip={() => setFlipped((f) => !f)}
+        onToggleFlip={onToggleFlip}
         camOn={camOn}
         micOn={micOn}
         onToggleCam={onToggleCam}
@@ -1322,16 +1367,7 @@ function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseComm
         data-counter-drop-target={tile.isMe ? "true" : undefined}
         onClick={(e) => {
           if (!videoRef.current) return;
-          // A 180° local flip reverses both axes. Reflect the click so
-          // recognition still targets the card the player actually clicked.
-          let captureX = e.clientX;
-          let captureY = e.clientY;
-          if (flipped) {
-            const rect = videoRef.current.getBoundingClientRect();
-            captureX = rect.left + rect.right - e.clientX;
-            captureY = rect.top + rect.bottom - e.clientY;
-          }
-          onIdentify(tile.id, videoRef.current, e.clientX, e.clientY, captureX, captureY);
+          onIdentify(tile.id, videoRef.current, e.clientX, e.clientY, flipped);
         }}
       >
         <div className="video-fit-box">
@@ -1409,13 +1445,45 @@ function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseComm
             </>
           )}
           {tile.isMe && (
-            <button className="life-btn" onClick={() => onChangeLife(-1)} aria-label="Lose 1 life" data-tooltip="Lose 1 life" data-tooltip-pos={lifeBadgeAlign === "left" ? "left-top" : "right-top"}>
+            <button
+              type="button"
+              className="life-btn"
+              onPointerDown={(event) => {
+                event.currentTarget.setPointerCapture?.(event.pointerId);
+                startLifeHold(-1);
+              }}
+              onPointerUp={(event) => {
+                event.currentTarget.releasePointerCapture?.(event.pointerId);
+                stopLifeHold();
+              }}
+              onPointerCancel={stopLifeHold}
+              onClick={() => changeLifeFromButton(-1)}
+              aria-label="Lose 1 life; hold to lose life in increments of 5"
+              data-tooltip="Lose 1 life · hold for 5"
+              data-tooltip-pos={lifeBadgeAlign === "left" ? "left-top" : "right-top"}
+            >
               <Minus size={20} />
             </button>
           )}
           <span className="life-value">{tile.life}</span>
           {tile.isMe && (
-            <button className="life-btn" onClick={() => onChangeLife(+1)} aria-label="Gain 1 life" data-tooltip="Gain 1 life" data-tooltip-pos={lifeBadgeAlign === "left" ? "left-top" : "right-top"}>
+            <button
+              type="button"
+              className="life-btn"
+              onPointerDown={(event) => {
+                event.currentTarget.setPointerCapture?.(event.pointerId);
+                startLifeHold(1);
+              }}
+              onPointerUp={(event) => {
+                event.currentTarget.releasePointerCapture?.(event.pointerId);
+                stopLifeHold();
+              }}
+              onPointerCancel={stopLifeHold}
+              onClick={() => changeLifeFromButton(1)}
+              aria-label="Gain 1 life; hold to gain life in increments of 5"
+              data-tooltip="Gain 1 life · hold for 5"
+              data-tooltip-pos={lifeBadgeAlign === "left" ? "left-top" : "right-top"}
+            >
               <Plus size={20} />
             </button>
           )}
@@ -1473,15 +1541,16 @@ function VideoCounterSticker({ counter, color, editable, preview, onStartDrag, o
   );
 }
 
-// Small, mana-inspired pips keep the commander's colors visible without
-// competing with the name in the compact video overlay.
+// Small, mana-inspired pips keep the commander's color identity visible
+// without competing with the name in the compact video overlay.
 const MANA_BG = {
   W: "#c9c2aa", U: "#4f88b8", B: "#3d3a38", R: "#b5463e", G: "#4a7853", C: "#77736e",
 };
 
-function ManaCost({ cost }) {
-  if (!cost) return null;
-  const symbols = [...cost.matchAll(/\{([^}]+)\}/g)].map((m) => m[1]);
+function CommanderColorPips({ colors }) {
+  if (!colors) return null;
+  const coloredPips = colors.filter((color) => ["W", "U", "B", "R", "G"].includes(color));
+  const symbols = coloredPips.length ? coloredPips : ["C"];
   return (
     <span className="mana-cost">
       {symbols.map((sym, i) => {
@@ -1592,13 +1661,14 @@ function CommanderBanner({ tile, onChoose, onLookupCommander, speaking, onPassTu
   const [suggestions, setSuggestions] = useState([]);
   const [highlight, setHighlight] = useState(-1);
   const [editing, setEditing] = useState(false);
-  const [manaCost, setManaCost] = useState("");
+  const [commanderColors, setCommanderColors] = useState(null);
 
   useEffect(() => setDraft(tile.commander), [tile.commander]);
 
-  // Look up the commander's mana cost for the banner display.
+  // Look up the commander's color identity for the banner display. Generic
+  // and colorless mana are omitted unless the commander has no colors at all.
   useEffect(() => {
-    setManaCost("");
+    setCommanderColors(null);
     const name = tile.commander?.trim();
     if (!name) return undefined;
     const controller = new AbortController();
@@ -1609,9 +1679,9 @@ function CommanderBanner({ tile, onChoose, onLookupCommander, speaking, onPassTu
         });
         if (!response.ok) return;
         const card = await response.json();
-        setManaCost(card.mana_cost || card.card_faces?.[0]?.mana_cost || "");
+        setCommanderColors(Array.isArray(card.color_identity) ? card.color_identity : []);
       } catch {
-        /* banner just shows the name without symbols */
+        /* banner just shows the name without pips */
       }
     })();
     return () => controller.abort();
@@ -1675,7 +1745,7 @@ function CommanderBanner({ tile, onChoose, onLookupCommander, speaking, onPassTu
           ) : (
             <span className="commander-name unset">Not selected</span>
           )}
-          <ManaCost cost={manaCost} />
+          <CommanderColorPips colors={commanderColors} />
         </div>
       </div>
     );
@@ -1695,7 +1765,7 @@ function CommanderBanner({ tile, onChoose, onLookupCommander, speaking, onPassTu
           <span className={tile.commander ? "commander-name" : "commander-name unset"}>
             {tile.commander || "Add commander"}
           </span>
-          <ManaCost cost={manaCost} />
+          <CommanderColorPips colors={commanderColors} />
         </div>
       </div>
     );
