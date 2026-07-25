@@ -1067,7 +1067,7 @@ input::placeholder { color: var(--text-tertiary); opacity: 1; }
 .sound-picker-tabs button { border: 0; border-radius: 6px; background: transparent; color: var(--text-secondary); font: inherit; font-size: var(--text-xs); cursor: pointer; }
 .sound-picker-tabs button:hover { color: var(--text-primary); background: var(--bg-hover); }
 .sound-picker-tabs button[aria-selected="true"] { color: var(--text-primary); background: var(--bg-surface-raised); box-shadow: inset 0 0 0 1px var(--border-subtle); }
-.sound-picker-list { display: flex; flex-direction: column; gap: 3px; max-height: 326px; margin-top: 8px; overflow-y: auto; }
+.sound-picker-list { display: flex; flex-direction: column; gap: 3px; max-height: 326px; margin-top: 8px; padding-right: 8px; overflow-y: auto; scrollbar-gutter: stable; }
 .sound-picker-item { display: flex; align-items: center; gap: 4px; min-height: 46px; padding: 3px; border-radius: 8px; }
 .sound-picker-item:hover { background: var(--bg-hover); }
 .sound-picker-select { display: flex; align-items: center; gap: 9px; flex: 1; min-width: 0; padding: 5px 6px; border: 0; border-radius: 6px; background: transparent; color: var(--text-secondary); text-align: left; cursor: pointer; }

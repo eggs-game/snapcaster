@@ -159,7 +159,8 @@ The chat composer’s sound-picker trigger uses this exact 32px tier. It opens
 a compact, 360px-wide glass-material picker through a document-level portal
 above the composer so neither the sidebar’s clipped scroll area nor its
 backdrop layer can cut it off or place video above it. The two-option
-Creatures/Emotes segmented control sits above a category-scoped search field.
+Emotes/Creatures segmented control sits above a category-scoped search field,
+with Emotes selected by default.
 Picker rows use Lucide Cat/Laugh icons and a single-line effect name rather
 than repeating the selected category as a subtitle. The chosen effect is shown
 as a compact, dismissible chip in the composer; its matching message chip

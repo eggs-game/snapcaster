@@ -143,7 +143,7 @@ export default function CardSidebar({
   const [chatError, setChatError] = useState("");
   const [selectedSoundId, setSelectedSoundId] = useState("");
   const [soundPickerOpen, setSoundPickerOpen] = useState(false);
-  const [soundPickerTab, setSoundPickerTab] = useState("creatures");
+  const [soundPickerTab, setSoundPickerTab] = useState("emotes");
   const [soundQuery, setSoundQuery] = useState("");
   const [soundPickerStyle, setSoundPickerStyle] = useState({});
   const [now, setNow] = useState(Date.now());
@@ -1201,7 +1201,7 @@ export default function CardSidebar({
                     <button type="button" aria-label="Close sound picker" data-tooltip="Close" onClick={() => setSoundPickerOpen(false)}><X size={16} /></button>
                   </div>
                   <div className="sound-picker-tabs" role="tablist" aria-label="Sound effect category">
-                    {[["creatures", "Creatures"], ["emotes", "Emotes"]].map(([tab, label]) => (
+                    {[["emotes", "Emotes"], ["creatures", "Creatures"]].map(([tab, label]) => (
                       <button
                         key={tab}
                         type="button"
