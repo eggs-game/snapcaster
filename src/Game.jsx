@@ -22,7 +22,6 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const pendingLifeChatsRef = useRef(new Map());
   const readyCheckRef = useRef(null);
   const diceOverlayTimerRef = useRef(null);
-  const soundPreferencesRef = useRef({ enabled: true, volume: 0.5 });
   const recentSoundBySenderRef = useRef({});
   const [myId, setMyId] = useState(null);
   const [roster, setRoster] = useState([]);
@@ -88,18 +87,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const [videoDeviceId, setVideoDeviceId] = useState("");
   const [audioDeviceId, setAudioDeviceId] = useState("");
   const [deviceError, setDeviceError] = useState("");
-  const [soundEffectsEnabled, setSoundEffectsEnabled] = useState(() => {
-    try { return localStorage.getItem("snapcast-sound-effects-enabled") !== "false"; } catch { return true; }
-  });
-  const [soundEffectsVolume, setSoundEffectsVolume] = useState(() => {
-    try {
-      const saved = Number(localStorage.getItem("snapcast-sound-effects-volume"));
-      return Number.isFinite(saved) ? Math.max(0, Math.min(1, saved)) : 0.5;
-    } catch { return 0.5; }
-  });
   const [soundCooldownUntil, setSoundCooldownUntil] = useState(0);
-
-  soundPreferencesRef.current = { enabled: soundEffectsEnabled, volume: soundEffectsVolume };
 
   const showDiceOverlay = useCallback((roll) => {
     window.clearTimeout(diceOverlayTimerRef.current);
@@ -143,8 +131,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     // sender from making a room noisy even before a server-side limiter exists.
     if (now - lastSoundAt < SOUND_COOLDOWN_MS) return "";
     recentSoundBySenderRef.current[senderId] = now;
-    const preferences = soundPreferencesRef.current;
-    if (preferences.enabled) playSoundEffect(sound, preferences.volume);
+    playSoundEffect(sound, 1);
     return sound.id;
   };
 
@@ -288,14 +275,6 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       conn.close();
     };
   }, [isVisitor, queueLifeChat, session.code, session.name, session.videoDeviceId, session.audioDeviceId]);
-
-  useEffect(() => {
-    try { localStorage.setItem("snapcast-sound-effects-enabled", String(soundEffectsEnabled)); } catch { /* ignore */ }
-  }, [soundEffectsEnabled]);
-
-  useEffect(() => {
-    try { localStorage.setItem("snapcast-sound-effects-volume", String(soundEffectsVolume)); } catch { /* ignore */ }
-  }, [soundEffectsVolume]);
 
   // A readiness prompt is deliberately ephemeral. The timer is local so a
   // lost broadcast cannot leave a stale prompt on one player's screen.
@@ -482,7 +461,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     if (soundId) {
       recentSoundBySenderRef.current[myId] = at;
       setSoundCooldownUntil(at + SOUND_COOLDOWN_MS);
-      if (soundPreferencesRef.current.enabled) playSoundEffect(soundId, soundPreferencesRef.current.volume);
+      playSoundEffect(soundId, 1);
     }
     setChatMessages((messages) => [...messages.slice(-99), {
       id: `local-${myId}-${at}-${++chatIdRef.current}`,
@@ -981,18 +960,8 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
             chatRecipients={roster.filter((member) => member.id !== myId)}
             onSendChat={sendChat}
             soundCooldownUntil={soundCooldownUntil}
-            soundEffectsEnabled={soundEffectsEnabled}
-            soundEffectsVolume={soundEffectsVolume}
-            onSoundEffectsEnabledChange={setSoundEffectsEnabled}
-            onSoundEffectsVolumeChange={setSoundEffectsVolume}
             onPreviewSound={(soundId, onError) => {
-              // Preview is an explicit action, so it remains audible even when
-              // automatic room sounds are muted or their slider is at zero.
-              return playSoundEffect(
-                soundId,
-                Math.max(0.5, soundPreferencesRef.current.volume),
-                onError,
-              );
+              return playSoundEffect(soundId, 1, onError);
             }}
             onRollDie={rollDie}
             counterDraft={counterDraft}
@@ -1013,13 +982,11 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
             onClosed={() => {
               setSidebarClosing(false);
               setSidebarCollapsed(true);
-              setSidebarView("lookup");
             }}
             collapsed={sidebarCollapsed}
             onOpen={() => {
               setSidebarCollapsed(false);
               setSidebarOpen(true);
-              setSidebarView("lookup");
             }}
             view={sidebarView}
             onViewChange={setSidebarView}

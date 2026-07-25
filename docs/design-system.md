@@ -129,7 +129,8 @@ circular/minimal ones, 8px for the modal/drawer family).
 ```
 
 Current examples: `.modal-close`, `.drawer-toggle` (the sidebar’s 48px-wide
-navigation rail — card lookup/invite/counters/dice/settings), `.counter-stepper button`
+navigation rail — card lookup/invite/counters/dice/settings — and the close
+action at the right of every panel header), `.counter-stepper button`
 (poison/commander-damage ±), the life-badge's sword and ± buttons
 (`.life-btn`, `.life-sword-btn`).
 
@@ -137,11 +138,12 @@ The sidebar navigation is a dedicated 48px left rail on the app background;
 the glass panel begins at the scrollable content column without a separator.
 Rail actions stay vertically aligned, with a subtle divider separating the
 Settings gear from the game actions. Closing the panel collapses only the
-content column: the 48px rail remains visible; hovering its panel icon reveals
-a right arrow that opens the drawer. While open, that same icon reveals a left
-arrow to close it. The panel icon is active for card lookup and yields the
-active treatment to whichever game panel is open; its center aligns with the
-content panel’s game-name text.
+content column: the 48px rail remains visible. A compact Geist “S” mark sits
+above the actions as the collapsed-drawer opener, changing to a right arrow on
+hover when the drawer is closed; it reopens the previously active view. The
+lightning icon is the ordinary default Card lookup action with the normal icon
+button hover treatment, and its active state yields to whichever game panel is
+open. The rail’s first action aligns with the content panel’s game-name text.
 
 Rail tooltips use the left-edge anchor (`left-bottom`) so their text expands
 rightward into the app instead of clipping off the viewport’s left edge.
@@ -160,8 +162,13 @@ Creatures/Emotes segmented control sits above a category-scoped search field.
 Picker rows use Lucide Cat/Laugh icons and a single-line effect name rather
 than repeating the selected category as a subtitle. The chosen effect is shown
 as a compact, dismissible chip in the composer; its matching message chip
-remains visible in chat even if a recipient has sound effects muted or browser
-autoplay is blocked.
+remains visible in chat even if browser playback is blocked. Effects play at
+the listener’s normal browser/tab volume, without a separate in-app mute or
+volume control.
+
+Incoming standard chat messages use a compact 24px circular initial avatar to
+the left of the bubble. The sender’s name is exposed in the avatar tooltip,
+keeping the message itself compact; timestamps sit below their bubbles.
 
 Dice and coin results use a temporary, non-interactive glass card centered
 over the video panel. It reuses the former sidebar result-card proportions,
