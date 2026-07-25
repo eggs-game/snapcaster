@@ -5,7 +5,7 @@ import {
 } from "lucide-react";
 import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
 import { labelRecognitionReport, saveRecognitionReport } from "./signaling.js";
-import { suggestCardNames } from "./cardSearch.js";
+import { getCommanderPairing, suggestCardNames, suggestCommanderPartners } from "./cardSearch.js";
 import { identify as identifyCard, preload as preloadRecognition } from "./recognition/matcher.js";
 import CardSidebar, { cardFromScryfall, formatDiceResult, formatDiceSides } from "./CardSidebar.jsx";
 import { getSoundEffect, playSoundEffect } from "./soundEffects.js";
@@ -27,8 +27,10 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const [roster, setRoster] = useState([]);
   const [lives, setLives] = useState({}); // id -> life
   const [commanders, setCommanders] = useState({}); // id -> card name
+  const [commanderPartners, setCommanderPartners] = useState({}); // id -> paired commander name
   const [colors, setColors] = useState({}); // id -> hex color
   const [mutedPlayers, setMutedPlayers] = useState({}); // id -> bool
+  const [cameraEnabledByPlayer, setCameraEnabledByPlayer] = useState({}); // id -> bool
   const [streams, setStreams] = useState({});
   const [videoQualityByPlayer, setVideoQualityByPlayer] = useState({});
   const [localStream, setLocalStream] = useState(null);
@@ -149,6 +151,8 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       onPeerLeft: (id) => {
         setStreams((s) => { const c = { ...s }; delete c[id]; return c; });
         setVideoCounters((counters) => { const next = { ...counters }; delete next[id]; return next; });
+        setCameraEnabledByPlayer((values) => { const next = { ...values }; delete next[id]; return next; });
+        setMutedPlayers((values) => { const next = { ...values }; delete next[id]; return next; });
       },
       onLife: (id, life) => {
         const previous = livesRef.current[id];
@@ -160,8 +164,10 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       },
       onLobbyName: setLobbyName,
       onCommander: (id, commander) => setCommanders((values) => ({ ...values, [id]: commander })),
+      onCommanderPartner: (id, partner) => setCommanderPartners((values) => ({ ...values, [id]: partner })),
       onColor: (id, color) => setColors((values) => ({ ...values, [id]: color })),
       onMuted: (id, muted) => setMutedPlayers((values) => ({ ...values, [id]: muted })),
+      onCameraEnabled: (id, enabled) => setCameraEnabledByPlayer((values) => ({ ...values, [id]: enabled })),
       onCardIdentified: (msg) => {
         const at = Number(msg.at) || Date.now();
         setLookups((lookedUp) => [...lookedUp.slice(-11), { by: msg.byName, card: msg.card, at }]);
@@ -428,7 +434,8 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const changeLife = (delta) => {
     if (isVisitor) return;
     const previous = livesRef.current[myId] ?? lives[myId] ?? 40;
-    const life = previous + delta;
+    const life = Math.max(0, previous + delta);
+    if (life === previous) return;
     livesRef.current = { ...livesRef.current, [myId]: life };
     setLives((l) => ({ ...l, [myId]: life }));
     queueLifeChat(myId, session.name, previous, life);
@@ -663,7 +670,15 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const chooseCommander = (commander) => {
     if (isVisitor) return;
     setCommanders((values) => ({ ...values, [myId]: commander }));
+    setCommanderPartners((values) => ({ ...values, [myId]: "" }));
     connRef.current?.setCommander(commander);
+    connRef.current?.setCommanderPartner("");
+  };
+
+  const chooseCommanderPartner = (partner) => {
+    if (isVisitor) return;
+    setCommanderPartners((values) => ({ ...values, [myId]: partner }));
+    connRef.current?.setCommanderPartner(partner);
   };
 
   const chooseColor = (color) => {
@@ -816,7 +831,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     // Commander damage is damage received: adding it lowers life, while
     // correcting it downward restores the corresponding life total.
     const previousLife = livesRef.current[myId] ?? lives[myId] ?? 40;
-    const life = previousLife - appliedDamage;
+    const life = Math.max(0, previousLife - appliedDamage);
     livesRef.current = { ...livesRef.current, [myId]: life };
     setLives((values) => ({ ...values, [myId]: life }));
     queueLifeChat(myId, session.name, previousLife, life);
@@ -834,8 +849,11 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
 
   const toggleCam = () => {
     if (isVisitor) return;
-    connRef.current.toggleTrack("video", !camOn);
-    setCamOn(!camOn);
+    const next = !camOn;
+    connRef.current.toggleTrack("video", next);
+    setCamOn(next);
+    setCameraEnabledByPlayer((values) => ({ ...values, [myId]: next }));
+    connRef.current?.setCameraEnabled(next);
   };
 
   const chooseCamera = async (deviceId) => {
@@ -935,7 +953,8 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const tiles = orderedPlayers.map((p, i) => ({
     ...p,
     life: lives[p.id] ?? 40,
-    commander: commanders[p.id] || "",
+      commander: commanders[p.id] || "",
+      commanderPartner: commanderPartners[p.id] || "",
     color: colors[p.id] || TILE_COLORS[i % TILE_COLORS.length],
     muted: !!mutedPlayers[p.id],
     stream: p.id === myId ? localStream : streams[p.id],
@@ -1105,12 +1124,13 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
                 scanNotice={t.isMe ? scanNotice : null}
                 onIdentify={identify}
                 onChooseCommander={chooseCommander}
+                onChooseCommanderPartner={chooseCommanderPartner}
                 onLookupCommander={lookupCommanderName}
                 onChangeLife={changeLife}
                 onOpenCounters={openCounters}
                 onPassTurn={passTurn}
-                camOn={camOn}
-                micOn={micOn}
+                camOn={t.isMe ? camOn : cameraEnabledByPlayer[t.id] !== false}
+                micOn={t.isMe ? micOn : !mutedPlayers[t.id]}
                 onToggleCam={toggleCam}
                 onToggleMic={toggleMic}
                 videoQuality={t.isMe ? "auto" : (videoQualityByPlayer[t.id] || "auto")}
@@ -1253,7 +1273,7 @@ function formatVideoResolution(resolution) {
   return `${height}p`;
 }
 
-function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseCommander, onLookupCommander, onChangeLife, onOpenCounters, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, isReadyCheckActive, readyStatus, onReady, onNotReady, heroRole, onSelectHero, flash, scanNotice, camOn, micOn, onToggleCam, onToggleMic, videoQuality, onVideoQualityChange, videoCounters, counterDragPreview, onStartVideoCounterDrag, onChangeVideoCounter, onRemoveVideoCounter, flipped, onToggleFlip }) {
+function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseCommander, onChooseCommanderPartner, onLookupCommander, onChangeLife, onOpenCounters, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, isReadyCheckActive, readyStatus, onReady, onNotReady, heroRole, onSelectHero, flash, scanNotice, camOn, micOn, onToggleCam, onToggleMic, videoQuality, onVideoQualityChange, videoCounters, counterDragPreview, onStartVideoCounterDrag, onChangeVideoCounter, onRemoveVideoCounter, flipped, onToggleFlip }) {
   // Seats 3 and 4 (the bottom row of a 4-player grid) mirror their banner to
   // the bottom edge and their life badge to the top corner, since those
   // tiles sit upside-down relative to the viewer's side of the table.
@@ -1263,6 +1283,9 @@ function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseComm
   // edge the badge is flush against, or they'd render off-screen.
   const lifeBadgeAlign = isSeat3 ? "right" : isSeat4 ? "left" : innerSide;
   const bannerAtBottom = isSeat3 || isSeat4;
+  const lifeTooltipPosition = bannerAtBottom
+    ? lifeBadgeAlign === "left" ? "left-bottom" : "right-bottom"
+    : lifeBadgeAlign === "left" ? "left-top" : "right-top";
   const videoRef = useRef(null);
   const lifeHoldTimerRef = useRef(null);
   const lifeHoldIntervalRef = useRef(null);
@@ -1345,6 +1368,7 @@ function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseComm
       <CommanderBanner
         tile={tile}
         onChoose={onChooseCommander}
+        onChoosePartner={onChooseCommanderPartner}
         onLookupCommander={onLookupCommander}
         speaking={speaking}
         onPassTurn={onPassTurn}
@@ -1438,7 +1462,7 @@ function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseComm
         >
           {tile.isMe && (
             <>
-              <button className="life-btn life-sword-btn" onClick={() => onOpenCounters?.()} aria-label="Add commander damage" data-tooltip="Add commander damage" data-tooltip-pos={lifeBadgeAlign === "left" ? "left-top" : "right-top"}>
+              <button className="life-btn life-sword-btn" onClick={() => onOpenCounters?.()} aria-label="Add commander damage" data-tooltip="Add commander damage">
                 <Swords size={20} fill="currentColor" />
               </button>
               <span className="life-divider" aria-hidden="true" />
@@ -1460,7 +1484,7 @@ function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseComm
               onClick={() => changeLifeFromButton(-1)}
               aria-label="Lose 1 life; hold to lose life in increments of 5"
               data-tooltip="Lose 1 life · hold for 5"
-              data-tooltip-pos={lifeBadgeAlign === "left" ? "left-top" : "right-top"}
+              data-tooltip-pos={lifeTooltipPosition}
             >
               <Minus size={20} />
             </button>
@@ -1482,7 +1506,7 @@ function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseComm
               onClick={() => changeLifeFromButton(1)}
               aria-label="Gain 1 life; hold to gain life in increments of 5"
               data-tooltip="Gain 1 life · hold for 5"
-              data-tooltip-pos={lifeBadgeAlign === "left" ? "left-top" : "right-top"}
+              data-tooltip-pos={lifeTooltipPosition}
             >
               <Plus size={20} />
             </button>
@@ -1574,14 +1598,15 @@ function TileMenu({ flipped, onToggleFlip, canPassTurn, onPassTurn, canRandomize
   const [open, setOpen] = useState(false);
   return (
     <div className="banner-menu" onClick={(e) => e.stopPropagation()}>
-      {showMediaControls && (
-        <>
+      <>
+        {showMediaControls ? (
+          <>
           <button
             className={camOn ? "menu-btn" : "menu-btn menu-btn-danger"}
             onClick={() => onToggleCam?.()}
             aria-label={camOn ? "Turn camera off" : "Turn camera on"}
             data-tooltip={camOn ? "Turn camera off" : "Turn camera on"}
-            data-tooltip-pos="right-top"
+            data-tooltip-pos={menuUp ? "right-top" : "right-bottom"}
           >
             {camOn ? <Video size={16} /> : <VideoOff size={16} />}
           </button>
@@ -1590,12 +1615,34 @@ function TileMenu({ flipped, onToggleFlip, canPassTurn, onPassTurn, canRandomize
             onClick={() => onToggleMic?.()}
             aria-label={micOn ? "Mute" : "Unmute"}
             data-tooltip={micOn ? "Mute" : "Unmute"}
-            data-tooltip-pos="right-top"
+            data-tooltip-pos={menuUp ? "right-top" : "right-bottom"}
           >
             {micOn ? <Mic size={16} /> : <MicOff size={16} />}
           </button>
-        </>
-      )}
+          </>
+        ) : (
+          <>
+            <span
+              className={camOn ? "menu-btn menu-status" : "menu-btn menu-status menu-btn-danger"}
+              role="img"
+              aria-label={camOn ? "Camera on" : "Camera off"}
+              data-tooltip={camOn ? "Camera on" : "Camera off"}
+              data-tooltip-pos={menuUp ? "right-top" : "right-bottom"}
+            >
+              {camOn ? <Video size={16} /> : <VideoOff size={16} />}
+            </span>
+            <span
+              className={micOn ? "menu-btn menu-status" : "menu-btn menu-status menu-btn-danger"}
+              role="img"
+              aria-label={micOn ? "Microphone on" : "Microphone muted"}
+              data-tooltip={micOn ? "Microphone on" : "Microphone muted"}
+              data-tooltip-pos={menuUp ? "right-top" : "right-bottom"}
+            >
+              {micOn ? <Mic size={16} /> : <MicOff size={16} />}
+            </span>
+          </>
+        )}
+      </>
       <button
         className="menu-btn"
         onClick={() => setOpen((o) => !o)}
@@ -1656,19 +1703,27 @@ function TileMenu({ flipped, onToggleFlip, canPassTurn, onPassTurn, canRandomize
   );
 }
 
-function CommanderBanner({ tile, onChoose, onLookupCommander, speaking, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, flipped, onToggleFlip, camOn, micOn, onToggleCam, onToggleMic, videoQuality, videoResolution, onVideoQualityChange, atBottom }) {
+function CommanderBanner({ tile, onChoose, onChoosePartner, onLookupCommander, speaking, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, flipped, onToggleFlip, camOn, micOn, onToggleCam, onToggleMic, videoQuality, videoResolution, onVideoQualityChange, atBottom }) {
   const [draft, setDraft] = useState(tile.commander);
   const [suggestions, setSuggestions] = useState([]);
   const [highlight, setHighlight] = useState(-1);
   const [editing, setEditing] = useState(false);
+  const [partnerDraft, setPartnerDraft] = useState(tile.commanderPartner);
+  const [partnerSuggestions, setPartnerSuggestions] = useState([]);
+  const [partnerHighlight, setPartnerHighlight] = useState(-1);
+  const [editingPartner, setEditingPartner] = useState(false);
+  const [commanderCard, setCommanderCard] = useState(null);
   const [commanderColors, setCommanderColors] = useState(null);
 
   useEffect(() => setDraft(tile.commander), [tile.commander]);
+  useEffect(() => setPartnerDraft(tile.commanderPartner), [tile.commanderPartner]);
 
-  // Look up the commander's color identity for the banner display. Generic
-  // and colorless mana are omitted unless the commander has no colors at all.
+  // Look up the commander's color identity for the banner display. A paired
+  // commander contributes its identity too; generic and colorless mana are
+  // omitted unless the resulting identity has no colors at all.
   useEffect(() => {
     setCommanderColors(null);
+    setCommanderCard(null);
     const name = tile.commander?.trim();
     if (!name) return undefined;
     const controller = new AbortController();
@@ -1679,13 +1734,47 @@ function CommanderBanner({ tile, onChoose, onLookupCommander, speaking, onPassTu
         });
         if (!response.ok) return;
         const card = await response.json();
-        setCommanderColors(Array.isArray(card.color_identity) ? card.color_identity : []);
+        const partnerName = tile.commanderPartner?.trim();
+        const partnerResponse = partnerName
+          ? await fetch(`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(partnerName)}`, {
+            signal: controller.signal,
+          })
+          : null;
+        const partner = partnerResponse?.ok ? await partnerResponse.json() : null;
+        setCommanderCard(card);
+        setCommanderColors([...new Set([
+          ...(Array.isArray(card.color_identity) ? card.color_identity : []),
+          ...(Array.isArray(partner?.color_identity) ? partner.color_identity : []),
+        ])]);
       } catch {
         /* banner just shows the name without pips */
       }
     })();
     return () => controller.abort();
-  }, [tile.commander]);
+  }, [tile.commander, tile.commanderPartner]);
+
+  const pairing = getCommanderPairing(commanderCard);
+
+  useEffect(() => {
+    const query = partnerDraft.trim();
+    if (!pairing || query.length < 2 || query === tile.commanderPartner) {
+      setPartnerSuggestions([]);
+      return undefined;
+    }
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        setPartnerSuggestions(await suggestCommanderPartners(commanderCard, query, controller.signal));
+        setPartnerHighlight(-1);
+      } catch (error) {
+        if (error.name !== "AbortError") setPartnerSuggestions([]);
+      }
+    }, 200);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [commanderCard, partnerDraft, tile.commanderPartner]);
 
   useEffect(() => {
     const query = draft.trim();
@@ -1730,18 +1819,33 @@ function CommanderBanner({ tile, onChoose, onLookupCommander, speaking, onPassTu
   if (!tile.isMe) {
     return (
       <div className={atBottom ? "commander-banner banner-at-bottom" : "commander-banner"}>
-        <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} videoQuality={videoQuality} videoResolution={videoResolution} onVideoQualityChange={onVideoQualityChange} menuUp={atBottom} />
+        <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} camOn={camOn} micOn={micOn} videoQuality={videoQuality} videoResolution={videoResolution} onVideoQualityChange={onVideoQualityChange} menuUp={atBottom} />
         {nameRow}
         <div className="banner-row commander-detail">
           {tile.commander ? (
-            <button
-              type="button"
-              className="commander-name commander-name-link"
-              onClick={(event) => { event.stopPropagation(); onLookupCommander?.(tile.commander); }}
-              title="Look up this commander"
-            >
-              {tile.commander}
-            </button>
+            <span className="commander-pair">
+              <button
+                type="button"
+                className="commander-name commander-name-link"
+                onClick={(event) => { event.stopPropagation(); onLookupCommander?.(tile.commander); }}
+                title="Look up this commander"
+              >
+                {tile.commander}
+              </button>
+              {tile.commanderPartner && (
+                <>
+                  <span className="commander-pair-divider">/</span>
+                  <button
+                    type="button"
+                    className="commander-name commander-name-link"
+                    onClick={(event) => { event.stopPropagation(); onLookupCommander?.(tile.commanderPartner); }}
+                    title="Look up this partner commander"
+                  >
+                    {tile.commanderPartner}
+                  </button>
+                </>
+              )}
+            </span>
           ) : (
             <span className="commander-name unset">Not selected</span>
           )}
@@ -1753,6 +1857,71 @@ function CommanderBanner({ tile, onChoose, onLookupCommander, speaking, onPassTu
 
   // Overlay text state (click to add or change). The input only appears
   // while actively editing.
+  if (editingPartner && tile.commander && pairing) {
+    const choosePartner = (partner) => {
+      setPartnerSuggestions([]);
+      onChoosePartner(partner);
+      setEditingPartner(false);
+    };
+    const submitPartner = (event) => {
+      event.preventDefault();
+      const partner = partnerSuggestions[partnerHighlight];
+      if (partner) choosePartner(partner);
+    };
+    return (
+      <form className={atBottom ? "commander-banner commander-picker commander-partner-picker banner-at-bottom" : "commander-banner commander-picker commander-partner-picker"} onSubmit={submitPartner}>
+        <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canPassTurn={tile.activeTurn} onPassTurn={onPassTurn} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} canStartReadyCheck={canRandomizeGrid} onStartReadyCheck={onStartReadyCheck} showMediaControls camOn={camOn} micOn={micOn} onToggleCam={onToggleCam} onToggleMic={onToggleMic} videoResolution={videoResolution} menuUp={atBottom} />
+        {nameRow}
+        <div className="commander-search commander-partner-search">
+          <span className="commander-name">{tile.commander}</span>
+          <span className="commander-pair-divider">/</span>
+          <input
+            id={`commander-partner-${tile.id}`}
+            value={partnerDraft}
+            onChange={(event) => setPartnerDraft(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") {
+                if (partnerSuggestions.length) setPartnerSuggestions([]);
+                else setEditingPartner(false);
+                return;
+              }
+              if (!partnerSuggestions.length) return;
+              if (event.key === "ArrowDown") {
+                event.preventDefault();
+                setPartnerHighlight((i) => (i + 1) % partnerSuggestions.length);
+              } else if (event.key === "ArrowUp") {
+                event.preventDefault();
+                setPartnerHighlight((i) => (i <= 0 ? partnerSuggestions.length - 1 : i - 1));
+              }
+            }}
+            onBlur={() => setEditingPartner(false)}
+            placeholder="Add partner"
+            aria-label="Add partner commander"
+            autoComplete="off"
+            autoFocus
+          />
+          {partnerSuggestions.length > 0 && (
+            <ul className="commander-suggest">
+              {partnerSuggestions.map((name, i) => (
+                <li
+                  key={name}
+                  className={i === partnerHighlight ? "active" : ""}
+                  onMouseEnter={() => setPartnerHighlight(i)}
+                  onMouseDown={(event) => {
+                    event.preventDefault();
+                    choosePartner(name);
+                  }}
+                >
+                  {name}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </form>
+    );
+  }
+
   if (!editing) {
     return (
       <div
@@ -1762,8 +1931,27 @@ function CommanderBanner({ tile, onChoose, onLookupCommander, speaking, onPassTu
         <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canPassTurn={tile.activeTurn} onPassTurn={onPassTurn} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} canStartReadyCheck={canRandomizeGrid} onStartReadyCheck={onStartReadyCheck} showMediaControls camOn={camOn} micOn={micOn} onToggleCam={onToggleCam} onToggleMic={onToggleMic} videoResolution={videoResolution} menuUp={atBottom} />
         {nameRow}
         <div className="banner-row commander-detail">
-          <span className={tile.commander ? "commander-name" : "commander-name unset"}>
+          <span className={tile.commander ? "commander-pair" : "commander-name unset"}>
             {tile.commander || "Add commander"}
+            {tile.commanderPartner && (
+              <>
+                <span className="commander-pair-divider">/</span>
+                <span className="commander-name">{tile.commanderPartner}</span>
+              </>
+            )}
+            {tile.commander && pairing && !tile.commanderPartner && (
+              <button
+                type="button"
+                className="commander-partner-placeholder"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setEditingPartner(true);
+                }}
+              >
+                <span className="commander-pair-divider">/</span>
+                <span>Add partner</span>
+              </button>
+            )}
           </span>
           <CommanderColorPips colors={commanderColors} />
         </div>
@@ -1773,6 +1961,8 @@ function CommanderBanner({ tile, onChoose, onLookupCommander, speaking, onPassTu
 
   const choose = (commander) => {
     setSuggestions([]);
+    setPartnerDraft("");
+    setEditingPartner(false);
     onChoose(commander);
     setEditing(false);
   };

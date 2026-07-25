@@ -26,3 +26,105 @@ export async function suggestCardNames(query, signal) {
   const cards = (await searchResp.json()).data || [];
   return cards.slice(0, 12).map((card) => card.name);
 }
+
+function hasType(card, type) {
+  return new RegExp(`\\b${type}\\b`, "i").test(String(card?.type_line || ""));
+}
+
+function isLegendaryBackground(card) {
+  return hasType(card, "Legendary") && hasType(card, "Enchantment") && hasType(card, "Background");
+}
+
+function isEligibleDoctor(card) {
+  const typeLine = String(card?.type_line || "");
+  const [, subtypes = ""] = typeLine.split("—");
+  return hasType(card, "Legendary") && hasType(card, "Creature") && /^Time Lord Doctor$/i.test(subtypes.trim());
+}
+
+// Commander pairing is determined by the card's current Oracle wording and
+// type line, not its printed text. Keep Partner with ahead of the generic
+// Partner check: it names one specific legal co-commander instead of opening
+// the whole pool.
+export function getCommanderPairings(card) {
+  const oracle = String(card?.oracle_text || "");
+  const pairings = [];
+  for (const match of oracle.matchAll(/^Partner with ([^\n(]+?)(?:\s*\(|\s*$)/gim)) {
+    pairings.push({ kind: "named", name: match[1].trim() });
+  }
+  for (const match of oracle.matchAll(/^Partner[—-]([^\n(]+?)(?:\s*\(|\s*$)/gim)) {
+    pairings.push({ kind: "variant", label: match[1].trim().toLowerCase() });
+  }
+  if (/^Friends forever(?:\s|\(|$)/im.test(oracle)) pairings.push({ kind: "friends" });
+  if (/^Partner(?!\s+with\b)(?:\s|\(|$)/im.test(oracle)) pairings.push({ kind: "partner" });
+  if (/^Choose a Background(?:\s|\(|$)/im.test(oracle)) pairings.push({ kind: "choose-background" });
+  if (/^Doctor['’]s companion(?:\s|\(|$)/im.test(oracle)) pairings.push({ kind: "doctors-companion" });
+  if (isLegendaryBackground(card)) pairings.push({ kind: "background" });
+  if (isEligibleDoctor(card)) pairings.push({ kind: "doctor" });
+  return pairings;
+}
+
+// Kept as the simple availability check used by the banner. Search validation
+// below always considers every pairing ability a card has.
+export function getCommanderPairing(card) {
+  return getCommanderPairings(card)[0] || null;
+}
+
+function pairingSearch(pairing) {
+  switch (pairing?.kind) {
+    case "partner": return 't:legendary t:creature o:"Partner"';
+    case "friends": return 't:legendary t:creature o:"Friends forever"';
+    case "variant": return `t:legendary t:creature o:"Partner—${pairing.label}"`;
+    case "choose-background": return "t:background";
+    case "background": return 't:legendary t:creature o:"Choose a Background"';
+    case "doctors-companion": return "t:legendary t:creature t:time t:lord t:doctor";
+    case "doctor": return 't:legendary t:creature o:"Doctor\'s companion"';
+    default: return "";
+  }
+}
+
+function isValidPartner(primary, candidate) {
+  const candidatePairings = getCommanderPairings(candidate);
+  return getCommanderPairings(primary).some((pairing) => {
+    if (pairing.kind === "named") {
+      return candidate?.name === pairing.name
+        && candidatePairings.some((other) => other.kind === "named" && other.name === primary?.name);
+    }
+    if (pairing.kind === "doctors-companion") return isEligibleDoctor(candidate);
+    if (pairing.kind === "doctor") return candidatePairings.some((other) => other.kind === "doctors-companion");
+    if (pairing.kind === "choose-background") return isLegendaryBackground(candidate);
+    if (pairing.kind === "background") return candidatePairings.some((other) => other.kind === "choose-background");
+    return candidatePairings.some((other) => other.kind === pairing.kind && other.label === pairing.label);
+  });
+}
+
+export async function suggestCommanderPartners(primaryCard, query, signal) {
+  const pairings = getCommanderPairings(primaryCard);
+  const q = query.trim();
+  if (!pairings.length || q.length < 2) return [];
+
+  const words = q.split(/\s+/).filter(Boolean);
+  const nameFilters = words.map((word) => `name:"${word.replace(/"/g, "")}"`).join(" ");
+  const searches = pairings
+    .map(pairingSearch)
+    .filter(Boolean)
+    .map(async (searchFilter) => {
+      const response = await fetch(
+        `https://api.scryfall.com/cards/search?q=${encodeURIComponent(`${searchFilter} ${nameFilters}`)}&unique=cards&order=name`,
+        { signal },
+      );
+      return response.ok ? (await response.json()).data || [] : [];
+    });
+  const named = pairings
+    .filter((pairing) => pairing.kind === "named" && pairing.name.toLowerCase().includes(q.toLowerCase()))
+    .map(async (pairing) => {
+      const response = await fetch(`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(pairing.name)}`, { signal });
+      return response.ok ? [await response.json()] : [];
+    });
+  const cards = (await Promise.all([...searches, ...named])).flat();
+  return [...new Map(cards
+    .filter((card) => isValidPartner(primaryCard, card))
+    .map((card) => [card.name, card]))
+    .values()]
+    .slice(0, 12)
+    .map((card) => card.name);
+}

@@ -88,7 +88,7 @@ const MAX_VISITORS = 8; // peer-to-peer video fan-out is not an unlimited broadc
 export class GameConnection {
   constructor(handlers) {
     // handlers: onRoster, onRemoteStream, onPeerLeft, onLife,
-    // onCommander, onColor, onCardIdentified, onChat (public or whisper), onActivePlayer,
+    // onCommander, onCommanderPartner, onColor, onCardIdentified, onChat (public or whisper), onActivePlayer,
     // onGridOrder, onReadyCheckStart, onReadyCheckResponse, onReadyCheckEnd,
     // onVideoCounter, onVideoCounterRemove,
     // onError
@@ -100,8 +100,10 @@ export class GameConnection {
     this.myId = null;
     this.knownIds = new Set();
     this.commander = "";
+    this.commanderPartner = "";
     this.color = "";
     this.muted = false;
+    this.cameraEnabled = true;
     this.life = 40;
     this.lobbyName = "";
     this.activePlayerId = "";
@@ -303,6 +305,7 @@ export class GameConnection {
       this.room?.send({ type: "life", life: this.life });
       if (this.lobbyName) this.room?.send({ type: "lobby-name", lobbyName: this.lobbyName });
       if (this.commander) this.room?.send({ type: "commander", commander: this.commander });
+      if (this.commanderPartner) this.room?.send({ type: "commander-partner", partner: this.commanderPartner });
       if (this.color) this.room?.send({ type: "color", color: this.color });
       if (this.activePlayerId) this.room?.send({ type: "active-player", playerId: this.activePlayerId });
       if (this.gridOrder.length) this.room?.send({ type: "grid-order", order: this.gridOrder });
@@ -315,6 +318,7 @@ export class GameConnection {
       }
     }
     if (this.muted) this.room?.send({ type: "muted", muted: true });
+    if (!this.cameraEnabled) this.room?.send({ type: "camera-enabled", enabled: false });
   }
 
   async _onSignal(msg) {
@@ -358,10 +362,14 @@ export class GameConnection {
           this.h.onCommander?.(msg.from, String(msg.commander || "").slice(0, 120));
         }
         break;
+      case "commander-partner":
+        if (senderRole !== "visitor") this.h.onCommanderPartner?.(msg.from, String(msg.partner || "").slice(0, 120));
+        break;
       case "color":
         if (senderRole !== "visitor") this.h.onColor?.(msg.from, String(msg.color || "").slice(0, 20));
         break;
       case "muted": this.h.onMuted?.(msg.from, !!msg.muted); break;
+      case "camera-enabled": this.h.onCameraEnabled?.(msg.from, !!msg.enabled); break;
       case "card-identified":
         if (senderRole !== "visitor") this.h.onCardIdentified?.(msg);
         break;
@@ -652,6 +660,11 @@ export class GameConnection {
     this.commander = String(commander || "").trim().slice(0, 120);
     this.room?.send({ type: "commander", commander: this.commander });
   }
+  setCommanderPartner(partner) {
+    if (this.role === "visitor") return;
+    this.commanderPartner = String(partner || "").trim().slice(0, 120);
+    this.room?.send({ type: "commander-partner", partner: this.commanderPartner });
+  }
   setColor(color) {
     if (this.role === "visitor") return;
     this.color = String(color || "").trim().slice(0, 20);
@@ -660,6 +673,10 @@ export class GameConnection {
   setMuted(muted) {
     this.muted = !!muted;
     this.room?.send({ type: "muted", muted: this.muted });
+  }
+  setCameraEnabled(enabled) {
+    this.cameraEnabled = !!enabled;
+    this.room?.send({ type: "camera-enabled", enabled: this.cameraEnabled });
   }
   announceCard(card, byName, at = Date.now()) {
     if (this.role === "visitor") return;

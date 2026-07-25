@@ -839,8 +839,7 @@ export default function CardSidebar({
             {(current?.loading || searching) && <div className="lookup-status">Identifying…</div>}
             {current?.error && <div className="lookup-status error">{current.error}</div>}
             {current?.matches?.length === 0 && <div className="lookup-status">No match found. Try clicking closer to the card center.</div>}
-            {best && !top && <div className="lookup-status">No confident match. Try clicking closer to the card center.</div>}
-            {top && (
+            {top && decisive && (
               <div className="card-hit">
                 <button
                   type="button"
@@ -880,8 +879,17 @@ export default function CardSidebar({
                     )}
                   </div>
                 </div>
-                {!decisive && <span className="match-qualifier">Possible match — not certain</span>}
               </div>
+            )}
+            {best && !decisive && (
+              <button
+                type="button"
+                className="bad-match-link"
+                onClick={beginWrongCardReport}
+                disabled={!current.captureImage}
+              >
+                Bad match — help me fix it
+              </button>
             )}
             {wrongReport && (
               <section className="wrong-card-report" aria-label="Wrong card report">
@@ -935,6 +943,7 @@ export default function CardSidebar({
                 )}
                 <div className="wrong-card-report-actions">
                   <button
+                    className="wrong-card-report-submit"
                     type="button"
                     onClick={() => labelWrongCard(truthHighlight >= 0 ? truthSuggestions[truthHighlight] : truthQuery)}
                     disabled={!truthQuery.trim() || wrongReport.syncStatus === "saving" || labelingWrongReport}
@@ -943,13 +952,6 @@ export default function CardSidebar({
                   </button>
                 </div>
               </section>
-            )}
-            {best && !decisive && current?.matches?.length > 1 && (
-              <div className="alts" aria-label="Other possible matches">
-                {current.matches.slice(top ? 1 : 0, top ? 9 : 8).map((m, i) => (
-                  <img key={i} src={m.image} alt={m.name} title={`${m.name} (${m.set})`} onClick={() => onPick(m)} />
-                ))}
-              </div>
             )}
             {recentCards.length > 0 && (
               <section className="recent-cards" aria-labelledby="recent-cards-title">
@@ -1027,7 +1029,7 @@ export default function CardSidebar({
               <div className="chat-messages" ref={chatMessagesRef} aria-live="polite">
                 {chatMessages?.length ? chatMessages.map((message) => {
                   const isMine = message.from === currentUserId;
-                  const showSenderAvatar = !isMine && !message.kind && !message.whisper;
+                  const showSenderAvatar = !isMine && !message.whisper;
                   const senderName = message.name || "Player";
                   const senderColorIndex = [...String(message.from || senderName)].reduce((total, character) => total + character.charCodeAt(0), 0) % tileColors.length;
                   return (
@@ -1044,22 +1046,12 @@ export default function CardSidebar({
                         </span>
                       )}
                       <div className={`chat-message-wrap${isMine ? " mine" : ""}`}>
-                        <div className={`chat-message${isMine ? " mine" : ""}${message.whisper ? " whisper" : ""}`}>
-                          {(message.kind || message.whisper) && <div className="chat-message-meta">
+                        <div className={`chat-message${isMine ? " mine" : ""}${message.whisper ? " whisper" : ""}${message.kind ? " object" : ""}`}>
+                          {message.whisper && <div className="chat-message-meta">
                         <strong>
-                          {message.kind === "dice"
-                            ? isMine ? "You rolled" : `${senderName} rolled`
-                            : message.kind === "card"
-                            ? isMine ? "You shared" : `${senderName} shared`
-                            : message.kind === "life"
-                            ? isMine ? "Your life total" : `${senderName}'s life total`
-                            : message.kind === "ready"
-                            ? "Ready check"
-                            : message.whisper
-                            ? isMine
-                              ? `Whisper to @${message.toName}`
-                              : `Whisper from @${senderName}`
-                            : senderName}
+                          {isMine
+                            ? `Whisper to @${message.toName}`
+                            : `Whisper from @${senderName}`}
                         </strong>
                           </div>}
                       {message.kind === "dice" ? (
@@ -1083,7 +1075,7 @@ export default function CardSidebar({
                         </div>
                       ) : message.kind === "ready" ? (
                         <div className={`chat-ready-object ${message.outcome}`}>
-                          <strong>{message.outcome === "ready" ? "Everyone is ready" : message.outcome === "not-ready" ? `${message.name} is not ready` : "Ready check timed out"}</strong>
+                          <strong>{message.outcome === "ready" ? "Everyone is ready" : message.outcome === "not-ready" ? "Not ready" : "Ready check timed out"}</strong>
                         </div>
                       ) : (
                         <>

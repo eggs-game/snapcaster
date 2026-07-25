@@ -101,6 +101,14 @@ the video options actions (flip, pass turn, shuffle position, and check
 ready) align with the small controls that open the menu without overpowering
 their text labels.
 
+## Full-width primary actions
+
+Primary actions that submit or perform the main action in a sidebar form use
+the same full-width treatment as Roll dice: `var(--input-height)` tall, 8px
+radius, `var(--text-primary)` fill and border, and inverse 600-weight label.
+They darken slightly on hover and keep their full width while disabled. The
+wrong-card report’s Submit report action uses this pattern.
+
 ## 32px icon buttons
 
 **Any icon-only button larger than 24px and smaller than 40px uses this
@@ -171,11 +179,14 @@ than repeating the selected category as a subtitle. The chosen effect is shown
 as a compact, dismissible chip in the composer; its matching message chip
 remains visible in chat even if browser playback is blocked. Effects play at
 85% of the listener’s normal browser/tab volume, without a separate in-app
-mute or volume control.
+mute or volume control. Pressing Enter sends either text or a selected effect,
+so an effect can be sent on its own.
 
 Incoming standard chat messages use a compact 24px circular initial avatar to
 the left of the bubble. The sender’s name is exposed in the avatar tooltip,
 keeping the message itself compact; timestamps sit below their bubbles.
+Remote structured chat objects use that same avatar treatment rather than a
+separate sender-name header, and the object itself is the only visible card.
 
 Dice and coin results use a temporary, non-interactive glass card centered
 over the video panel. It reuses the former sidebar result-card proportions,
@@ -370,6 +381,11 @@ single neutral pip. The commander row is pulled 5px toward the player-name row;
 its pips are 11px circles with a 1px 50%-opacity white outline and a 2px downward
 optical offset, using darker mana-inspired white, blue, black, red, and green
 tones so their colors read clearly against the translucent banner.
+When a commander has a legal co-commander rule (Partner, any matching
+Partner—[text] variant, Partner with, Friends forever, Choose a Background, or
+Doctor's companion), its display adds a compact `/ Add partner` affordance on
+the same row. Once selected, the two names share that row and their color
+identities are combined for the pips.
 The commander edit field occupies that same row position, so entering edit
 mode does not shift the name downward.
 
