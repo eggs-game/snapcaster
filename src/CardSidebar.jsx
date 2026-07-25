@@ -244,7 +244,11 @@ export default function CardSidebar({
   };
 
   const submitChat = () => {
-    const parsed = parseChatDraft(chatDraft, safeChatRecipients, chatWhisperTargetId);
+    // A selected public sound is a complete chat action on its own. Only
+    // parse the text when there is text to interpret (especially /whisper).
+    const parsed = selectedSound && !chatDraft.trim()
+      ? { kind: "public", text: "" }
+      : parseChatDraft(chatDraft, safeChatRecipients, chatWhisperTargetId);
     if (parsed.error) {
       setChatError(parsed.error);
       return;
@@ -1115,8 +1119,19 @@ export default function CardSidebar({
                         </button>
                       ) : message.kind === "life" || message.kind === "commander-damage" ? (
                         <div className={`chat-life-object ${message.delta >= 0 ? "gained" : "lost"}${message.kind === "commander-damage" ? " commander-damage" : ""}`}>
-                          <strong>{message.kind === "commander-damage" ? `Took commander damage -${Math.abs(message.delta)} life` : message.delta >= 0 ? `Gained +${message.delta} life` : `Lost -${Math.abs(message.delta)} life`}</strong>
-                          <span>{message.previous} → {message.life}</span>
+                          {message.kind === "commander-damage" ? <>
+                            <div className="chat-commander-damage-copy">
+                              <strong>{Math.abs(message.delta)} Commander damage</strong>
+                              <span>{message.commanderName || "Commander"}</span>
+                            </div>
+                            <div className="chat-commander-damage-totals">
+                              <span>{message.previous} → {message.life}</span>
+                              <span>{message.previousCommanderDamage ?? 0} → {message.commanderDamage ?? Math.abs(message.delta)}</span>
+                            </div>
+                          </> : <>
+                            <strong>{message.delta >= 0 ? `Gained +${message.delta} life` : `Lost -${Math.abs(message.delta)} life`}</strong>
+                            <span>{message.previous} → {message.life}</span>
+                          </>}
                         </div>
                       ) : message.kind === "ready" ? (
                         <div className={`chat-ready-object ${message.outcome}`}>
@@ -1484,16 +1499,54 @@ function CounterPanel({ players, onChangePoison, onChangeCommanderDamage }) {
     <div className="counter-panel">
       {players.map((player) => {
         const opponents = players.filter((opponent) => opponent.id !== player.id);
+        const attackingCommanders = opponents.flatMap((opponent) => {
+          const commanders = [{
+            damageKey: opponent.id,
+            label: opponent.commander || `${opponent.name}'s commander`,
+          }];
+          // Commander damage is assigned to each creature commander, not to
+          // the player. Backgrounds are legal partners but are noncreature
+          // enchantments, so they cannot deal commander damage.
+          if (opponent.commanderPartner && /\bCreature\b/i.test(opponent.commanderPartnerType || "")) {
+            commanders.push({
+              damageKey: `p:${opponent.id}`,
+              label: opponent.commanderPartner,
+            });
+          }
+          return commanders;
+        });
         return (
           <section className="counter-player" key={player.id}>
             <div className="counter-player-head">
-              <h3>{player.isMe ? "Your counters" : player.name}</h3>
-              {!player.isMe && <span>Read only</span>}
+              <h3><span className="counter-player-color" style={{ backgroundColor: player.color }} aria-hidden="true" />{player.isMe ? "Me" : player.name}</h3>
+              <span className="counter-subheading">Commander damage received</span>
             </div>
-            <div className="counter-row">
+            <div className="commander-damage-list">
+              {attackingCommanders.length ? attackingCommanders.map((commander) => {
+                const value = player.commanderDamage?.[commander.damageKey] || 0;
+                const { label } = commander;
+                return (
+                  <div className="counter-row commander-damage-row" key={commander.damageKey}>
+                    <span className="counter-label">
+                      <strong>{label}</strong>
+                    </span>
+                    <CounterStepper
+                      value={value}
+                      lethal={value >= 21}
+                      editable={player.isMe}
+                      label={`${label} damage to ${player.name}`}
+                      onDecrease={() => onChangeCommanderDamage?.(commander.damageKey, -1)}
+                      onIncrease={() => onChangeCommanderDamage?.(commander.damageKey, 1)}
+                    />
+                  </div>
+                );
+              }) : (
+                <p className="counter-note">Other commanders will appear here.</p>
+              )}
+            </div>
+            <div className="counter-row poison-row">
               <span className="counter-label">
                 <strong>Poison</strong>
-                <small>10 loses the game</small>
               </span>
               <CounterStepper
                 value={player.poison}
@@ -1504,31 +1557,6 @@ function CounterPanel({ players, onChangePoison, onChangeCommanderDamage }) {
                 onIncrease={() => onChangePoison?.(1)}
               />
             </div>
-            <div className="commander-damage-list">
-              <span className="counter-subheading">Commander damage received</span>
-              {opponents.length ? opponents.map((opponent) => {
-                const value = player.commanderDamage?.[opponent.id] || 0;
-                const label = opponent.commander || `${opponent.name}'s commander`;
-                return (
-                  <div className="counter-row commander-damage-row" key={opponent.id}>
-                    <span className="counter-label">
-                      <strong>{label}</strong>
-                      {opponent.commander && <small>{opponent.name}</small>}
-                    </span>
-                    <CounterStepper
-                      value={value}
-                      lethal={value >= 21}
-                      editable={player.isMe}
-                      label={`${label} damage to ${player.name}`}
-                      onDecrease={() => onChangeCommanderDamage?.(opponent.id, -1)}
-                      onIncrease={() => onChangeCommanderDamage?.(opponent.id, 1)}
-                    />
-                  </div>
-                );
-              }) : (
-                <p className="counter-note">Other commanders will appear here.</p>
-              )}
-            </div>
           </section>
         );
       })}
@@ -1537,8 +1565,12 @@ function CounterPanel({ players, onChangePoison, onChangeCommanderDamage }) {
 }
 
 function CounterStepper({ value, lethal, editable, label, onDecrease, onIncrease }) {
+  const zero = Number(value) === 0;
+  if (!editable) {
+    return <strong className={`counter-readout${lethal ? " lethal" : ""}${zero ? " zero" : ""}`} aria-label={label}>{value}</strong>;
+  }
   return (
-    <div className={lethal ? "counter-stepper lethal" : "counter-stepper"} aria-label={label}>
+    <div className={`counter-stepper${lethal ? " lethal" : ""}${zero ? " zero" : ""}`} aria-label={label}>
       {editable && <button type="button" onClick={onDecrease} aria-label={`Decrease ${label}`} data-tooltip={`Decrease ${label}`}>−</button>}
       <strong>{value}</strong>
       {editable && <button type="button" onClick={onIncrease} aria-label={`Increase ${label}`} data-tooltip={`Increase ${label}`}>+</button>}

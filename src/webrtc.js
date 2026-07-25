@@ -101,6 +101,7 @@ export class GameConnection {
     this.knownIds = new Set();
     this.commander = "";
     this.commanderPartner = "";
+    this.commanderPartnerType = "";
     this.color = "";
     this.muted = false;
     this.cameraEnabled = true;
@@ -305,7 +306,7 @@ export class GameConnection {
       this.room?.send({ type: "life", life: this.life });
       if (this.lobbyName) this.room?.send({ type: "lobby-name", lobbyName: this.lobbyName });
       if (this.commander) this.room?.send({ type: "commander", commander: this.commander });
-      if (this.commanderPartner) this.room?.send({ type: "commander-partner", partner: this.commanderPartner });
+      if (this.commanderPartner) this.room?.send({ type: "commander-partner", partner: this.commanderPartner, typeLine: this.commanderPartnerType });
       if (this.color) this.room?.send({ type: "color", color: this.color });
       if (this.activePlayerId) this.room?.send({ type: "active-player", playerId: this.activePlayerId });
       if (this.gridOrder.length) this.room?.send({ type: "grid-order", order: this.gridOrder });
@@ -363,7 +364,11 @@ export class GameConnection {
         }
         break;
       case "commander-partner":
-        if (senderRole !== "visitor") this.h.onCommanderPartner?.(msg.from, String(msg.partner || "").slice(0, 120));
+        if (senderRole !== "visitor") this.h.onCommanderPartner?.(
+          msg.from,
+          String(msg.partner || "").slice(0, 120),
+          String(msg.typeLine || "").slice(0, 240),
+        );
         break;
       case "color":
         if (senderRole !== "visitor") this.h.onColor?.(msg.from, String(msg.color || "").slice(0, 20));
@@ -437,6 +442,7 @@ export class GameConnection {
               msg.from,
               attackerId,
               Math.max(0, Math.min(99, Number(msg.value) || 0)),
+              String(msg.commanderName || "").slice(0, 120),
             );
           }
         }
@@ -660,10 +666,11 @@ export class GameConnection {
     this.commander = String(commander || "").trim().slice(0, 120);
     this.room?.send({ type: "commander", commander: this.commander });
   }
-  setCommanderPartner(partner) {
+  setCommanderPartner(partner, typeLine = "") {
     if (this.role === "visitor") return;
     this.commanderPartner = String(partner || "").trim().slice(0, 120);
-    this.room?.send({ type: "commander-partner", partner: this.commanderPartner });
+    this.commanderPartnerType = String(typeLine || "").trim().slice(0, 240);
+    this.room?.send({ type: "commander-partner", partner: this.commanderPartner, typeLine: this.commanderPartnerType });
   }
   setColor(color) {
     if (this.role === "visitor") return;
@@ -743,13 +750,18 @@ export class GameConnection {
     this.poison = Math.max(0, Math.min(99, Number(value) || 0));
     this.room?.send({ type: "poison", value: this.poison });
   }
-  setCommanderDamage(attackerId, value) {
+  setCommanderDamage(attackerId, value, commanderName = "") {
     if (this.role === "visitor") return;
     const safeAttackerId = String(attackerId || "").slice(0, 40);
     if (!safeAttackerId) return;
     const safeValue = Math.max(0, Math.min(99, Number(value) || 0));
     this.commanderDamage = { ...this.commanderDamage, [safeAttackerId]: safeValue };
-    this.room?.send({ type: "commander-damage", attackerId: safeAttackerId, value: safeValue });
+    this.room?.send({
+      type: "commander-damage",
+      attackerId: safeAttackerId,
+      value: safeValue,
+      commanderName: String(commanderName || "").slice(0, 120),
+    });
   }
   sendDiceRoll(value, sides = 20, at = Date.now()) {
     if (this.role === "visitor") return;

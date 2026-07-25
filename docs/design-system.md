@@ -69,6 +69,11 @@ transparent track and a rounded, inset `--border-default` thumb that becomes
 but that gutter must remain visually transparent rather than becoming a gray
 column beside the content.
 
+Sidebar views reserve **60px** of bottom padding so the final card, control,
+or activity object never rests against the panel edge. Chat is the exception:
+its outer panel keeps the composer at the normal bottom inset, while the
+scrolling message list carries that same 60px trailing clearance.
+
 ## Tiny icon buttons
 
 The standard for small, icon-only buttons (video tile controls, card

@@ -17,6 +17,11 @@ const CHAT_SHOWCASE_CARD = {
   scryfall_id: "e07f656c-97b5-4147-821a-edbb49f34e19",
   image: "https://cards.scryfall.io/normal/front/e/0/e07f656c-97b5-4147-821a-edbb49f34e19.jpg",
 };
+const PREVIEW_COMMANDER_NAMES = {
+  "preview-maya": "Atraxa, Praetors’ Voice",
+  "preview-drew": "The Ur-Dragon",
+  "preview-sam": "Muldrotha, the Gravetide",
+};
 
 function makeChatShowcase(myId, myName) {
   const now = Date.now();
@@ -45,6 +50,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const connRef = useRef(null);
   const rosterRef = useRef([]);
   const livesRef = useRef({});
+  const commanderDamageRef = useRef({});
   const chatIdRef = useRef(0);
   const pendingLifeChatsRef = useRef(new Map());
   const readyCheckRef = useRef(null);
@@ -61,6 +67,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const [lives, setLives] = useState({}); // id -> life
   const [commanders, setCommanders] = useState({}); // id -> card name
   const [commanderPartners, setCommanderPartners] = useState({}); // id -> paired commander name
+  const [commanderPartnerTypes, setCommanderPartnerTypes] = useState({}); // id -> partner type line
   const [colors, setColors] = useState({}); // id -> hex color
   const [mutedPlayers, setMutedPlayers] = useState({}); // id -> bool
   const [cameraEnabledByPlayer, setCameraEnabledByPlayer] = useState({}); // id -> bool
@@ -195,11 +202,31 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
 
   // Life totals still synchronize on every click, but the room gets one
   // readable net change after the player pauses instead of a message per step.
-  const queueLifeChat = useCallback((id, name, previous, life, kind = "life", notify = false) => {
+  const queueLifeChat = useCallback((id, name, previous, life, kind = "life", notify = false, commanderDetails = null) => {
     const pending = pendingLifeChatsRef.current.get(id);
     const next = pending
-      ? { ...pending, name: name || pending.name, life, kind: kind || pending.kind, notify: notify || pending.notify }
-      : { id, name: name || "Player", previous, life, kind, notify, timer: null };
+      ? {
+        ...pending,
+        name: name || pending.name,
+        life,
+        kind: kind || pending.kind,
+        notify: notify || pending.notify,
+        commanderName: commanderDetails?.name || pending.commanderName,
+        previousCommanderDamage: pending.previousCommanderDamage ?? commanderDetails?.previous,
+        commanderDamage: commanderDetails?.value ?? pending.commanderDamage,
+      }
+      : {
+        id,
+        name: name || "Player",
+        previous,
+        life,
+        kind,
+        notify,
+        commanderName: commanderDetails?.name || "",
+        previousCommanderDamage: commanderDetails?.previous,
+        commanderDamage: commanderDetails?.value,
+        timer: null,
+      };
     window.clearTimeout(next.timer);
     next.timer = window.setTimeout(() => {
       pendingLifeChatsRef.current.delete(id);
@@ -215,15 +242,23 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
         previous: next.previous,
         life: next.life,
         delta,
+        commanderName: next.commanderName,
+        previousCommanderDamage: next.previousCommanderDamage,
+        commanderDamage: next.commanderDamage,
         at,
       }]);
     }, 2000);
     pendingLifeChatsRef.current.set(id, next);
   }, [notifyIncomingChat]);
 
-  const markPendingCommanderDamageChat = useCallback((id) => {
+  const markPendingCommanderDamageChat = useCallback((id, details = {}) => {
     const pending = pendingLifeChatsRef.current.get(id);
-    if (pending && pending.life < pending.previous) pending.kind = "commander-damage";
+    if (pending && pending.life < pending.previous) {
+      pending.kind = "commander-damage";
+      pending.commanderName = details.name || pending.commanderName;
+      pending.previousCommanderDamage = pending.previousCommanderDamage ?? details.previous;
+      pending.commanderDamage = details.value ?? pending.commanderDamage;
+    }
   }, []);
 
   const acceptIncomingSound = (senderId, soundId) => {
@@ -265,7 +300,10 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       },
       onLobbyName: setLobbyName,
       onCommander: (id, commander) => setCommanders((values) => ({ ...values, [id]: commander })),
-      onCommanderPartner: (id, partner) => setCommanderPartners((values) => ({ ...values, [id]: partner })),
+      onCommanderPartner: (id, partner, typeLine) => {
+        setCommanderPartners((values) => ({ ...values, [id]: partner }));
+        setCommanderPartnerTypes((values) => ({ ...values, [id]: typeLine }));
+      },
       onColor: (id, color) => setColors((values) => ({ ...values, [id]: color })),
       onMuted: (id, muted) => setMutedPlayers((values) => ({ ...values, [id]: muted })),
       onCameraEnabled: (id, enabled) => setCameraEnabledByPlayer((values) => ({ ...values, [id]: enabled })),
@@ -293,8 +331,13 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       },
       onActivePlayer: updateActivePlayer,
       onPoison: (id, value) => setPoisonCounters((values) => ({ ...values, [id]: value })),
-      onCommanderDamage: (victimId, attackerId, value) => {
-        markPendingCommanderDamageChat(victimId);
+      onCommanderDamage: (victimId, attackerId, value, commanderName) => {
+        const previous = commanderDamageRef.current[victimId]?.[attackerId] || 0;
+        commanderDamageRef.current = {
+          ...commanderDamageRef.current,
+          [victimId]: { ...(commanderDamageRef.current[victimId] || {}), [attackerId]: value },
+        };
+        markPendingCommanderDamageChat(victimId, { name: commanderName, previous, value });
         setCommanderDamage((values) => ({
           ...values,
           [victimId]: { ...(values[victimId] || {}), [attackerId]: value },
@@ -782,14 +825,26 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     if (isVisitor) return;
     setCommanders((values) => ({ ...values, [myId]: commander }));
     setCommanderPartners((values) => ({ ...values, [myId]: "" }));
+    setCommanderPartnerTypes((values) => ({ ...values, [myId]: "" }));
     connRef.current?.setCommander(commander);
-    connRef.current?.setCommanderPartner("");
+    connRef.current?.setCommanderPartner("", "");
   };
 
-  const chooseCommanderPartner = (partner) => {
+  const chooseCommanderPartner = async (partner) => {
     if (isVisitor) return;
-    setCommanderPartners((values) => ({ ...values, [myId]: partner }));
-    connRef.current?.setCommanderPartner(partner);
+    const name = String(partner || "").trim();
+    if (!name) return;
+    let typeLine = "";
+    try {
+      const response = await fetch(`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(name)}`);
+      if (response.ok) typeLine = String((await response.json()).type_line || "");
+    } catch {
+      // Keep the pairing usable if Scryfall is temporarily unavailable. A
+      // missing type deliberately does not create a commander-damage row.
+    }
+    setCommanderPartners((values) => ({ ...values, [myId]: name }));
+    setCommanderPartnerTypes((values) => ({ ...values, [myId]: typeLine }));
+    connRef.current?.setCommanderPartner(name, typeLine);
   };
 
   const chooseColor = (color) => {
@@ -937,6 +992,10 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     const value = Math.max(0, Math.min(99, previousDamage + delta));
     const appliedDamage = value - previousDamage;
     if (!appliedDamage) return;
+    commanderDamageRef.current = {
+      ...commanderDamageRef.current,
+      [myId]: { ...(commanderDamageRef.current[myId] || {}), [attackerId]: value },
+    };
     setCommanderDamage((values) => ({
       ...values,
       [myId]: { ...(values[myId] || {}), [attackerId]: value },
@@ -947,9 +1006,22 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     const life = Math.max(0, previousLife - appliedDamage);
     livesRef.current = { ...livesRef.current, [myId]: life };
     setLives((values) => ({ ...values, [myId]: life }));
-    queueLifeChat(myId, session.name, previousLife, life, appliedDamage > 0 ? "commander-damage" : "life");
+    const isPartner = attackerId.startsWith("p:");
+    const attackerPlayerId = isPartner ? attackerId.slice(2) : attackerId;
+    const commanderName = (isPartner ? commanderPartners[attackerPlayerId] : commanders[attackerPlayerId])
+      || PREVIEW_COMMANDER_NAMES[attackerPlayerId]
+      || "Commander";
+    queueLifeChat(
+      myId,
+      session.name,
+      previousLife,
+      life,
+      appliedDamage > 0 ? "commander-damage" : "life",
+      false,
+      { name: commanderName, previous: previousDamage, value },
+    );
     connRef.current?.setLife(life);
-    connRef.current?.setCommanderDamage(attackerId, value);
+    connRef.current?.setCommanderDamage(attackerId, value, commanderName);
   };
 
   const toggleMic = () => {
@@ -1048,13 +1120,37 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const resolvedActivePlayerId = activePlayerId || players[0]?.id || "";
   const counterPlayers = [...players]
     .sort((a, b) => Number(b.id === myId) - Number(a.id === myId))
-    .map((player) => ({
+    .map((player, index) => ({
       ...player,
       isMe: player.id === myId,
+      color: colors[player.id] || TILE_COLORS[index % TILE_COLORS.length],
       commander: commanders[player.id] || "",
+      commanderPartner: commanderPartners[player.id] || "",
+      commanderPartnerType: commanderPartnerTypes[player.id] || "",
       poison: poisonCounters[player.id] || 0,
       commanderDamage: commanderDamage[player.id] || {},
     }));
+  // Local-only preview for reviewing the Commander damage layout with a full
+  // table. It is not included in the production build.
+  const counterPreviewPlayers = import.meta.env.DEV && counterPlayers.length === 1
+    ? [
+      {
+        ...counterPlayers[0],
+        // Seed the local visual preview, but let any adjustment replace its
+        // sample value rather than resetting after every render.
+        commanderDamage: {
+          "preview-maya": 6,
+          "p:preview-maya": 4,
+          "preview-drew": 12,
+          "preview-sam": 0,
+          ...counterPlayers[0].commanderDamage,
+        },
+      },
+      { id: "preview-maya", name: "Maya", color: TILE_COLORS[1], commander: "Atraxa, Praetors’ Voice", commanderPartner: "Tymna the Weaver", commanderPartnerType: "Legendary Creature — Human Cleric", poison: 0, commanderDamage: {}, isMe: false },
+      { id: "preview-drew", name: "Drew", color: TILE_COLORS[2], commander: "The Ur-Dragon", commanderPartner: "Feywild Visitor", commanderPartnerType: "Legendary Enchantment — Background", poison: 2, commanderDamage: {}, isMe: false },
+      { id: "preview-sam", name: "Sam", color: TILE_COLORS[3], commander: "Muldrotha, the Gravetide", poison: 0, commanderDamage: {}, isMe: false },
+    ]
+    : counterPlayers;
   const orderedPlayers = [...players].sort((a, b) => {
     const ai = gridOrder.indexOf(a.id);
     const bi = gridOrder.indexOf(b.id);
@@ -1166,7 +1262,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
             onVideoLayoutChange={chooseVideoLayout}
             videoFit={videoFit}
             onVideoFitChange={chooseVideoFit}
-            counterPlayers={counterPlayers}
+            counterPlayers={counterPreviewPlayers}
             onChangePoison={changePoison}
             onChangeCommanderDamage={changeCommanderDamage}
             onToggleCam={toggleCam}
