@@ -861,11 +861,12 @@ input::placeholder { color: var(--text-tertiary); opacity: 1; }
 .sidebar-rail .drawer-toggle { width: 32px; height: 32px; }
 .sidebar-rail .drawer-toggle.active { color: var(--text-primary); background: var(--secondary-hover); }
 .sidebar-rail-divider { width: 24px; margin: 12px 0 4px; border-top: 1px solid var(--border-subtle); }
-.sidebar-mark-toggle { appearance: none; }
-.sidebar-mark { display: grid; place-items: center; width: 20px; height: 20px; font-family: var(--font-sans); font-size: 22px; font-weight: 400; letter-spacing: -0.08em; line-height: 1; pointer-events: none; transform: translateX(-0.5px); }
-.collapsed-mark-arrow { display: none; }
-.sidebar.collapsed .sidebar-mark-toggle:hover .collapsed-mark { display: none; }
-.sidebar.collapsed .sidebar-mark-toggle:hover .collapsed-mark-arrow { display: block; }
+.panel-toggle { appearance: none; }
+.collapsed-panel-arrow, .expanded-panel-arrow { display: none; }
+.sidebar.collapsed .panel-toggle:hover .collapsed-panel-icon { display: none; }
+.sidebar.collapsed .panel-toggle:hover .collapsed-panel-arrow { display: block; }
+.sidebar:not(.collapsed) .panel-toggle:hover .expanded-panel-icon { display: none; }
+.sidebar:not(.collapsed) .panel-toggle:hover .expanded-panel-arrow { display: block; }
 .sidebar-content { display: flex; min-width: 0; min-height: 0; overflow-y: auto; flex-direction: column; gap: 10px; padding: 8px 14px 14px; border: 1px solid var(--glass-border); border-left: 0; border-radius: 12px; background: linear-gradient(180deg, var(--panel-gradient-top), var(--panel-gradient-bottom)), var(--glass-bg-dense); -webkit-backdrop-filter: blur(12px) saturate(var(--glass-saturation)); backdrop-filter: blur(12px) saturate(var(--glass-saturation)); box-shadow: inset 0 1px 0 var(--glass-highlight), inset 1px 0 0 var(--panel-edge), var(--panel-shadow); }
 .sidebar-content > * { flex-shrink: 0; }
 /* One-shot open: ease-out so it decelerates into place. */
@@ -886,7 +887,6 @@ input::placeholder { color: var(--text-tertiary); opacity: 1; }
   to { width: 48px; }
 }
 .sidebar-head { display: flex; align-items: center; justify-content: space-between; min-height: 32px; }
-.sidebar-header-close { margin-left: auto; }
 .sidebar-content > *:not(.sidebar-head) { animation: sidebar-view-in 0.14s ease-out; }
 @keyframes sidebar-view-in {
   from { opacity: 0; transform: translateY(3px); }

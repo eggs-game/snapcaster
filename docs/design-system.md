@@ -138,12 +138,12 @@ The sidebar navigation is a dedicated 48px left rail on the app background;
 the glass panel begins at the scrollable content column without a separator.
 Rail actions stay vertically aligned, with a subtle divider separating the
 Settings gear from the game actions. Closing the panel collapses only the
-content column: the 48px rail remains visible. A compact Geist “S” mark sits
-above the actions as the collapsed-drawer opener, changing to a right arrow on
-hover when the drawer is closed; it reopens the previously active view. The
-lightning icon is the ordinary default Card lookup action with the normal icon
-button hover treatment, and its active state yields to whichever game panel is
-open. The rail’s first action aligns with the content panel’s game-name text.
+content column: the 48px rail remains visible. Its top panel control reopens
+the previously active view; on hover it changes to a right arrow while closed
+and a left arrow while open. The card-stack lookup action sits directly beneath
+it with the normal icon-button hover treatment. Panel views have no duplicate
+close action inside their headers. The rail’s first action aligns with the
+content panel’s game-name text.
 
 Rail tooltips use the left-edge anchor (`left-bottom`) so their text expands
 rightward into the app instead of clipping off the viewport’s left edge.

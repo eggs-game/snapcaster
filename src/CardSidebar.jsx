@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
-  Cat, ChevronDown, ChevronRight, Copy, Dices, Download, Drum, ExternalLink, Laugh, Link2, MessageCircle, Mic, MicOff,
+  Cat, ChevronDown, ChevronLeft, ChevronRight, Copy, Dices, Download, Drum, ExternalLink, Laugh, Link2, MessageCircle, Mic, MicOff,
   PanelLeft, Play, Search, Settings, Sparkles, Swords, ThumbsDown, UserPlus, UserRound, Video, VideoOff, X,
 } from "lucide-react";
 import { suggestCardNames } from "./cardSearch.js";
@@ -46,9 +46,10 @@ function reportUuid() {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
-function CardStackIcon({ size = 20 }) {
+function CardStackIcon({ size = 20, className }) {
   return (
     <svg
+      className={className}
       width={size}
       height={size}
       viewBox="0 0 24 24"
@@ -509,18 +510,22 @@ export default function CardSidebar({
       <nav className="sidebar-rail" aria-label="Sidebar navigation">
         <button
           type="button"
-          className="drawer-toggle sidebar-mark-toggle"
+          className="drawer-toggle panel-toggle"
           onClick={() => {
             if (collapsed) onOpen?.();
+            else onClose?.();
           }}
-          aria-label={collapsed ? "Open card panel" : "Snapcast"}
-          data-tooltip={collapsed ? "Open card panel" : "Snapcast"}
+          aria-label={collapsed ? "Open panel" : "Close panel"}
+          data-tooltip={collapsed ? "Open panel" : "Close panel"}
           data-tooltip-pos="left-bottom"
         >
           {collapsed ? <>
-            <span className="sidebar-mark collapsed-mark" aria-hidden="true">S</span>
-            <ChevronRight className="collapsed-mark-arrow" size={20} />
-          </> : <span className="sidebar-mark" aria-hidden="true">S</span>}
+            <PanelLeft className="collapsed-panel-icon" size={20} />
+            <ChevronRight className="collapsed-panel-arrow" size={20} />
+          </> : <>
+            <PanelLeft className="expanded-panel-icon" size={20} />
+            <ChevronLeft className="expanded-panel-arrow" size={20} />
+          </>}
         </button>
         <button
           type="button"
@@ -596,16 +601,6 @@ export default function CardSidebar({
           <span className="logo">{settings ? "Settings" : counters ? "Counters" : invite ? "Invite" : "Dice"}</span>
         )}
         {!settings && !counters && !invite && !dice && gameNameControl}
-        <button
-          type="button"
-          className="drawer-toggle sidebar-header-close"
-          onClick={onClose}
-          aria-label="Close panel"
-          data-tooltip="Close panel"
-          data-tooltip-pos="left-bottom"
-        >
-          <PanelLeft size={20} />
-        </button>
       </div>
 
       {settings ? (
