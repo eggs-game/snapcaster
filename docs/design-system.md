@@ -60,6 +60,15 @@ duplicated value table that will go stale.
   bar, and dropdown menus. Reuse this set rather than inventing a new blur
   value for a new floating panel.
 
+## Scroll areas
+
+Every scrollable surface uses the same unobtrusive scrollbar: an **8px**
+transparent track and a rounded, inset `--border-default` thumb that becomes
+`--border-strong` on hover. A panel may reserve scrollbar space with
+`scrollbar-gutter: stable` when changing content width would be distracting,
+but that gutter must remain visually transparent rather than becoming a gray
+column beside the content.
+
 ## Tiny icon buttons
 
 The standard for small, icon-only buttons (video tile controls, card
@@ -159,8 +168,8 @@ close action inside their headers. The rail’s first action aligns with the
 content panel’s game-name text. When the panel is closed, the persistent rail
 shows no active selection; the selected treatment returns when it is opened.
 
-Rail tooltips use the left-edge anchor (`left-bottom`) so their text expands
-rightward into the app instead of clipping off the viewport’s left edge.
+Rail tooltips use the horizontal `right` anchor so they appear beside the
+icons and expand into the app instead of clipping at the viewport’s left edge.
 
 First-use card lookup uses a full-size card tile beneath search: a dashed
 card-outline illustration and a short explanation of where selected or looked-up
@@ -314,7 +323,7 @@ users too.
 ```
 
 Current examples: `.theme-options` (3-up: Appearance; 2-up via the
-`.two-up` modifier: Video fit), `.view-options` (3-up: Game view). These
+`.two-up` modifier: Video fit and Chat notifications), `.view-options` (3-up: Game view). These
 two classes are near-duplicates that predate this doc — don't add a third
 one; extend `.theme-options` with a modifier the way `.two-up` does.
 

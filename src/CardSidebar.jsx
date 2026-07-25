@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
-  Cat, ChevronDown, ChevronLeft, ChevronRight, Copy, Dices, Drum, ExternalLink, Laugh, Link2, MessageCircle, Mic, MicOff,
+  Cat, Check, ChevronDown, ChevronLeft, ChevronRight, Copy, Dices, Drum, ExternalLink, Hourglass, Laugh, Link2, MessageCircle, MessagesSquare, Mic, MicOff,
   PanelLeft, Play, Search, Settings, Sparkles, Swords, ThumbsDown, UserPlus, UserRound, Video, VideoOff, X,
 } from "lucide-react";
 import { suggestCardNames } from "./cardSearch.js";
@@ -76,6 +76,7 @@ export default function CardSidebar({
   chatMessages,
   currentUserId,
   chatRecipients,
+  chatNameColors = {},
   onSendChat,
   soundCooldownUntil = 0,
   onPreviewSound,
@@ -105,6 +106,8 @@ export default function CardSidebar({
   tileColors,
   themePreference,
   onThemePreferenceChange,
+  chatNotificationsEnabled,
+  onChatNotificationsChange,
   videoLayout,
   onVideoLayoutChange,
   videoFit,
@@ -516,7 +519,7 @@ export default function CardSidebar({
           }}
           aria-label={collapsed ? "Open panel" : "Close panel"}
           data-tooltip={collapsed ? "Open panel" : "Close panel"}
-          data-tooltip-pos="left-bottom"
+          data-tooltip-pos="right"
         >
           {collapsed ? <>
             <PanelLeft className="collapsed-panel-icon" size={20} />
@@ -536,7 +539,7 @@ export default function CardSidebar({
           }}
           aria-label="Open card lookup"
           data-tooltip="Card lookup"
-          data-tooltip-pos="left-bottom"
+          data-tooltip-pos="right"
         >
           <CardStackIcon />
         </button>
@@ -552,9 +555,9 @@ export default function CardSidebar({
           }}
           aria-label={hasUnreadChat ? "Open chat, new messages" : "Open chat"}
           data-tooltip="Chat"
-          data-tooltip-pos="left-bottom"
+          data-tooltip-pos="right"
         >
-          <MessageCircle size={20} />
+          <MessagesSquare size={20} />
           {hasUnreadChat && <span className="chat-unread-dot" aria-hidden="true" />}
         </button>
         {!isVisitor && <>
@@ -566,7 +569,7 @@ export default function CardSidebar({
             }}
             aria-label="Open combat counters"
             data-tooltip="Combat counters"
-            data-tooltip-pos="left-bottom"
+            data-tooltip-pos="right"
           >
             <Swords size={20} />
           </button>
@@ -578,7 +581,7 @@ export default function CardSidebar({
             }}
             aria-label="Open dice roller"
             data-tooltip="Dice roller"
-            data-tooltip-pos="left-bottom"
+            data-tooltip-pos="right"
           >
             <Dices size={20} />
           </button>
@@ -593,7 +596,7 @@ export default function CardSidebar({
             }}
             aria-label="Invite players"
             data-tooltip="Invite players"
-            data-tooltip-pos="left-bottom"
+            data-tooltip-pos="right"
           >
             <UserPlus size={20} />
           </button>
@@ -606,7 +609,7 @@ export default function CardSidebar({
           }}
           aria-label="Open settings"
           data-tooltip="Open settings"
-          data-tooltip-pos="left-bottom"
+          data-tooltip-pos="right"
         >
           <Settings size={20} />
         </button>
@@ -615,9 +618,9 @@ export default function CardSidebar({
       <div className="sidebar-content" aria-hidden={collapsed}>
       <div className="sidebar-head">
         {(settings || counters || invite || dice) && (
-          <span className="logo">{settings ? "Settings" : counters ? "Counters" : invite ? "Invite" : "Dice"}</span>
+          <span className="logo">{settings ? "Settings" : counters ? "Commander damage" : invite ? "Invite" : "Dice & counters"}</span>
         )}
-        {!settings && !counters && !invite && !dice && gameNameControl}
+        {!settings && !counters && !invite && !dice && (lookupTab === "chat" ? <span className="logo">Chat</span> : gameNameControl)}
       </div>
 
       {settings ? (
@@ -654,6 +657,25 @@ export default function CardSidebar({
                   {option[0].toUpperCase() + option.slice(1)}
                 </button>
               ))}
+            </div>
+          </fieldset>
+          <fieldset className="theme-field">
+            <legend className="color-label">Chat notifications</legend>
+            <div className="theme-options two-up">
+              <button
+                type="button"
+                aria-pressed={chatNotificationsEnabled}
+                onClick={() => onChatNotificationsChange(true)}
+              >
+                On
+              </button>
+              <button
+                type="button"
+                aria-pressed={!chatNotificationsEnabled}
+                onClick={() => onChatNotificationsChange(false)}
+              >
+                Muted
+              </button>
             </div>
           </fieldset>
           {isVisitor && (
@@ -1029,62 +1051,67 @@ export default function CardSidebar({
               <div className="chat-messages" ref={chatMessagesRef} aria-live="polite">
                 {chatMessages?.length ? chatMessages.map((message) => {
                   const isMine = message.from === currentUserId;
-                  const showSenderAvatar = !isMine && !message.whisper;
                   const senderName = message.name || "Player";
                   const senderColorIndex = [...String(message.from || senderName)].reduce((total, character) => total + character.charCodeAt(0), 0) % tileColors.length;
+                  const sender = safeChatRecipients.find((recipient) => recipient.id === message.from);
+                  const senderIsVisitor = sender?.role === "visitor" || message.role === "visitor";
+                  const senderColor = senderIsVisitor ? "var(--text-secondary)" : (chatNameColors[message.from] || tileColors[senderColorIndex]);
+                  const timestamp = new Date(message.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+                  const headerName = message.whisper
+                    ? (isMine ? `Whisper to @${message.toName}` : `Whisper from @${senderName}`)
+                    : senderName;
                   return (
                     <div className={`chat-message-row${isMine ? " mine" : ""}`} key={message.id}>
-                      {showSenderAvatar && (
-                        <span
-                          className="chat-avatar"
-                          style={{ backgroundColor: tileColors[senderColorIndex] }}
-                          aria-label={senderName}
-                          data-tooltip={senderName}
-                          data-tooltip-pos="left-top"
-                        >
-                          {senderName.trim().charAt(0).toUpperCase()}
-                        </span>
-                      )}
                       <div className={`chat-message-wrap${isMine ? " mine" : ""}`}>
-                        <div className={`chat-message${isMine ? " mine" : ""}${message.whisper ? " whisper" : ""}${message.kind ? " object" : ""}`}>
-                          {message.whisper && <div className="chat-message-meta">
-                        <strong>
-                          {isMine
-                            ? `Whisper to @${message.toName}`
-                            : `Whisper from @${senderName}`}
-                        </strong>
-                          </div>}
+                        {!message.system && <div className="chat-message-header">
+                          {(!isMine || message.whisper) && <strong style={{ color: message.whisper ? "var(--whisper-text)" : senderColor }}>{headerName}</strong>}
+                          <span className="chat-message-timestamp">{timestamp}</span>
+                        </div>}
+                        <div className={`chat-message${isMine ? " mine" : ""}${message.whisper ? " whisper" : ""}${message.kind ? ` object ${message.kind}` : ""}${message.soundId ? " sound" : ""}${message.system ? " system" : ""}`}>
                       {message.kind === "dice" ? (
                         <div className="chat-dice-object">
-                          <Dices size={18} aria-hidden="true" />
-                          <strong>{formatDiceResult(message.value, message.sides)}</strong>
-                          <span>{formatDiceSides(message.sides)}</span>
+                          <strong>Rolled {message.value}</strong>
+                          <Dices size={16} aria-hidden="true" />
+                          <span className="chat-dice-sides">d{message.sides}</span>
                         </div>
                       ) : message.kind === "card" ? (
                         <button type="button" className="chat-card-object" onClick={() => message.card && openCard(message.card)}>
                           {message.card?.image && <img src={message.card.image} alt="" />}
                           <span>
                             <strong>{message.card?.name || "Shared card"}</strong>
-                            <small>Open card details</small>
                           </span>
+                          <ChevronRight size={16} aria-hidden="true" />
                         </button>
-                      ) : message.kind === "life" ? (
-                        <div className={`chat-life-object ${message.delta >= 0 ? "gained" : "lost"}`}>
-                          <strong>{message.delta >= 0 ? "+" : ""}{message.delta} life</strong>
+                      ) : message.kind === "life" || message.kind === "commander-damage" ? (
+                        <div className={`chat-life-object ${message.delta >= 0 ? "gained" : "lost"}${message.kind === "commander-damage" ? " commander-damage" : ""}`}>
+                          <strong>{message.kind === "commander-damage" ? `Took commander damage -${Math.abs(message.delta)} life` : message.delta >= 0 ? `Gained +${message.delta} life` : `Lost -${Math.abs(message.delta)} life`}</strong>
                           <span>{message.previous} → {message.life}</span>
                         </div>
                       ) : message.kind === "ready" ? (
                         <div className={`chat-ready-object ${message.outcome}`}>
+                          {message.outcome === "ready" && <Check className="chat-ready-icon ready" size={16} aria-hidden="true" />}
+                          {message.outcome === "not-ready" && <X className="chat-ready-icon not-ready" size={16} aria-hidden="true" />}
+                          {message.outcome === "timeout" && <Hourglass className="chat-ready-icon timeout" size={16} aria-hidden="true" />}
                           <strong>{message.outcome === "ready" ? "Everyone is ready" : message.outcome === "not-ready" ? "Not ready" : "Ready check timed out"}</strong>
                         </div>
                       ) : (
                         <>
-                          {message.soundId && <span className="chat-sound-message"><Drum size={14} /> {getSoundEffect(message.soundId)?.label || "Sound effect"}</span>}
+                          {message.soundId && <div className="chat-sound-message">
+                            <span><Drum size={16} /> {getSoundEffect(message.soundId)?.label || "Sound effect"}</span>
+                            <button
+                              type="button"
+                              className={previewingSoundId === message.soundId ? "chat-sound-play playing" : "chat-sound-play"}
+                              onClick={() => previewSound(message.soundId)}
+                              aria-label={`Play ${getSoundEffect(message.soundId)?.label || "sound effect"} locally`}
+                              data-tooltip="Play locally"
+                            >
+                              <Play size={16} aria-hidden="true" />
+                            </button>
+                          </div>}
                           {message.text && <p>{message.text}</p>}
                         </>
                       )}
                         </div>
-                        <span className="chat-message-timestamp">{new Date(message.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</span>
                       </div>
                     </div>
                   );

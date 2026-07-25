@@ -360,3 +360,34 @@ export function playSoundEffect(soundOrId, volume = 0.5, onError) {
   });
   return stop;
 }
+
+// A short, intentionally quiet two-tone notification. Keeping this synthesized
+// avoids a network request and makes notifications available as soon as a room
+// connects. It is separate from shared sound effects, which are played at the
+// room's normal sound-effect level.
+export function playChatNotification(onError) {
+  const context = getAudioContext();
+  if (!context) {
+    onError?.(new Error("This browser does not support notification playback."));
+    return;
+  }
+
+  const resume = context.state === "suspended" ? context.resume() : Promise.resolve();
+  void resume.then(() => {
+    const now = context.currentTime;
+    const gain = context.createGain();
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.09, now + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.19);
+    gain.connect(context.destination);
+
+    [[659, 0], [880, 0.075]].forEach(([frequency, offset]) => {
+      const oscillator = context.createOscillator();
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(frequency, now + offset);
+      oscillator.connect(gain);
+      oscillator.start(now + offset);
+      oscillator.stop(now + offset + 0.11);
+    });
+  }).catch((error) => onError?.(error));
+}

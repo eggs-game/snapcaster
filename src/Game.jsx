@@ -8,10 +8,37 @@ import { labelRecognitionReport, saveRecognitionReport } from "./signaling.js";
 import { getCommanderPairing, suggestCardNames, suggestCommanderPartners } from "./cardSearch.js";
 import { identify as identifyCard, preload as preloadRecognition } from "./recognition/matcher.js";
 import CardSidebar, { cardFromScryfall, formatDiceResult, formatDiceSides } from "./CardSidebar.jsx";
-import { getSoundEffect, playSoundEffect } from "./soundEffects.js";
+import { getSoundEffect, playChatNotification, playSoundEffect } from "./soundEffects.js";
 import { getCounterTextColor, getVideoCounterType, normalizeVideoCounter } from "./videoCounters.js";
 
 const SOUND_COOLDOWN_MS = 120000;
+const CHAT_SHOWCASE_CARD = {
+  name: "Sol Ring",
+  scryfall_id: "e07f656c-97b5-4147-821a-edbb49f34e19",
+  image: "https://cards.scryfall.io/normal/front/e/0/e07f656c-97b5-4147-821a-edbb49f34e19.jpg",
+};
+
+function makeChatShowcase(myId, myName) {
+  const now = Date.now();
+  const at = (minutesAgo) => now - minutesAgo * 60_000;
+  return [
+    { id: "showcase-1", from: "showcase-drew", name: "Drew", role: "visitor", text: "I kept a risky seven. Let’s see if it pays off.", at: at(13) },
+    { id: "showcase-2", from: myId, name: myName, text: "Good luck — I’m ready when you are.", at: at(12) },
+    { id: "showcase-3", from: "showcase-maya", name: "Maya", text: "That opening hand looks great.", soundId: "cartoon-laugh", at: at(11) },
+    { id: "showcase-4", kind: "dice", from: "showcase-drew", name: "Drew", role: "visitor", value: 18, sides: 20, at: at(10) },
+    { id: "showcase-5", kind: "card", from: "showcase-maya", name: "Maya", card: CHAT_SHOWCASE_CARD, at: at(9) },
+    { id: "showcase-6", kind: "card", from: myId, name: myName, card: CHAT_SHOWCASE_CARD, at: at(8) },
+    { id: "showcase-7", kind: "life", from: "showcase-drew", name: "Drew", role: "visitor", previous: 40, life: 37, delta: -3, at: at(7) },
+    { id: "showcase-8", kind: "life", from: myId, name: myName, previous: 37, life: 42, delta: 5, at: at(6) },
+    { id: "showcase-9", kind: "ready", system: true, outcome: "ready", at: at(5) },
+    { id: "showcase-10", kind: "ready", from: "showcase-drew", name: "Drew", role: "visitor", outcome: "not-ready", at: at(4) },
+    { id: "showcase-11", kind: "ready", system: true, outcome: "timeout", at: at(3) },
+    { id: "showcase-12", from: "showcase-maya", name: "Maya", text: "I need a quick rules check before we move on.", whisper: true, at: at(2) },
+    { id: "showcase-13", from: myId, name: myName, text: "Sure, what’s up?", whisper: true, to: "showcase-maya", toName: "Maya", at: at(1) },
+    { id: "showcase-14", kind: "dice", from: myId, name: myName, value: 4, sides: 6, at: at(0) },
+    { id: "showcase-15", from: "showcase-drew", name: "Drew", role: "visitor", soundId: "applause", at: at(0) },
+  ];
+}
 
 export default function Game({ session, onLeave, themePreference, onThemePreferenceChange }) {
   const isVisitor = session.role === "visitor";
@@ -23,6 +50,10 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const readyCheckRef = useRef(null);
   const diceOverlayTimerRef = useRef(null);
   const recentSoundBySenderRef = useRef({});
+  const myIdRef = useRef(null);
+  const chatNotificationsEnabledRef = useRef(true);
+  const chatShowcaseSeededRef = useRef(false);
+  const chatShowcaseEnabled = import.meta.env.DEV;
   const [myId, setMyId] = useState(null);
   const [roster, setRoster] = useState([]);
   const [lives, setLives] = useState({}); // id -> life
@@ -91,6 +122,38 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const [audioDeviceId, setAudioDeviceId] = useState("");
   const [deviceError, setDeviceError] = useState("");
   const [soundCooldownUntil, setSoundCooldownUntil] = useState(0);
+  const [chatNotificationsEnabled, setChatNotificationsEnabled] = useState(() => {
+    try {
+      return localStorage.getItem("snapcast-chat-notifications") !== "muted";
+    } catch {
+      return true;
+    }
+  });
+
+  useEffect(() => {
+    chatNotificationsEnabledRef.current = chatNotificationsEnabled;
+  }, [chatNotificationsEnabled]);
+
+  const chooseChatNotifications = useCallback((enabled) => {
+    const next = Boolean(enabled);
+    chatNotificationsEnabledRef.current = next;
+    setChatNotificationsEnabled(next);
+    try {
+      localStorage.setItem("snapcast-chat-notifications", next ? "enabled" : "muted");
+    } catch { /* preference still applies for this session */ }
+  }, []);
+
+  const notifyIncomingChat = useCallback(() => {
+    if (chatNotificationsEnabledRef.current) playChatNotification();
+  }, []);
+
+  // Temporary local styling gallery. It never runs in production or sends any
+  // of the fixture messages to a room.
+  useEffect(() => {
+    if (!chatShowcaseEnabled || !myId || chatShowcaseSeededRef.current) return;
+    chatShowcaseSeededRef.current = true;
+    setChatMessages(makeChatShowcase(myId, session.name));
+  }, [chatShowcaseEnabled, myId, session.name]);
 
   const showDiceOverlay = useCallback((roll) => {
     window.clearTimeout(diceOverlayTimerRef.current);
@@ -100,20 +163,21 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
 
   // Life totals still synchronize on every click, but the room gets one
   // readable net change after the player pauses instead of a message per step.
-  const queueLifeChat = useCallback((id, name, previous, life) => {
+  const queueLifeChat = useCallback((id, name, previous, life, kind = "life", notify = false) => {
     const pending = pendingLifeChatsRef.current.get(id);
     const next = pending
-      ? { ...pending, name: name || pending.name, life }
-      : { id, name: name || "Player", previous, life, timer: null };
+      ? { ...pending, name: name || pending.name, life, kind: kind || pending.kind, notify: notify || pending.notify }
+      : { id, name: name || "Player", previous, life, kind, notify, timer: null };
     window.clearTimeout(next.timer);
     next.timer = window.setTimeout(() => {
       pendingLifeChatsRef.current.delete(id);
       const delta = next.life - next.previous;
       if (!delta) return;
       const at = Date.now();
+      if (next.notify) notifyIncomingChat();
       setChatMessages((messages) => [...messages.slice(-99), {
         id: `life-${id}-${at}-${++chatIdRef.current}`,
-        kind: "life",
+        kind: next.kind,
         from: id,
         name: next.name,
         previous: next.previous,
@@ -123,6 +187,11 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       }]);
     }, 2000);
     pendingLifeChatsRef.current.set(id, next);
+  }, [notifyIncomingChat]);
+
+  const markPendingCommanderDamageChat = useCallback((id) => {
+    const pending = pendingLifeChatsRef.current.get(id);
+    if (pending && pending.life < pending.previous) pending.kind = "commander-damage";
   }, []);
 
   const acceptIncomingSound = (senderId, soundId) => {
@@ -160,7 +229,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
         setLives((values) => ({ ...values, [id]: life }));
         if (previous == null || previous === life) return;
         const player = rosterRef.current.find((member) => member.id === id);
-        queueLifeChat(id, player?.name, previous, life);
+        queueLifeChat(id, player?.name, previous, life, "life", id !== myIdRef.current);
       },
       onLobbyName: setLobbyName,
       onCommander: (id, commander) => setCommanders((values) => ({ ...values, [id]: commander })),
@@ -170,6 +239,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       onCameraEnabled: (id, enabled) => setCameraEnabledByPlayer((values) => ({ ...values, [id]: enabled })),
       onCardIdentified: (msg) => {
         const at = Number(msg.at) || Date.now();
+        if (msg.from !== myIdRef.current) notifyIncomingChat();
         setLookups((lookedUp) => [...lookedUp.slice(-11), { by: msg.byName, card: msg.card, at }]);
         setChatMessages((messages) => [...messages.slice(-99), {
           id: `remote-card-${msg.from || msg.byName}-${at}-${++chatIdRef.current}`,
@@ -182,6 +252,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       },
       onChat: (message) => {
         const soundId = acceptIncomingSound(message.from, message.soundId);
+        if (!soundId && message.from !== myIdRef.current) notifyIncomingChat();
         setChatMessages((messages) => [...messages.slice(-99), {
           ...message,
           soundId,
@@ -190,16 +261,20 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       },
       onActivePlayer: setActivePlayerId,
       onPoison: (id, value) => setPoisonCounters((values) => ({ ...values, [id]: value })),
-      onCommanderDamage: (victimId, attackerId, value) => setCommanderDamage((values) => ({
-        ...values,
-        [victimId]: { ...(values[victimId] || {}), [attackerId]: value },
-      })),
+      onCommanderDamage: (victimId, attackerId, value) => {
+        markPendingCommanderDamageChat(victimId);
+        setCommanderDamage((values) => ({
+          ...values,
+          [victimId]: { ...(values[victimId] || {}), [attackerId]: value },
+        }));
+      },
       onDiceRoll: (roll) => {
         const entry = {
           ...roll,
           kind: "dice",
           id: `remote-dice-${roll.from}-${roll.at}-${++chatIdRef.current}`,
         };
+        if (roll.from !== myIdRef.current) notifyIncomingChat();
         setChatMessages((messages) => [...messages.slice(-99), entry]);
         showDiceOverlay(entry);
       },
@@ -257,6 +332,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
         if (!isVisitor) setCameras(devices.cameras);
         setMics(devices.mics);
         const id = await conn.join(session.code, session.name, isVisitor ? "visitor" : "player");
+        myIdRef.current = id;
         setMyId(id);
         if (!isVisitor && session.lobbyName) {
           conn.setLobbyName(session.lobbyName);
@@ -279,9 +355,10 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       window.clearTimeout(diceOverlayTimerRef.current);
       pendingLifeChatsRef.current.forEach((entry) => window.clearTimeout(entry.timer));
       pendingLifeChatsRef.current.clear();
+      myIdRef.current = null;
       conn.close();
     };
-  }, [isVisitor, queueLifeChat, session.code, session.name, session.videoDeviceId, session.audioDeviceId]);
+  }, [isVisitor, markPendingCommanderDamageChat, notifyIncomingChat, queueLifeChat, session.code, session.name, session.videoDeviceId, session.audioDeviceId]);
 
   // A readiness prompt is deliberately ephemeral. The timer is local so a
   // lost broadcast cannot leave a stale prompt on one player's screen.
@@ -763,16 +840,18 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     setReadyCheck(null);
     const at = Date.now();
     const player = rosterRef.current.find((member) => member.id === byId);
+    if (!announce && byId !== myIdRef.current) notifyIncomingChat();
     setChatMessages((messages) => [...messages.slice(-99), {
       id: `ready-${checkId}-${at}-${++chatIdRef.current}`,
       kind: "ready",
-      from: byId || "",
-      name: player?.name || "Player",
+      from: outcome === "ready" || outcome === "timeout" ? "" : (byId || ""),
+      name: outcome === "ready" || outcome === "timeout" ? "" : (player?.name || "Player"),
+      system: outcome === "ready" || outcome === "timeout",
       outcome,
       at,
     }]);
     if (announce) connRef.current?.endReadyCheck(checkId, outcome);
-  }, [myId, session.name]);
+  }, [myId, notifyIncomingChat, session.name]);
 
   const randomizeGrid = useCallback(() => {
     if (!session.creator || !myId) return;
@@ -834,7 +913,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     const life = Math.max(0, previousLife - appliedDamage);
     livesRef.current = { ...livesRef.current, [myId]: life };
     setLives((values) => ({ ...values, [myId]: life }));
-    queueLifeChat(myId, session.name, previousLife, life);
+    queueLifeChat(myId, session.name, previousLife, life, appliedDamage > 0 ? "commander-damage" : "life");
     connRef.current?.setLife(life);
     connRef.current?.setCommanderDamage(attackerId, value);
   };
@@ -996,6 +1075,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
             chatMessages={chatMessages}
             currentUserId={myId}
             chatRecipients={roster.filter((member) => member.id !== myId)}
+            chatNameColors={Object.fromEntries(tiles.filter((tile) => !tile.empty).map((tile) => [tile.id, tile.color]))}
             onSendChat={sendChat}
             soundCooldownUntil={soundCooldownUntil}
             onPreviewSound={(soundId, onError) => {
@@ -1040,6 +1120,8 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
             tileColors={TILE_COLORS}
             themePreference={themePreference}
             onThemePreferenceChange={onThemePreferenceChange}
+            chatNotificationsEnabled={chatNotificationsEnabled}
+            onChatNotificationsChange={chooseChatNotifications}
             videoLayout={videoLayout}
             onVideoLayoutChange={chooseVideoLayout}
             videoFit={videoFit}
