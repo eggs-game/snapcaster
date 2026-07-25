@@ -1,6 +1,8 @@
 // Sound effects sit slightly below the rest of the app's audio so short clips
 // don't overpower voices or other media at the user's browser/tab volume.
-const SOUND_EFFECT_LEVEL = 0.85;
+// Sound effects should sit below voice and other game audio. This is 75% of
+// the previous 0.85 level, preserving the existing per-sound volume scaling.
+const SOUND_EFFECT_LEVEL = 0.6375;
 
 // The room broadcast carries only these stable IDs, never a remote audio URL.
 // That keeps playback predictable and means every browser uses the same vetted

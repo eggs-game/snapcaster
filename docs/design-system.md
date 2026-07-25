@@ -192,7 +192,8 @@ Picker rows use Lucide Cat/Laugh icons and a single-line effect name rather
 than repeating the selected category as a subtitle. The chosen effect is shown
 as a compact, dismissible chip in the composer; its matching message chip
 remains visible in chat even if browser playback is blocked. Effects play at
-85% of the listener’s normal browser/tab volume, without a separate in-app
+63.75% of the listener’s normal browser/tab volume (75% of the prior level),
+without a separate in-app
 mute or volume control. Pressing Enter sends either text or a selected effect,
 so an effect can be sent on its own.
 
@@ -402,6 +403,10 @@ the same row. Once selected, the two names share that row and their color
 identities are combined for the pips.
 The commander edit field occupies that same row position, so entering edit
 mode does not shift the name downward.
+Commander search suggestions follow the same edge-aware overlay rule as tile
+menus: on a bottom-row tile they use the `menu-up` modifier and open above the
+field, preventing the viewport edge from clipping the available commander
+choices.
 
 Settings → Video fit controls how each player's camera stream fills its
 tile in the game grid, independent of `.grid`'s own layout mode

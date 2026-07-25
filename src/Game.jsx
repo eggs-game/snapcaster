@@ -552,13 +552,14 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       });
       const top = data.matches?.[0];
       if (top && (top.identified_by === "ocr-title" || top.distance <= 170)) {
-        shareCard(top);
+        // Recognition is a local inspection action. Cards enter Chat only
+        // through the explicit Share card control in the Cards panel.
         setLookups((l) => [...l.slice(-11), { by: session.name, card: top, at: Date.now() }]);
       }
     } catch (e) {
       setCurrent({ error: String(e.message || e) });
     }
-  }, [myId, openCardPanel, session.name, shareCard]);
+  }, [myId, openCardPanel, session.name]);
 
   // Clicking an opponent's commander name does a plain text lookup (same
   // Scryfall path as the sidebar search box) rather than the visual capture
@@ -2119,7 +2120,7 @@ function CommanderBanner({ tile, onChoose, onChoosePartner, onLookupCommander, s
             autoFocus
           />
           {partnerSuggestions.length > 0 && (
-            <ul className="commander-suggest">
+            <ul className={atBottom ? "commander-suggest menu-up" : "commander-suggest"}>
               {partnerSuggestions.map((name, i) => (
                 <li
                   key={name}
@@ -2220,7 +2221,7 @@ function CommanderBanner({ tile, onChoose, onChoosePartner, onLookupCommander, s
           autoFocus
         />
         {suggestions.length > 0 && (
-          <ul className="commander-suggest">
+          <ul className={atBottom ? "commander-suggest menu-up" : "commander-suggest"}>
             {suggestions.map((name, i) => (
               <li
                 key={name}

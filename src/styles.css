@@ -751,6 +751,7 @@ input::placeholder { color: var(--text-tertiary); opacity: 1; }
 .commander-picker input::placeholder { color: rgba(255,255,255,0.72); }
 .commander-picker input:focus { outline: none; border: 0; box-shadow: none; }
 .commander-suggest { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 6; max-height: 220px; overflow-y: auto; margin: 0; padding: 5px; list-style: none; background: var(--overlay-bg); border: 1px solid var(--border-default); border-radius: 12px; -webkit-backdrop-filter: blur(18px) saturate(var(--glass-saturation)); backdrop-filter: blur(18px) saturate(var(--glass-saturation)); box-shadow: inset 0 1px 0 var(--glass-highlight), var(--overlay-shadow); }
+.commander-suggest.menu-up { top: auto; bottom: calc(100% + 4px); }
 .commander-suggest li { padding: 7px 9px; border-radius: 6px; color: var(--text); cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .commander-suggest li.active { background: var(--selected-bg); }
 .commander-set { cursor: pointer; }
