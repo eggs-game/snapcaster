@@ -330,11 +330,11 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     connRef.current?.announceCard(card, session.name, at);
   }, [isVisitor, myId, session.name]);
 
-  // captureClientY lets flipped tiles pass the reflected point for capture
-  // while the click flash stays where the player actually clicked.
-  const identify = useCallback(async (tileId, videoEl, clientX, clientY, captureClientY = clientY) => {
+  // Flipped tiles pass reflected coordinates for capture while the click flash
+  // stays where the player actually clicked.
+  const identify = useCallback(async (tileId, videoEl, clientX, clientY, captureClientX = clientX, captureClientY = clientY) => {
     const conn = connRef.current;
-    const pt = clickToNormalized(videoEl, clientX, captureClientY);
+    const pt = clickToNormalized(videoEl, captureClientX, captureClientY);
     if (!pt) return;
     const rect = videoEl.getBoundingClientRect();
     setFlash({ tileId, x: clientX - rect.left, y: clientY - rect.top });
@@ -1322,14 +1322,16 @@ function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseComm
         data-counter-drop-target={tile.isMe ? "true" : undefined}
         onClick={(e) => {
           if (!videoRef.current) return;
-          // A flipped video shows the source upside down; reflect the click so
+          // A 180° local flip reverses both axes. Reflect the click so
           // recognition still targets the card the player actually clicked.
+          let captureX = e.clientX;
           let captureY = e.clientY;
           if (flipped) {
             const rect = videoRef.current.getBoundingClientRect();
+            captureX = rect.left + rect.right - e.clientX;
             captureY = rect.top + rect.bottom - e.clientY;
           }
-          onIdentify(tile.id, videoRef.current, e.clientX, e.clientY, captureY);
+          onIdentify(tile.id, videoRef.current, e.clientX, e.clientY, captureX, captureY);
         }}
       >
         <div className="video-fit-box">
@@ -1338,7 +1340,7 @@ function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseComm
             autoPlay
             playsInline
             muted={tile.isMe}
-            style={flipped ? { transform: "scaleY(-1)" } : undefined}
+            style={flipped ? { transform: "rotate(180deg)" } : undefined}
           />
         </div>
         {flash && <div className="click-flash" style={{ left: flash.x, top: flash.y }} />}
