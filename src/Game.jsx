@@ -36,7 +36,6 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const [error, setError] = useState(null);
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(true);
-  const [outgoingVideoFlipped, setOutgoingVideoFlipped] = useState(false);
   const [lookups, setLookups] = useState([]);
   const [chatMessages, setChatMessages] = useState([]);
   const [diceOverlay, setDiceOverlay] = useState(null);
@@ -331,8 +330,8 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     connRef.current?.announceCard(card, session.name, at);
   }, [isVisitor, myId, session.name]);
 
-  // Flipped tiles pass the reflected vertical point for capture while the
-  // click flash stays where the player actually clicked.
+  // captureClientY lets flipped tiles pass the reflected point for capture
+  // while the click flash stays where the player actually clicked.
   const identify = useCallback(async (tileId, videoEl, clientX, clientY, captureClientY = clientY) => {
     const conn = connRef.current;
     const pt = clickToNormalized(videoEl, clientX, captureClientY);
@@ -815,15 +814,6 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     connRef.current?.setMuted(!next);
   };
 
-  const toggleOutgoingVideoFlip = async () => {
-    const next = !outgoingVideoFlipped;
-    try {
-      const changed = await connRef.current?.setOutgoingVideoFlipped(next);
-      if (changed) setOutgoingVideoFlipped(next);
-    } catch (error) {
-      setError(String(error?.message || "Could not flip the outgoing video."));
-    }
-  };
   const toggleCam = () => {
     if (isVisitor) return;
     connRef.current.toggleTrack("video", !camOn);
@@ -1105,8 +1095,6 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
                 micOn={micOn}
                 onToggleCam={toggleCam}
                 onToggleMic={toggleMic}
-                outgoingVideoFlipped={t.isMe ? outgoingVideoFlipped : undefined}
-                onToggleOutgoingVideoFlip={t.isMe ? toggleOutgoingVideoFlip : undefined}
                 videoQuality={t.isMe ? "auto" : (videoQualityByPlayer[t.id] || "auto")}
                 onVideoQualityChange={t.isMe ? undefined : (quality) => chooseVideoQuality(t.id, quality)}
                 canRandomizeGrid={session.creator && t.isMe}
@@ -1245,7 +1233,7 @@ function formatVideoResolution(resolution) {
   return `${height}p`;
 }
 
-function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseCommander, onLookupCommander, onChangeLife, onOpenCounters, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, isReadyCheckActive, readyStatus, onReady, onNotReady, heroRole, onSelectHero, flash, scanNotice, camOn, micOn, onToggleCam, onToggleMic, outgoingVideoFlipped, onToggleOutgoingVideoFlip, videoQuality, onVideoQualityChange, videoCounters, counterDragPreview, onStartVideoCounterDrag, onChangeVideoCounter, onRemoveVideoCounter }) {
+function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseCommander, onLookupCommander, onChangeLife, onOpenCounters, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, isReadyCheckActive, readyStatus, onReady, onNotReady, heroRole, onSelectHero, flash, scanNotice, camOn, micOn, onToggleCam, onToggleMic, videoQuality, onVideoQualityChange, videoCounters, counterDragPreview, onStartVideoCounterDrag, onChangeVideoCounter, onRemoveVideoCounter }) {
   // Seats 3 and 4 (the bottom row of a 4-player grid) mirror their banner to
   // the bottom edge and their life badge to the top corner, since those
   // tiles sit upside-down relative to the viewer's side of the table.
@@ -1256,8 +1244,7 @@ function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseComm
   const lifeBadgeAlign = isSeat3 ? "right" : isSeat4 ? "left" : innerSide;
   const bannerAtBottom = isSeat3 || isSeat4;
   const videoRef = useRef(null);
-  const [localFlipped, setLocalFlipped] = useState(false);
-  const flipped = tile.isMe ? Boolean(outgoingVideoFlipped) : localFlipped;
+  const [flipped, setFlipped] = useState(false);
   const [videoResolution, setVideoResolution] = useState(null);
   const speaking = useSpeaking(tile.stream, tile.muted);
   useEffect(() => {
@@ -1320,7 +1307,7 @@ function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseComm
         onRandomizeGrid={onRandomizeGrid}
         onStartReadyCheck={onStartReadyCheck}
         flipped={flipped}
-        onToggleFlip={() => tile.isMe ? onToggleOutgoingVideoFlip?.() : setLocalFlipped((f) => !f)}
+        onToggleFlip={() => setFlipped((f) => !f)}
         camOn={camOn}
         micOn={micOn}
         onToggleCam={onToggleCam}
@@ -1335,7 +1322,7 @@ function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseComm
         data-counter-drop-target={tile.isMe ? "true" : undefined}
         onClick={(e) => {
           if (!videoRef.current) return;
-          // Flipped video reverses the vertical axis. Reflect the click so
+          // A flipped video shows the source upside down; reflect the click so
           // recognition still targets the card the player actually clicked.
           let captureY = e.clientY;
           if (flipped) {

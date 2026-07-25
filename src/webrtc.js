@@ -116,7 +116,6 @@ export class GameConnection {
     this.audioDeviceId = "";
     this.iceServers = FALLBACK_ICE_SERVERS;
     this.turnStatus = "fallback";
-    this.outgoingVideo = null;
   }
 
   async _configureIceServers(code) {
@@ -254,54 +253,6 @@ export class GameConnection {
     this.myId = this.room.myId;
     this._onRoster(this.roster);
     return this.myId;
-  }
-
-  async setOutgoingVideoFlipped(flipped) {
-    const sourceTrack = this.localStream?.getVideoTracks?.()[0];
-    if (!sourceTrack) return false;
-    this._stopOutgoingVideoTransform();
-    if (flipped) {
-      const video = document.createElement("video");
-      video.muted = true;
-      video.playsInline = true;
-      video.srcObject = new MediaStream([sourceTrack]);
-      await video.play();
-      if (!video.videoWidth) await new Promise((resolve) => video.addEventListener("loadedmetadata", resolve, { once: true }));
-      const settings = sourceTrack.getSettings?.() || {};
-      const width = Math.min(video.videoWidth || settings.width || 1280, 1920);
-      const height = Math.round(width * ((video.videoHeight || settings.height || 720) / (video.videoWidth || settings.width || 1280)));
-      const canvas = document.createElement("canvas");
-      canvas.width = width;
-      canvas.height = height;
-      const context = canvas.getContext("2d");
-      const draw = () => {
-        if (!this.outgoingVideo) return;
-        context.save();
-        context.translate(width, height);
-        context.rotate(Math.PI);
-        context.drawImage(video, 0, 0, width, height);
-        context.restore();
-        this.outgoingVideo.frame = requestAnimationFrame(draw);
-      };
-      const stream = canvas.captureStream(Math.min(Number(settings.frameRate) || 24, 24));
-      const track = stream.getVideoTracks()[0];
-      track.enabled = sourceTrack.enabled;
-      this.outgoingVideo = { video, stream, track, frame: requestAnimationFrame(draw) };
-    }
-    const outboundTrack = this.outgoingVideo?.track || sourceTrack;
-    await Promise.all([...this.peers.values()].map(async ({ pc }) => {
-      const sender = pc.getSenders().find((item) => item.track?.kind === "video");
-      if (sender) await sender.replaceTrack(outboundTrack);
-    }));
-    return true;
-  }
-
-  _stopOutgoingVideoTransform() {
-    if (!this.outgoingVideo) return;
-    cancelAnimationFrame(this.outgoingVideo.frame);
-    this.outgoingVideo.video.pause();
-    this.outgoingVideo.stream.getTracks().forEach((track) => track.stop());
-    this.outgoingVideo = null;
   }
 
   _onRoster(roster) {
@@ -516,8 +467,7 @@ export class GameConnection {
     const entry = { pc, dc: null, chunks: new Map() };
     this.peers.set(peerId, entry);
     for (const t of this.localStream?.getTracks() || []) {
-      const outboundTrack = t.kind === "video" ? (this.outgoingVideo?.track || t) : t;
-      const sender = pc.addTrack(outboundTrack, this.localStream);
+      const sender = pc.addTrack(t, this.localStream);
       if (t.kind === "video") void tuneVideoSender(sender, this.videoQuality.get(peerId) || "auto");
     }
     // An audio-only visitor still needs a video m-line in offers so players
@@ -819,7 +769,6 @@ export class GameConnection {
   toggleTrack(kind, enabled) {
     if (this.role === "visitor" && kind === "video") return;
     for (const t of this.localStream?.getTracks() || []) if (t.kind === kind) t.enabled = enabled;
-    if (kind === "video" && this.outgoingVideo?.track) this.outgoingVideo.track.enabled = enabled;
   }
 
   close() {
@@ -827,7 +776,6 @@ export class GameConnection {
     this.peers.clear();
     this.room?.leave();
     for (const t of this.localStream?.getTracks() || []) t.stop();
-    this._stopOutgoingVideoTransform();
   }
 }
 
