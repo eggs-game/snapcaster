@@ -108,6 +108,8 @@ export default function CardSidebar({
   onThemePreferenceChange,
   chatNotificationsEnabled,
   onChatNotificationsChange,
+  turnNotificationsEnabled,
+  onTurnNotificationsChange,
   videoLayout,
   onVideoLayoutChange,
   videoFit,
@@ -211,6 +213,16 @@ export default function CardSidebar({
     const frame = requestAnimationFrame(scrollChatToLatest);
     return () => cancelAnimationFrame(frame);
   }, [lookupTab]);
+
+  // Keep a message the local player just sent in view without pulling someone
+  // reading older room activity away from their place for incoming messages.
+  useEffect(() => {
+    if (lookupTab !== "chat") return undefined;
+    const latest = chatMessages?.[chatMessages.length - 1];
+    if (!latest || latest.from !== currentUserId || latest.kind) return undefined;
+    const frame = requestAnimationFrame(scrollChatToLatest);
+    return () => cancelAnimationFrame(frame);
+  }, [chatMessages, currentUserId, lookupTab]);
 
   const openCard = (card) => {
     if (!card) return;
@@ -678,6 +690,25 @@ export default function CardSidebar({
               </button>
             </div>
           </fieldset>
+          <fieldset className="theme-field">
+            <legend className="color-label">Turn notifications</legend>
+            <div className="theme-options two-up">
+              <button
+                type="button"
+                aria-pressed={turnNotificationsEnabled}
+                onClick={() => onTurnNotificationsChange(true)}
+              >
+                On
+              </button>
+              <button
+                type="button"
+                aria-pressed={!turnNotificationsEnabled}
+                onClick={() => onTurnNotificationsChange(false)}
+              >
+                Muted
+              </button>
+            </div>
+          </fieldset>
           {isVisitor && (
             <p className="visitor-note">
               You joined as a visitor. You can listen, speak, and look up cards.
@@ -1064,7 +1095,7 @@ export default function CardSidebar({
                     <div className={`chat-message-row${isMine ? " mine" : ""}`} key={message.id}>
                       <div className={`chat-message-wrap${isMine ? " mine" : ""}`}>
                         {!message.system && <div className="chat-message-header">
-                          {(!isMine || message.whisper) && <strong style={{ color: message.whisper ? "var(--whisper-text)" : senderColor }}>{headerName}</strong>}
+                          <strong style={{ color: message.whisper ? "var(--whisper-text)" : senderColor }}>{headerName}</strong>
                           <span className="chat-message-timestamp">{timestamp}</span>
                         </div>}
                         <div className={`chat-message${isMine ? " mine" : ""}${message.whisper ? " whisper" : ""}${message.kind ? ` object ${message.kind}` : ""}${message.soundId ? " sound" : ""}${message.system ? " system" : ""}`}>
@@ -1103,7 +1134,7 @@ export default function CardSidebar({
                               className={previewingSoundId === message.soundId ? "chat-sound-play playing" : "chat-sound-play"}
                               onClick={() => previewSound(message.soundId)}
                               aria-label={`Play ${getSoundEffect(message.soundId)?.label || "sound effect"} locally`}
-                              data-tooltip="Play locally"
+                              data-tooltip="Play"
                             >
                               <Play size={16} aria-hidden="true" />
                             </button>

@@ -323,7 +323,7 @@ users too.
 ```
 
 Current examples: `.theme-options` (3-up: Appearance; 2-up via the
-`.two-up` modifier: Video fit and Chat notifications), `.view-options` (3-up: Game view). These
+`.two-up` modifier: Video fit, Chat notifications, and Turn notifications), `.view-options` (3-up: Game view). These
 two classes are near-duplicates that predate this doc — don't add a third
 one; extend `.theme-options` with a modifier the way `.two-up` does.
 

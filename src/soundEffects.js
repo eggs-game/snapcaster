@@ -391,3 +391,41 @@ export function playChatNotification(onError) {
     });
   }).catch((error) => onError?.(error));
 }
+
+// A gentle, welcoming two-second arpeggio reserved for the moment the active
+// turn moves to the local player. It deliberately differs from the short chat
+// chime without feeling like an alert.
+export function playTurnNotification(onError) {
+  const context = getAudioContext();
+  if (!context) {
+    onError?.(new Error("This browser does not support notification playback."));
+    return;
+  }
+
+  const resume = context.state === "suspended" ? context.resume() : Promise.resolve();
+  void resume.then(() => {
+    const now = context.currentTime;
+    const master = context.createGain();
+    master.gain.value = 0.72;
+    master.connect(context.destination);
+
+    [
+      [523.25, 0, 0.68, 0.075],
+      [659.25, 0.18, 0.76, 0.07],
+      [783.99, 0.38, 0.88, 0.065],
+      [1046.5, 0.6, 1.3, 0.09],
+    ].forEach(([frequency, offset, duration, level]) => {
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(frequency, now + offset);
+      gain.gain.setValueAtTime(0.0001, now + offset);
+      gain.gain.exponentialRampToValueAtTime(level, now + offset + 0.045);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + offset + duration);
+      oscillator.connect(gain);
+      gain.connect(master);
+      oscillator.start(now + offset);
+      oscillator.stop(now + offset + duration);
+    });
+  }).catch((error) => onError?.(error));
+}

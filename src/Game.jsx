@@ -8,7 +8,7 @@ import { labelRecognitionReport, saveRecognitionReport } from "./signaling.js";
 import { getCommanderPairing, suggestCardNames, suggestCommanderPartners } from "./cardSearch.js";
 import { identify as identifyCard, preload as preloadRecognition } from "./recognition/matcher.js";
 import CardSidebar, { cardFromScryfall, formatDiceResult, formatDiceSides } from "./CardSidebar.jsx";
-import { getSoundEffect, playChatNotification, playSoundEffect } from "./soundEffects.js";
+import { getSoundEffect, playChatNotification, playSoundEffect, playTurnNotification } from "./soundEffects.js";
 import { getCounterTextColor, getVideoCounterType, normalizeVideoCounter } from "./videoCounters.js";
 
 const SOUND_COOLDOWN_MS = 120000;
@@ -52,6 +52,8 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const recentSoundBySenderRef = useRef({});
   const myIdRef = useRef(null);
   const chatNotificationsEnabledRef = useRef(true);
+  const turnNotificationsEnabledRef = useRef(true);
+  const activePlayerIdRef = useRef("");
   const chatShowcaseSeededRef = useRef(false);
   const chatShowcaseEnabled = import.meta.env.DEV;
   const [myId, setMyId] = useState(null);
@@ -129,10 +131,21 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       return true;
     }
   });
+  const [turnNotificationsEnabled, setTurnNotificationsEnabled] = useState(() => {
+    try {
+      return localStorage.getItem("snapcast-turn-notifications") !== "muted";
+    } catch {
+      return true;
+    }
+  });
 
   useEffect(() => {
     chatNotificationsEnabledRef.current = chatNotificationsEnabled;
   }, [chatNotificationsEnabled]);
+
+  useEffect(() => {
+    turnNotificationsEnabledRef.current = turnNotificationsEnabled;
+  }, [turnNotificationsEnabled]);
 
   const chooseChatNotifications = useCallback((enabled) => {
     const next = Boolean(enabled);
@@ -143,8 +156,27 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     } catch { /* preference still applies for this session */ }
   }, []);
 
+  const chooseTurnNotifications = useCallback((enabled) => {
+    const next = Boolean(enabled);
+    turnNotificationsEnabledRef.current = next;
+    setTurnNotificationsEnabled(next);
+    try {
+      localStorage.setItem("snapcast-turn-notifications", next ? "enabled" : "muted");
+    } catch { /* preference still applies for this session */ }
+  }, []);
+
   const notifyIncomingChat = useCallback(() => {
     if (chatNotificationsEnabledRef.current) playChatNotification();
+  }, []);
+
+  const updateActivePlayer = useCallback((id) => {
+    const nextId = String(id || "");
+    const previousId = activePlayerIdRef.current;
+    activePlayerIdRef.current = nextId;
+    setActivePlayerId(nextId);
+    if (previousId && previousId !== nextId && nextId === myIdRef.current && turnNotificationsEnabledRef.current) {
+      playTurnNotification();
+    }
   }, []);
 
   // Temporary local styling gallery. It never runs in production or sends any
@@ -259,7 +291,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
           id: `remote-${message.from}-${message.at}-${++chatIdRef.current}`,
         }]);
       },
-      onActivePlayer: setActivePlayerId,
+      onActivePlayer: updateActivePlayer,
       onPoison: (id, value) => setPoisonCounters((values) => ({ ...values, [id]: value })),
       onCommanderDamage: (victimId, attackerId, value) => {
         markPendingCommanderDamageChat(victimId);
@@ -358,7 +390,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       myIdRef.current = null;
       conn.close();
     };
-  }, [isVisitor, markPendingCommanderDamageChat, notifyIncomingChat, queueLifeChat, session.code, session.name, session.videoDeviceId, session.audioDeviceId]);
+  }, [isVisitor, markPendingCommanderDamageChat, notifyIncomingChat, queueLifeChat, session.code, session.name, session.videoDeviceId, session.audioDeviceId, updateActivePlayer]);
 
   // A readiness prompt is deliberately ephemeral. The timer is local so a
   // lost broadcast cannot leave a stale prompt on one player's screen.
@@ -395,6 +427,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     const playerIds = roster.filter((member) => member.role !== "visitor").map((member) => member.id);
     if (!playerIds.length) return;
     if ((!activePlayerId || !playerIds.includes(activePlayerId)) && playerIds[0] === myId) {
+      activePlayerIdRef.current = playerIds[0];
       setActivePlayerId(playerIds[0]);
       connRef.current?.setActivePlayer(playerIds[0]);
     }
@@ -713,6 +746,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     const currentId = activePlayerId || playerIds[0];
     if (currentId !== myId) return;
     const nextId = playerIds[(playerIds.indexOf(currentId) + 1) % playerIds.length];
+    activePlayerIdRef.current = nextId;
     setActivePlayerId(nextId);
     connRef.current?.setActivePlayer(nextId);
   }, [activePlayerId, isVisitor, myId, roster]);
@@ -1085,7 +1119,11 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
             counterDraft={counterDraft}
             onGenerateVideoCounter={generateVideoCounter}
             onStartVideoCounterDrag={setCounterPointerDrag}
-            onPick={(m) => setCurrent({ matches: [m] })}
+            onPick={(m) => setCurrent({
+              // A card chosen from chat is an explicit user selection, not a
+              // recognizer guess, so it should always render in the Cards tab.
+              matches: [{ ...m, identified_by: m.identified_by || "search", distance: m.distance ?? 0 }],
+            })}
             onShareCard={shareCard}
             onSearch={(cardOrError) => {
               if (cardOrError.error) {
@@ -1122,6 +1160,8 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
             onThemePreferenceChange={onThemePreferenceChange}
             chatNotificationsEnabled={chatNotificationsEnabled}
             onChatNotificationsChange={chooseChatNotifications}
+            turnNotificationsEnabled={turnNotificationsEnabled}
+            onTurnNotificationsChange={chooseTurnNotifications}
             videoLayout={videoLayout}
             onVideoLayoutChange={chooseVideoLayout}
             videoFit={videoFit}
