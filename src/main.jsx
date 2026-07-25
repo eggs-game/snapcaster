@@ -10,7 +10,7 @@ const Privacy = lazy(() => import("./Privacy.jsx"));
 const Terms = lazy(() => import("./Terms.jsx"));
 import "./styles.css";
 
-const BUILD = "warm-lobby-1 (lobby core preload + ready handshake)";
+const BUILD = "isolation-retrieval-6 (preserve refined geometry)";
 window.__SNAP_BUILD = BUILD;
 console.log(`%c[snapcast] build: ${BUILD}`, "color:#0a0;font-weight:bold");
 

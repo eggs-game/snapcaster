@@ -21,6 +21,11 @@ const MODES = {
     label: "Tableau 10 scenes — EDH staples (100 cards)",
     size: 100, scenes: 10, perScene: 10, popular: 15000,
   },
+  tableauVegasEdh20: {
+    label: "Tableau Magic Con Vegas playmat — EDH staples (200 cards)",
+    size: 200, scenes: 20, perScene: 10, popular: 15000, playmat: "magic-con-vegas",
+    diagnosePerfect: true,
+  },
   tableauEdhDice10: {
     label: "Tableau 10 EDH dice (100 cards)",
     size: 100, scenes: 10, perScene: 10, popular: 15000, dice: true,
@@ -80,6 +85,7 @@ function captureDiagnostics(rec, data, trueName) {
   rec.metadataConflictAll = !!data.metadata_conflict_all;
   rec.metadataError = data.metadata_error || null;
   rec.wasmHeapMB = data.wasm_heap_mb;
+  rec.isolationDebug = data.isolation_debug || null;
 }
 
 // Accuracy grouped by an arbitrary key, for the summary breakdowns.
@@ -116,6 +122,9 @@ function buildResultPayload(mode, summary, results) {
       perspective: r.perspective,
       metadata: r.metadata, metadataVetoed: r.metadataVetoed,
       metadataConflictAll: r.metadataConflictAll, metadataError: r.metadataError,
+      perfectControl: r.perfectControl || null,
+      isolationDebug: r.isolationDebug || null,
+      truthGeometry: r.truthGeometry || null,
       stages: r.stages,
       ...(r.scene !== undefined ? {
         scene: r.scene, coverage: r.coverage, clipped: r.clipped,
@@ -313,6 +322,7 @@ export default function SnapTest() {
         scene = await buildScene(group, s, 1920, 1080, {
           dice: !!MODES[mode].dice,
           layout: MODES[mode].layout,
+          playmat: MODES[mode].playmat,
         });
       } catch (e) {
         for (const card of group) {
@@ -338,6 +348,17 @@ export default function SnapTest() {
         try {
           const crop = cropScene(scene.canvas, p.nx, p.ny);
           cropUrl = crop.url;
+          rec.truthGeometry = {
+            angle: +p.angle.toFixed(2),
+            center: {
+              x: +((p.cx - crop.sx) / crop.side).toFixed(3),
+              y: +((p.cy - crop.sy) / crop.side).toFixed(3),
+            },
+            card: {
+              w: +(scene.cardW / crop.side).toFixed(3),
+              h: +(scene.cardH / crop.side).toFixed(3),
+            },
+          };
           let data;
           try {
             data = await identifyCard(cropUrl, { nx: crop.px, ny: crop.py });
@@ -350,6 +371,30 @@ export default function SnapTest() {
           rec.stages = data.stage_ms || null;
           captureDiagnostics(rec, data, p.card.name);
           rec.ok = rec.top === p.card.name;
+          if (!rec.ok && MODES[mode].diagnosePerfect) {
+            const perfectUrl = perfectCrop(scene.canvas, p, scene.cardW, scene.cardH);
+            const perfectStarted = performance.now();
+            try {
+              const perfectData = await identifyCard(perfectUrl, { nx: 0.5, ny: 0.5 });
+              const perfectRec = {};
+              captureDiagnostics(perfectRec, perfectData, p.card.name);
+              rec.perfectControl = {
+                ok: perfectRec.top === p.card.name,
+                top: perfectRec.top,
+                by: perfectRec.by,
+                dist: perfectRec.dist,
+                trueRank: perfectRec.trueRank,
+                trueDist: perfectRec.trueDist,
+                ms: Math.round(performance.now() - perfectStarted),
+              };
+            } catch (e) {
+              rec.perfectControl = {
+                ok: false,
+                error: String((e && e.message) || e),
+                ms: Math.round(performance.now() - perfectStarted),
+              };
+            }
+          }
           if (!rec.ok && ctr.miss < 60) {
             rec.degraded = cropUrl;
             rec.topImage = data.matches && data.matches[0] && data.matches[0].image;
@@ -536,6 +581,17 @@ export default function SnapTest() {
     // Where the correct card ranked on a miss. "absent" vs "rank 2-5" point at
     // completely different fixes: candidate generation vs ranking/tiebreak.
     const missList = okList.filter((r) => !r.ok);
+    const perfectControls = missList
+      .map((r) => r.perfectControl)
+      .filter(Boolean);
+    if (perfectControls.length) {
+      const perfectOk = perfectControls.filter((r) => r.ok).length;
+      sum.perfectCropControl = {
+        n: perfectControls.length,
+        ok: perfectOk,
+        acc: +(perfectOk / perfectControls.length).toFixed(3),
+      };
+    }
     const rankBucket = { "rank 2": 0, "rank 3-5": 0, "rank 6+": 0, absent: 0 };
     for (const r of missList) {
       if (r.trueRank == null) rankBucket.absent++;

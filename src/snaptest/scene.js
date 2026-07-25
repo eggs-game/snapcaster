@@ -21,6 +21,10 @@ import { loadImage, scryfallImageUrl } from "./degrade.js";
 import { cropGeometry } from "../captureGeometry.js";
 
 const CARD_ASPECT = 88 / 63; // MTG card height / width
+const PLAYMAT_IMAGES = {
+  "magic-con-vegas": "/snaptest/playmats/magic-con-vegas.png",
+};
+const playmatImageCache = new Map();
 const DICE = [
   { name: "white", fill: "#f4f1e8", pip: "#20242b" },
   { name: "black", fill: "#20242b", pip: "#f5f3ed" },
@@ -164,6 +168,24 @@ function paintBackground(x, W, H, rnd, warm) {
   }
 }
 
+function paintPlaymatBackground(x, W, H, image) {
+  // Cover rather than stretch: the supplied 1200×700 playmat stays at its
+  // intended proportions while a landscape video frame trims only its sides.
+  const scale = Math.max(W / image.width, H / image.height);
+  const drawW = image.width * scale;
+  const drawH = image.height * scale;
+  x.drawImage(image, (W - drawW) / 2, (H - drawH) / 2, drawW, drawH);
+}
+
+function loadPlaymat(name) {
+  const url = PLAYMAT_IMAGES[name];
+  if (!url) return Promise.resolve(null);
+  if (!playmatImageCache.has(name)) {
+    playmatImageCache.set(name, loadImage(url).catch(() => null));
+  }
+  return playmatImageCache.get(name);
+}
+
 // Dim, uneven room lighting plus a vignette. Applied after the cards so it
 // dims them too — real photos are not evenly lit card-by-card.
 function paintLighting(x, W, H, rnd) {
@@ -194,6 +216,7 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080, 
   const imgs = await Promise.all(
     cards.map((c) => loadImage(scryfallImageUrl(c.id)).then((im) => ({ c, im })).catch(() => ({ c, im: null }))),
   );
+  const playmat = await loadPlaymat(options.playmat);
   const ok = imgs.filter((r) => r.im);
   const failed = imgs.filter((r) => !r.im).map((r) => r.c);
   if (!ok.length) return { canvas: null, placed: [], failed };
@@ -207,7 +230,8 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080, 
   const canvas = document.createElement("canvas");
   canvas.width = frameW; canvas.height = frameH;
   const x = canvas.getContext("2d");
-  paintBackground(x, frameW, frameH, rnd, warm);
+  if (playmat) paintPlaymatBackground(x, frameW, frameH, playmat);
+  else paintBackground(x, frameW, frameH, rnd, warm);
 
   // Card size is set against the short frame edge so it stays consistent with
   // the crop, which is 0.55 of that same edge. ~0.2 matches the apparent card
@@ -481,7 +505,7 @@ export function cropScene(canvas, nx, ny) {
   // 0.62 quality approximates a webcam/phone JPEG rather than a clean render.
   const url = c.toDataURL("image/jpeg", 0.62);
   c.width = c.height = 0;
-  return { url, px: g.px, py: g.py };
+  return { url, px: g.px, py: g.py, sx: g.sx, sy: g.sy, side: g.side };
 }
 
 // Scene canvases are ~8MB apiece. Hoarding them is exactly what starved the tab

@@ -9,6 +9,53 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-07-24 — `isolation-retrieval-6` — wild-playmat retrieval redesign
+
+**Failure reproduced:** the new 200-card Magic Con Vegas mode renders the
+ordinary ten-card EDH tableau over the supplied illustrated purple playmat.
+The pre-change recogniser completed an initial 30-card slice at **53.3%**; all
+14 misses had the true card absent. A first multi-table ANN pass reached
+**64.5% over 31 cards**, but all 11 misses were still absent.
+
+A miss-only perfect-crop control then identified **8/8** of the same cards at
+hash distances **6–28**, versus **164–192** for the ordinary capture. This
+proved the playmat did not make the card pixels unreadable and the 110k-card
+index was healthy; click-local card isolation was the fault.
+
+The retained redesign:
+
+- evaluates several thousand cheap source-space rectangles around the click
+  for four coherent edges at the Magic-card aspect ratio;
+- refines the strongest geometry basins before rendering;
+- fixes the source-to-output transform that had silently zoomed larger crops;
+- treats portrait height and tapped-card short-side scale separately;
+- preserves independent quotas for portrait, raw-sideways and
+  counter-rotated-sideways geometry;
+- retains close anchor refinements instead of suppressing them as duplicates;
+- lets all surviving crops query a 16-table Hamming index, with a six-crop
+  exact bridge for the strongest geometries.
+
+The retained build completed **93/103 (90.3%)** on the Vegas playmat slice,
+up **37 points** from the reproduced baseline. Clear cards were **87/94
+(92.6%)**; side-by-side **60/63 (95.2%)**, spaced **26/30 (86.7%)**, and the
+deliberately overlapping scene **7/10 (70.0%)**. Rotation stayed balanced:
+upright **54/59 (91.5%)**, tapped **28/31 (90.3%)**, upside-down **11/13
+(84.6%)**. Art-match was **87/87** and visual-exact **2/2** precise. All ten
+misses remained absent; the perfect-crop control identified **10/10**, so the
+remaining loss is still geometric isolation rather than ranking or source
+quality. Median was 7.073s and p90 11.561s; WASM stayed flat at 134MB.
+
+A more exhaustive angle/size quota experiment briefly reached 95.5% at 22
+cards but regressed to **41/47 (87.2%)** and raised p90 to 12.375s, so it was
+reverted rather than selected from an early favorable slice.
+
+Standard-cloth regression on the retained build completed **98/100**: all
+**94/94 clear cards**, all **60/60 side-by-side**, and all **30/30 spaced**
+cards were correct; both misses were in the deliberately overlapping scene.
+By rotation: upright **54/55**, tapped **30/31**, upside-down **14/14**.
+Median was 2.033s and p90 4.288s. This rejects a normal-table or rotation
+regression from the wild-playmat fallback.
+
 ## 2026-07-22 — `warm-lobby-1` — recognition cold-start preload
 
 **Hypothesis:** the slow first recognition is initialization latency, because

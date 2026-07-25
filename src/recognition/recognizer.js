@@ -317,6 +317,85 @@ let globalIndexPromise = null;
 let colorIndex = null, artIndex = null; // v3 companion tables
 const COLOR_BYTES = 13, ART_BYTES = 32;
 
+// Multi-table Hamming retrieval for crop proposals. Each table keys 8 pHash
+// bits and 8 dHash bits. A noisy but correctly framed card usually lands
+// within two bit flips in several independent tables; an unrelated crop may
+// collide in one table, but almost never in two. This lets non-seed crops
+// introduce candidates without a full 110k scan.
+const LSH_BYTE_PAIRS = [
+  [0, 32], [2, 37], [4, 42], [6, 47], [8, 52], [10, 57], [12, 62], [14, 35],
+  [16, 40], [18, 45], [20, 50], [22, 55], [24, 60], [26, 33], [28, 38], [30, 43],
+];
+let lshTables = null;
+let lshBuildPromise = null;
+
+function lshKey(vector, pair) {
+  return (vector[pair[0]] << 8) | vector[pair[1]];
+}
+
+function buildLshIndex() {
+  if (lshTables) return Promise.resolve(lshTables);
+  if (lshBuildPromise) return lshBuildPromise;
+  lshBuildPromise = Promise.resolve().then(() => {
+    if (!index || !cards) throw new Error("Global index must load before LSH");
+    const n = cards.length;
+    lshTables = LSH_BYTE_PAIRS.map((pair) => {
+      const counts = new Uint32Array(65536);
+      for (let i = 0; i < n; i++) {
+        const off = i * VEC_BYTES;
+        counts[(index[off + pair[0]] << 8) | index[off + pair[1]]]++;
+      }
+      const offsets = new Uint32Array(65537);
+      for (let key = 0; key < 65536; key++) offsets[key + 1] = offsets[key] + counts[key];
+      const cursor = offsets.slice(0, 65536);
+      const entries = new Uint32Array(n);
+      for (let i = 0; i < n; i++) {
+        const key = (index[i * VEC_BYTES + pair[0]] << 8) | index[i * VEC_BYTES + pair[1]];
+        entries[cursor[key]++] = i;
+      }
+      return { pair, offsets, entries };
+    });
+    return lshTables;
+  });
+  lshBuildPromise.catch(() => { lshBuildPromise = null; lshTables = null; });
+  return lshBuildPromise;
+}
+
+function lshProbeVector(vector, minTableHits = 2) {
+  if (!lshTables || !cards) return [];
+  const hits = new Uint8Array(cards.length);
+  const touched = [];
+  const addBucket = (table, key) => {
+    for (let p = table.offsets[key]; p < table.offsets[key + 1]; p++) {
+      const idx = table.entries[p];
+      if (hits[idx] === 0) touched.push(idx);
+      if (hits[idx] < 255) hits[idx]++;
+    }
+  };
+  for (const table of lshTables) {
+    const key = lshKey(vector, table.pair);
+    addBucket(table, key);
+    for (let a = 0; a < 16; a++) addBucket(table, key ^ (1 << a));
+    for (let a = 0; a < 16; a++) {
+      for (let b = a + 1; b < 16; b++) addBucket(table, key ^ (1 << a) ^ (1 << b));
+    }
+  }
+  return touched.filter((idx) => hits[idx] >= minTableHits);
+}
+
+function lshCandidates(variants) {
+  const seen = new Uint8Array(cards.length);
+  const out = [];
+  for (const vector of variants) {
+    for (const idx of lshProbeVector(vector)) {
+      if (seen[idx]) continue;
+      seen[idx] = 1;
+      out.push(idx);
+    }
+  }
+  return out;
+}
+
 function loadIndex() {
   if (indexPromise) return indexPromise;
   indexPromise = (async () => {
@@ -340,7 +419,7 @@ function loadIndex() {
 
 function loadGlobalIndex() {
   const companionsReady = (manifest?.version || 0) < 3 || (!!colorIndex && !!artIndex);
-  if (index && cards && companionsReady) return Promise.resolve(cards.length);
+  if (index && cards && companionsReady) return buildLshIndex().then(() => cards.length);
   if (globalIndexPromise) return globalIndexPromise;
   globalIndexPromise = (async () => {
     if (!index || !cards) {
@@ -372,6 +451,7 @@ function loadGlobalIndex() {
       artIndex = artTable;
       console.log(`[snapcast worker] v3 tables: color=${!!colorIndex} art=${!!artIndex}`);
     }
+    await buildLshIndex();
     return cards.length;
   })();
   globalIndexPromise.catch(() => { globalIndexPromise = null; });
@@ -690,6 +770,185 @@ function anchoredCropImageData(bmp, scale, point, anchorV, anchorH = 0.5, landsc
   const ctx = canvas.getContext("2d");
   ctx.drawImage(bmp, x0, y0, cw, ch, 0, 0, ow, oh);
   return ctx.getImageData(0, 0, ow, oh);
+}
+
+// Click-local card isolation. Contours are excellent when a card has a clean
+// border, but a printed playmat can contribute dozens of stronger decorative
+// contours. This proposal family instead treats the click as a point somewhere
+// inside a physical card: it counter-rotates a small grid of card-shaped
+// windows around that point, then lets the frame score select only the most
+// card-like ones for the expensive full-index pass.
+function rotatedAnchoredCropImageData(src, angleDeg, scale, point, anchorV, anchorH = 0.5, landscape = false) {
+  const w = src.width, h = src.height;
+  const aw = landscape ? CARD_H : CARD_W;
+  const ah = landscape ? CARD_W : CARD_H;
+  let ch = Math.round(h * scale), cw = Math.round((ch * aw) / ah);
+  if (cw > w) { cw = Math.round(w * scale); ch = Math.round((cw * ah) / aw); }
+  const outScale = Math.max(1, Math.min(OCR_MAX_W, cw) / aw);
+  const ow = Math.round(aw * outScale), oh = Math.round(ah * outScale);
+  // `outScale` is the card-reference scale, not the source-to-output scale.
+  // They only happen to be equal when the source crop is exactly CARD_W wide.
+  // Using it below silently zoomed every larger crop and left margins around
+  // every smaller one, so even the right geometry could never fill the frame.
+  const drawScale = ow / cw;
+  const source = new OffscreenCanvas(w, h);
+  source.getContext("2d").putImageData(src, 0, 0);
+  const canvas = new OffscreenCanvas(ow, oh);
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, ow, oh);
+  // Drawing the source at -angle maps the card's local axes onto the upright
+  // candidate axes. The click is deliberately placed at an artwork anchor,
+  // not assumed to be the card centre.
+  ctx.translate(ow * anchorH, oh * anchorV);
+  ctx.rotate((-angleDeg * Math.PI) / 180);
+  ctx.drawImage(source, -(point.nx * w) * drawScale, -(point.ny * h) * drawScale,
+    w * drawScale, h * drawScale);
+  source.width = source.height = 0;
+  return ctx.getImageData(0, 0, ow, oh);
+}
+
+function grayAt(gray, x, y) {
+  const ix = Math.round(x), iy = Math.round(y);
+  if (ix < 0 || iy < 0 || ix >= gray.w || iy >= gray.h) return null;
+  return gray.pix[iy * gray.w + ix];
+}
+
+// Score a proposed card rectangle in SOURCE coordinates, before spending time
+// rendering or hashing it. Decorative playmat art can create a strong edge or
+// two; a card contributes four long, coherent edges at the Magic-card aspect.
+function cardBoundaryScore(gray, point, angleDeg, scale, anchorV, anchorH, landscape) {
+  const aw = landscape ? CARD_H : CARD_W;
+  const ah = landscape ? CARD_W : CARD_H;
+  let ch = gray.h * scale, cw = (ch * aw) / ah;
+  if (cw > gray.w) { cw = gray.w * scale; ch = (cw * ah) / aw; }
+  const angle = angleDeg * Math.PI / 180;
+  const ux = { x: Math.cos(angle), y: Math.sin(angle) };
+  const uy = { x: -Math.sin(angle), y: Math.cos(angle) };
+  const clickX = point.nx * gray.w, clickY = point.ny * gray.h;
+  const localX = (anchorH - 0.5) * cw;
+  const localY = (anchorV - 0.5) * ch;
+  const cx = clickX - ux.x * localX - uy.x * localY;
+  const cy = clickY - ux.y * localX - uy.y * localY;
+  const offset = Math.max(2.5, Math.min(cw, ch) * 0.018);
+  const evidence = [];
+  const sampleEdge = (along, normal, halfAlong, halfNormal) => {
+    for (let i = -8; i <= 8; i++) {
+      const t = (i / 9) * halfAlong * 0.86;
+      for (const side of [-1, 1]) {
+        const ex = cx + along.x * t + normal.x * halfNormal * side;
+        const ey = cy + along.y * t + normal.y * halfNormal * side;
+        const inside = grayAt(gray, ex - normal.x * offset * side, ey - normal.y * offset * side);
+        const outside = grayAt(gray, ex + normal.x * offset * side, ey + normal.y * offset * side);
+        if (inside != null && outside != null) evidence.push(Math.abs(inside - outside));
+      }
+    }
+  };
+  sampleEdge(uy, ux, ch / 2, cw / 2);
+  sampleEdge(ux, uy, cw / 2, ch / 2);
+  if (evidence.length < 48) return -Infinity;
+  evidence.sort((a, b) => a - b);
+  const median = evidence[Math.floor(evidence.length * 0.5)];
+  const upper = evidence[Math.floor(evidence.length * 0.75)];
+  const supported = evidence.filter((v) => v >= 12).length / evidence.length;
+  return median + upper * 0.45 + supported * 16;
+}
+
+function localCardIsolationCandidates(src, point) {
+  const gray = toGray(src);
+  const proposals = [];
+  const add = (angle, scale, anchorV, anchorH, landscape = false, family = "portrait") => {
+    const score = cardBoundaryScore(gray, point, angle, scale, anchorV, anchorH, landscape);
+    if (!Number.isFinite(score)) return;
+    proposals.push({ angle, scale, anchorV, anchorH, landscape, family, score });
+  };
+  const angles = [-12, -8, -4, 0, 4, 8, 12];
+  const portraitScales = [0.42, 0.45, 0.48, 0.51, 0.54];
+  // For a sideways card, `scale` is the SHORT landscape dimension: the
+  // physical card width, not its portrait height. Reusing portrait scales
+  // made every tapped proposal roughly 40% too large.
+  const landscapeScales = [0.30, 0.33, 0.36, 0.39, 0.42];
+  const anchors = [0.14, 0.26, 0.38, 0.5, 0.62, 0.74, 0.86];
+  // Search several thousand cheap source-space rectangles, then render/hash
+  // only the strongest geometrically distinct proposals.
+  for (const angle of angles) {
+    for (const scale of portraitScales) {
+      for (const anchorH of anchors) {
+        for (const anchorV of anchors) {
+          add(angle, scale, anchorV, anchorH, false, "portrait");
+        }
+      }
+    }
+  }
+  // A tapped card is already cut into a landscape canvas and the hash variants
+  // rotate it later. Only undo its small tabletop tilt here; undoing the whole
+  // 90° turn rotated a portrait card into a landscape canvas and clipped it.
+  for (const angle of angles) {
+    for (const scale of landscapeScales) {
+      for (const anchorH of anchors) {
+        for (const anchorV of anchors) {
+          add(angle, scale, anchorV, anchorH, true, "sideways-raw");
+        }
+      }
+    }
+  }
+  // Alternate tapped interpretation: rotate the whole physical rectangle back
+  // into a portrait output. Keeping this separate from the raw-landscape
+  // family protects against the two valid 90° coordinate conventions.
+  for (const residual of angles) {
+    for (const scale of portraitScales) {
+      for (const anchorH of anchors) {
+        for (const anchorV of anchors) {
+          add(90 + residual, scale, anchorV, anchorH, false, "sideways-rotated");
+        }
+      }
+    }
+  }
+  // Refine around the strongest coarse rectangles. The coarse grid locates a
+  // four-edge basin cheaply; this second pass gets the crop within a few source
+  // pixels, which matters because even a 5–8% framing error can move a 512-bit
+  // perceptual hash out of retrieval range.
+  proposals.sort((a, b) => b.score - a.score);
+  for (const family of ["portrait", "sideways-raw", "sideways-rotated"]) {
+    for (const base of proposals.filter((p) => p.family === family).slice(0, 12)) {
+      for (const da of [-2, 0, 2]) {
+        for (const ds of [-0.015, 0, 0.015]) {
+          for (const dh of [-0.06, -0.03, 0, 0.03, 0.06]) {
+            for (const dv of [-0.06, -0.03, 0, 0.03, 0.06]) {
+              const anchorH = Math.max(0.05, Math.min(0.95, base.anchorH + dh));
+              const anchorV = Math.max(0.05, Math.min(0.95, base.anchorV + dv));
+              add(base.angle + da, base.scale + ds, anchorV, anchorH, base.landscape, base.family);
+            }
+          }
+        }
+      }
+    }
+  }
+  proposals.sort((a, b) => b.score - a.score);
+  const selected = [];
+  for (const family of ["portrait", "sideways-raw", "sideways-rotated"]) {
+    const familySelected = [];
+    for (const proposal of proposals) {
+      if (proposal.family !== family) continue;
+      const nearDuplicate = familySelected.some((kept) => (
+        Math.abs(kept.angle - proposal.angle) <= 1
+        && Math.abs(kept.scale - proposal.scale) <= 0.008
+        && Math.abs(kept.anchorH - proposal.anchorH) <= 0.015
+        && Math.abs(kept.anchorV - proposal.anchorV) <= 0.015
+      ));
+      if (!nearDuplicate) familySelected.push(proposal);
+      if (familySelected.length >= 48) break;
+    }
+    selected.push(...familySelected);
+  }
+  selected.sort((a, b) => b.score - a.score);
+  return selected.map((proposal) => ({
+    image: rotatedAnchoredCropImageData(src, proposal.angle, proposal.scale, point,
+      proposal.anchorV, proposal.anchorH, proposal.landscape),
+    strategy: `isolate-${proposal.family}-${proposal.angle}-${Math.round(proposal.scale * 100)}-${Math.round(proposal.anchorH * 100)}-${Math.round(proposal.anchorV * 100)}`,
+    isolation: true,
+    isolationScore: proposal.score,
+  }));
 }
 
 function bitmapToImageData(bmp) {
@@ -1090,17 +1349,22 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   let bestCandidateImage = null;
   let bestCandidateStrategy = "";
   let bestCandidateDistance = 0xffff;
+  let isolationDebug = null;
   // Prepare every candidate's hashes (cheap). The expensive full-index scans
   // below are limited to a few diverse SEED crops; scoring all ~27 crops
   // against 110k cards (8 hash variants each) was the dominant per-scan cost.
-  const preparedAll = candidates.map((candidate) => {
+  const prepareCandidate = (candidate) => {
     // White-balance the crop so a warm/cool room cast doesn't bias the
     // grayscale hash or the color signature toward mis-tinted cards.
     const wbImage = whiteBalance(candidate.image);
     const gray = toGray(wbImage);
     const variants = queryVariants(gray);
-    return { candidate, wbImage, gray, variants, detail: detailScore(gray) };
-  });
+    return {
+      candidate, wbImage, gray, variants, detail: detailScore(gray),
+      frame: candidate.isolationScore || 0,
+    };
+  };
+  const preparedAll = candidates.map(prepareCandidate);
   // Drop crops that contain no card — just wall, skin, or playmat. A
   // featureless crop hashes closest to a FEATURELESS INDEX ENTRY, which is why
   // "Blank Card", "Double-Faced Substitute Card" and "Find the Assassin
@@ -1350,6 +1614,63 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
         }
       }
     }
+    // When all ordinary crops remain weak, generate click-local proposals that
+    // are independent of contours. This is deliberately deferred: normal
+    // scans keep their existing fast path, while a busy printed playmat earns
+    // the extra work needed to isolate the actual card rather than its art.
+    if (bestCandidateDistance > 120) {
+      const isolation = localCardIsolationCandidates(getSourceImageData(), normalizedPoint)
+        .map(prepareCandidate)
+        .sort((a, b) => b.frame - a.frame);
+      isolationDebug = isolation.slice(0, 12).map((p) => ({
+        strategy: p.candidate.strategy,
+        score: +p.frame.toFixed(2),
+      }));
+      // ANN is intentionally selective, so give the two strongest rectangles
+      // from every protected orientation family an exact full-index scan. This
+      // bounded six-crop bridge prevents a good geometric isolation from being
+      // lost solely because its noisy hash missed the two-table LSH gate.
+      const exactIsolation = new Set();
+      for (const family of ["portrait", "sideways-raw", "sideways-rotated"]) {
+        for (const p of isolation
+          .filter((candidate) => candidate.candidate.strategy.startsWith(`isolate-${family}-`))
+          .slice(0, 2)) {
+          exactIsolation.add(p);
+        }
+      }
+      for (const p of isolation) {
+        if (exactIsolation.has(p)) {
+          scoreFull(p, { escalation: true });
+          continue;
+        }
+        const approx = lshCandidates(p.variants);
+        if (!approx.length) continue;
+        candidatesTried++;
+        const artVecs = artVecsFor(p.gray);
+        const colorSig = (useV3 && colorIndex) ? colorSignature(p.wbImage) : null;
+        let candidateBest = 0xffff;
+        for (const idx of approx) {
+          let d = 0xffff;
+          const off = idx * VEC_BYTES;
+          for (const q of p.variants) {
+            let dd = 0;
+            for (let b = 0; b < VEC_BYTES; b++) dd += POPCOUNT[index[off + b] ^ q[b]];
+            if (dd < d) d = dd;
+          }
+          if (d < candidateBest) candidateBest = d;
+          if (d < dists[idx]) { dists[idx] = d; if (!useV3) strategies[idx] = p.candidate.strategy; }
+          if (useV3) {
+            const score = combineScore(d, idx, artVecs, colorSig);
+            if (score < rank[idx]) { rank[idx] = score; strategies[idx] = p.candidate.strategy; }
+          }
+        }
+        if (candidateBest < bestCandidateDistance) {
+          bestCandidateDistance = candidateBest;
+          bestCandidateImage = p.candidate.image;
+          bestCandidateStrategy = p.candidate.strategy;
+        }
+      }
+    }
   }
   mark("rank");
   const rankArr = rank || dists;
@@ -1490,6 +1811,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     titleCount: preferredTitleCandidates.length,
     cardFound, cvStatus, candidatesTried, shardedIndex,
     cropsDropped: preparedAll.length - prepared.length,
+    isolationDebug,
     artBest, artChecked, artDecisive, stageMs: stage.ms,
     // OpenCV's WASM heap is invisible to performance.memory, which is why a
     // 1000-card run reported 52MB of JS heap while the tab held 1.5GB.

@@ -64,6 +64,7 @@ is, how big it is, or which way up:
 | `tap-*` (4) | **Landscape** crops — a tapped card is sideways and no portrait crop can frame it |
 | `title-*` (2) | Clicks on the name bar |
 | `tilt±20/±40`, `off*` | Tilted cards, clicks beside the card |
+| `isolate-*` | Weak-read fallback: click-local, counter-rotated card windows scored by their four-sided frame |
 
 The art/title/tap families exist because of measured failures. Tapped cards
 scored 42% until landscape crops were added (now ~97%). Upside-down cards
@@ -81,6 +82,25 @@ Crops that are mostly featureless are dropped, using a **relative** threshold �
 a fixed one discarded almost every crop in dim scenes, once leaving a single
 candidate out of 35.
 
+If the ordinary crops still produce no plausible visual read, the recogniser
+does not trust decorative contours from a playmat. It evaluates several
+thousand card-shaped rectangles around the click directly against the source
+pixels. A boundary score looks for four coherent edges at the Magic-card aspect
+ratio. A coarse search is refined around the strongest edge basins; portrait
+and tapped cards use different physical size ranges. Three protected proposal
+families cover portrait cards, raw landscape cards, and landscape cards
+counter-rotated into a portrait frame; each gets its own quota so decorative
+edges cannot crowd an orientation out. Near-identical duplicates are removed,
+but the refined few-pixel anchor and scale variants are deliberately preserved;
+coarse diversity suppression once discarded the correct crop after finding its
+geometry basin. Up to 144 strong rectangles are rendered and hashed. Every
+survivor can query a compact multi-table Hamming index; only two-table hits
+receive exact 512-bit scoring and ORB verification. The two strongest
+rectangles in each orientation family also receive a bounded exact full-index
+scan, preventing a good isolation from being lost solely at the
+approximate-index gate. This fallback is deferred until the normal pipeline is
+uncertain, so it does not tax ordinary exact scans.
+
 ### 3. Ranking — coarse to fine
 
 Scoring 58 crops against 110k printings would be far too slow, so:
@@ -94,10 +114,17 @@ so 90°/180° rotation is handled by the hash rather than by more crops. Scoring
 combines the grayscale hash, a 13-byte hue histogram, and a 32-byte
 art-region hash.
 
-> **A crop must be a seed to introduce an answer.** A non-seed crop can only
-> reorder what the seeds already found. This is why every fix above had to
-> touch `SEED_PRIORITY` — and why misses show the true card *absent* rather
-> than mis-ranked.
+> **A crop must be a seed to introduce an answer on the ordinary fast path.**
+> Weak scans now have one deliberate exception: click-local isolation crops
+> query a multi-table Hamming index and can introduce candidates through that
+> bounded retrieval path. This is why historical misses showed the true card
+> *absent* rather than mis-ranked, and why adding crops alone did not fix them.
+
+The fallback index uses 16 independent 16-bit keys spanning both the
+perceptual and difference hashes. Query keys probe a Hamming radius of two,
+but a printing must agree in at least two tables before exact 512-bit scoring.
+That rejects random playmat collisions while allowing every plausible
+isolation crop—not only the ten full-scan seeds—to surface a printing.
 
 Query crops are white-balanced first: a warm room casts the whole image, and
 the index is built from neutral scans.

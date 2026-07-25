@@ -109,7 +109,7 @@ function getWorker() {
       const {
         id, matches, printingMatches, titleCandidates, metadataStrips, titleCount, queryCandidates,
         shardedIndex, cardFound, cvStatus, candidatesTried, cropsDropped, artBest, artChecked,
-        artDecisive, stageMs, wasmHeapMB, preloaded, indexReady, indexCount, workerMs, error,
+        artDecisive, isolationDebug, stageMs, wasmHeapMB, preloaded, indexReady, indexCount, workerMs, error,
       } = e.data || {};
       const p = pending.get(id);
       if (!p) return;
@@ -139,6 +139,7 @@ function getWorker() {
         art_best: artBest || null,
         art_checked: artChecked || 0,
         art_decisive: !!artDecisive,
+        isolation_debug: isolationDebug || null,
         stage_ms: stageMs || {},
         wasm_heap_mb: typeof wasmHeapMB === "number" ? wasmHeapMB : null,
       });

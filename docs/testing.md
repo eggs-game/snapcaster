@@ -82,6 +82,7 @@ add ~1%.
 | Mode | Use |
 | --- | --- |
 | **Tableau 10 — EDH staples (100 cards)** | The default. Realistic scenes, realistic cards, ~5 min |
+| **Tableau Magic Con Vegas playmat — EDH staples (200 cards)** | Twenty 10-card Tableau scenes rendered over the supplied Magic Con Vegas playmat; includes the normal 25% tapped-card mix. Misses also run through an exact counter-rotated crop, reported as `perfectCropControl`, to separate retrieval/isolation failures from unreadable source pixels. |
 | **Tableau 10 EDH dice (100 cards)** | Same EDH tableau, with one white/black/blue/red/pink die on every card |
 | **Fixed tableau overlap dice (100 cards)** | Same 100 frozen cards in forced-overlap dice scenes; repeatable targeted A/B, not a production score |
 | **Tableau 100 — EDH staples (1000 cards)** | Separates confounded signals; ~45 min |
