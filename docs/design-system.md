@@ -143,7 +143,8 @@ the previously active view; on hover it changes to a right arrow while closed
 and a left arrow while open. The card-stack lookup action sits directly beneath
 it with the normal icon-button hover treatment. Panel views have no duplicate
 close action inside their headers. The rail’s first action aligns with the
-content panel’s game-name text.
+content panel’s game-name text. When the panel is closed, the persistent rail
+shows no active selection; the selected treatment returns when it is opened.
 
 Rail tooltips use the left-edge anchor (`left-bottom`) so their text expands
 rightward into the app instead of clipping off the viewport’s left edge.

@@ -860,6 +860,7 @@ input::placeholder { color: var(--text-tertiary); opacity: 1; }
 .sidebar-rail { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 8px 7px; }
 .sidebar-rail .drawer-toggle { width: 32px; height: 32px; }
 .sidebar-rail .drawer-toggle.active { color: var(--text-primary); background: var(--secondary-hover); }
+.sidebar.collapsed .sidebar-rail .drawer-toggle.active { color: var(--text-secondary); background: transparent; }
 .sidebar-rail-divider { width: 24px; margin: 12px 0 4px; border-top: 1px solid var(--border-subtle); }
 .panel-toggle { appearance: none; }
 .collapsed-panel-arrow, .expanded-panel-arrow { display: none; }

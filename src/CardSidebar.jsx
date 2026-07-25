@@ -60,7 +60,7 @@ function CardStackIcon({ size = 20, className }) {
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      <path d="m14.1 3.4 5.8 2.4-3.8 11.2-2.3-1" />
+      <path d="m15.1 2.8 6.1 2.6-4.1 12.1-2.7-1.1" />
       <rect x="3.5" y="2.5" width="11" height="16" rx="1.5" />
       <path d="M6.3 7.5h5.4M6.3 11h5.4" />
     </svg>
