@@ -140,8 +140,9 @@ the main thread — an early bug that made the lobby unresponsive.
   microphone before entering and can join live or muted, then mute, unmute, or
   switch microphones from Settings. Visitors hear one another as well as every
   player's audio, receive every player video stream, and can use card lookup
-  and Chat (including sound effects), but do not see interactive Dice or
-  combat-counter controls.
+  and Chat (including sound effects). They can inspect Commander damage and
+  poison totals in a read-only panel, but do not see Dice or any counter
+  editing controls.
 - **Two transports, one authorisation model.** Supabase broadcast carries game
   state (life, commander, turn, chat) and gates every privileged message on
   sender role. WebRTC data channels carry capture requests and apply the same
@@ -161,6 +162,10 @@ the main thread — an early bug that made the lobby unresponsive.
   tile and seat remain in place with a Reconnecting overlay. Returning with the
   same room-scoped participant ID cancels removal and negotiates a fresh peer
   connection; only an expired grace period becomes an unexpected-drop report.
+  Presence can transiently contain duplicate metadata for that stable ID, so
+  roster construction selects the newest non-empty display name and peers
+  rebroadcast their own identity as a fallback. Video banners still render a
+  generic Player/Visitor label if both sources are malformed.
   The active room, stable participant ID, original seat timestamp, life,
   commander/partner, color, mute/camera state, poison, commander damage, and
   video counters live in session storage so a refresh automatically rejoins
@@ -180,7 +185,7 @@ the main thread — an early bug that made the lobby unresponsive.
   audible offset, and stops after 2–3 seconds. The room never receives
   arbitrary audio URLs or uploads. Private whispers remain text-only. Sender UI and
 recipient playback both enforce a two-minute per-sender sound cooldown. Clips
-use a fixed 5% gain relative to the listener's browser/tab volume; there is
+use a fixed 10% gain relative to the listener's browser/tab volume; there is
 no separate in-app sound setting.
 - **Shared game events live in Chat.** Dice rolls, shared cards, life-total
   changes, and ready-check outcomes are compact structured Chat objects. Consecutive
@@ -220,7 +225,9 @@ no separate in-app sound setting.
   chat broadcast.
 - CSP, HSTS, `Permissions-Policy` (camera/mic scoped to self),
   `X-Frame-Options: DENY`, nosniff and a referrer policy are set in
-  `vercel.json`.
+  `vercel.json`. CSP explicitly permits Google Fonts and Tesseract's pinned
+  jsDelivr runtime/data origins; the early theme initializer is a same-origin
+  external script so the policy does not require inline-script permission.
 - No `dangerouslySetInnerHTML`, `innerHTML` or `eval` anywhere in `src/`.
 - The Cloudflare TURN key is held only in server-side Vercel environment
   variables. Browsers receive expiring credentials, never the key itself.

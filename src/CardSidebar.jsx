@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
-  Cat, Check, ChevronDown, ChevronLeft, ChevronRight, Copy, Dices, Drum, ExternalLink, Hourglass, Laugh, Link2, MessageCircle, MessagesSquare, Mic, MicOff,
+  Cat, Check, ChessQueen, ChevronDown, ChevronLeft, ChevronRight, Copy, Dices, Drum, ExternalLink, Hourglass, Laugh, Link2, MessageCircle, MessagesSquare, Mic, MicOff,
   LogOut, PanelLeft, Play, Search, Settings, Sparkles, Swords, ThumbsDown, UserPlus, UserRound, UsersRound, Video, VideoOff, X,
 } from "lucide-react";
 import { suggestCardNames } from "./cardSearch.js";
@@ -67,17 +67,28 @@ function CardStackIcon({ size = 20, className }) {
   );
 }
 
-function CardPlaceholder({ identifying = false }) {
+function CardPlaceholder({ identifying = false, failed = false, onFix }) {
   return (
     <div
-      className="card-empty-state"
-      role={identifying ? "status" : undefined}
-      aria-live={identifying ? "polite" : undefined}
+      className={`card-empty-state${failed ? " failed" : ""}`}
+      role={identifying || failed ? "status" : undefined}
+      aria-live={identifying || failed ? "polite" : undefined}
     >
       <div className="card-empty-illustration" aria-hidden="true">
-        <div className="card-empty-art"><Sparkles size={28} /></div>
+        <div className="card-empty-art">
+          {failed ? <Search size={28} /> : <Sparkles size={28} />}
+        </div>
       </div>
-      <p>{identifying ? "Identifying…" : "Cards you click on or look up will be displayed here."}</p>
+      <p>
+        {identifying
+          ? "Identifying…"
+          : failed ? "Image lookup failed" : "Cards you click on or look up will be displayed here."}
+      </p>
+      {failed && onFix && (
+        <button type="button" className="card-empty-fix" onClick={onFix}>
+          Help me fix it
+        </button>
+      )}
     </div>
   );
 }
@@ -150,6 +161,8 @@ export default function CardSidebar({
   lobbyName,
   onRenameLobby,
   onLeave,
+  isCreator = false,
+  managementParticipants = [],
 }) {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
@@ -188,6 +201,7 @@ export default function CardSidebar({
   const counters = view === "counters";
   const invite = view === "invite";
   const dice = view === "dice";
+  const management = view === "management";
   const recentCards = [...(lookups || [])].reverse();
   const safeChatRecipients = chatRecipients || [];
   const chatCommandSuggestions = whisperCommandMatches(chatDraft);
@@ -231,6 +245,13 @@ export default function CardSidebar({
     const frame = requestAnimationFrame(scrollChatToLatest);
     return () => cancelAnimationFrame(frame);
   }, [lookupTab]);
+
+  // A video-card click opens the outer lookup view before recognition starts.
+  // Follow that loading state into the Cards tab so the panel cannot remain
+  // visibly parked on Chat while the requested card is being identified.
+  useEffect(() => {
+    if (view === "lookup" && current?.loading) setLookupTab("cards");
+  }, [current?.loading, view]);
 
   // Keep a message the local player just sent in view without pulling someone
   // reading older room activity away from their place for incoming messages.
@@ -525,8 +546,9 @@ export default function CardSidebar({
         counters ? "counters-view" : "",
         invite ? "invite-view" : "",
         dice ? "dice-view" : "",
+        management ? "management-view" : "",
         collapsed ? "collapsed" : "",
-        !settings && lookupTab === "chat" ? "chat-view" : "",
+        !settings && !management && lookupTab === "chat" ? "chat-view" : "",
         entering && !closing ? "slide-in" : "",
         closing ? "slide-out" : "",
       ].filter(Boolean).join(" ")}
@@ -566,7 +588,7 @@ export default function CardSidebar({
         </button>
         <button
           type="button"
-          className={!settings && !counters && !invite && !dice && lookupTab === "cards" ? "drawer-toggle active" : "drawer-toggle"}
+          className={!settings && !counters && !invite && !dice && !management && lookupTab === "cards" ? "drawer-toggle active" : "drawer-toggle"}
           onClick={() => {
             if (collapsed) onOpen?.();
             onViewChange("lookup");
@@ -580,7 +602,7 @@ export default function CardSidebar({
         </button>
         <button
           type="button"
-          className={!settings && !counters && !invite && !dice && lookupTab === "chat" ? "drawer-toggle sidebar-chat-toggle active" : "drawer-toggle sidebar-chat-toggle"}
+          className={!settings && !counters && !invite && !dice && !management && lookupTab === "chat" ? "drawer-toggle sidebar-chat-toggle active" : "drawer-toggle sidebar-chat-toggle"}
           onClick={() => {
             if (collapsed) onOpen?.();
             onViewChange("lookup");
@@ -595,19 +617,19 @@ export default function CardSidebar({
           <MessagesSquare size={20} />
           {hasUnreadChat && <span className="chat-unread-dot" aria-hidden="true" />}
         </button>
-        {!isVisitor && <>
-          <button
-            className={counters ? "drawer-toggle active" : "drawer-toggle"}
-            onClick={() => {
-              if (collapsed) onOpen?.();
-              onViewChange("counters");
-            }}
-            aria-label="Open combat counters"
-            data-tooltip="Combat counters"
-            data-tooltip-pos="right"
-          >
-            <Swords size={20} />
-          </button>
+        <button
+          className={counters ? "drawer-toggle active" : "drawer-toggle"}
+          onClick={() => {
+            if (collapsed) onOpen?.();
+            onViewChange("counters");
+          }}
+          aria-label="Open Commander damage"
+          data-tooltip="Commander damage"
+          data-tooltip-pos="right"
+        >
+          <Swords size={20} />
+        </button>
+        {!isVisitor && (
           <button
             className={dice ? "drawer-toggle active" : "drawer-toggle"}
             onClick={() => {
@@ -620,7 +642,7 @@ export default function CardSidebar({
           >
             <Dices size={20} />
           </button>
-        </>}
+        )}
         <span className="sidebar-rail-divider" aria-hidden="true" />
         {!isVisitor && (
           <button
@@ -648,14 +670,31 @@ export default function CardSidebar({
         >
           <Settings size={20} />
         </button>
+        {isCreator && (
+          <>
+            <span className="sidebar-rail-divider management-divider" aria-hidden="true" />
+            <button
+              className={management ? "drawer-toggle active" : "drawer-toggle"}
+              onClick={() => {
+                if (collapsed) onOpen?.();
+                onViewChange("management");
+              }}
+              aria-label="Open game management"
+              data-tooltip="Game management"
+              data-tooltip-pos="right"
+            >
+              <ChessQueen size={20} />
+            </button>
+          </>
+        )}
       </nav>
 
       <div className="sidebar-content" aria-hidden={collapsed}>
       <div className="sidebar-head">
-        {(settings || counters || invite || dice) && (
-          <span className="logo">{settings ? "Settings" : counters ? "Commander damage" : invite ? "Invite" : "Dice & counters"}</span>
+        {(settings || counters || invite || dice || management) && (
+          <span className="logo">{settings ? "Settings" : counters ? "Commander damage" : invite ? "Invite" : dice ? "Dice & counters" : "Game management"}</span>
         )}
-        {!settings && !counters && !invite && !dice && (lookupTab === "chat" ? (
+        {!settings && !counters && !invite && !dice && !management && (lookupTab === "chat" ? (
           <>
             <span className="logo">Chat</span>
             <div className="chat-presence">
@@ -688,7 +727,9 @@ export default function CardSidebar({
         ) : gameNameControl)}
       </div>
 
-      {settings ? (
+      {management ? (
+        <GameManagementPanel participants={managementParticipants} currentUserId={currentUserId} />
+      ) : settings ? (
         <div className="sidebar-settings">
           <fieldset className="theme-field">
             <legend className="color-label">Game view</legend>
@@ -942,7 +983,9 @@ export default function CardSidebar({
             {!identifying && !current && !recentCards.length && <CardPlaceholder />}
             {identifying && <CardPlaceholder identifying />}
             {!identifying && current?.error && <div className="lookup-status error">{current.error}</div>}
-            {!identifying && current?.matches?.length === 0 && <div className="lookup-status">No match found. Try clicking closer to the card center.</div>}
+            {!identifying && current?.matches?.length === 0 && (
+              <CardPlaceholder failed onFix={current.captureImage ? beginWrongCardReport : undefined} />
+            )}
             {!identifying && top && decisive && (
               <div className="card-hit">
                 <button
@@ -998,14 +1041,7 @@ export default function CardSidebar({
               </div>
             )}
             {!identifying && best && !decisive && (
-              <button
-                type="button"
-                className="bad-match-link"
-                onClick={beginWrongCardReport}
-                disabled={!current.captureImage}
-              >
-                Bad match — help me fix it
-              </button>
+              <CardPlaceholder failed onFix={current.captureImage ? beginWrongCardReport : undefined} />
             )}
             {wrongReport && (
               <section className="wrong-card-report" aria-label="Wrong card report">
@@ -1549,6 +1585,69 @@ export function formatDiceSides(sides) {
 export function formatDiceResult(value, sides) {
   if (Number(sides) === 2) return Number(value) === 1 ? "Heads" : "Tails";
   return String(value ?? "—");
+}
+
+function GameManagementPanel({ participants, currentUserId }) {
+  const safeParticipants = Array.isArray(participants) ? participants : [];
+
+  return (
+    <div className="game-management-panel">
+      <p className="game-management-summary">
+        {safeParticipants.length} {safeParticipants.length === 1 ? "person" : "people"} in this game
+      </p>
+      <div className="game-management-list">
+        {safeParticipants.map((participant) => {
+          const isVisitorParticipant = participant.role === "visitor";
+          const displayName = participant.name || (isVisitorParticipant ? "Visitor" : "Player");
+          return (
+            <section className="game-management-tile" key={participant.id}>
+              <div className="game-management-person">
+                <span
+                  className="game-management-avatar"
+                  style={{ "--participant-color": participant.color }}
+                  aria-hidden="true"
+                >
+                  {displayName.trim().charAt(0).toUpperCase() || "?"}
+                </span>
+                <div className="game-management-identity">
+                  <strong>{displayName}</strong>
+                  <span>
+                    {participant.id === currentUserId
+                      ? `You · ${isVisitorParticipant ? "Visitor" : "Player"}`
+                      : isVisitorParticipant ? "Visitor" : "Player"}
+                  </span>
+                </div>
+                {participant.reconnecting && <span className="game-management-status">Reconnecting</span>}
+              </div>
+
+              {!isVisitorParticipant && participant.commander && (
+                <div className="game-management-commander">
+                  <small>Commander</small>
+                  <span>
+                    {participant.commander}
+                    {participant.commanderPartner ? ` / ${participant.commanderPartner}` : ""}
+                  </span>
+                </div>
+              )}
+
+              <div className="game-management-media" aria-label={`${displayName} media status`}>
+                {!isVisitorParticipant && (
+                  <span className={participant.cameraOn ? "" : "off"}>
+                    {participant.cameraOn ? <Video size={16} /> : <VideoOff size={16} />}
+                    {participant.cameraOn ? "Camera on" : "Camera off"}
+                  </span>
+                )}
+                <span className={participant.muted ? "off" : ""}>
+                  {participant.muted ? <MicOff size={16} /> : <Mic size={16} />}
+                  {participant.muted ? "Muted" : "Mic on"}
+                </span>
+              </div>
+            </section>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 function CounterPanel({ players, onChangePoison, onChangeCommanderDamage }) {

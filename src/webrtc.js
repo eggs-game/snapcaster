@@ -120,6 +120,8 @@ export class GameConnection {
     this.videoCounters = [];
     this.videoQuality = new Map(); // peerId -> receiver's requested quality
     this.role = "player";
+    this.name = "";
+    this.identityNames = new Map();
     this.roster = [];
     this.videoDeviceId = "";
     this.audioDeviceId = "";
@@ -476,6 +478,8 @@ export class GameConnection {
     joinedAt = 0,
   } = {}) {
     this.role = role === "visitor" ? "visitor" : "player";
+    this.name = String(name || "").trim().slice(0, 24)
+      || (this.role === "visitor" ? "Visitor" : "Player");
     this.roomCode = String(code || "").toUpperCase();
     this.participantId = String(participantId || "").replace(/[^a-zA-Z0-9-]/g, "").slice(0, 40)
       || crypto.randomUUID().slice(0, 40);
@@ -488,7 +492,7 @@ export class GameConnection {
     this._startNetworkMonitoring();
     this._startLifecycleHeartbeat();
     await this._configureIceServers(code);
-    this.room = await joinRoom(code, name, this.role, {
+    this.room = await joinRoom(code, this.name, this.role, {
       onRoster: (roster) => {
         // Presence can sync before joinRoom has returned our ID.
         if (!this.myId) this.roster = roster;
@@ -638,6 +642,12 @@ export class GameConnection {
       !ids.has(member.id) && this.departureTimers.has(member.id)
     ));
     this.roster = [...presenceRoster, ...retained]
+      .map((member) => ({
+        ...member,
+        name: this.identityNames.get(member.id)
+          || String(member.name || "").trim()
+          || (member.role === "visitor" ? "Visitor" : "Player"),
+      }))
       .filter((member, index, all) => all.findIndex((candidate) => candidate.id === member.id) === index)
       .sort((a, b) => a.joinedAt - b.joinedAt);
 
@@ -668,6 +678,7 @@ export class GameConnection {
         this.room?.send({ type: "video-counter", counter });
       }
     }
+    this.room?.send({ type: "identity", name: this.name });
     this.room?.send({ type: "muted", muted: this.muted });
     this.room?.send({ type: "camera-enabled", enabled: this.cameraEnabled });
   }
@@ -692,6 +703,19 @@ export class GameConnection {
     }
     const senderRole = this.roster.find((r) => r.id === msg.from)?.role || "player";
     switch (msg.type) {
+      case "identity": {
+        const identityName = String(msg.name || "").trim().slice(0, 24);
+        if (!identityName) break;
+        this.identityNames.set(msg.from, identityName);
+        let changed = false;
+        this.roster = this.roster.map((member) => {
+          if (member.id !== msg.from || member.name === identityName) return member;
+          changed = true;
+          return { ...member, name: identityName };
+        });
+        if (changed) this.h.onRoster?.(this.roster);
+        break;
+      }
       case "offer": {
         const p = this._getPeer(msg.from);
         await p.pc.setRemoteDescription({ type: "offer", sdp: msg.sdp });

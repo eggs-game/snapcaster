@@ -164,6 +164,8 @@ export async function joinRoom(code, name, role, {
   joinedAt: restoredJoinedAt,
 }) {
   const safeRole = role === "visitor" ? "visitor" : "player";
+  const safeName = String(name || "").trim().slice(0, 24)
+    || (safeRole === "visitor" ? "Visitor" : "Player");
   const restoredId = String(participantId || "").replace(/[^a-zA-Z0-9-]/g, "").slice(0, 40);
   const myId = restoredId || crypto.randomUUID().slice(0, 8);
   const joinedAt = Number(restoredJoinedAt) || Date.now();
@@ -174,12 +176,23 @@ export async function joinRoom(code, name, role, {
   ch.on("presence", { event: "sync" }, () => {
     const state = ch.presenceState();
     const roster = Object.entries(state)
-      .map(([id, metas]) => ({
-        id,
-        name: metas[0]?.name || "Player",
-        joinedAt: metas[0]?.joinedAt || 0,
-        role: metas[0]?.role === "visitor" ? "visitor" : "player",
-      }))
+      .map(([id, metas]) => {
+        // Stable participant IDs can briefly leave more than one presence
+        // meta during reconnect. Prefer the newest meta with a real name
+        // instead of assuming metas[0] is the current browser session.
+        const safeMetas = Array.isArray(metas) ? metas : [];
+        const metadata = [...safeMetas].reverse().find((meta) => String(meta?.name || "").trim())
+          || safeMetas[safeMetas.length - 1]
+          || {};
+        const memberRole = metadata.role === "visitor" ? "visitor" : "player";
+        return {
+          id,
+          name: String(metadata.name || "").trim().slice(0, 24)
+            || (memberRole === "visitor" ? "Visitor" : "Player"),
+          joinedAt: Number(metadata.joinedAt) || 0,
+          role: memberRole,
+        };
+      })
       .sort((a, b) => a.joinedAt - b.joinedAt);
     onRoster(roster);
   });
@@ -196,7 +209,7 @@ export async function joinRoom(code, name, role, {
       onStatus?.(status, statusError);
       if (status === "SUBSCRIBED") {
         try {
-          await ch.track({ name, joinedAt, role: safeRole });
+          await ch.track({ name: safeName, joinedAt, role: safeRole });
           if (!settled) {
             settled = true;
             resolve();

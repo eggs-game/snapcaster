@@ -1,7 +1,7 @@
 // Shared chat effects should sit well below voices and other game audio. The
 // source clips are mastered loudly, so a low fixed gain keeps sender playback,
 // receiver playback, and picker previews from overpowering conversation.
-const SOUND_EFFECT_LEVEL = 0.05;
+const SOUND_EFFECT_LEVEL = 0.1;
 
 // The room broadcast carries only these stable IDs, never a remote audio URL.
 // That keeps playback predictable and means every browser uses the same vetted

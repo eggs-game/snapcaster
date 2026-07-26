@@ -122,7 +122,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const [sidebarClosing, setSidebarClosing] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [edgeTabY, setEdgeTabY] = useState(null);
-  const [sidebarView, setSidebarView] = useState("lookup"); // "lookup" | "settings"
+  const [sidebarView, setSidebarView] = useState("lookup"); // lookup | settings | counters | invite | dice | management
   const [linkCopied, setLinkCopied] = useState(false);
   const [visitorLinkCopied, setVisitorLinkCopied] = useState(false);
   const [gameCodeCopied, setGameCodeCopied] = useState(false);
@@ -826,7 +826,18 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     if (!playerIds.length) return;
     const currentId = activePlayerId || playerIds[0];
     if (currentId !== myId) return;
-    const nextId = playerIds[(playerIds.indexOf(currentId) + 1) % playerIds.length];
+    const currentIndex = Math.max(0, playerIds.indexOf(currentId));
+    let nextId = "";
+    for (let offset = 1; offset <= playerIds.length; offset++) {
+      const candidateId = playerIds[(currentIndex + offset) % playerIds.length];
+      const candidateLife = livesRef.current[candidateId] ?? 40;
+      if (candidateLife > 0) {
+        nextId = candidateId;
+        break;
+      }
+    }
+    // No living player remains, so there is nowhere valid to pass the turn.
+    if (!nextId) return;
     activePlayerIdRef.current = nextId;
     setActivePlayerId(nextId);
     connRef.current?.setActivePlayer(nextId);
@@ -1225,6 +1236,18 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       ? [heroTile, ...tiles.filter((tile) => tile.id !== heroTile.id)]
       : tiles;
   const myColor = colors[myId] || TILE_COLORS[Math.max(0, players.findIndex((p) => p.id === myId))] || TILE_COLORS[0];
+  const managementParticipants = roster.map((participant, index) => ({
+    ...participant,
+    isMe: participant.id === myId,
+    color: participant.role === "visitor"
+      ? "#a5a7ad"
+      : colors[participant.id] || TILE_COLORS[index % TILE_COLORS.length],
+    commander: commanders[participant.id] || "",
+    commanderPartner: commanderPartners[participant.id] || "",
+    muted: !!mutedPlayers[participant.id],
+    cameraOn: participant.role !== "visitor" && cameraEnabledByPlayer[participant.id] !== false,
+    reconnecting: !!reconnectingPlayers[participant.id],
+  }));
 
   return (
     <div className="game">
@@ -1327,6 +1350,8 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
             lobbyName={lobbyName || "Untitled game"}
             onRenameLobby={chooseLobbyName}
             onLeave={leaveGame}
+            isCreator={!!session.creator}
+            managementParticipants={managementParticipants}
           />
         <div className="video-panel">
           {!sidebarOpen && !sidebarCollapsed && (
@@ -1350,24 +1375,6 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
               >
                 <PanelLeft size={18} />
               </button>
-            </div>
-          )}
-          {visitors.length > 0 && (
-            <div className="video-visitor-overlay">
-              <div className="visitor-strip" aria-label={`${visitors.length} visitors`}>
-                {visitors.map((visitor) => (
-                  <div
-                    key={visitor.id}
-                    className="visitor-avatar"
-                    aria-label={`${visitor.name}${mutedPlayers[visitor.id] ? " (muted)" : ""}`}
-                    data-tooltip={`${visitor.name}${mutedPlayers[visitor.id] ? " (muted)" : ""}`}
-                    data-tooltip-pos="right-bottom"
-                  >
-                    {visitor.name.trim().charAt(0).toUpperCase() || "V"}
-                    {mutedPlayers[visitor.id] && <MicOff size={9} className="visitor-muted" />}
-                  </div>
-                ))}
-              </div>
             </div>
           )}
           {diceOverlay && (
@@ -2069,10 +2076,10 @@ function CommanderBanner({ tile, onChoose, onChoosePartner, onLookupCommander, s
     };
   }, [draft, tile.commander]);
 
-  const playerLabel = `${tile.name}${tile.isMe ? " (you)" : ""}`;
+  const playerName = String(tile.name || "").trim() || (tile.isMe ? "You" : "Player");
+  const playerLabel = `${playerName}${tile.isMe ? " (you)" : ""}`;
   const playerRow = (
     <span className="banner-player-row">
-      {tile.muted && !tile.isMe && <MicOff size={18} className="banner-muted" aria-label="Muted" />}
       <span className="banner-player">{playerLabel}</span>
       {speaking && (
         <span className="speaking-meter" role="img" aria-label="Speaking">

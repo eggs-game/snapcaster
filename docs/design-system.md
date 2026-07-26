@@ -180,6 +180,8 @@ action at the right of every panel header), `.counter-stepper button`
 Life-badge ± buttons use a normal click for a one-point adjustment. Holding
 either button makes repeated five-point adjustments, so common life changes
 stay fast without making a one-point correction awkward.
+Passing the turn keeps the established player order but skips any seat whose
+life total is 0. If no living player remains, the active turn does not move.
 
 The sidebar navigation is a dedicated 48px left rail on the app background;
 the glass panel begins at the scrollable content column without a separator.
@@ -199,6 +201,24 @@ Every tooltip has a viewport-aware maximum width and wraps long labels. Triggers
 on the right edge use a right-aligned top/bottom position, bottom-row video
 controls open upward, and top-edge controls open downward; centered defaults
 are reserved for controls with safe space on both sides.
+
+Game creators receive a second rail divider below Settings followed by a
+Lucide Chess Queen action. It opens the **Game management** view, where every
+player and visitor appears in an individual 10px-radius surface tile. Tiles
+show identity and role first, then relevant commander and media-state details;
+visitor tiles omit camera and commander rows that do not apply to them.
+Visitors also receive the Commander damage rail action and can inspect every
+player's commander-damage and poison totals, but all values render as read-only
+text. Dice, life editing, and counter steppers remain player-only.
+
+Card-recognition failures reuse the Cards panel's full dotted placeholder tile
+instead of collapsing to a text error. The miniature outlined card swaps its
+sparkles for a magnifying glass and the message reads **Image lookup failed**;
+when capture evidence exists, a small Help me fix it link opens the wrong-card
+report from inside the placeholder.
+Clicking a card in video always opens the sidebar directly to Cards at the
+start of identification, even when Chat was the previously selected sidebar
+tab or the content panel was collapsed.
 
 The Chat panel header shows a compact 16px people icon and the live room count,
 including players and visitors. Its hover/focus popover is right-aligned to the
@@ -224,7 +244,7 @@ Picker rows use Lucide Cat/Laugh icons and a single-line effect name rather
 than repeating the selected category as a subtitle. The chosen effect is shown
 as a compact, dismissible chip in the composer; its matching message chip
 remains visible in chat even if browser playback is blocked. Effects play at
-5% of the listener’s normal browser/tab volume because the source clips are
+10% of the listener’s normal browser/tab volume because the source clips are
 mastered loudly, without a separate in-app
 mute or volume control. Pressing Enter sends either text or a selected effect,
 so an effect can be sent on its own.
