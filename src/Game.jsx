@@ -71,12 +71,13 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const [colors, setColors] = useState({}); // id -> hex color
   const [mutedPlayers, setMutedPlayers] = useState({}); // id -> bool
   const [cameraEnabledByPlayer, setCameraEnabledByPlayer] = useState({}); // id -> bool
+  const [reconnectingPlayers, setReconnectingPlayers] = useState({}); // id -> bool
   const [streams, setStreams] = useState({});
   const [videoQualityByPlayer, setVideoQualityByPlayer] = useState({});
   const [localStream, setLocalStream] = useState(null);
   const [lobbyName, setLobbyName] = useState(() => session.lobbyName || "");
   const [error, setError] = useState(null);
-  const [micOn, setMicOn] = useState(true);
+  const [micOn, setMicOn] = useState(!session.startMuted);
   const [camOn, setCamOn] = useState(true);
   const [lookups, setLookups] = useState([]);
   const [chatMessages, setChatMessages] = useState([]);
@@ -284,11 +285,38 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
         setRoster(nextRoster);
       },
       onRemoteStream: (id, stream) => setStreams((s) => ({ ...s, [id]: stream })),
+      onPeerReconnecting: (id, reconnecting) => setReconnectingPlayers((values) => ({
+        ...values,
+        [id]: reconnecting,
+      })),
       onPeerLeft: (id) => {
         setStreams((s) => { const c = { ...s }; delete c[id]; return c; });
         setVideoCounters((counters) => { const next = { ...counters }; delete next[id]; return next; });
         setCameraEnabledByPlayer((values) => { const next = { ...values }; delete next[id]; return next; });
         setMutedPlayers((values) => { const next = { ...values }; delete next[id]; return next; });
+        setReconnectingPlayers((values) => { const next = { ...values }; delete next[id]; return next; });
+      },
+      onRestoredState: (state) => {
+        const id = state.id;
+        if (!id) return;
+        if (state.life != null) {
+          livesRef.current = { ...livesRef.current, [id]: state.life };
+          setLives((values) => ({ ...values, [id]: state.life }));
+        }
+        if (state.commander != null) setCommanders((values) => ({ ...values, [id]: state.commander }));
+        if (state.commanderPartner != null) setCommanderPartners((values) => ({ ...values, [id]: state.commanderPartner }));
+        if (state.commanderPartnerType != null) setCommanderPartnerTypes((values) => ({ ...values, [id]: state.commanderPartnerType }));
+        if (state.color) setColors((values) => ({ ...values, [id]: state.color }));
+        setMutedPlayers((values) => ({ ...values, [id]: !!state.muted }));
+        setCameraEnabledByPlayer((values) => ({ ...values, [id]: state.cameraEnabled !== false }));
+        setMicOn(!state.muted);
+        if (!isVisitor) setCamOn(state.cameraEnabled !== false);
+        if (state.poison != null) setPoisonCounters((values) => ({ ...values, [id]: state.poison }));
+        if (state.commanderDamage) {
+          commanderDamageRef.current = { ...commanderDamageRef.current, [id]: state.commanderDamage };
+          setCommanderDamage((values) => ({ ...values, [id]: state.commanderDamage }));
+        }
+        if (state.videoCounters) setVideoCounters((values) => ({ ...values, [id]: state.videoCounters }));
       },
       onLife: (id, life) => {
         const previous = livesRef.current[id];
@@ -399,16 +427,25 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
           audioOnly: isVisitor,
           videoDeviceId: session.videoDeviceId,
           audioDeviceId: session.audioDeviceId,
+          startMuted: !!session.startMuted,
         });
         setLocalStream(stream);
+        setMicOn(!conn.muted);
         setVideoDeviceId(conn.videoDeviceId);
         setAudioDeviceId(conn.audioDeviceId);
         const devices = await conn.listDevices();
         if (!isVisitor) setCameras(devices.cameras);
         setMics(devices.mics);
-        const id = await conn.join(session.code, session.name, isVisitor ? "visitor" : "player");
+        const id = await conn.join(session.code, session.name, isVisitor ? "visitor" : "player", {
+          participantId: session.participantId,
+          joinedAt: session.joinedAt,
+        });
         myIdRef.current = id;
         setMyId(id);
+        if (!isVisitor && session.videoFlipped) {
+          setFlippedVideos((values) => ({ ...values, [id]: true }));
+        }
+        setMutedPlayers((values) => ({ ...values, [id]: conn.muted }));
         if (!isVisitor && session.lobbyName) {
           conn.setLobbyName(session.lobbyName);
           setLobbyName(session.lobbyName);
@@ -433,7 +470,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       myIdRef.current = null;
       conn.close();
     };
-  }, [isVisitor, markPendingCommanderDamageChat, notifyIncomingChat, queueLifeChat, session.code, session.name, session.videoDeviceId, session.audioDeviceId, updateActivePlayer]);
+  }, [isVisitor, markPendingCommanderDamageChat, notifyIncomingChat, queueLifeChat, session.audioDeviceId, session.code, session.joinedAt, session.name, session.participantId, session.startMuted, session.videoDeviceId, session.videoFlipped, updateActivePlayer]);
 
   // A readiness prompt is deliberately ephemeral. The timer is local so a
   // lost broadcast cannot leave a stale prompt on one player's screen.
@@ -1106,12 +1143,17 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     setTimeout(() => setGameCodeCopied(false), 1600);
   };
 
+  const leaveGame = async () => {
+    await connRef.current?.leaveIntentionally?.();
+    onLeave();
+  };
+
   if (error) {
     return (
       <div className="lobby">
         <h2>Something went wrong</h2>
         <p className="error">{error}</p>
-        <button onClick={onLeave}>Back to lobby</button>
+        <button onClick={leaveGame}>Back to lobby</button>
       </div>
     );
   }
@@ -1170,6 +1212,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     stream: p.id === myId ? localStream : streams[p.id],
     isMe: p.id === myId,
     activeTurn: p.id === resolvedActivePlayerId,
+    reconnecting: !!reconnectingPlayers[p.id],
   }));
   while (tiles.length < 4) tiles.push({ id: `empty-${tiles.length}`, empty: true });
   const resolvedHeroPlayerId = tiles.some((tile) => !tile.empty && tile.id === heroPlayerId)
@@ -1206,6 +1249,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
             chatMessages={chatMessages}
             currentUserId={myId}
             chatRecipients={roster.filter((member) => member.id !== myId)}
+            chatParticipants={roster}
             chatNameColors={Object.fromEntries(tiles.filter((tile) => !tile.empty).map((tile) => [tile.id, tile.color]))}
             onSendChat={sendChat}
             soundCooldownUntil={soundCooldownUntil}
@@ -1282,6 +1326,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
             onCopyGameCode={copyGameCode}
             lobbyName={lobbyName || "Untitled game"}
             onRenameLobby={chooseLobbyName}
+            onLeave={leaveGame}
           />
         <div className="video-panel">
           {!sidebarOpen && !sidebarCollapsed && (
@@ -1300,7 +1345,8 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
                   setSidebarOpen(true);
                 }}
                 aria-label="Open card panel"
-                title="Open card panel"
+                data-tooltip="Open card panel"
+                data-tooltip-pos="right"
               >
                 <PanelLeft size={18} />
               </button>
@@ -1313,7 +1359,9 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
                   <div
                     key={visitor.id}
                     className="visitor-avatar"
-                    title={`${visitor.name}${mutedPlayers[visitor.id] ? " (muted)" : ""}`}
+                    aria-label={`${visitor.name}${mutedPlayers[visitor.id] ? " (muted)" : ""}`}
+                    data-tooltip={`${visitor.name}${mutedPlayers[visitor.id] ? " (muted)" : ""}`}
+                    data-tooltip-pos="right-bottom"
                   >
                     {visitor.name.trim().charAt(0).toUpperCase() || "V"}
                     {mutedPlayers[visitor.id] && <MicOff size={9} className="visitor-muted" />}
@@ -1647,6 +1695,11 @@ function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseComm
             preview
           />
         )}
+        {tile.reconnecting && (
+          <div className="reconnecting-overlay" role="status">
+            Reconnecting…
+          </div>
+        )}
         {isReadyCheckActive && (
           <div className="ready-check-overlay" role="status">
             <strong>{readyStatus === true ? "Ready" : readyStatus === false ? "Not ready" : tile.isMe ? "Are you ready?" : "Waiting…"}</strong>
@@ -1681,7 +1734,7 @@ function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseComm
         >
           {tile.isMe && (
             <>
-              <button className="life-btn life-sword-btn" onClick={() => onOpenCounters?.()} aria-label="Add commander damage" data-tooltip="Add commander damage">
+              <button className="life-btn life-sword-btn" onClick={() => onOpenCounters?.()} aria-label="Add commander damage" data-tooltip="Add commander damage" data-tooltip-pos={lifeTooltipPosition}>
                 <Swords size={20} fill="currentColor" />
               </button>
               <span className="life-divider" aria-hidden="true" />
@@ -2047,7 +2100,8 @@ function CommanderBanner({ tile, onChoose, onChoosePartner, onLookupCommander, s
                 type="button"
                 className="commander-name commander-name-link"
                 onClick={(event) => { event.stopPropagation(); onLookupCommander?.(tile.commander); }}
-                title="Look up this commander"
+                data-tooltip="Look up this commander"
+                data-tooltip-pos={atBottom ? "left-top" : "left-bottom"}
               >
                 {tile.commander}
               </button>
@@ -2058,7 +2112,8 @@ function CommanderBanner({ tile, onChoose, onChoosePartner, onLookupCommander, s
                     type="button"
                     className="commander-name commander-name-link"
                     onClick={(event) => { event.stopPropagation(); onLookupCommander?.(tile.commanderPartner); }}
-                    title="Look up this partner commander"
+                    data-tooltip="Look up this partner commander"
+                    data-tooltip-pos={atBottom ? "left-top" : "left-bottom"}
                   >
                     {tile.commanderPartner}
                   </button>

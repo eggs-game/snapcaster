@@ -136,14 +136,37 @@ the main thread — an early bug that made the lobby unresponsive.
 - **Room codes** are 6 characters from `crypto.getRandomValues` (~887M). A code
   is the only thing protecting a game, so it must not be guessable.
 - **Roles**: up to 4 `player`s (camera + mic) and up to 8 `visitor`s (audio
-  only, cannot be captured, cannot change game state). Visitors receive every
-  player video and audio stream, can use card lookup and Chat (including sound
-  effects), but do not see interactive Dice or combat-counter controls.
+  only, cannot be captured, cannot change game state). A visitor chooses their
+  microphone before entering and can join live or muted, then mute, unmute, or
+  switch microphones from Settings. Visitors hear one another as well as every
+  player's audio, receive every player video stream, and can use card lookup
+  and Chat (including sound effects), but do not see interactive Dice or
+  combat-counter controls.
 - **Two transports, one authorisation model.** Supabase broadcast carries game
   state (life, commander, turn, chat) and gates every privileged message on
   sender role. WebRTC data channels carry capture requests and apply the same
   rule — a visitor cannot request a capture, requests are rate limited per
   peer, and every peer-controlled field is bounds-checked.
+- **Connection failures are observable.** Supabase Realtime heartbeats run in
+  its worker so a backgrounded tab is less likely to disappear from presence.
+  The client keeps the latest 80 connection events locally at
+  `window.__SNAP_CONNECTION_DIAGNOSTICS` and in
+  `localStorage["snapcast-connection-diagnostics"]`. Signaling errors,
+  presence loss, offline/online transitions, and WebRTC failures/recoveries are
+  also written to the insert-only `connection_events` table. Durable reports
+  exclude names, messages, media/device data, and raw room codes; a one-way
+  room fingerprint groups reports from the same game. A deliberate
+  **Leave game** announces departure first, while an unannounced presence loss
+  enters a 15-second reconnect grace period. During that window the player's
+  tile and seat remain in place with a Reconnecting overlay. Returning with the
+  same room-scoped participant ID cancels removal and negotiates a fresh peer
+  connection; only an expired grace period becomes an unexpected-drop report.
+  The active room, stable participant ID, original seat timestamp, life,
+  commander/partner, color, mute/camera state, poison, commander damage, and
+  video counters live in session storage so a refresh automatically rejoins
+  the same seat and republishes the restored state. Lifecycle heartbeat and
+  navigation evidence classify recovery as a refresh, connectivity loss,
+  likely crash, or generic session resume.
 - **Public chat and private whispers take different routes.** Ordinary chat is
   a Supabase room broadcast. `/whisper @name` resolves the selected roster ID
   and sends only over that participant's encrypted WebRTC data channel. Both
@@ -157,7 +180,7 @@ the main thread — an early bug that made the lobby unresponsive.
   audible offset, and stops after 2–3 seconds. The room never receives
   arbitrary audio URLs or uploads. Private whispers remain text-only. Sender UI and
 recipient playback both enforce a two-minute per-sender sound cooldown. Clips
-use a fixed 85% gain relative to the listener's browser/tab volume; there is
+use a fixed 5% gain relative to the listener's browser/tab volume; there is
 no separate in-app sound setting.
 - **Shared game events live in Chat.** Dice rolls, shared cards, life-total
   changes, and ready-check outcomes are compact structured Chat objects. Consecutive

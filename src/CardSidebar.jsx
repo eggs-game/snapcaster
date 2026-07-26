@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   Cat, Check, ChevronDown, ChevronLeft, ChevronRight, Copy, Dices, Drum, ExternalLink, Hourglass, Laugh, Link2, MessageCircle, MessagesSquare, Mic, MicOff,
-  PanelLeft, Play, Search, Settings, Sparkles, Swords, ThumbsDown, UserPlus, UserRound, Video, VideoOff, X,
+  LogOut, PanelLeft, Play, Search, Settings, Sparkles, Swords, ThumbsDown, UserPlus, UserRound, UsersRound, Video, VideoOff, X,
 } from "lucide-react";
 import { suggestCardNames } from "./cardSearch.js";
 import {
@@ -67,6 +67,21 @@ function CardStackIcon({ size = 20, className }) {
   );
 }
 
+function CardPlaceholder({ identifying = false }) {
+  return (
+    <div
+      className="card-empty-state"
+      role={identifying ? "status" : undefined}
+      aria-live={identifying ? "polite" : undefined}
+    >
+      <div className="card-empty-illustration" aria-hidden="true">
+        <div className="card-empty-art"><Sparkles size={28} /></div>
+      </div>
+      <p>{identifying ? "Identifying…" : "Cards you click on or look up will be displayed here."}</p>
+    </div>
+  );
+}
+
 export default function CardSidebar({
   current,
   lookups,
@@ -76,6 +91,7 @@ export default function CardSidebar({
   chatMessages,
   currentUserId,
   chatRecipients,
+  chatParticipants,
   chatNameColors = {},
   onSendChat,
   soundCooldownUntil = 0,
@@ -133,6 +149,7 @@ export default function CardSidebar({
   onCopyGameCode,
   lobbyName,
   onRenameLobby,
+  onLeave,
 }) {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
@@ -157,6 +174,7 @@ export default function CardSidebar({
   const [truthQuery, setTruthQuery] = useState("");
   const [truthSuggestions, setTruthSuggestions] = useState([]);
   const [truthHighlight, setTruthHighlight] = useState(-1);
+  const safeChatParticipants = Array.isArray(chatParticipants) ? chatParticipants : [];
   const [labelingWrongReport, setLabelingWrongReport] = useState(false);
   const [cardPreview, setCardPreview] = useState(null);
   const soundPickerTriggerRef = useRef(null);
@@ -461,6 +479,7 @@ export default function CardSidebar({
   // A decisive identification (art keypoints, title read, or manual search).
   // Anything else is a ranked guess and must say so.
   const decisive = !!top && ["ocr-title", "art-match", "search", "visual-exact"].includes(top.identified_by);
+  const identifying = Boolean(current?.loading || searching);
   const debugMode = typeof window !== "undefined"
     && new URLSearchParams(window.location.search).has("debug");
   const gameNameControl = editingLobbyName && !isVisitor ? (
@@ -636,7 +655,37 @@ export default function CardSidebar({
         {(settings || counters || invite || dice) && (
           <span className="logo">{settings ? "Settings" : counters ? "Commander damage" : invite ? "Invite" : "Dice & counters"}</span>
         )}
-        {!settings && !counters && !invite && !dice && (lookupTab === "chat" ? <span className="logo">Chat</span> : gameNameControl)}
+        {!settings && !counters && !invite && !dice && (lookupTab === "chat" ? (
+          <>
+            <span className="logo">Chat</span>
+            <div className="chat-presence">
+              <button
+                type="button"
+                className="chat-presence-trigger"
+                aria-label={`${safeChatParticipants.length} ${safeChatParticipants.length === 1 ? "person" : "people"} in chat`}
+                aria-describedby="chat-presence-list"
+              >
+                <UsersRound size={16} aria-hidden="true" />
+                <span>{safeChatParticipants.length}</span>
+              </button>
+              <div className="chat-presence-popover" id="chat-presence-list" role="tooltip">
+                <strong>In chat</strong>
+                <ul>
+                  {safeChatParticipants.map((participant) => (
+                    <li key={participant.id}>
+                      <span>{participant.name || (participant.role === "visitor" ? "Visitor" : "Player")}</span>
+                      <small>
+                        {participant.id === currentUserId
+                          ? "You"
+                          : participant.role === "visitor" ? "Visitor" : "Player"}
+                      </small>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </>
+        ) : gameNameControl)}
       </div>
 
       {settings ? (
@@ -792,20 +841,25 @@ export default function CardSidebar({
             <div className="color-picker">
               <span className="color-label">Your color</span>
               <div className="color-swatches">
-                {tileColors.map((color) => (
+                {tileColors.map((color, index) => (
                   <button
                     key={color}
                     type="button"
                     className={myColor === color ? "color-swatch selected" : "color-swatch"}
                     style={{ background: color }}
                     aria-label={`Choose color ${color}`}
-                    title="Choose seat color"
+                    data-tooltip="Choose seat color"
+                    data-tooltip-pos={index < Math.ceil(tileColors.length / 2) ? "left-top" : "right-top"}
                     onClick={() => onChooseColor(color)}
                   />
                 ))}
               </div>
             </div>
           )}
+          <button type="button" className="leave-game-button" onClick={onLeave}>
+            <LogOut size={16} />
+            <span>Leave game</span>
+          </button>
         </div>
       ) : counters ? (
         <CounterPanel
@@ -885,18 +939,11 @@ export default function CardSidebar({
             )}
             </div>
 
-            {!current && !recentCards.length && (
-              <div className="card-empty-state">
-                <div className="card-empty-illustration" aria-hidden="true">
-                  <div className="card-empty-art"><Sparkles size={28} /></div>
-                </div>
-                <p>Cards you click on or look up will be displayed here.</p>
-              </div>
-            )}
-            {(current?.loading || searching) && <div className="lookup-status">Identifying…</div>}
-            {current?.error && <div className="lookup-status error">{current.error}</div>}
-            {current?.matches?.length === 0 && <div className="lookup-status">No match found. Try clicking closer to the card center.</div>}
-            {top && decisive && (
+            {!identifying && !current && !recentCards.length && <CardPlaceholder />}
+            {identifying && <CardPlaceholder identifying />}
+            {!identifying && current?.error && <div className="lookup-status error">{current.error}</div>}
+            {!identifying && current?.matches?.length === 0 && <div className="lookup-status">No match found. Try clicking closer to the card center.</div>}
+            {!identifying && top && decisive && (
               <div className="card-hit">
                 <button
                   type="button"
@@ -921,6 +968,18 @@ export default function CardSidebar({
                         <ThumbsDown size={16} />
                       </button>
                     )}
+                    {!isVisitor && (
+                      <button
+                        type="button"
+                        className="card-share-btn"
+                        onClick={() => onShareCard?.(top)}
+                        aria-label={`Share ${top.name} to chat`}
+                        data-tooltip="Share to chat"
+                        data-tooltip-pos="right-top"
+                      >
+                        <MessagesSquare size={16} />
+                      </button>
+                    )}
                     {top.scryfall_uri && (
                       <a
                         className="scryfall-link"
@@ -938,7 +997,7 @@ export default function CardSidebar({
                 </div>
               </div>
             )}
-            {best && !decisive && (
+            {!identifying && best && !decisive && (
               <button
                 type="button"
                 className="bad-match-link"
@@ -1032,7 +1091,7 @@ export default function CardSidebar({
                           onClick={() => onShareCard?.(entry.card)}
                           aria-label={`Share ${entry.card?.name || "card"}`}
                           data-tooltip="Share card"
-                          data-tooltip-pos="left-bottom"
+                          data-tooltip-pos="right-top"
                         >
                           <MessageCircle size={16} />
                         </button>
@@ -1150,6 +1209,7 @@ export default function CardSidebar({
                               onClick={() => previewSound(message.soundId)}
                               aria-label={`Play ${getSoundEffect(message.soundId)?.label || "sound effect"} locally`}
                               data-tooltip="Play"
+                              data-tooltip-pos="right-top"
                             >
                               <Play size={16} aria-hidden="true" />
                             </button>
@@ -1204,6 +1264,7 @@ export default function CardSidebar({
                         type="button"
                         aria-label={`Remove ${selectedSound.label}`}
                         data-tooltip="Remove sound"
+                        data-tooltip-pos="right-top"
                         onClick={() => setSelectedSoundId("")}
                       >
                         <X size={14} />
@@ -1265,7 +1326,7 @@ export default function CardSidebar({
                       <strong>Add sound effect</strong>
                       <span>Plays for everyone · 2–3 seconds</span>
                     </div>
-                    <button type="button" aria-label="Close sound picker" data-tooltip="Close" onClick={() => setSoundPickerOpen(false)}><X size={16} /></button>
+                    <button type="button" aria-label="Close sound picker" data-tooltip="Close" data-tooltip-pos="right-bottom" onClick={() => setSoundPickerOpen(false)}><X size={16} /></button>
                   </div>
                   <div className="sound-picker-tabs" role="tablist" aria-label="Sound effect category">
                     {[["emotes", "Emotes"], ["creatures", "Creatures"]].map(([tab, label]) => (
@@ -1290,7 +1351,7 @@ export default function CardSidebar({
                     autoFocus
                   />
                   <div className="sound-picker-list">
-                    {soundResults.length ? soundResults.map((sound) => (
+                    {soundResults.length ? soundResults.map((sound, index) => (
                       <div className="sound-picker-item" key={sound.id}>
                         <button type="button" className="sound-picker-select" onClick={() => {
                           setSelectedSoundId(sound.id);
@@ -1305,7 +1366,7 @@ export default function CardSidebar({
                           className={previewingSoundId === sound.id ? "sound-preview playing" : "sound-preview"}
                           aria-label={`Preview ${sound.label}`}
                           data-tooltip="Preview"
-                          data-tooltip-pos="right-top"
+                          data-tooltip-pos={index < 2 ? "right-bottom" : "right-top"}
                           onClick={() => previewSound(sound.id)}
                         ><Play size={16} /></button>
                       </div>
@@ -1571,9 +1632,9 @@ function CounterStepper({ value, lethal, editable, label, onDecrease, onIncrease
   }
   return (
     <div className={`counter-stepper${lethal ? " lethal" : ""}${zero ? " zero" : ""}`} aria-label={label}>
-      {editable && <button type="button" onClick={onDecrease} aria-label={`Decrease ${label}`} data-tooltip={`Decrease ${label}`}>−</button>}
+      {editable && <button type="button" onClick={onDecrease} aria-label={`Decrease ${label}`} data-tooltip={`Decrease ${label}`} data-tooltip-pos="right-top">−</button>}
       <strong>{value}</strong>
-      {editable && <button type="button" onClick={onIncrease} aria-label={`Increase ${label}`} data-tooltip={`Increase ${label}`}>+</button>}
+      {editable && <button type="button" onClick={onIncrease} aria-label={`Increase ${label}`} data-tooltip={`Increase ${label}`} data-tooltip-pos="right-top">+</button>}
     </div>
   );
 }

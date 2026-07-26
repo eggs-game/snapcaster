@@ -3,7 +3,7 @@ import LegalPage from "./LegalPage.jsx";
 
 export default function Privacy() {
   return (
-    <LegalPage title="Privacy policy" updated="July 23, 2026">
+    <LegalPage title="Privacy policy" updated="July 25, 2026">
       <p>
         Snapcast is a remote paper Magic: The Gathering table. This policy explains what
         information is handled when you use <a href="https://snapcast.app">snapcast.app</a>,
@@ -15,6 +15,7 @@ export default function Privacy() {
         <li>There are no accounts. You pick a display name when you join a game.</li>
         <li>Live camera and microphone streams are peer-to-peer. Snapcast does not record or store your live video.</li>
         <li>Game signaling (room join, life totals, public chat, turn state) goes through Supabase Realtime for the session.</li>
+        <li>Limited connection diagnostics are recorded so unexpected game drops can be investigated.</li>
         <li>Card recognition runs in your browser. Optional “Wrong card” reports are the main way images leave your device for our servers.</li>
       </ul>
 
@@ -65,7 +66,10 @@ export default function Privacy() {
       <h3>Preferences on your device</h3>
       <p>
         Theme preference, video layout, and similar UI choices are kept in local storage on your
-        device. They are not uploaded as a profile.
+        device. While a room is active, session storage also keeps a room-scoped participant
+        identifier, original seat time, and your player-owned game state so a refresh can restore
+        your seat, life, commander, counters, and media-toggle state. Choosing “Leave game” clears
+        that active-room recovery data. These values are not uploaded as a profile.
       </p>
 
       <h3>Connectivity helpers</h3>
@@ -74,6 +78,15 @@ export default function Privacy() {
         WebRTC can relay when needed. Those requests may be rate-limited (for example by IP and
         room) to reduce abuse. Hosting and CDN providers (such as Vercel) may keep standard
         technical access logs.
+      </p>
+      <p>
+        To diagnose unexpected drops, Snapcast records limited connection events such as signaling
+        timeouts, browser offline/online transitions, WebRTC failure and recovery, and a participant
+        unexpectedly disappearing from room presence. Reports contain temporary participant and
+        browser-session identifiers, connection states, visibility/online state, event timing, and
+        a one-way fingerprint of the room code. They do not include display names, messages, card
+        data, device labels, camera or microphone content, or the raw room code. A short recent
+        diagnostic trail is also kept in your browser’s local storage.
       </p>
 
       <h2>What we do not do</h2>
@@ -93,8 +106,9 @@ export default function Privacy() {
       <h2>Retention</h2>
       <p>
         Session signaling is ephemeral to the game. Local preferences remain until you clear site
-        data. Opt-in recognition reports are kept long enough to review and improve recognition,
-        then may be deleted or anonymized. You can clear local data anytime in your browser settings.
+        data. Opt-in recognition reports and limited connection diagnostics are kept long enough to
+        review and improve the service, then may be deleted or anonymized. You can clear local data
+        anytime in your browser settings.
       </p>
 
       <h2>Your choices</h2>

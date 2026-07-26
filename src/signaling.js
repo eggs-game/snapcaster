@@ -8,11 +8,57 @@ export const isConfigured = () => Boolean(URL && KEY);
 
 let supabase = null;
 function client() {
-  if (!supabase) supabase = createClient(URL, KEY, { realtime: { params: { eventsPerSecond: 20 } } });
+  if (!supabase) {
+    supabase = createClient(URL, KEY, {
+      realtime: {
+        params: { eventsPerSecond: 20 },
+        // Keep heartbeats off the throttled main thread when a player puts the
+        // game in the background. This reduces false presence drops on mobile
+        // devices and backgrounded desktop tabs.
+        worker: true,
+      },
+    });
+  }
   return supabase;
 }
 
 const REPORT_BUCKET = "recognition-reports";
+
+async function roomFingerprint(roomCode) {
+  const value = new TextEncoder().encode(String(roomCode || "").toUpperCase());
+  const digest = await crypto.subtle.digest("SHA-256", value);
+  return [...new Uint8Array(digest)]
+    .slice(0, 12)
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+// Connection reports deliberately exclude player names, media/device labels,
+// messages, card data, IP addresses, and the raw room code. The fingerprint
+// lets dashboard investigation group one game's reports without retaining its
+// join secret.
+export async function saveConnectionEvent(event) {
+  if (!isConfigured()) return;
+  const details = event?.details && typeof event.details === "object" ? event.details : {};
+  const serializedDetails = JSON.stringify(details);
+  const compactDetails = serializedDetails.length <= 4000
+    ? details
+    : { truncated: true, preview: serializedDetails.slice(0, 3500) };
+  const { error } = await client().from("connection_events").insert({
+    id: event.id,
+    room_fingerprint: await roomFingerprint(event.roomCode),
+    observer_id: String(event.observerId || "").slice(0, 40),
+    observer_session_id: String(event.observerSessionId || "").slice(0, 64),
+    subject_id: String(event.subjectId || "").slice(0, 40),
+    event_type: String(event.type || "").slice(0, 64),
+    role: event.role === "visitor" ? "visitor" : "player",
+    occurred_at: new Date(event.at || Date.now()).toISOString(),
+    visibility_state: String(event.visibilityState || "").slice(0, 20),
+    browser_online: event.browserOnline !== false,
+    details: compactDetails,
+  });
+  if (error) throw error;
+}
 
 async function dataUrlBlob(dataUrl) {
   if (!dataUrl || !String(dataUrl).startsWith("data:")) return null;
@@ -110,10 +156,17 @@ export const makeCode = () => {
  *           onMessage(msg) — broadcast messages addressed to us (or everyone)
  * returns { myId, send(msg, to?), leave() }
  */
-export async function joinRoom(code, name, role, { onRoster, onMessage }) {
+export async function joinRoom(code, name, role, {
+  onRoster,
+  onMessage,
+  onStatus,
+  participantId,
+  joinedAt: restoredJoinedAt,
+}) {
   const safeRole = role === "visitor" ? "visitor" : "player";
-  const myId = crypto.randomUUID().slice(0, 8);
-  const joinedAt = Date.now();
+  const restoredId = String(participantId || "").replace(/[^a-zA-Z0-9-]/g, "").slice(0, 40);
+  const myId = restoredId || crypto.randomUUID().slice(0, 8);
+  const joinedAt = Number(restoredJoinedAt) || Date.now();
   const ch = client().channel(`room-${code}`, {
     config: { broadcast: { self: false }, presence: { key: myId } },
   });
@@ -138,12 +191,27 @@ export async function joinRoom(code, name, role, { onRoster, onMessage }) {
   });
 
   await new Promise((resolve, reject) => {
-    ch.subscribe(async (status) => {
+    let settled = false;
+    ch.subscribe(async (status, statusError) => {
+      onStatus?.(status, statusError);
       if (status === "SUBSCRIBED") {
-        await ch.track({ name, joinedAt, role: safeRole });
-        resolve();
+        try {
+          await ch.track({ name, joinedAt, role: safeRole });
+          if (!settled) {
+            settled = true;
+            resolve();
+          }
+        } catch (error) {
+          if (!settled) {
+            settled = true;
+            reject(error);
+          }
+        }
       } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
-        reject(new Error("Could not connect to game server (check Supabase config)"));
+        if (!settled) {
+          settled = true;
+          reject(new Error("Could not connect to game server (check Supabase config)"));
+        }
       }
     });
   });
@@ -151,6 +219,11 @@ export async function joinRoom(code, name, role, { onRoster, onMessage }) {
   return {
     myId,
     send: (msg, to = null) => ch.send({ type: "broadcast", event: "msg", payload: { ...msg, from: myId, to } }),
+    announceLeave: () => ch.send({
+      type: "broadcast",
+      event: "msg",
+      payload: { type: "participant-leaving", from: myId, to: null },
+    }),
     leave: () => { ch.untrack(); client().removeChannel(ch); },
   };
 }

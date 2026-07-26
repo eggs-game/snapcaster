@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ArrowRight, Camera, Mic, X } from "lucide-react";
+import { ArrowRight, Camera, FlipVertical2, Mic, MicOff, X } from "lucide-react";
 import { isConfigured, makeCode, CODE_LENGTH } from "./signaling.js";
 import { preload as preloadRecognition } from "./recognition/matcher.js";
 import SiteFooter from "./SiteFooter.jsx";
@@ -50,6 +50,8 @@ export default function Lobby({ onStart }) {
   const [mics, setMics] = useState([]);
   const [videoDeviceId, setVideoDeviceId] = useState("");
   const [audioDeviceId, setAudioDeviceId] = useState("");
+  const [videoFlipped, setVideoFlipped] = useState(false);
+  const [joinMuted, setJoinMuted] = useState(false);
   const [mediaError, setMediaError] = useState("");
   const [micLevel, setMicLevel] = useState(0);
   const previewRef = useRef(null);
@@ -215,6 +217,7 @@ export default function Lobby({ onStart }) {
       creator: true,
       videoDeviceId,
       audioDeviceId,
+      videoFlipped,
     });
   };
 
@@ -228,6 +231,8 @@ export default function Lobby({ onStart }) {
     go(code, visitorMode ? "visitor" : "player", "", {
       videoDeviceId,
       audioDeviceId,
+      videoFlipped: visitorMode ? false : videoFlipped,
+      startMuted: visitorMode && joinMuted,
     });
   };
 
@@ -378,7 +383,13 @@ export default function Lobby({ onStart }) {
                     {visitorMode ? (
                       <div className="preview-placeholder"><Mic size={30} /><span>Voice-only visitor</span></div>
                     ) : (
-                      <video ref={previewRef} autoPlay muted playsInline />
+                      <video
+                        ref={previewRef}
+                        className={videoFlipped ? "is-flipped" : ""}
+                        autoPlay
+                        muted
+                        playsInline
+                      />
                     )}
                     {!visitorMode && !previewStream && !mediaError && (
                       <div className="preview-placeholder"><Camera size={30} /><span>Starting camera…</span></div>
@@ -388,6 +399,19 @@ export default function Lobby({ onStart }) {
                         {visitorMode ? <Mic size={30} /> : <Camera size={30} />}
                         <span>{visitorMode ? "Microphone unavailable" : "Preview unavailable"}</span>
                       </div>
+                    )}
+                    {!visitorMode && (
+                      <button
+                        className={`preview-flip-button${videoFlipped ? " active" : ""}`}
+                        type="button"
+                        aria-label={videoFlipped ? "Unflip video" : "Flip video"}
+                        aria-pressed={videoFlipped}
+                        data-tooltip={videoFlipped ? "Unflip video" : "Flip video"}
+                        data-tooltip-pos="right-bottom"
+                        onClick={() => setVideoFlipped((value) => !value)}
+                      >
+                        <FlipVertical2 size={18} />
+                      </button>
                     )}
                   </div>
 
@@ -443,6 +467,30 @@ export default function Lobby({ onStart }) {
                         </div>
                       </label>
                     </div>
+                    {visitorMode && (
+                      <fieldset className="visitor-audio-choice">
+                        <legend>Join with microphone</legend>
+                        <div className="visitor-audio-options">
+                          <button
+                            type="button"
+                            aria-pressed={!joinMuted}
+                            onClick={() => setJoinMuted(false)}
+                          >
+                            <Mic size={16} />
+                            Mic on
+                          </button>
+                          <button
+                            type="button"
+                            aria-pressed={joinMuted}
+                            onClick={() => setJoinMuted(true)}
+                          >
+                            <MicOff size={16} />
+                            Join muted
+                          </button>
+                        </div>
+                        <p>You can mute or unmute yourself anytime in Settings.</p>
+                      </fieldset>
+                    )}
                   </div>
                 </div>
 

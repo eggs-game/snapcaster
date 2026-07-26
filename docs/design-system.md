@@ -105,10 +105,24 @@ app's own themed background (adapts correctly between light/dark mode).
 one exception: it sits on a translucent dark banner overlaid on live
 video, which stays dark regardless of app theme, so it uses a fixed light
 `rgba(255,255,255,0.82)` instead of a theme variable — using a
-theme-aware token there would go invisible in light mode.
+theme-aware token there would go invisible in light mode. Player names in that
+banner follow the same rule at a slightly softer fixed-light opacity; their
+identity must remain readable even when a browser or theme transforms the
+app's normal secondary-text token.
 
 Current examples: `.menu-btn`, `.wrong-card-btn` (thumbs-down report
-button), `.scryfall-link` (arrow-out-of-box link to Scryfall).
+button), `.card-share-btn` (share the active card to Chat with the same
+Lucide MessagesSquare glyph as the Chat rail action), and
+`.scryfall-link` (arrow-out-of-box link to Scryfall). On an identified or
+looked-up card, those actions stay ordered as report, share, then external
+details.
+
+A temporarily disconnected video tile keeps its place in the grid for a
+15-second recovery window. A fixed dark translucent overlay with normal-weight
+“Reconnecting…” copy communicates that the seat is being preserved rather than
+turning it into an empty tile. The Settings panel ends with a full-width
+danger-role **Leave game** button; this is the explicit departure action used
+to distinguish a chosen exit from a connection failure.
 
 Icons in labeled dropdown action rows use the same **16px** visual size, so
 the video options actions (flip, pass turn, shuffle position, and check
@@ -122,6 +136,12 @@ the same full-width treatment as Roll dice: `var(--input-height)` tall, 8px
 radius, `var(--text-primary)` fill and border, and inverse 600-weight label.
 They darken slightly on hover and keep their full width while disabled. The
 wrong-card report’s Submit report action uses this pattern.
+
+Visitor prejoin uses the same 34px, 8px-radius segmented-button treatment as
+other two-choice settings for **Mic on / Join muted**. The selected choice is
+applied to the audio track before WebRTC negotiation begins, avoiding a brief
+live-microphone leak. Visitors retain the normal microphone toggle and device
+picker in Settings after joining.
 
 ## 32px icon buttons
 
@@ -175,12 +195,24 @@ shows no active selection; the selected treatment returns when it is opened.
 
 Rail tooltips use the horizontal `right` anchor so they appear beside the
 icons and expand into the app instead of clipping at the viewport’s left edge.
+Every tooltip has a viewport-aware maximum width and wraps long labels. Triggers
+on the right edge use a right-aligned top/bottom position, bottom-row video
+controls open upward, and top-edge controls open downward; centered defaults
+are reserved for controls with safe space on both sides.
+
+The Chat panel header shows a compact 16px people icon and the live room count,
+including players and visitors. Its hover/focus popover is right-aligned to the
+trigger so it expands inward from the panel edge, lists every participant, and
+labels visitors separately without exposing additional controls.
 
 First-use card lookup uses a full-size card tile beneath search: a dashed
 card-outline illustration and a short explanation of where selected or looked-up
 cards will appear. It is replaced as soon as the player has a current or recent
-card result; the Recent section itself is hidden until there is at least one
-recent card.
+card result. While a camera click or text lookup is identifying a card, that
+same full-size dashed placeholder remains in place and changes its message to
+“Identifying…”, so the panel does not collapse to a small status line or retain
+the previous result. The Recent section itself is hidden until there is at
+least one recent card.
 
 The chat composer’s sound-picker trigger uses this exact 32px tier. It opens
 a compact, 360px-wide glass-material picker through a document-level portal
@@ -192,8 +224,8 @@ Picker rows use Lucide Cat/Laugh icons and a single-line effect name rather
 than repeating the selected category as a subtitle. The chosen effect is shown
 as a compact, dismissible chip in the composer; its matching message chip
 remains visible in chat even if browser playback is blocked. Effects play at
-63.75% of the listener’s normal browser/tab volume (75% of the prior level),
-without a separate in-app
+5% of the listener’s normal browser/tab volume because the source clips are
+mastered loudly, without a separate in-app
 mute or volume control. Pressing Enter sends either text or a selected effect,
 so an effect can be sent on its own.
 
@@ -210,8 +242,10 @@ seconds. The dice sidebar keeps the selector and a separate full-width Roll
 dice/Flip coin action together, so changing the selection never triggers a
 roll; the action sits 12px below the selector. Dice rolls, shared cards,
 life-total changes, and ready-check outcomes each appear as compact structured
-objects in Chat; life clicks wait for a two-second pause and report the net
-change. Cards and Chat are separate left-rail actions rather than a segmented
+objects in Chat. The “Rolled” result uses the panel’s normal 400 text weight,
+matching life and ready activity rather than reading like a heading. Life
+clicks wait for a two-second pause and report the net change. Cards and Chat
+are separate left-rail actions rather than a segmented
 control; a new Chat entry adds a small notification dot to the Chat icon until
 it is opened. Opening Chat always returns its message list to the latest entry.
 
@@ -378,6 +412,10 @@ elevation. Prejoin/create-setup flows reuse the same modal shell with a
 `prejoin-modal` modifier rather than a bespoke layout — new multi-step
 flows in the lobby should follow that pattern (same shell, a modifier
 class, and a `modal` state string per step) instead of a new component.
+The camera preview may place a 34px icon-only control over its top-right
+corner. It uses the compact 8px-radius button treatment, remains inside the
+preview bounds, and carries its selected state into the matching in-game
+video control so the image does not change orientation after joining.
 
 The card lookup's expanded-card preview (`.card-preview-backdrop` /
 `.card-preview-tile`) is the compact exception: it uses the same scrim and

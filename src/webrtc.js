@@ -1,7 +1,7 @@
 // WebRTC 4-player mesh over Supabase signaling.
 // Data channels carry high-res capture requests/responses (chunked JSON) and
 // recipient-only chat whispers that must never enter the room broadcast.
-import { joinRoom } from "./signaling.js";
+import { joinRoom, saveConnectionEvent } from "./signaling.js";
 import { cropGeometry } from "./captureGeometry.js";
 import { getSoundEffect } from "./soundEffects.js";
 import { normalizeVideoCounter } from "./videoCounters.js";
@@ -84,6 +84,12 @@ const CHUNK_TTL_MS = 30000;        // drop transfers that never complete
 const CAPTURE_MIN_INTERVAL_MS = 1200; // per-peer floor between capture requests
 const CAPTURE_BURST = 4;              // allowance for a quick flurry of clicks
 const MAX_VISITORS = 8; // peer-to-peer video fan-out is not an unlimited broadcast service
+const CONNECTION_DIAGNOSTIC_KEY = "snapcast-connection-diagnostics";
+const CONNECTION_DIAGNOSTIC_LIMIT = 80;
+const PEER_DISCONNECT_GRACE_MS = 15000;
+const PLAYER_STATE_KEY_PREFIX = "snapcast-room-player-state:";
+const LIFECYCLE_KEY_PREFIX = "snapcast-room-lifecycle:";
+const LIFECYCLE_HEARTBEAT_MS = 5000;
 
 export class GameConnection {
   constructor(handlers) {
@@ -119,6 +125,222 @@ export class GameConnection {
     this.audioDeviceId = "";
     this.iceServers = FALLBACK_ICE_SERVERS;
     this.turnStatus = "fallback";
+    this.roomCode = "";
+    this.connectionSessionId = crypto.randomUUID?.() || Math.random().toString(36).slice(2);
+    this.closed = false;
+    this.lastRealtimeProblemAt = 0;
+    this.selfPresenceMissingAt = 0;
+    this.connectionDiagnosticPersistenceUnavailable = false;
+    this.networkListeners = null;
+    this.intentionalLeaves = new Map();
+    this.presenceRoster = [];
+    this.departureTimers = new Map();
+    this.participantId = "";
+    this.joinedAt = 0;
+    this.reconnectReason = "new-session";
+    this.lifecycleTimer = null;
+  }
+
+  _playerStateKey() {
+    return `${PLAYER_STATE_KEY_PREFIX}${this.roomCode}:${this.participantId || this.myId || ""}`;
+  }
+
+  _lifecycleKey() {
+    return `${LIFECYCLE_KEY_PREFIX}${this.roomCode}:${this.participantId || this.myId || ""}`;
+  }
+
+  _readSessionValue(key) {
+    try { return JSON.parse(sessionStorage.getItem(key) || "null"); } catch { return null; }
+  }
+
+  _writeSessionValue(key, value) {
+    try { sessionStorage.setItem(key, JSON.stringify(value)); } catch { /* recovery remains best effort */ }
+  }
+
+  _removeSessionValue(key) {
+    try { sessionStorage.removeItem(key); } catch { /* recovery remains best effort */ }
+  }
+
+  _restorePlayerState() {
+    const saved = this._readSessionValue(this._playerStateKey());
+    if (!saved || typeof saved !== "object") return null;
+    this.muted = !!saved.muted;
+    this.cameraEnabled = saved.cameraEnabled !== false;
+    if (this.role === "visitor") {
+      for (const track of this.localStream?.getAudioTracks() || []) track.enabled = !this.muted;
+      return {
+        muted: this.muted,
+        cameraEnabled: false,
+      };
+    }
+    this.life = Math.max(0, Math.min(999, Number(saved.life) || 0));
+    this.commander = String(saved.commander || "").slice(0, 120);
+    this.commanderPartner = String(saved.commanderPartner || "").slice(0, 120);
+    this.commanderPartnerType = String(saved.commanderPartnerType || "").slice(0, 240);
+    this.color = String(saved.color || "").slice(0, 20);
+    this.poison = Math.max(0, Math.min(99, Number(saved.poison) || 0));
+    this.commanderDamage = saved.commanderDamage && typeof saved.commanderDamage === "object"
+      ? Object.fromEntries(Object.entries(saved.commanderDamage).slice(0, 16).map(([id, value]) => (
+        [String(id).slice(0, 40), Math.max(0, Math.min(99, Number(value) || 0))]
+      )))
+      : {};
+    this.videoCounters = Array.isArray(saved.videoCounters)
+      ? saved.videoCounters.map(normalizeVideoCounter).filter(Boolean).slice(-24)
+      : [];
+    for (const track of this.localStream?.getAudioTracks() || []) track.enabled = !this.muted;
+    for (const track of this.localStream?.getVideoTracks() || []) track.enabled = this.cameraEnabled;
+    return {
+      life: this.life,
+      commander: this.commander,
+      commanderPartner: this.commanderPartner,
+      commanderPartnerType: this.commanderPartnerType,
+      color: this.color,
+      muted: this.muted,
+      cameraEnabled: this.cameraEnabled,
+      poison: this.poison,
+      commanderDamage: this.commanderDamage,
+      videoCounters: this.videoCounters,
+    };
+  }
+
+  _persistPlayerState() {
+    if (!this.roomCode || !this.participantId) return;
+    const state = {
+      muted: this.muted,
+      cameraEnabled: this.cameraEnabled,
+      savedAt: Date.now(),
+    };
+    if (this.role !== "visitor") Object.assign(state, {
+      life: this.life,
+      commander: this.commander,
+      commanderPartner: this.commanderPartner,
+      commanderPartnerType: this.commanderPartnerType,
+      color: this.color,
+      poison: this.poison,
+      commanderDamage: this.commanderDamage,
+      videoCounters: this.videoCounters,
+    });
+    this._writeSessionValue(this._playerStateKey(), state);
+  }
+
+  _markLifecycle(exitHint) {
+    if (!this.roomCode || !this.participantId) return;
+    const previous = this._readSessionValue(this._lifecycleKey());
+    this._writeSessionValue(this._lifecycleKey(), {
+      participantId: this.participantId,
+      lastHeartbeat: Date.now(),
+      exitHint: exitHint === undefined ? String(previous?.exitHint || "") : exitHint,
+    });
+  }
+
+  _classifyReconnect(previousLifecycle) {
+    if (!previousLifecycle) return "new-session";
+    const navigationType = globalThis.performance?.getEntriesByType?.("navigation")?.[0]?.type || "";
+    if (navigationType === "reload") return "refresh";
+    if (previousLifecycle.exitHint === "connection-loss") return "connection-loss";
+    if (!previousLifecycle.exitHint && Date.now() - Number(previousLifecycle.lastHeartbeat || 0) < 30000) {
+      return "likely-crash";
+    }
+    return "session-resume";
+  }
+
+  _startLifecycleHeartbeat() {
+    if (this.lifecycleTimer) clearInterval(this.lifecycleTimer);
+    this._markLifecycle("");
+    this.lifecycleTimer = setInterval(() => this._markLifecycle(), LIFECYCLE_HEARTBEAT_MS);
+  }
+
+  _stopLifecycleHeartbeat() {
+    if (this.lifecycleTimer) clearInterval(this.lifecycleTimer);
+    this.lifecycleTimer = null;
+  }
+
+  _diagnostic(type, {
+    subjectId = "",
+    details = {},
+    persist = false,
+  } = {}) {
+    const entry = {
+      id: crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      type,
+      at: Date.now(),
+      observerId: this.myId || "",
+      observerSessionId: this.connectionSessionId,
+      subjectId: String(subjectId || "").slice(0, 40),
+      role: this.role,
+      visibilityState: typeof document === "undefined" ? "" : document.visibilityState,
+      browserOnline: typeof navigator === "undefined" ? true : navigator.onLine !== false,
+      details,
+    };
+    try {
+      const previous = JSON.parse(localStorage.getItem(CONNECTION_DIAGNOSTIC_KEY) || "[]");
+      const next = [...(Array.isArray(previous) ? previous : []), entry].slice(-CONNECTION_DIAGNOSTIC_LIMIT);
+      localStorage.setItem(CONNECTION_DIAGNOSTIC_KEY, JSON.stringify(next));
+      globalThis.__SNAP_CONNECTION_DIAGNOSTICS = next;
+    } catch {
+      const previous = Array.isArray(globalThis.__SNAP_CONNECTION_DIAGNOSTICS)
+        ? globalThis.__SNAP_CONNECTION_DIAGNOSTICS
+        : [];
+      globalThis.__SNAP_CONNECTION_DIAGNOSTICS = [...previous, entry].slice(-CONNECTION_DIAGNOSTIC_LIMIT);
+    }
+    if (persist && this.roomCode && !this.connectionDiagnosticPersistenceUnavailable) {
+      void saveConnectionEvent({ ...entry, roomCode: this.roomCode }).catch((error) => {
+        this.connectionDiagnosticPersistenceUnavailable = true;
+        console.warn("[snapcast] Connection diagnostics could not be submitted", error);
+      });
+    }
+    if (persist) console.warn(`[snapcast] connection event: ${type}`, entry);
+    return entry;
+  }
+
+  _onRealtimeStatus(status, error) {
+    if (this.closed) return;
+    const detail = error ? String(error?.message || error).slice(0, 500) : "";
+    if (status === "CHANNEL_ERROR") {
+      this.lastRealtimeProblemAt = Date.now();
+      this._diagnostic("realtime-channel-error", { details: { error: detail }, persist: true });
+    } else if (status === "TIMED_OUT") {
+      this.lastRealtimeProblemAt = Date.now();
+      this._diagnostic("realtime-timed-out", { details: { error: detail }, persist: true });
+    } else if (status === "CLOSED") {
+      this.lastRealtimeProblemAt = Date.now();
+      this._diagnostic("realtime-closed", { details: { error: detail }, persist: true });
+    } else if (status === "SUBSCRIBED" && this.lastRealtimeProblemAt) {
+      const outageMs = Date.now() - this.lastRealtimeProblemAt;
+      this.lastRealtimeProblemAt = 0;
+      this._diagnostic("realtime-recovered", { details: { outageMs }, persist: true });
+    }
+  }
+
+  _startNetworkMonitoring() {
+    if (this.networkListeners || typeof window === "undefined") return;
+    const offline = () => {
+      this._markLifecycle("connection-loss");
+      this._diagnostic("browser-offline", { persist: true });
+    };
+    const online = () => {
+      this._markLifecycle("");
+      this._diagnostic("browser-online", { persist: true });
+    };
+    const pagehide = (event) => {
+      this._markLifecycle(event.persisted ? "page-cache" : "navigation");
+      this._diagnostic("page-hidden", {
+        details: { persisted: !!event.persisted },
+        persist: false,
+      });
+    };
+    window.addEventListener("offline", offline);
+    window.addEventListener("online", online);
+    window.addEventListener("pagehide", pagehide);
+    this.networkListeners = { offline, online, pagehide };
+  }
+
+  _stopNetworkMonitoring() {
+    if (!this.networkListeners || typeof window === "undefined") return;
+    window.removeEventListener("offline", this.networkListeners.offline);
+    window.removeEventListener("online", this.networkListeners.online);
+    window.removeEventListener("pagehide", this.networkListeners.pagehide);
+    this.networkListeners = null;
   }
 
   async _configureIceServers(code) {
@@ -159,7 +381,12 @@ export class GameConnection {
     }
   }
 
-  async initMedia({ audioOnly = false, videoDeviceId = "", audioDeviceId = "" } = {}) {
+  async initMedia({
+    audioOnly = false,
+    videoDeviceId = "",
+    audioDeviceId = "",
+    startMuted = false,
+  } = {}) {
     // Ask for the camera's maximum resolution — recognition crops are taken
     // from the raw local track, so every native pixel directly improves card
     // identification (WebRTC scales the *sent* video down on its own).
@@ -178,6 +405,8 @@ export class GameConnection {
     });
     this.videoDeviceId = this.localStream.getVideoTracks()[0]?.getSettings?.().deviceId || "";
     this.audioDeviceId = this.localStream.getAudioTracks()[0]?.getSettings?.().deviceId || "";
+    this.muted = !!startMuted;
+    for (const track of this.localStream.getAudioTracks()) track.enabled = !this.muted;
     for (const track of this.localStream.getVideoTracks()) tuneVideoTrack(track);
     return this.localStream;
   }
@@ -242,8 +471,22 @@ export class GameConnection {
     return this.localStream;
   }
 
-  async join(code, name, role = "player") {
+  async join(code, name, role = "player", {
+    participantId = "",
+    joinedAt = 0,
+  } = {}) {
     this.role = role === "visitor" ? "visitor" : "player";
+    this.roomCode = String(code || "").toUpperCase();
+    this.participantId = String(participantId || "").replace(/[^a-zA-Z0-9-]/g, "").slice(0, 40)
+      || crypto.randomUUID().slice(0, 40);
+    this.joinedAt = Number(joinedAt) || Date.now();
+    const previousLifecycle = this._readSessionValue(this._lifecycleKey());
+    this.reconnectReason = this._classifyReconnect(previousLifecycle);
+    const restoredState = this._restorePlayerState();
+    this._persistPlayerState();
+    this.closed = false;
+    this._startNetworkMonitoring();
+    this._startLifecycleHeartbeat();
     await this._configureIceServers(code);
     this.room = await joinRoom(code, name, this.role, {
       onRoster: (roster) => {
@@ -252,26 +495,81 @@ export class GameConnection {
         else this._onRoster(roster);
       },
       onMessage: (msg) => this._onSignal(msg),
+      onStatus: (status, error) => this._onRealtimeStatus(status, error),
+      participantId: this.participantId,
+      joinedAt: this.joinedAt,
     });
     this.myId = this.room.myId;
+    this._diagnostic("room-joined", {
+      details: { turnStatus: this.turnStatus, reconnectReason: this.reconnectReason },
+      persist: true,
+    });
+    if (this.reconnectReason !== "new-session") {
+      this._diagnostic("client-rejoined", {
+        details: { reason: this.reconnectReason },
+        persist: true,
+      });
+    }
+    this.h.onRestoredState?.({ id: this.myId, ...(restoredState || {}) });
     this._onRoster(this.roster);
+    this.room?.send({ type: "reconnect-context", reason: this.reconnectReason });
     return this.myId;
   }
 
-  _onRoster(roster) {
-    this.roster = roster;
+  _finalizeDeparture(departed, intentional = false) {
+    const id = departed.id;
+    const entry = this.peers.get(id);
+    const timer = this.departureTimers.get(id);
+    if (timer) clearTimeout(timer);
+    this.departureTimers.delete(id);
+    this.intentionalLeaves.delete(id);
+    this._diagnostic(intentional ? "intentional-leave" : "unexpected-peer-drop", {
+      subjectId: id,
+      details: {
+        subjectRole: departed.role || "player",
+        peerConnectionState: entry?.pc.connectionState || "not-created",
+        iceConnectionState: entry?.pc.iceConnectionState || "not-created",
+        graceMs: intentional ? 0 : PEER_DISCONNECT_GRACE_MS,
+        rosterSizeAfter: this.presenceRoster.length,
+      },
+      persist: true,
+    });
+    if (entry?.disconnectTimer) clearTimeout(entry.disconnectTimer);
+    entry?.pc.close();
+    if (entry) this.peers.delete(id);
+    this.knownIds.delete(id);
+    this.roster = this.roster.filter((member) => member.id !== id);
+    this.h.onPeerReconnecting?.(id, false);
+    this.h.onPeerLeft?.(id, { unexpected: !intentional });
+    this.h.onRoster?.(this.roster);
+  }
+
+  _onRoster(presenceRoster) {
+    const previousRoster = this.roster;
+    this.presenceRoster = presenceRoster;
     // Presence can sync before our own track has propagated, giving a roster
     // that lists existing members but not us. Deciding offers from such a
     // snapshot marks every existing peer as "known" without ever offering to
     // them — they would never get our connection (visitors saw no video at
     // all). Render the roster, but defer connection decisions until a sync
     // that includes us arrives.
-    if (this.myId && !roster.some((r) => r.id === this.myId)) {
-      this.h.onRoster?.(roster);
+    if (this.myId && !presenceRoster.some((r) => r.id === this.myId)) {
+      const now = Date.now();
+      if (!this.selfPresenceMissingAt || now - this.selfPresenceMissingAt > 15000) {
+        this.selfPresenceMissingAt = now;
+        this._diagnostic("self-presence-missing", {
+          details: { rosterSize: presenceRoster.length },
+          persist: true,
+        });
+      }
+      // Keep the last complete roster visible while our own presence is
+      // recovering; an empty intermediate sync should not dismantle the room.
+      this.h.onRoster?.(previousRoster);
       return;
     }
-    const players = roster.filter((r) => r.role !== "visitor");
-    const visitors = roster.filter((r) => r.role === "visitor");
+    this.selfPresenceMissingAt = 0;
+    const players = presenceRoster.filter((r) => r.role !== "visitor");
+    const visitors = presenceRoster.filter((r) => r.role === "visitor");
     if (this.role === "player" && players.length > 4) {
       const myRank = players.findIndex((r) => r.id === this.myId);
       if (myRank >= 4) {
@@ -285,44 +583,113 @@ export class GameConnection {
       this.close();
       return;
     }
-    const ids = new Set(roster.map((r) => r.id));
-    // peers that left
-    for (const id of [...this.peers.keys()]) {
-      if (!ids.has(id)) {
-        this.peers.get(id).pc.close();
-        this.peers.delete(id);
-        this.h.onPeerLeft?.(id);
+    const ids = new Set(presenceRoster.map((r) => r.id));
+
+    // A participant who returns during the grace period keeps the same roster
+    // identity and seat. If their old peer connection did not survive, allow
+    // the normal deterministic offer rule below to build a fresh one.
+    for (const member of presenceRoster) {
+      const departureTimer = this.departureTimers.get(member.id);
+      if (!departureTimer) continue;
+      clearTimeout(departureTimer);
+      this.departureTimers.delete(member.id);
+      this.h.onPeerReconnecting?.(member.id, false);
+      const entry = this.peers.get(member.id);
+      if (entry) {
+        if (entry.disconnectTimer) clearTimeout(entry.disconnectTimer);
+        entry.pc.close();
+        this.peers.delete(member.id);
+        this.knownIds.delete(member.id);
       }
+      this._diagnostic("peer-presence-restored", {
+        subjectId: member.id,
+        details: { withinGraceMs: PEER_DISCONNECT_GRACE_MS },
+        persist: false,
+      });
+    }
+
+    // Missing participants retain their tile and seat during the grace period.
+    // A deliberate departure skips the delay; an unannounced disappearance is
+    // only classified as a drop if it does not recover before the timer ends.
+    const departedMembers = previousRoster.filter((member) => (
+      member.id !== this.myId && !ids.has(member.id)
+    ));
+    for (const departed of departedMembers) {
+      const intentionalAt = this.intentionalLeaves.get(departed.id) || 0;
+      const intentional = Date.now() - intentionalAt < 5000;
+      if (intentional) {
+        this._finalizeDeparture(departed, true);
+        continue;
+      }
+      if (this.departureTimers.has(departed.id)) continue;
+      this.h.onPeerReconnecting?.(departed.id, true);
+      const timer = setTimeout(() => {
+        if (this.presenceRoster.some((member) => member.id === departed.id)) return;
+        this._finalizeDeparture(departed, false);
+      }, PEER_DISCONNECT_GRACE_MS);
+      this.departureTimers.set(departed.id, timer);
+    }
+    const intentionalCutoff = Date.now() - 5000;
+    for (const [id, at] of this.intentionalLeaves) {
+      if (at < intentionalCutoff) this.intentionalLeaves.delete(id);
     }
     // I initiate offers to everyone who joined BEFORE me (newcomer initiates)
-    const me = roster.find((r) => r.id === this.myId);
-    for (const r of roster) {
+    const retained = previousRoster.filter((member) => (
+      !ids.has(member.id) && this.departureTimers.has(member.id)
+    ));
+    this.roster = [...presenceRoster, ...retained]
+      .filter((member, index, all) => all.findIndex((candidate) => candidate.id === member.id) === index)
+      .sort((a, b) => a.joinedAt - b.joinedAt);
+
+    const me = presenceRoster.find((r) => r.id === this.myId);
+    for (const r of presenceRoster) {
       if (r.id === this.myId || this.knownIds.has(r.id)) continue;
       this.knownIds.add(r.id);
       if (me && r.joinedAt < me.joinedAt) this._makeOffer(r.id);
     }
-    this.h.onRoster?.(roster);
+    this.h.onRoster?.(this.roster);
     if (this.role === "player") {
       this.room?.send({ type: "life", life: this.life });
       if (this.lobbyName) this.room?.send({ type: "lobby-name", lobbyName: this.lobbyName });
-      if (this.commander) this.room?.send({ type: "commander", commander: this.commander });
-      if (this.commanderPartner) this.room?.send({ type: "commander-partner", partner: this.commanderPartner, typeLine: this.commanderPartnerType });
-      if (this.color) this.room?.send({ type: "color", color: this.color });
+      this.room?.send({ type: "commander", commander: this.commander });
+      this.room?.send({
+        type: "commander-partner",
+        partner: this.commanderPartner,
+        typeLine: this.commanderPartnerType,
+      });
+      this.room?.send({ type: "color", color: this.color });
       if (this.activePlayerId) this.room?.send({ type: "active-player", playerId: this.activePlayerId });
       if (this.gridOrder.length) this.room?.send({ type: "grid-order", order: this.gridOrder });
-      if (this.poison) this.room?.send({ type: "poison", value: this.poison });
+      this.room?.send({ type: "poison", value: this.poison });
       for (const [attackerId, value] of Object.entries(this.commanderDamage)) {
-        if (value) this.room?.send({ type: "commander-damage", attackerId, value });
+        this.room?.send({ type: "commander-damage", attackerId, value });
       }
       for (const counter of this.videoCounters) {
         this.room?.send({ type: "video-counter", counter });
       }
     }
-    if (this.muted) this.room?.send({ type: "muted", muted: true });
-    if (!this.cameraEnabled) this.room?.send({ type: "camera-enabled", enabled: false });
+    this.room?.send({ type: "muted", muted: this.muted });
+    this.room?.send({ type: "camera-enabled", enabled: this.cameraEnabled });
   }
 
   async _onSignal(msg) {
+    if (msg.type === "participant-leaving") {
+      this.intentionalLeaves.set(String(msg.from || "").slice(0, 40), Date.now());
+      return;
+    }
+    if (msg.type === "reconnect-context") {
+      const reason = ["refresh", "connection-loss", "likely-crash", "session-resume"].includes(msg.reason)
+        ? msg.reason
+        : "";
+      if (reason) {
+        this._diagnostic("peer-reconnected", {
+          subjectId: String(msg.from || "").slice(0, 40),
+          details: { reason },
+          persist: true,
+        });
+      }
+      return;
+    }
     const senderRole = this.roster.find((r) => r.id === msg.from)?.role || "player";
     switch (msg.type) {
       case "offer": {
@@ -478,7 +845,14 @@ export class GameConnection {
   _getPeer(peerId) {
     if (this.peers.has(peerId)) return this.peers.get(peerId);
     const pc = new RTCPeerConnection({ iceServers: this.iceServers });
-    const entry = { pc, dc: null, chunks: new Map() };
+    const entry = {
+      pc,
+      dc: null,
+      chunks: new Map(),
+      disconnectTimer: null,
+      connectionWasInterrupted: false,
+      failureReported: false,
+    };
     this.peers.set(peerId, entry);
     for (const t of this.localStream?.getTracks() || []) {
       const sender = pc.addTrack(t, this.localStream);
@@ -490,6 +864,55 @@ export class GameConnection {
     pc.onicecandidate = (e) => e.candidate && this.room.send({ type: "ice", candidate: e.candidate }, peerId);
     pc.ontrack = (e) => this.h.onRemoteStream?.(peerId, e.streams[0]);
     pc.ondatachannel = (e) => this._setupDC(peerId, e.channel);
+    pc.onconnectionstatechange = () => {
+      if (this.closed || !this.peers.has(peerId)) return;
+      const state = pc.connectionState;
+      if (state === "connected") {
+        if (entry.disconnectTimer) clearTimeout(entry.disconnectTimer);
+        entry.disconnectTimer = null;
+        if (entry.connectionWasInterrupted) {
+          entry.connectionWasInterrupted = false;
+          entry.failureReported = false;
+          this._diagnostic("peer-connection-recovered", {
+            subjectId: peerId,
+            details: { iceConnectionState: pc.iceConnectionState },
+            persist: true,
+          });
+        }
+        return;
+      }
+      if (state === "failed") {
+        if (entry.disconnectTimer) clearTimeout(entry.disconnectTimer);
+        entry.disconnectTimer = null;
+        entry.connectionWasInterrupted = true;
+        if (entry.failureReported) return;
+        entry.failureReported = true;
+        this._diagnostic("peer-connection-failed", {
+          subjectId: peerId,
+          details: { iceConnectionState: pc.iceConnectionState },
+          persist: true,
+        });
+        return;
+      }
+      if (state === "disconnected" && !entry.disconnectTimer) {
+        entry.connectionWasInterrupted = true;
+        entry.disconnectTimer = setTimeout(() => {
+          entry.disconnectTimer = null;
+          if (pc.connectionState !== "disconnected" || this.closed) return;
+          if (entry.failureReported) return;
+          entry.failureReported = true;
+          this._diagnostic("peer-connection-failed", {
+            subjectId: peerId,
+            details: {
+              connectionState: "disconnected",
+              iceConnectionState: pc.iceConnectionState,
+              graceMs: PEER_DISCONNECT_GRACE_MS,
+            },
+            persist: true,
+          });
+        }, PEER_DISCONNECT_GRACE_MS);
+      }
+    };
     return entry;
   }
 
@@ -653,7 +1076,8 @@ export class GameConnection {
 
   setLife(life) {
     if (this.role === "visitor") return;
-    this.life = Number(life);
+    this.life = Math.max(0, Number(life) || 0);
+    this._persistPlayerState();
     this.room?.send({ type: "life", life: this.life });
   }
   setLobbyName(lobbyName) {
@@ -664,25 +1088,30 @@ export class GameConnection {
   setCommander(commander) {
     if (this.role === "visitor") return;
     this.commander = String(commander || "").trim().slice(0, 120);
+    this._persistPlayerState();
     this.room?.send({ type: "commander", commander: this.commander });
   }
   setCommanderPartner(partner, typeLine = "") {
     if (this.role === "visitor") return;
     this.commanderPartner = String(partner || "").trim().slice(0, 120);
     this.commanderPartnerType = String(typeLine || "").trim().slice(0, 240);
+    this._persistPlayerState();
     this.room?.send({ type: "commander-partner", partner: this.commanderPartner, typeLine: this.commanderPartnerType });
   }
   setColor(color) {
     if (this.role === "visitor") return;
     this.color = String(color || "").trim().slice(0, 20);
+    this._persistPlayerState();
     this.room?.send({ type: "color", color: this.color });
   }
   setMuted(muted) {
     this.muted = !!muted;
+    this._persistPlayerState();
     this.room?.send({ type: "muted", muted: this.muted });
   }
   setCameraEnabled(enabled) {
     this.cameraEnabled = !!enabled;
+    this._persistPlayerState();
     this.room?.send({ type: "camera-enabled", enabled: this.cameraEnabled });
   }
   announceCard(card, byName, at = Date.now()) {
@@ -748,6 +1177,7 @@ export class GameConnection {
   setPoison(value) {
     if (this.role === "visitor") return;
     this.poison = Math.max(0, Math.min(99, Number(value) || 0));
+    this._persistPlayerState();
     this.room?.send({ type: "poison", value: this.poison });
   }
   setCommanderDamage(attackerId, value, commanderName = "") {
@@ -756,6 +1186,7 @@ export class GameConnection {
     if (!safeAttackerId) return;
     const safeValue = Math.max(0, Math.min(99, Number(value) || 0));
     this.commanderDamage = { ...this.commanderDamage, [safeAttackerId]: safeValue };
+    this._persistPlayerState();
     this.room?.send({
       type: "commander-damage",
       attackerId: safeAttackerId,
@@ -777,6 +1208,7 @@ export class GameConnection {
     this.videoCounters = (exists
       ? this.videoCounters.map((item) => item.id === safeCounter.id ? safeCounter : item)
       : [...this.videoCounters, safeCounter]).slice(-24);
+    this._persistPlayerState();
     this.room?.send({ type: "video-counter", counter: safeCounter });
   }
   removeVideoCounter(counterId) {
@@ -784,6 +1216,7 @@ export class GameConnection {
     const safeId = String(counterId || "").slice(0, 64);
     if (!safeId) return;
     this.videoCounters = this.videoCounters.filter((counter) => counter.id !== safeId);
+    this._persistPlayerState();
     this.room?.send({ type: "video-counter-remove", counterId: safeId });
   }
 
@@ -801,10 +1234,37 @@ export class GameConnection {
   }
 
   close() {
-    for (const p of this.peers.values()) p.pc.close();
+    if (this.closed) return;
+    this.closed = true;
+    this._stopNetworkMonitoring();
+    this._stopLifecycleHeartbeat();
+    for (const timer of this.departureTimers.values()) clearTimeout(timer);
+    this.departureTimers.clear();
+    for (const p of this.peers.values()) {
+      if (p.disconnectTimer) clearTimeout(p.disconnectTimer);
+      p.pc.close();
+    }
     this.peers.clear();
     this.room?.leave();
     for (const t of this.localStream?.getTracks() || []) t.stop();
+  }
+
+  async leaveIntentionally() {
+    this._markLifecycle("intentional-leave");
+    this._diagnostic("intentional-leave", {
+      subjectId: this.myId || this.participantId,
+      details: { local: true },
+      persist: true,
+    });
+    try {
+      await Promise.race([
+        this.room?.announceLeave?.(),
+        new Promise((resolve) => setTimeout(resolve, 300)),
+      ]);
+    } catch { /* presence removal still completes below */ }
+    this.close();
+    this._removeSessionValue(this._playerStateKey());
+    this._removeSessionValue(this._lifecycleKey());
   }
 }
 
