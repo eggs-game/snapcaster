@@ -9,6 +9,38 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-07-25 — `isolation-speed-2` — single-pass exact ranking
+
+Exact full-index ranking now evaluates all eight rotation/contrast variants
+while each printing vector is hot, rather than rereading the 7MB index once
+per variant. The minimum Hamming distance and every candidate remain
+unchanged. Live scans also retain a local 50-entry capture/recognition/stage
+timing ring so future reports of “slow” can distinguish transfer time from the
+worker fallback.
+
+- **Fixed top-edge 64:** **52/64 (81.3%)**, versus 51/64 (79.7%) on
+  `isolation-retrieval-7`; the one-card movement is noise. Accepted art
+  matches were 51/51 precise and the rotation/occlusion breakdown was
+  unchanged. Median improved from **5.609s to 4.8s** (14%), average from
+  **5.032s to 4.6s** (9%), while p90 was effectively flat at 8.5s versus
+  8.626s.
+- **Tableau EDH 100:** **95/100 (95.0%)**, meeting the accuracy gate.
+  Accepted art/visual pathways were **93/93 precise**. Clear cards were 90/94,
+  side-by-side 59/60, spaced 29/30, and overlapping 7/10. Median was **2.0s**,
+  average **2.5s**, and p90 **5.8s**; average rank time was 1.07s.
+- **Magic Con Vegas 200:** **184/200 (92.0%)**, above the 90% gate and up
+  four cards from the previous 180/200 run (within expected sampling
+  movement). Accepted art/visual pathways were **175/175 precise**. Clear
+  cards were 173/187, side-by-side 114/120, spaced 52/60, overlapping 18/20,
+  and all three edge-clipped cards were correct. Median improved from
+  **7.093s to 6.1s** (14%) and p90 from **8.8s to 7.4s** (16%); average rank
+  time was 4.00s.
+
+An earlier candidate also shortened the isolation ANN proposal tail. It was
+faster on the targeted set, but a realistic run fell below the 95% gate. That
+shortcut was discarded: the final implementation keeps the complete proposal
+breadth and takes its speedup only from result-equivalent index traversal.
+
 ## 2026-07-25 — `isolation-retrieval-7` — above-click edge isolation
 
 The production-build candidate was tested from a stable local `vite preview`

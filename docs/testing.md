@@ -154,6 +154,13 @@ After a run, `window.__SNAPTEST_LAST_RESULT` and the hidden
 metadata observations on misses, so completed diagnostics remain available
 when browser clipboard or page-world access is unavailable.
 
+For a slow scan observed during a real game, inspect
+`window.__SNAP_RECOGNITION_TIMINGS`. It retains the latest 50 local timing
+records and separates capture/network delay from recognition and worker-stage
+time. The same breakdown appears in the card panel under `?debug=1`. The ring
+contains timing and counts only, never camera frames, card identity, room
+identity, or player content.
+
 ## Workflow
 
 1. Run **Tableau 10 — EDH staples**, click **Copy results**, paste the JSON.

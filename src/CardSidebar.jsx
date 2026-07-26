@@ -1142,6 +1142,22 @@ export default function CardSidebar({
                 <span>{CV_LABEL[current.cvStatus] || CV_LABEL.unknown}</span>
                 <span>{current.cardFound ? "Card outline detected" : "No outline — using crops"}</span>
                 {current.cameraRes && <span>Camera: {current.cameraRes}</span>}
+                {current.scanTiming && (
+                  <span>
+                    Timing: {current.scanTiming.totalMs}ms total
+                    {` · ${current.scanTiming.captureMs}ms capture`}
+                    {` · ${current.scanTiming.recognitionMs}ms recognition`}
+                    {current.scanTiming.isolationCandidates
+                      ? ` · ${current.scanTiming.isolationCandidates} isolation proposals`
+                      : ""}
+                  </span>
+                )}
+                {current.scanTiming?.stages && Object.keys(current.scanTiming.stages).length > 0 && (
+                  <span>
+                    Stages: {Object.entries(current.scanTiming.stages)
+                      .map(([name, ms]) => `${name} ${ms}ms`).join(" · ")}
+                  </span>
+                )}
                 {best && (
                   <span>
                     Best: d{best.distance} via {best.strategy || "?"} ({current.candidatesTried || 1} tried{current.cropsDropped ? `, ${current.cropsDropped} empty dropped` : ""})

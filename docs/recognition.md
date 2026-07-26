@@ -112,7 +112,9 @@ Scoring 58 crops against 110k printings would be far too slow, so:
 Each crop is hashed as 8 variants (raw and contrast-stretched × 4 rotations),
 so 90°/180° rotation is handled by the hash rather than by more crops. Scoring
 combines the grayscale hash, a 13-byte hue histogram, and a 32-byte
-art-region hash.
+art-region hash. Exact ranking evaluates all eight variants in one traversal
+of the full index. This produces the same minimum Hamming distance as eight
+separate passes while avoiding eight reads of the 7MB table for every seed.
 
 > **A crop must be a seed to introduce an answer on the ordinary fast path.**
 > Weak scans now have one deliberate exception: click-local isolation crops
@@ -214,7 +216,9 @@ visual fast path.
 
 ## Where the time goes
 
-Median ~1.6s, p90 ~5.7s on realistic scenes:
+The deterministic 100-card realistic tableau currently measures a 2.1s
+median and 5.7s p90. The harder edge-targeted set measures a 4.8s median
+because most scans activate click-local isolation:
 
 | Stage | Typical |
 | --- | --- |
@@ -222,6 +226,15 @@ Median ~1.6s, p90 ~5.7s on realistic scenes:
 | rank (seed scans + refine) | ~1.3s |
 | ORB verification | ~0.6s |
 | OCR | usually skipped |
+
+Live gameplay records the last 50 scans locally at
+`window.__SNAP_RECOGNITION_TIMINGS`. Each entry separates capture/network time
+from recognition time and includes worker-stage durations, candidate count,
+and isolation-proposal count; it contains no card, image, player, or room
+content. With `?debug=1`, the current card diagnostics show the same timing
+breakdown. This makes a slow remote capture distinguishable from a slow
+recognition fallback instead of treating the entire click-to-result delay as
+one opaque number.
 
 The tail is dominated by scenes with many overlapping cards, which generate
 far more contour quads (60–74 crops tried instead of ~39).

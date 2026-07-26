@@ -225,13 +225,43 @@ const ART_SHIFT_STRATEGIES = new Set([
   "full-frame", "content-box", "outline-1", "outline-2", "outline-3",
   "outline-4", "outline-5", "art-50", "art-65",
 ]);
-
 function hammingSearch(query, index, nCards, distsOut) {
   for (let i = 0; i < nCards; i++) {
     const off = i * VEC_BYTES;
     let d = 0;
     for (let b = 0; b < VEC_BYTES; b++) d += POPCOUNT[index[off + b] ^ query[b]];
     if (d < distsOut[i]) distsOut[i] = d;
+  }
+}
+
+// Exact crops always have eight variants (raw + contrast-stretched at four
+// rotations). Walking the 7MB index once per variant rereads it eight times.
+// Score all variants while each printing vector is hot instead. The minimum is
+// bit-for-bit identical to eight hammingSearch calls; only traversal order
+// changes.
+function hammingSearchVariants(queries, index, nCards, distsOut) {
+  if (queries.length !== 8) {
+    for (const query of queries) hammingSearch(query, index, nCards, distsOut);
+    return;
+  }
+  const [q0, q1, q2, q3, q4, q5, q6, q7] = queries;
+  for (let i = 0; i < nCards; i++) {
+    const off = i * VEC_BYTES;
+    let d0 = 0, d1 = 0, d2 = 0, d3 = 0;
+    let d4 = 0, d5 = 0, d6 = 0, d7 = 0;
+    for (let b = 0; b < VEC_BYTES; b++) {
+      const value = index[off + b];
+      d0 += POPCOUNT[value ^ q0[b]];
+      d1 += POPCOUNT[value ^ q1[b]];
+      d2 += POPCOUNT[value ^ q2[b]];
+      d3 += POPCOUNT[value ^ q3[b]];
+      d4 += POPCOUNT[value ^ q4[b]];
+      d5 += POPCOUNT[value ^ q5[b]];
+      d6 += POPCOUNT[value ^ q6[b]];
+      d7 += POPCOUNT[value ^ q7[b]];
+    }
+    const best = Math.min(d0, d1, d2, d3, d4, d5, d6, d7);
+    if (best < distsOut[i]) distsOut[i] = best;
   }
 }
 
@@ -1418,6 +1448,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   let bestAboveClickImage = null;
   let bestAboveClickDistance = 0xffff;
   let isolationDebug = null;
+  let isolationCandidates = 0;
   const recordCandidateBest = (p, candidateBest) => {
     const aboveClick = p.candidate.strategy.startsWith("isolate-top-edge-");
     if (aboveClick && candidateBest < bestAboveClickDistance) {
@@ -1571,7 +1602,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
   const scoreFull = (p, { escalation = false } = {}) => {
     candidatesTried++;
     const candidateDists = new Uint16Array(n).fill(0xffff);
-    for (const q of p.variants) hammingSearch(q, index, n, candidateDists);
+    hammingSearchVariants(p.variants, index, n, candidateDists);
     let candidateBest = 0xffff;
     for (let i = 0; i < n; i++) {
       if (candidateDists[i] < candidateBest) candidateBest = candidateDists[i];
@@ -1701,6 +1732,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
       })
         .map(prepareCandidate)
         .sort((a, b) => b.frame - a.frame);
+      isolationCandidates = isolation.length;
       isolationDebug = isolation.slice(0, 12).map((p) => ({
         strategy: p.candidate.strategy,
         score: +p.frame.toFixed(2),
@@ -1893,7 +1925,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     titleCount: preferredTitleCandidates.length,
     cardFound, cvStatus, candidatesTried, shardedIndex,
     cropsDropped: preparedAll.length - prepared.length,
-    isolationDebug,
+    isolationDebug, isolationCandidates,
     artBest, artChecked, artDecisive, stageMs: stage.ms,
     // OpenCV's WASM heap is invisible to performance.memory, which is why a
     // 1000-card run reported 52MB of JS heap while the tab held 1.5GB.

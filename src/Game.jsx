@@ -539,6 +539,8 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     const conn = connRef.current;
     const pt = clickToNormalized(videoEl, clientX, clientY, flipped);
     if (!pt) return;
+    const scanStartedAt = performance.now();
+    let captureMs = 0;
     const rect = videoEl.getBoundingClientRect();
     setFlash({ tileId, x: clientX - rect.left, y: clientY - rect.top });
     setTimeout(() => setFlash(null), 600);
@@ -549,13 +551,31 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       // local and remote). The crop is clamped to stay inside the camera frame,
       // so the click is at the crop center only when it was far enough from an
       // edge — cap.px/py reports where it actually landed.
+      const captureStartedAt = performance.now();
       const cap = tileId === myId
         ? await captureLocalFrame(conn.localStream, pt.nx, pt.ny)
         : await conn.requestRemoteCapture(tileId, pt.nx, pt.ny);
+      captureMs = Math.round(performance.now() - captureStartedAt);
+      const recognitionStartedAt = performance.now();
       const data = await identifyCard(cap.url, {
         nx: cap.px ?? 0.5,
         ny: cap.py ?? 0.5,
       });
+      const recognitionMs = Math.round(performance.now() - recognitionStartedAt);
+      const timing = {
+        at: Date.now(),
+        remote: tileId !== myId,
+        captureMs,
+        recognitionMs,
+        totalMs: Math.round(performance.now() - scanStartedAt),
+        stages: data.stage_ms || {},
+        candidatesTried: data.candidates_tried || 0,
+        isolationCandidates: data.isolation_candidates || 0,
+      };
+      globalThis.__SNAP_RECOGNITION_TIMINGS = [
+        ...(globalThis.__SNAP_RECOGNITION_TIMINGS || []).slice(-49),
+        timing,
+      ];
       setCurrent({
         matches: data.matches || [],
         cardFound: data.card_found,
@@ -574,6 +594,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
         metadataVetoed: data.metadata_vetoed,
         metadataConflictAll: data.metadata_conflict_all,
         metadataError: data.metadata_error,
+        scanTiming: timing,
         captureImage: cap.url,
         captureContext: {
           tileId,
@@ -594,6 +615,16 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
         setLookups((l) => [...l.slice(-11), { by: session.name, card: top, at: Date.now() }]);
       }
     } catch (e) {
+      globalThis.__SNAP_RECOGNITION_TIMINGS = [
+        ...(globalThis.__SNAP_RECOGNITION_TIMINGS || []).slice(-49),
+        {
+          at: Date.now(),
+          remote: tileId !== myId,
+          captureMs,
+          totalMs: Math.round(performance.now() - scanStartedAt),
+          error: String(e.message || e),
+        },
+      ];
       setCurrent({ error: String(e.message || e) });
     }
   }, [myId, openCardPanel, session.name]);
