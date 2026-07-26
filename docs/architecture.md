@@ -185,7 +185,7 @@ the main thread — an early bug that made the lobby unresponsive.
   audible offset, and stops after 2–3 seconds. The room never receives
   arbitrary audio URLs or uploads. Private whispers remain text-only. Sender UI and
 recipient playback both enforce a two-minute per-sender sound cooldown. Clips
-use a fixed 10% gain relative to the listener's browser/tab volume; there is
+use a fixed 30% gain relative to the listener's browser/tab volume; there is
 no separate in-app sound setting.
 - **Shared game events live in Chat.** Dice rolls, shared cards, life-total
   changes, and ready-check outcomes are compact structured Chat objects. Consecutive

@@ -240,11 +240,13 @@ above the composer so neither the sidebar’s clipped scroll area nor its
 backdrop layer can cut it off or place video above it. The two-option
 Emotes/Creatures segmented control sits above a category-scoped search field,
 with Emotes selected by default.
+The composer sits 8px above the panel’s bottom resting position and uses a
+10px radius, keeping it visually distinct without reading as a pill.
 Picker rows use Lucide Cat/Laugh icons and a single-line effect name rather
 than repeating the selected category as a subtitle. The chosen effect is shown
 as a compact, dismissible chip in the composer; its matching message chip
 remains visible in chat even if browser playback is blocked. Effects play at
-10% of the listener’s normal browser/tab volume because the source clips are
+30% of the listener’s normal browser/tab volume because the source clips are
 mastered loudly, without a separate in-app
 mute or volume control. Pressing Enter sends either text or a selected effect,
 so an effect can be sent on its own.
@@ -268,6 +270,10 @@ clicks wait for a two-second pause and report the net change. Cards and Chat
 are separate left-rail actions rather than a segmented
 control; a new Chat entry adds a small notification dot to the Chat icon until
 it is opened. Opening Chat always returns its message list to the latest entry.
+Full-width card, life, commander-damage, and sound objects align to the same
+left and right edges as the composer; compact dice and ready-state objects
+continue to hug their contents. Chat entries use 24px vertical spacing so
+activity remains distinct without making the timeline feel sparse.
 
 The Dice panel’s counter generator begins 24px below that action. Its staging
 well is headed by the same secondary 14px field label as the Die selector and
