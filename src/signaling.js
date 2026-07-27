@@ -1,10 +1,9 @@
 // Room signaling over Supabase Realtime (broadcast + presence). No server code.
 import { createClient } from "@supabase/supabase-js";
+import { isConfigured } from "./roomCode.js";
 
 const URL = import.meta.env.VITE_SUPABASE_URL;
 const KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-export const isConfigured = () => Boolean(URL && KEY);
 
 let supabase = null;
 function client() {
@@ -68,7 +67,7 @@ const RECOGNITION_OUTCOMES = new Set([
   "capture-error",
   "recognition-error",
 ]);
-const RECOGNITION_STAGE_KEYS = new Set(["prep", "hint", "rank", "orb", "ocr", "total"]);
+const RECOGNITION_STAGE_KEYS = new Set(["hintPrep", "prep", "hint", "rank", "orb", "ocr", "total"]);
 const VIDEO_QUALITY_VALUES = new Set(["720p", "1080p", "1440p", "2160p"]);
 
 function boundedInteger(value, max) {
@@ -116,9 +115,11 @@ export async function saveRecognitionTiming(event) {
   if (error) throw error;
 }
 
-async function dataUrlBlob(dataUrl) {
-  if (!dataUrl || !String(dataUrl).startsWith("data:")) return null;
-  const response = await fetch(dataUrl);
+async function captureBlob(value) {
+  if (value instanceof Blob) return value;
+  const url = String(value || "");
+  if (!url.startsWith("data:") && !url.startsWith("blob:")) return null;
+  const response = await fetch(url);
   return response.blob();
 }
 
@@ -133,7 +134,7 @@ export async function saveRecognitionReport(report) {
   const db = client();
   const capturePath = `${id}/capture.jpg`;
   let ocrPath = null;
-  const capture = await dataUrlBlob(report.captureImage);
+  const capture = await captureBlob(report.captureImage);
   if (!capture) throw new Error("Missing clicked-card capture");
   const { error: captureError } = await db.storage.from(REPORT_BUCKET).upload(capturePath, capture, {
     contentType: capture.type || "image/jpeg",
@@ -141,7 +142,7 @@ export async function saveRecognitionReport(report) {
   });
   if (captureError) throw captureError;
   if (report.ocrImage) {
-    const ocr = await dataUrlBlob(report.ocrImage);
+    const ocr = await captureBlob(report.ocrImage);
     if (ocr) {
       ocrPath = `${id}/ocr.jpg`;
       const { error: ocrError } = await db.storage.from(REPORT_BUCKET).upload(ocrPath, ocr, {
@@ -180,35 +181,9 @@ export async function labelRecognitionReport(id, editToken, truth) {
   if (error) throw error;
 }
 
-const CODE_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
-export const CODE_LENGTH = 6;
-
-// A room code is the ONLY thing protecting a game: anyone holding one can join
-// and request camera captures from every player. Four characters of this
-// alphabet is 923,521 combinations — sweepable in minutes — and Math.random()
-// is a predictable PRNG, so observing a few codes narrows the rest. Six
-// characters from a CSPRNG is ~887 million and unpredictable.
-export const makeCode = () => {
-  const out = new Uint32Array(CODE_LENGTH);
-  crypto.getRandomValues(out);
-  // Reject values in the final partial bucket so the modulo stays uniform.
-  const limit = Math.floor(0x100000000 / CODE_CHARS.length) * CODE_CHARS.length;
-  let code = "";
-  for (let i = 0; i < CODE_LENGTH; i++) {
-    let v = out[i];
-    while (v >= limit) {
-      const extra = new Uint32Array(1);
-      crypto.getRandomValues(extra);
-      v = extra[0];
-    }
-    code += CODE_CHARS[v % CODE_CHARS.length];
-  }
-  return code;
-};
-
 /**
  * Join a room channel.
- * handlers: onRoster(list) — [{id, name, joinedAt, role}] sorted by joinedAt
+ * handlers: onRoster(list) — [{id, name, joinedAt, role, protocol}] sorted by joinedAt
  *           onMessage(msg) — broadcast messages addressed to us (or everyone)
  * returns { myId, send(msg, to?), leave() }
  */
@@ -247,6 +222,7 @@ export async function joinRoom(code, name, role, {
             || (memberRole === "visitor" ? "Visitor" : "Player"),
           joinedAt: Number(metadata.joinedAt) || 0,
           role: memberRole,
+          protocol: Number(metadata.protocol) || 1,
         };
       })
       .sort((a, b) => a.joinedAt - b.joinedAt);
@@ -265,7 +241,7 @@ export async function joinRoom(code, name, role, {
       onStatus?.(status, statusError);
       if (status === "SUBSCRIBED") {
         try {
-          await ch.track({ name: safeName, joinedAt, role: safeRole });
+          await ch.track({ name: safeName, joinedAt, role: safeRole, protocol: 2 });
           if (!settled) {
             settled = true;
             resolve();

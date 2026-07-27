@@ -1,12 +1,21 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import {
   Check, Dices, FlipVertical2, Mic, MicOff, Minus, MoreVertical, PanelLeft, Plus, Shuffle, SkipForward,
   Swords, Video, VideoOff, X,
 } from "lucide-react";
 import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
 import { labelRecognitionReport, saveRecognitionReport, saveRecognitionTiming } from "./signaling.js";
-import { getCommanderPairing, suggestCardNames, suggestCommanderPartners } from "./cardSearch.js";
-import { identify as identifyCard, preload as preloadRecognition } from "./recognition/matcher.js";
+import {
+  fetchCardByName,
+  getCommanderPairing,
+  suggestCardNames,
+  suggestCommanderPartners,
+} from "./cardSearch.js";
+import {
+  identify as identifyCard,
+  preload as preloadRecognition,
+  preloadOCR,
+} from "./recognition/matcher.js";
 import {
   isReusableRecognitionMatch,
   nearbyRecognitionHints,
@@ -20,7 +29,19 @@ import {
   DEFAULT_OUTGOING_VIDEO_QUALITY,
   normalizeOutgoingVideoQuality,
   RECEIVER_VIDEO_QUALITY_VALUES,
+  resolveAdaptiveReceiverQuality,
 } from "./videoQuality.js";
+
+function shallowNonFunctionPropsEqual(previous, next) {
+  const keys = new Set([...Object.keys(previous), ...Object.keys(next)]);
+  for (const key of keys) {
+    if (typeof previous[key] === "function" && typeof next[key] === "function") continue;
+    if (!Object.is(previous[key], next[key])) return false;
+  }
+  return true;
+}
+
+const StableCardSidebar = React.memo(CardSidebar, shallowNonFunctionPropsEqual);
 
 const SOUND_COOLDOWN_MS = 120000;
 const CHAT_SHOWCASE_CARD = {
@@ -71,6 +92,8 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const recognitionHintsRef = useRef([]);
   const activeRecognitionRef = useRef(null);
   const latestRecognitionRequestRef = useRef(0);
+  const captureObjectUrlsRef = useRef([]);
+  const requestedVideoQualityRef = useRef(new Map());
   const chatNotificationsEnabledRef = useRef(true);
   const turnNotificationsEnabledRef = useRef(true);
   const activePlayerIdRef = useRef("");
@@ -525,6 +548,17 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     return () => clearTimeout(t);
   }, [scanNotice]);
 
+  useEffect(() => () => {
+    for (const url of captureObjectUrlsRef.current) URL.revokeObjectURL(url);
+    captureObjectUrlsRef.current = [];
+  }, []);
+
+  useEffect(() => {
+    if (!myId) return undefined;
+    const timer = setTimeout(() => preloadOCR(), 5000);
+    return () => clearTimeout(timer);
+  }, [myId]);
+
   // The first seated player establishes the opening turn. If the active
   // player leaves, the first remaining seat establishes the replacement.
   useEffect(() => {
@@ -615,8 +649,14 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       const cap = tileId === myId
         ? await captureLocalFrame(conn.localStream, pt.nx, pt.ny)
         : await conn.requestRemoteCapture(tileId, pt.nx, pt.ny);
+      if (String(cap.url || "").startsWith("blob:")) {
+        captureObjectUrlsRef.current.push(cap.url);
+        while (captureObjectUrlsRef.current.length > 32) {
+          URL.revokeObjectURL(captureObjectUrlsRef.current.shift());
+        }
+      }
       captureMs = Math.round(performance.now() - captureStartedAt);
-      captureChars = String(cap.url || "").length;
+      captureChars = Number(cap.bytes) || String(cap.url || "").length;
       phase = "recognition";
       recognitionStartedAt = performance.now();
       const hints = nearbyRecognitionHints(
@@ -625,7 +665,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
         pt.nx,
         pt.ny,
       );
-      const data = await identifyCard(cap.url, {
+      const data = await identifyCard(cap.blob || cap.url, {
         nx: cap.px ?? 0.5,
         ny: cap.py ?? 0.5,
       }, {
@@ -708,6 +748,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
         setLookups((l) => [...l.slice(-11), { by: session.name, card: top, at: Date.now() }]);
       }
     } catch (e) {
+      if (e?.code === "RECOGNITION_SUPERSEDED") return;
       const now = performance.now();
       if (phase === "capture" && captureStartedAt) {
         captureMs = Math.round(now - captureStartedAt);
@@ -756,9 +797,9 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     openCardPanel();
     setCurrent({ loading: true });
     try {
-      const response = await fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(cardName)}`);
-      if (!response.ok) throw new Error("Card not found");
-      const card = cardFromScryfall(await response.json());
+      const result = await fetchCardByName(cardName);
+      if (!result) throw new Error("Card not found");
+      const card = cardFromScryfall(result);
       setCurrent({ matches: [card] });
       setLookups((l) => [...l.slice(-11), { by: session.name, card, at: Date.now() }]);
     } catch (e) {
@@ -1034,8 +1075,8 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     if (!name) return;
     let typeLine = "";
     try {
-      const response = await fetch(`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(name)}`);
-      if (response.ok) typeLine = String((await response.json()).type_line || "");
+      const card = await fetchCardByName(name, { exact: true });
+      if (card) typeLine = String(card.type_line || "");
     } catch {
       // Keep the pairing usable if Scryfall is temporarily unavailable. A
       // missing type deliberately does not create a commander-damage row.
@@ -1266,7 +1307,6 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const chooseVideoQuality = useCallback((playerId, quality) => {
     if (!playerId || !RECEIVER_VIDEO_QUALITY_VALUES.includes(quality)) return;
     setVideoQualityByPlayer((values) => ({ ...values, [playerId]: quality }));
-    connRef.current?.requestVideoQuality(playerId, quality);
   }, []);
 
   const chooseOutgoingVideoQuality = useCallback(async (quality) => {
@@ -1317,6 +1357,92 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     setTimeout(() => setGameCodeCopied(false), 1600);
   };
 
+  useEffect(() => {
+    const remotePlayers = roster.filter((member) => (
+      member.role !== "visitor" && member.id !== myId
+    ));
+    const playerIds = roster.filter((member) => member.role !== "visitor").map((member) => member.id);
+    const activeId = activePlayerId || playerIds[0] || "";
+    const heroId = playerIds.includes(heroPlayerId) ? heroPlayerId : activeId;
+    const applyQuality = () => {
+      const liveIds = new Set(remotePlayers.map((player) => player.id));
+      for (const id of requestedVideoQualityRef.current.keys()) {
+        if (!liveIds.has(id)) requestedVideoQualityRef.current.delete(id);
+      }
+      for (const player of remotePlayers) {
+        const preferred = videoQualityByPlayer[player.id] || "auto";
+        const isPrimary = videoLayout === "tiles"
+          || (videoLayout === "follow" ? player.id === activeId : player.id === heroId);
+        const quality = resolveAdaptiveReceiverQuality({
+          preferred,
+          layout: videoLayout,
+          isPrimary,
+          hidden: document.hidden,
+        });
+        const stream = streams[player.id] || null;
+        const previous = requestedVideoQualityRef.current.get(player.id);
+        if (previous?.quality === quality && previous?.stream === stream) continue;
+        if (connRef.current?.requestVideoQuality(player.id, quality)) {
+          requestedVideoQualityRef.current.set(player.id, { quality, stream });
+        }
+      }
+    };
+    applyQuality();
+    document.addEventListener("visibilitychange", applyQuality);
+    return () => document.removeEventListener("visibilitychange", applyQuality);
+  }, [activePlayerId, heroPlayerId, myId, roster, streams, videoLayout, videoQualityByPlayer]);
+
+  const sidebarChatRecipients = useMemo(
+    () => roster.filter((member) => member.id !== myId),
+    [myId, roster],
+  );
+  const counterPlayers = useMemo(() => roster
+    .filter((player) => player.role !== "visitor")
+    .slice(0, 4)
+    .sort((a, b) => Number(b.id === myId) - Number(a.id === myId))
+    .map((player, index) => ({
+      ...player,
+      isMe: player.id === myId,
+      color: colors[player.id] || TILE_COLORS[index % TILE_COLORS.length],
+      commander: commanders[player.id] || "",
+      commanderPartner: commanderPartners[player.id] || "",
+      commanderPartnerType: commanderPartnerTypes[player.id] || "",
+      poison: poisonCounters[player.id] || 0,
+      commanderDamage: commanderDamage[player.id] || {},
+    })), [
+    colors,
+    commanderDamage,
+    commanderPartnerTypes,
+    commanderPartners,
+    commanders,
+    myId,
+    poisonCounters,
+    roster,
+  ]);
+  const counterPreviewPlayers = useMemo(() => (
+    import.meta.env.DEV && counterPlayers.length === 1
+      ? [
+        {
+          ...counterPlayers[0],
+          commanderDamage: {
+            "preview-maya": 6,
+            "p:preview-maya": 4,
+            "preview-drew": 12,
+            "preview-sam": 0,
+            ...counterPlayers[0].commanderDamage,
+          },
+        },
+        { id: "preview-maya", name: "Maya", color: TILE_COLORS[1], commander: "Atraxa, Praetors’ Voice", commanderPartner: "Tymna the Weaver", commanderPartnerType: "Legendary Creature — Human Cleric", poison: 0, commanderDamage: {}, isMe: false },
+        { id: "preview-drew", name: "Drew", color: TILE_COLORS[2], commander: "The Ur-Dragon", commanderPartner: "Feywild Visitor", commanderPartnerType: "Legendary Enchantment — Background", poison: 2, commanderDamage: {}, isMe: false },
+        { id: "preview-sam", name: "Sam", color: TILE_COLORS[3], commander: "Muldrotha, the Gravetide", poison: 0, commanderDamage: {}, isMe: false },
+      ]
+      : counterPlayers
+  ), [counterPlayers]);
+  const sidebarChatNameColors = useMemo(
+    () => Object.fromEntries(counterPlayers.map((player) => [player.id, player.color])),
+    [counterPlayers],
+  );
+
   const leaveGame = async () => {
     await connRef.current?.leaveIntentionally?.();
     onLeave();
@@ -1335,39 +1461,6 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const players = roster.filter((p) => p.role !== "visitor").slice(0, 4);
   const visitors = roster.filter((p) => p.role === "visitor");
   const resolvedActivePlayerId = activePlayerId || players[0]?.id || "";
-  const counterPlayers = [...players]
-    .sort((a, b) => Number(b.id === myId) - Number(a.id === myId))
-    .map((player, index) => ({
-      ...player,
-      isMe: player.id === myId,
-      color: colors[player.id] || TILE_COLORS[index % TILE_COLORS.length],
-      commander: commanders[player.id] || "",
-      commanderPartner: commanderPartners[player.id] || "",
-      commanderPartnerType: commanderPartnerTypes[player.id] || "",
-      poison: poisonCounters[player.id] || 0,
-      commanderDamage: commanderDamage[player.id] || {},
-    }));
-  // Local-only preview for reviewing the Commander damage layout with a full
-  // table. It is not included in the production build.
-  const counterPreviewPlayers = import.meta.env.DEV && counterPlayers.length === 1
-    ? [
-      {
-        ...counterPlayers[0],
-        // Seed the local visual preview, but let any adjustment replace its
-        // sample value rather than resetting after every render.
-        commanderDamage: {
-          "preview-maya": 6,
-          "p:preview-maya": 4,
-          "preview-drew": 12,
-          "preview-sam": 0,
-          ...counterPlayers[0].commanderDamage,
-        },
-      },
-      { id: "preview-maya", name: "Maya", color: TILE_COLORS[1], commander: "Atraxa, Praetors’ Voice", commanderPartner: "Tymna the Weaver", commanderPartnerType: "Legendary Creature — Human Cleric", poison: 0, commanderDamage: {}, isMe: false },
-      { id: "preview-drew", name: "Drew", color: TILE_COLORS[2], commander: "The Ur-Dragon", commanderPartner: "Feywild Visitor", commanderPartnerType: "Legendary Enchantment — Background", poison: 2, commanderDamage: {}, isMe: false },
-      { id: "preview-sam", name: "Sam", color: TILE_COLORS[3], commander: "Muldrotha, the Gravetide", poison: 0, commanderDamage: {}, isMe: false },
-    ]
-    : counterPlayers;
   const orderedPlayers = [...players].sort((a, b) => {
     const ai = gridOrder.indexOf(a.id);
     const bi = gridOrder.indexOf(b.id);
@@ -1426,7 +1519,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
         ))}
 
       <div className="main">
-        <CardSidebar
+        <StableCardSidebar
             current={current}
             lookups={lookups}
             recognitionReports={recognitionReports}
@@ -1434,9 +1527,9 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
             onUpdateRecognitionReport={updateRecognitionReport}
             chatMessages={chatMessages}
             currentUserId={myId}
-            chatRecipients={roster.filter((member) => member.id !== myId)}
+            chatRecipients={sidebarChatRecipients}
             chatParticipants={roster}
-            chatNameColors={Object.fromEntries(tiles.filter((tile) => !tile.empty).map((tile) => [tile.id, tile.color]))}
+            chatNameColors={sidebarChatNameColors}
             onSendChat={sendChat}
             soundCooldownUntil={soundCooldownUntil}
             onPreviewSound={(soundId, onError) => {
@@ -1652,12 +1745,11 @@ function useSpeaking(stream, disabled = false) {
     if (!context) return undefined;
     const source = context.createMediaStreamSource(stream);
     const analyser = context.createAnalyser();
-    analyser.fftSize = 1024;
+    analyser.fftSize = 256;
     analyser.smoothingTimeConstant = 0.35;
     source.connect(analyser);
 
     const samples = new Float32Array(analyser.fftSize);
-    let frame = 0;
     let lastVoiceAt = 0;
     let active = false;
     let noiseFloor = 0.004;
@@ -1681,13 +1773,13 @@ function useSpeaking(stream, disabled = false) {
         active = next;
         setSpeaking(next);
       }
-      frame = requestAnimationFrame(update);
     };
     if (context.state === "suspended") context.resume().catch(() => {});
-    frame = requestAnimationFrame(update);
+    update();
+    const timer = setInterval(update, 66);
 
     return () => {
-      cancelAnimationFrame(frame);
+      clearInterval(timer);
       source.disconnect();
       analyser.disconnect();
     };
@@ -1712,7 +1804,7 @@ function formatVideoResolution(resolution) {
   return `${height}p`;
 }
 
-function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseCommander, onChooseCommanderPartner, onLookupCommander, onChangeLife, onOpenCounters, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, isReadyCheckActive, readyStatus, onReady, onNotReady, heroRole, onSelectHero, flash, scanNotice, camOn, micOn, onToggleCam, onToggleMic, videoQuality, onVideoQualityChange, videoCounters, counterDragPreview, onStartVideoCounterDrag, onChangeVideoCounter, onRemoveVideoCounter, flipped, onToggleFlip }) {
+const VideoTile = React.memo(function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseCommander, onChooseCommanderPartner, onLookupCommander, onChangeLife, onOpenCounters, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, isReadyCheckActive, readyStatus, onReady, onNotReady, heroRole, onSelectHero, flash, scanNotice, camOn, micOn, onToggleCam, onToggleMic, videoQuality, onVideoQualityChange, videoCounters, counterDragPreview, onStartVideoCounterDrag, onChangeVideoCounter, onRemoveVideoCounter, flipped, onToggleFlip }) {
   // Seats 3 and 4 (the bottom row of a 4-player grid) mirror their banner to
   // the bottom edge and their life badge to the top corner, since those
   // tiles sit upside-down relative to the viewer's side of the table.
@@ -1770,11 +1862,15 @@ function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseComm
       // to report the dimensions actually decoded by this browser.
       const width = video.videoWidth || Number(settings?.width) || 0;
       const height = video.videoHeight || Number(settings?.height) || 0;
-      setVideoResolution(width && height ? { width, height } : null);
+      setVideoResolution((current) => {
+        if (!width || !height) return current == null ? current : null;
+        if (current?.width === width && current?.height === height) return current;
+        return { width, height };
+      });
     };
     video.addEventListener("loadedmetadata", update);
     video.addEventListener("resize", update);
-    const timer = setInterval(update, 2000);
+    const timer = setInterval(update, 5000);
     update();
     return () => {
       video.removeEventListener("loadedmetadata", update);
@@ -1959,7 +2055,12 @@ function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseComm
       </div>
     </div>
   );
-}
+}, (previous, next) => {
+  const { tile: previousTile, ...previousProps } = previous;
+  const { tile: nextTile, ...nextProps } = next;
+  return shallowNonFunctionPropsEqual(previousProps, nextProps)
+    && shallowNonFunctionPropsEqual(previousTile || {}, nextTile || {});
+});
 
 function VideoCounterSticker({ counter, color, editable, preview, onStartDrag, onChange, onRemove }) {
   const type = getVideoCounterType(counter.type);
@@ -2173,18 +2274,12 @@ function CommanderBanner({ tile, onChoose, onChoosePartner, onLookupCommander, s
     const controller = new AbortController();
     (async () => {
       try {
-        const response = await fetch(`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(name)}`, {
-          signal: controller.signal,
-        });
-        if (!response.ok) return;
-        const card = await response.json();
+        const card = await fetchCardByName(name, { exact: true, signal: controller.signal });
+        if (!card) return;
         const partnerName = tile.commanderPartner?.trim();
-        const partnerResponse = partnerName
-          ? await fetch(`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(partnerName)}`, {
-            signal: controller.signal,
-          })
+        const partner = partnerName
+          ? await fetchCardByName(partnerName, { exact: true, signal: controller.signal })
           : null;
-        const partner = partnerResponse?.ok ? await partnerResponse.json() : null;
         setCommanderCard(card);
         setCommanderColors([...new Set([
           ...(Array.isArray(card.color_identity) ? card.color_identity : []),

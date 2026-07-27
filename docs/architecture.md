@@ -39,15 +39,17 @@ Dependencies are deliberately few: `react`, `react-dom`, `@supabase/supabase-js`
 ```
 src/
   main.jsx              entry; lazy routes /snaptest and /turntest vs the app
-  App.jsx               Lobby ↔ Game switch, theme
-  Lobby.jsx             create/join, device pick, core recognition warm-up/readiness
+  App.jsx               Lobby ↔ lazy-loaded Game, theme
+  Lobby.jsx             create/join, device pick, idle recognition warm-up
   Game.jsx              video tiles, life, turns, public chat/whispers, dice, capture clicks
   CardSidebar.jsx       results panel + ?debug=1 diagnostics
+  cardNameIndex.js      local card-name search index and query cache
   chatCommands.js       /whisper parsing and @recipient matching
+  roomCode.js           room-code generation/config check without Supabase
   soundEffects.js       vetted local sound catalogue and 3-second playback cap
   TurnTest.jsx          credential-safe production relay health page
   webrtc.js             mesh, data channels, capture request/response
-  signaling.js          Supabase Realtime room join, room codes
+  signaling.js          Supabase Realtime room join and persistence helpers
   captureGeometry.js    crop maths shared by production and the benchmark
   cardSearch.js         local name autocomplete
   recognition/
@@ -84,7 +86,7 @@ exposing the account ID or analytics token.
 
 Built by `scripts/build_index.py`, run by the **Build card index** GitHub
 Action (monthly, or manually), which commits the result to `main`. Version 4,
-currently **110,524 printings / 35,026 names / 256 shards**.
+currently **110,592 printings / 35,052 names / 256 shards**.
 
 | File | Size | Loaded by | Purpose |
 | --- | --- | --- | --- |
@@ -149,6 +151,11 @@ the main thread — an early bug that made the lobby unresponsive.
   participants. Both players and visitors can inspect cards; requests are
   rate limited per peer, every capture is visibly announced to the board
   owner, and every peer-controlled field is bounds-checked.
+- **Late-join state is batched.** A presence sync sends one targeted,
+  bounds-checked state snapshot per new protocol-2 peer instead of rebroadcasting
+  every life, commander, counter, color, and camera field to the whole room.
+  Presence advertises the protocol version; older open tabs receive targeted
+  legacy messages during a rolling deploy.
 - **Connection failures are observable.** Supabase Realtime heartbeats run in
   its worker so a backgrounded tab is less likely to disappear from presence.
   The client keeps the latest 80 connection events locally at
@@ -195,9 +202,10 @@ the main thread — an early bug that made the lobby unresponsive.
   when the room/tab ends.
 - **Card clicks are latest-request-wins.** A second click on the same board
   spot while recognition is active is coalesced instead of queueing duplicate
-  work. A click elsewhere supersedes the older result, so a slow earlier scan
-  cannot replace the card the player most recently requested. Completed stale
-  scans may still contribute verified room hints and content-free timings.
+  work. Recognition has one active job and at most one waiting job; a newer
+  click replaces the waiting job. A slow earlier scan cannot replace the card
+  the player most recently requested, and rapid clicking cannot build an
+  unbounded bitmap/OCR queue.
 - **Public chat and private whispers take different routes.** Ordinary chat is
   a Supabase room broadcast. `/whisper @name` resolves the selected roster ID
   and sends only over that participant's encrypted WebRTC data channel. Both
@@ -244,7 +252,26 @@ no separate in-app sound setting.
   local camera track remains at native detail for card-recognition captures;
   only the encoded WebRTC stream is capped. WebRTC may still adapt down when
   the source camera or network cannot sustain the target, and the tile reports
-  the decoded resolution it is actually receiving.
+  the decoded resolution it is actually receiving. Hidden tabs and non-primary
+  Follow/Hero tiles request 720p automatically; the visible tile view caps Auto
+  at 1080p. The user's explicit per-player choice returns when that stream is
+  primary again.
+
+## Runtime performance
+
+- The landing bundle excludes the Game, WebRTC/Supabase room code, recognition
+  worker front end, and Tesseract. Game loads only when a session starts;
+  recognition warms during lobby idle time; OCR loads after entry when the
+  browser is idle.
+- Card-name suggestions use the bundled 35k-name index first. In-memory query
+  and Scryfall-response caches deduplicate autocomplete, exact-card, fuzzy-card,
+  and commander-partner requests without persisting browsing data.
+- Camera capture reuses one video element and three canvases per local track.
+  The chosen JPEG travels as bounded 48KB binary data-channel chunks rather
+  than a base64 JSON string; object URLs are bounded and revoked.
+- Video tiles and the card sidebar are memoized away from unrelated game-state
+  renders. Speaking meters sample at roughly 15Hz with a 256-bin analyser, and
+  decoded-resolution polling runs every five seconds.
 
 ## Security posture
 

@@ -90,7 +90,7 @@ add ~1%.
 | **Tableau 10 / 100** | Same scenes, uniform draw from the whole index |
 | **Random 200** | Single cards, fresh sample — discovers new failure cases |
 | **Fixed 200 / 1000** | Single cards, identical every run — regression checking |
-| **Recent-card fast path (20 repeated scans)** | Runs each degraded card normally, then repeats the exact capture with the first result as a hint; verifies both correctness and measured speedup |
+| **Recent-card fast path (20 repeated scans)** | Runs each degraded card normally, then repeats the exact capture with the first result as a hint; verifies correctness, speedup, and whether any scan escaped the outline-only hint tier into the complete crop/index pipeline |
 | **Fixed top-edge 64** | Four deterministic repetitions of degrade-v2's hardest clipped placement |
 | **EDH staples 200** | Single cards from the realistic pool |
 
@@ -128,6 +128,29 @@ repeated scans)**. `summary.recentHint.hits` must equal `attempted`, accuracy
 must remain 100%, the WASM heap must stay flat, and `baselineAvgMs /
 hintAvgMs` must show a material speedup. This targeted mode proves the fast
 path; it does not replace the ordinary no-hint release suites.
+
+`summary.recentHint.fullCropFallbacks` must be empty for this deterministic
+mode. Each fallback records the framing strategy and stage timings so a future
+crop change cannot quietly move repeated scans back onto the expensive full
+path.
+
+## Fast local policy checks
+
+These do not replace SNAPTEST, but catch contracts that do not require pixels:
+
+```sh
+node scripts/test_recognition_hints.mjs
+node scripts/test_recognition_queue.mjs
+node scripts/test_video_quality.mjs
+node scripts/test_card_search_cache.mjs
+node scripts/test_metadata_evidence.mjs
+python3 scripts/check_hash_duplication.py
+```
+
+`test_card_search_cache.mjs` verifies multi-word local autocomplete and that
+concurrent identical Scryfall lookups share one request. Hash-compatibility and
+index-generation Python checks additionally require OpenCV (`cv2`) in the
+Python environment.
 
 ## Reading the results
 

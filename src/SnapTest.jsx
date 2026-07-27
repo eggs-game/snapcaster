@@ -62,6 +62,7 @@ function captureDiagnostics(rec, data, trueName) {
   const top = matches[0];
   rec.top = top && top.name;
   rec.by = top && top.identified_by;
+  rec.strategy = top && top.strategy;
   rec.dist = top && top.distance;
   rec.conf = top && typeof top.confidence === "number" ? +top.confidence.toFixed(2) : null;
   rec.top3 = matches.slice(0, 3).map((m) => `${m.name} (d=${m.distance})`);
@@ -551,6 +552,16 @@ export default function SnapTest() {
         baselineAvgMs,
         hintAvgMs,
         speedup: hintAvgMs ? +(baselineAvgMs / hintAvgMs).toFixed(2) : null,
+        fullCropFallbacks: hintRows.filter((row) => row.stages?.prep != null).map((row) => ({
+          i: row.i,
+          name: row.name,
+          rotation: row.rotationClass,
+          occlusion: row.occ,
+          placement: row.placementClass,
+          pathway: row.by,
+          strategy: row.strategy,
+          stages: row.stages,
+        })),
       };
     }
     // Group errors by stage (image-load / timeout / identify-error / other) so
@@ -565,7 +576,7 @@ export default function SnapTest() {
     // Mean per-pipeline-stage timing (prep = crops/outline, rank = 110k hash
     // scan, orb = art verification, ocr = tesseract) — points speed work at
     // the actual hotspot rather than guesses.
-    const stageKeys = ["prep", "hint", "rank", "orb", "ocr", "total"];
+    const stageKeys = ["hintPrep", "prep", "hint", "rank", "orb", "ocr", "total"];
     const withStages = okList.filter((r) => r.stages);
     sum.stageAvgMs = {};
     for (const k of stageKeys) {

@@ -1,6 +1,6 @@
 # How Snapcast identifies cards quickly
 
-One click, ~1.6s median, against 110,524 printings — without a server and
+One click, ~1.8s median, against 110,592 printings — without a server and
 without a trained model.
 
 **There is no machine learning here.** No weights, no training, nothing to
@@ -36,11 +36,15 @@ at least one well-framed crop from a click.
 `webrtc.js · captureLocalFrame`
 
 Clicking a card on someone's tile sends a request over the data channel; that
-player's own browser photographs its camera at **native resolution** and
+player’s own browser photographs its camera at **native resolution** and
 returns the crop. The compressed video stream is never used for recognition.
 
 - Camera requested at up to 4K.
 - Takes the sharpest of 3 frames (gradient variance) to dodge motion blur.
+- Reuses the video/canvas capture buffers for that camera track and encodes the
+  chosen frame asynchronously as JPEG.
+- Sends bounded 48KB binary chunks over the reliable data channel. Legacy tabs
+  still receive a data URL during a rolling deploy.
 - The square crop is **clamped inside the frame**. It used to be centred on
   the click and black-padded when it ran off the edge — a card held beside
   someone's head lost 30%+ of the capture to black, which skewed the colour
@@ -105,7 +109,7 @@ uncertain, so it does not tax ordinary exact scans.
 
 Scoring 58 crops against 110k printings would be far too slow, so:
 
-- ~10 **seed** crops get a full scan of all 110,524 printings.
+- ~10 **seed** crops get a full scan of all 110,592 printings.
 - Each seed contributes its ~1,000 closest printings to a shortlist.
 - The remaining crops only refine that shortlist.
 
@@ -204,15 +208,16 @@ visual or art match, so the common fast path keeps its existing cost.
 
 ## Cold-start warm-up
 
-The lobby immediately starts the recognition worker and does not label it
-ready until the worker confirms that OpenCV and the full hash/card/color/art
-tables are resident. The worker remains alive when the lobby transitions into
-the game, moving the unavoidable WASM compile and index parsing ahead of the
-first card click. A safe diagnostic is available at
+The lightweight landing screen does not load Game, WebRTC, Supabase,
+recognition, or OCR. Once the create/join lobby is open, an idle callback starts
+the recognition worker and reports ready after OpenCV and the full
+hash/card/color/art tables are resident. The worker remains alive when the
+lobby transitions into the game, moving the unavoidable WASM compile and index
+parsing ahead of the first card click. A safe diagnostic is available at
 `window.__SNAP_RECOGNITION_WARMUP`; it contains status and timings but no card,
-camera, or player data. The first Tesseract worker warms only after the core is
-ready and the browser is idle, so optional OCR cannot compete with the common
-visual fast path.
+camera, or player data. Tesseract is dynamically imported and warms after game
+entry only when the browser is idle, so optional OCR cannot compete with the
+common visual fast path or initial page load.
 
 ## Verified recent-card fast path
 
@@ -223,30 +228,31 @@ timestamp, and shares it ephemerally with the room. Every participant
 contributes to and consumes this shortlist. A later click within 15% of that
 board position tests at most 12 hinted printings before the full index.
 
-Hints are candidates, never answers. The worker hashes every prepared crop
-against the hinted printing and accepts it only at distance 90 or better, or
-after a decisive ORB art verification when the distance is at most 180. A
-stale, moved, or incorrect hint therefore falls through to the unchanged
-110,000-printing rank/verify/OCR pipeline. The local cache contains at most 32
-hints, expires them after four hours, and is discarded with the page.
+Hints are candidates, never answers. The worker first tests six cheap
+click-local crops, then only OpenCV's card-outline rectifications, against the
+hinted printing. It accepts only at distance 90 or better, or after a decisive
+ORB art verification when the distance is at most 180. Only a stale, moved, or
+incorrect hint pays for the complete crop family and 110,000-printing
+rank/verify/OCR pipeline. The local cache contains at most 32 hints, expires
+them after four hours, and is discarded with the page.
 
 The click scheduler separately coalesces an in-flight duplicate at the same
-spot. A different newer click can start immediately, but only its result may
-update the card panel; the older completion cannot surface later and replace
-what the player most recently requested.
+spot. There is one active recognition and one newest waiting recognition; a
+new click replaces the waiting job instead of growing a bitmap/OCR backlog.
+Only the latest requested result may update the card panel.
 
 ## Where the time goes
 
-The deterministic 100-card realistic tableau currently measures a 2.1s
-median and 5.7s p90. The harder edge-targeted set measures a 4.8s median
+The deterministic 100-card realistic tableau currently measures a 1.84s
+median and 5.05s p90. The harder edge-targeted set measures a 4.8s median
 because most scans activate click-local isolation:
 
 | Stage | Typical |
 | --- | --- |
-| prep (crops, contours) | ~0.5s |
-| hint (when a nearby card was seen) | ~0.02s after prep |
-| rank (seed scans + refine) | ~1.3s |
-| ORB verification | ~0.6s |
+| prep (crops, contours) | ~0.53s |
+| hintPrep + hint (nearby card, outline tier) | ~0.27s total |
+| rank (seed scans + refine) | ~1.10s |
+| ORB verification | ~0.59s |
 | OCR | usually skipped |
 
 Live gameplay records the last 50 scans locally at
@@ -290,7 +296,7 @@ far more contour quads (60–74 crops tried instead of ~39).
   breaks it, not how much is hidden.
 - **Pixels.** 720p across a 20-card playmat cannot work. 1080p is borderline,
   4K comfortable.
-- **An immediate click during lobby warm-up** can still wait for OpenCV and the
-  index. Once the lobby reports “Recognition ready,” the first click uses the
-  same resident core as later scans.
+- **An immediate click before idle warm-up finishes** can still wait for
+  OpenCV and the index. Once the lobby reports “Recognition ready,” the first
+  click uses the same resident core as later scans.
 - **Brand-new sets** are missing until the monthly index rebuild.

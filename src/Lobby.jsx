@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ArrowRight, Camera, FlipVertical2, Mic, MicOff, X } from "lucide-react";
-import { isConfigured, makeCode, CODE_LENGTH } from "./signaling.js";
-import { preload as preloadRecognition } from "./recognition/matcher.js";
+import { isConfigured, makeCode, CODE_LENGTH } from "./roomCode.js";
 import SiteFooter from "./SiteFooter.jsx";
 
 function HeroBackdrop() {
@@ -59,9 +58,28 @@ export default function Lobby({ onStart }) {
   const previewRequestRef = useRef(0);
 
   useEffect(() => {
-    preloadRecognition()
-      .then((count) => { setIndexCount(count); setIndexStatus("ok"); })
-      .catch(() => setIndexStatus("missing"));
+    let cancelled = false;
+    const warm = () => {
+      import("./recognition/matcher.js")
+        .then(({ preload }) => preload())
+        .then((count) => {
+          if (!cancelled) {
+            setIndexCount(count);
+            setIndexStatus("ok");
+          }
+        })
+        .catch(() => {
+          if (!cancelled) setIndexStatus("missing");
+        });
+    };
+    const idleId = typeof requestIdleCallback === "function"
+      ? requestIdleCallback(warm, { timeout: 1500 })
+      : setTimeout(warm, 250);
+    return () => {
+      cancelled = true;
+      if (typeof cancelIdleCallback === "function") cancelIdleCallback(idleId);
+      else clearTimeout(idleId);
+    };
   }, []);
 
   useEffect(() => {
@@ -224,7 +242,7 @@ export default function Lobby({ onStart }) {
   const joinGame = (event) => {
     event.preventDefault();
     if (code.length !== CODE_LENGTH) {
-      setError("Enter the four-character game code.");
+      setError("Enter the six-character game code.");
       return;
     }
     stopPreview();
@@ -239,7 +257,7 @@ export default function Lobby({ onStart }) {
   const continueToSetup = (event) => {
     event.preventDefault();
     if (code.length !== CODE_LENGTH) {
-      setError("Enter the four-character game code.");
+      setError("Enter the six-character game code.");
       return;
     }
     setError("");
@@ -355,7 +373,7 @@ export default function Lobby({ onStart }) {
                         setCode(event.target.value.replace(/[^a-z0-9]/gi, "").toUpperCase().slice(0, CODE_LENGTH));
                         setError("");
                       }}
-                      placeholder="ABCD"
+                      placeholder="ABC234"
                       maxLength={CODE_LENGTH}
                       autoFocus
                     />

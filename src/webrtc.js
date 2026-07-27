@@ -74,11 +74,13 @@ function safeIceServers(value) {
 }
 
 const CHUNK = 12000; // chars per data-channel chunk
+const BINARY_CHUNK = 48 * 1024;
 
 // Hard limits on anything a PEER can influence. The data channel carries JSON
 // straight from another browser, so every field below is attacker-controlled.
 const MAX_CAPTURE_CHARS = 8 * 1024 * 1024;              // ~8MB assembled data URL
 const MAX_CHUNKS = Math.ceil(MAX_CAPTURE_CHARS / CHUNK);
+const MAX_BINARY_CHUNKS = Math.ceil(MAX_CAPTURE_CHARS / BINARY_CHUNK);
 const CHUNK_TTL_MS = 30000;        // drop transfers that never complete
 const CAPTURE_MIN_INTERVAL_MS = 1200; // per-peer floor between capture requests
 const CAPTURE_BURST = 4;              // allowance for a quick flurry of clicks
@@ -89,6 +91,21 @@ const PEER_DISCONNECT_GRACE_MS = 15000;
 const PLAYER_STATE_KEY_PREFIX = "snapcast-room-player-state:";
 const LIFECYCLE_KEY_PREFIX = "snapcast-room-lifecycle:";
 const LIFECYCLE_HEARTBEAT_MS = 5000;
+const SNAPSHOT_MESSAGE_TYPES = new Set([
+  "identity",
+  "life",
+  "lobby-name",
+  "commander",
+  "commander-partner",
+  "color",
+  "muted",
+  "camera-enabled",
+  "active-player",
+  "grid-order",
+  "poison",
+  "commander-damage",
+  "video-counter",
+]);
 
 export class GameConnection {
   constructor(handlers) {
@@ -557,8 +574,39 @@ export class GameConnection {
     this.h.onRoster?.(this.roster);
   }
 
+  _stateSnapshotMessages() {
+    const messages = [
+      { type: "identity", name: this.name },
+      { type: "muted", muted: this.muted },
+      { type: "camera-enabled", enabled: this.cameraEnabled },
+    ];
+    if (this.role === "visitor") return messages;
+    messages.push(
+      { type: "life", life: this.life },
+      ...(this.lobbyName ? [{ type: "lobby-name", lobbyName: this.lobbyName }] : []),
+      { type: "commander", commander: this.commander },
+      {
+        type: "commander-partner",
+        partner: this.commanderPartner,
+        typeLine: this.commanderPartnerType,
+      },
+      { type: "color", color: this.color },
+      ...(this.activePlayerId ? [{ type: "active-player", playerId: this.activePlayerId }] : []),
+      ...(this.gridOrder.length ? [{ type: "grid-order", order: this.gridOrder }] : []),
+      { type: "poison", value: this.poison },
+      ...Object.entries(this.commanderDamage).map(([attackerId, value]) => ({
+        type: "commander-damage",
+        attackerId,
+        value,
+      })),
+      ...this.videoCounters.map((counter) => ({ type: "video-counter", counter })),
+    );
+    return messages;
+  }
+
   _onRoster(presenceRoster) {
     const previousRoster = this.roster;
+    const snapshotTargets = new Set();
     this.presenceRoster = presenceRoster;
     // Presence can sync before our own track has propagated, giving a roster
     // that lists existing members but not us. Deciding offers from such a
@@ -604,6 +652,7 @@ export class GameConnection {
     for (const member of presenceRoster) {
       const departureTimer = this.departureTimers.get(member.id);
       if (!departureTimer) continue;
+      snapshotTargets.add(member.id);
       clearTimeout(departureTimer);
       this.departureTimers.delete(member.id);
       this.h.onPeerReconnecting?.(member.id, false);
@@ -663,33 +712,22 @@ export class GameConnection {
     const me = presenceRoster.find((r) => r.id === this.myId);
     for (const r of presenceRoster) {
       if (r.id === this.myId || this.knownIds.has(r.id)) continue;
+      snapshotTargets.add(r.id);
       this.knownIds.add(r.id);
       if (me && r.joinedAt < me.joinedAt) this._makeOffer(r.id);
     }
     this.h.onRoster?.(this.roster);
-    if (this.role === "player") {
-      this.room?.send({ type: "life", life: this.life });
-      if (this.lobbyName) this.room?.send({ type: "lobby-name", lobbyName: this.lobbyName });
-      this.room?.send({ type: "commander", commander: this.commander });
-      this.room?.send({
-        type: "commander-partner",
-        partner: this.commanderPartner,
-        typeLine: this.commanderPartnerType,
-      });
-      this.room?.send({ type: "color", color: this.color });
-      if (this.activePlayerId) this.room?.send({ type: "active-player", playerId: this.activePlayerId });
-      if (this.gridOrder.length) this.room?.send({ type: "grid-order", order: this.gridOrder });
-      this.room?.send({ type: "poison", value: this.poison });
-      for (const [attackerId, value] of Object.entries(this.commanderDamage)) {
-        this.room?.send({ type: "commander-damage", attackerId, value });
-      }
-      for (const counter of this.videoCounters) {
-        this.room?.send({ type: "video-counter", counter });
+    const messages = this._stateSnapshotMessages();
+    for (const targetId of snapshotTargets) {
+      const target = presenceRoster.find((member) => member.id === targetId);
+      if ((target?.protocol || 1) >= 2) {
+        this.room?.send({ type: "state-snapshot", messages }, targetId);
+      } else {
+        // Tabs loaded before protocol 2 do not understand snapshots. Keep a
+        // rolling deploy compatible by targeting the legacy messages to them.
+        for (const message of messages) this.room?.send(message, targetId);
       }
     }
-    this.room?.send({ type: "identity", name: this.name });
-    this.room?.send({ type: "muted", muted: this.muted });
-    this.room?.send({ type: "camera-enabled", enabled: this.cameraEnabled });
   }
 
   async _onSignal(msg) {
@@ -712,6 +750,15 @@ export class GameConnection {
     }
     const senderRole = this.roster.find((r) => r.id === msg.from)?.role || "player";
     switch (msg.type) {
+      case "state-snapshot": {
+        if (!this.roster.some((member) => member.id === msg.from)) break;
+        const messages = Array.isArray(msg.messages) ? msg.messages.slice(0, 40) : [];
+        for (const message of messages) {
+          if (!SNAPSHOT_MESSAGE_TYPES.has(message?.type)) continue;
+          await this._onSignal({ ...message, from: msg.from });
+        }
+        break;
+      }
       case "identity": {
         const identityName = String(msg.name || "").trim().slice(0, 24);
         if (!identityName) break;
@@ -992,7 +1039,54 @@ export class GameConnection {
   _setupDC(peerId, dc) {
     const entry = this.peers.get(peerId);
     entry.dc = dc;
+    dc.binaryType = "arraybuffer";
     dc.onmessage = async (e) => {
+      if (e.data instanceof ArrayBuffer || ArrayBuffer.isView(e.data) || e.data instanceof Blob) {
+        const meta = entry.nextBinaryChunk;
+        entry.nextBinaryChunk = null;
+        if (!meta || !this.pending.has(meta.id)) return;
+        const bytes = e.data instanceof Blob
+          ? new Uint8Array(await e.data.arrayBuffer())
+          : e.data instanceof ArrayBuffer
+            ? new Uint8Array(e.data)
+            : new Uint8Array(e.data.buffer, e.data.byteOffset, e.data.byteLength);
+        if (bytes.byteLength > BINARY_CHUNK) return;
+        const key = `binary:${meta.id}`;
+        this._sweepChunks(entry);
+        if (!entry.chunks.has(key)) {
+          entry.chunks.set(key, {
+            parts: new Array(meta.n),
+            got: 0,
+            bytes: 0,
+            at: Date.now(),
+            mime: meta.mime,
+            px: meta.px,
+            py: meta.py,
+          });
+        }
+        const buf = entry.chunks.get(key);
+        if (buf.parts[meta.i] === undefined) {
+          buf.bytes += bytes.byteLength;
+          if (buf.bytes > MAX_CAPTURE_CHARS) {
+            entry.chunks.delete(key);
+            return;
+          }
+          buf.parts[meta.i] = bytes;
+          buf.got++;
+        }
+        if (buf.got === meta.n) {
+          entry.chunks.delete(key);
+          const blob = new Blob(buf.parts, { type: buf.mime || "image/jpeg" });
+          this._resolveCapture(meta.id, {
+            blob,
+            url: URL.createObjectURL(blob),
+            bytes: blob.size,
+            px: buf.px,
+            py: buf.py,
+          });
+        }
+        return;
+      }
       let m;
       try { m = JSON.parse(e.data); } catch { return; }
       if (typeof m?.t !== "string" || typeof m.id !== "string" || m.id.length > 64) return;
@@ -1005,7 +1099,24 @@ export class GameConnection {
         if (!this._mayCapture(peerId)) return;
         try {
           const cap = await captureLocalFrame(this.localStream, m.nx, m.ny);
-          this._sendChunked(peerId, { t: "cap-res", id: m.id, px: cap.px, py: cap.py }, cap.url);
+          try {
+            if (m.binary === 1) {
+              const sent = await this._sendBinaryChunked(
+                peerId,
+                { id: m.id, px: cap.px, py: cap.py, mime: cap.blob.type },
+                cap.blob,
+              );
+              if (!sent) throw new Error("capture channel closed");
+            } else {
+              this._sendChunked(
+                peerId,
+                { t: "cap-res", id: m.id, px: cap.px, py: cap.py },
+                await blobToDataUrl(cap.blob),
+              );
+            }
+          } finally {
+            URL.revokeObjectURL(cap.url);
+          }
           // Tell this player their board was just scanned, and by whom.
           const by = this.roster.find((r) => r.id === peerId)?.name || "Someone";
           this.h.onCaptured?.(peerId, by);
@@ -1020,6 +1131,18 @@ export class GameConnection {
           if (typeof m.data !== "string" || m.data.length > MAX_CAPTURE_CHARS) return;
           this._resolveCapture(m.id, { url: m.data, px: m.px, py: m.py });
         }
+      } else if (m.t === "bin-chunk") {
+        if (!this.pending.has(m.id)) return;
+        if (!Number.isInteger(m.n) || m.n < 1 || m.n > MAX_BINARY_CHUNKS) return;
+        if (!Number.isInteger(m.i) || m.i < 0 || m.i >= m.n) return;
+        entry.nextBinaryChunk = {
+          id: m.id,
+          i: m.i,
+          n: m.n,
+          mime: String(m.mime || "image/jpeg").slice(0, 40),
+          px: Number.isFinite(Number(m.px)) ? Number(m.px) : undefined,
+          py: Number.isFinite(Number(m.py)) ? Number(m.py) : undefined,
+        };
       } else if (m.t === "chunk") {
         // Every field here is peer-controlled. Unvalidated, `new Array(m.n)`
         // and an unbounded `parts` accumulator let a peer exhaust this tab.
@@ -1115,6 +1238,36 @@ export class GameConnection {
     }
   }
 
+  async _sendBinaryChunked(peerId, header, blob) {
+    const dc = this.peers.get(peerId)?.dc;
+    if (!dc || dc.readyState !== "open" || !(blob instanceof Blob)) return false;
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    if (!bytes.byteLength || bytes.byteLength > MAX_CAPTURE_CHARS) return false;
+    const n = Math.ceil(bytes.byteLength / BINARY_CHUNK);
+    dc.bufferedAmountLowThreshold = 512 * 1024;
+    for (let i = 0; i < n; i++) {
+      if (dc.bufferedAmount > 1024 * 1024) {
+        await new Promise((resolve) => {
+          const timer = setTimeout(resolve, 2000);
+          dc.addEventListener("bufferedamountlow", () => {
+            clearTimeout(timer);
+            resolve();
+          }, { once: true });
+        });
+      }
+      this._dcSend(peerId, {
+        t: "bin-chunk",
+        id: header.id,
+        i,
+        n,
+        mime: header.mime,
+        ...(i === 0 ? { px: header.px, py: header.py } : {}),
+      });
+      dc.send(bytes.slice(i * BINARY_CHUNK, (i + 1) * BINARY_CHUNK));
+    }
+    return true;
+  }
+
   _resolveCapture(id, data, error) {
     const p = this.pending.get(id);
     if (!p) return;
@@ -1130,7 +1283,7 @@ export class GameConnection {
       if (!dc || dc.readyState !== "open") return reject(new Error("Not connected to that player yet"));
       const timer = setTimeout(() => { this.pending.delete(id); reject(new Error("Capture timed out")); }, timeoutMs);
       this.pending.set(id, { resolve, reject, timer });
-      this._dcSend(peerId, { t: "cap-req", id, nx, ny });
+      this._dcSend(peerId, { t: "cap-req", id, nx, ny, binary: 1 });
     });
   }
 
@@ -1390,71 +1543,120 @@ export async function testTurnConnectivity(roomCode = "ABC234") {
 
 if (typeof window !== "undefined") window.__scTestTurn = testTurnConnectivity;
 
-// Recognition capture: a native-resolution crop centered on the clicked point.
-// Never downscales — a card that fills 1/10th of a playmat frame keeps every
-// pixel the sensor recorded, which is what makes small-card OCR and hashing
-// possible. The clicked point always maps to the crop center (out-of-frame
-// areas pad with black), so downstream code can assume {nx:0.5, ny:0.5}.
-// Takes the sharpest of three frames to dodge motion blur and autofocus hunts.
-export async function captureLocalFrame(stream, nx = 0.5, ny = 0.5) {
-  const track = stream?.getVideoTracks()[0];
-  if (!track) throw new Error("no local video");
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(reader.error || new Error("Could not encode capture"));
+    reader.readAsDataURL(blob);
+  });
+}
+
+function canvasToBlob(canvas, type = "image/jpeg", quality = 0.9) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => blob ? resolve(blob) : reject(new Error("Could not encode camera capture")),
+      type,
+      quality,
+    );
+  });
+}
+
+const captureStateByTrack = new WeakMap();
+
+function getCaptureState(track) {
+  if (captureStateByTrack.has(track)) return captureStateByTrack.get(track);
   const video = document.createElement("video");
   video.srcObject = new MediaStream([track]);
   video.muted = true;
-  await video.play();
-  const w = video.videoWidth, h = video.videoHeight;
+  video.playsInline = true;
+  const state = {
+    video,
+    frames: Array.from({ length: 3 }, () => document.createElement("canvas")),
+    thumb: document.createElement("canvas"),
+    queue: Promise.resolve(),
+  };
+  state.thumb.width = 160;
+  state.thumb.height = 160;
+  track.addEventListener("ended", () => {
+    video.pause();
+    video.srcObject = null;
+  }, { once: true });
+  captureStateByTrack.set(track, state);
+  return state;
+}
+
+function captureSharpness(state, canvas) {
+  const context = state.thumb.getContext("2d", { willReadFrequently: true });
+  context.drawImage(canvas, 0, 0, 160, 160);
+  const d = context.getImageData(0, 0, 160, 160).data;
+  let sum = 0, sumSq = 0, count = 0;
+  for (let y = 1; y < 159; y++) {
+    for (let x = 1; x < 159; x++) {
+      const i = (y * 160 + x) * 4;
+      const g = (d[i] + d[i + 1] + d[i + 2]) / 3;
+      const gx = (d[i + 4] + d[i + 5] + d[i + 6]) / 3 - g;
+      const gy = (d[i + 640] + d[i + 641] + d[i + 642]) / 3 - g;
+      const energy = gx * gx + gy * gy;
+      sum += energy;
+      sumSq += energy * energy;
+      count++;
+    }
+  }
+  const mean = sum / count;
+  return sumSq / count - mean * mean;
+}
+
+async function captureFrameSet(state, nx, ny) {
+  const { video } = state;
+  if (video.paused) await video.play();
+  const w = video.videoWidth;
+  const h = video.videoHeight;
   if (!w || !h) throw new Error("camera frame is not ready");
-  // The crop is clamped inside the frame (see cropGeometry): a card held beside
-  // the head puts the click near a frame border, and an unclamped crop filled
-  // 30%+ of the capture with black — throwing away real pixels and skewing the
-  // color signature, gradient score and hash toward a featureless region.
   const geom = cropGeometry(w, h, nx, ny);
   const { side } = geom;
+  let best = null;
+  let bestScore = -Infinity;
 
-  const grab = () => {
-    const canvas = document.createElement("canvas");
-    canvas.width = side; canvas.height = side;
-    const ctx = canvas.getContext("2d");
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, side, side);
-    ctx.drawImage(video, geom.sx, geom.sy, side, side, 0, 0, side, side);
-    return canvas;
-  };
-  const sharpness = (canvas) => {
-    // Variance of a simple gradient on a small gray thumbnail — enough to
-    // rank motion blur without noticeable cost.
-    const t = document.createElement("canvas");
-    t.width = 160; t.height = 160;
-    t.getContext("2d").drawImage(canvas, 0, 0, 160, 160);
-    const d = t.getContext("2d").getImageData(0, 0, 160, 160).data;
-    let sum = 0, sumSq = 0, count = 0;
-    for (let y = 1; y < 159; y++) {
-      for (let x = 1; x < 159; x++) {
-        const i = (y * 160 + x) * 4;
-        const g = (d[i] + d[i + 1] + d[i + 2]) / 3;
-        const gx = (d[i + 4] + d[i + 5] + d[i + 6]) / 3 - g;
-        const gy = (d[i + 640] + d[i + 641] + d[i + 642]) / 3 - g;
-        const e = gx * gx + gy * gy;
-        sum += e; sumSq += e * e; count++;
-      }
+  for (let i = 0; i < state.frames.length; i++) {
+    if (i > 0) await new Promise((resolve) => setTimeout(resolve, 120));
+    const canvas = state.frames[i];
+    if (canvas.width !== side) canvas.width = side;
+    if (canvas.height !== side) canvas.height = side;
+    const context = canvas.getContext("2d");
+    context.fillStyle = "#000";
+    context.fillRect(0, 0, side, side);
+    context.drawImage(video, geom.sx, geom.sy, side, side, 0, 0, side, side);
+    const score = captureSharpness(state, canvas);
+    if (score > bestScore) {
+      best = canvas;
+      bestScore = score;
     }
-    const mean = sum / count;
-    return sumSq / count - mean * mean;
-  };
-
-  let best = grab(), bestScore = sharpness(best);
-  for (let i = 0; i < 2; i++) {
-    await new Promise((r) => setTimeout(r, 120));
-    const next = grab();
-    const score = sharpness(next);
-    if (score > bestScore) { best = next; bestScore = score; }
   }
-  video.pause(); video.srcObject = null;
-  // px/py is where the click landed *inside* the crop. It is 0.5,0.5 unless the
-  // crop was clamped away from a frame edge, in which case the caller needs the
-  // real position so downstream crops still center on the card.
-  return { url: best.toDataURL("image/jpeg", 0.9), px: geom.px, py: geom.py };
+
+  const blob = await canvasToBlob(best);
+  return {
+    blob,
+    url: URL.createObjectURL(blob),
+    bytes: blob.size,
+    px: geom.px,
+    py: geom.py,
+  };
+}
+
+// Recognition capture: a native-resolution crop centered on the clicked point.
+// Never downscales — a card that fills 1/10th of a playmat frame keeps every
+// pixel the sensor recorded, which is what makes small-card OCR and hashing
+// possible. Edge crops clamp inside the sensor and return the click's actual
+// crop coordinate. Reused canvases take the sharpest of three frames to dodge
+// motion blur/autofocus hunts, then encode asynchronously to avoid UI stalls.
+export async function captureLocalFrame(stream, nx = 0.5, ny = 0.5) {
+  const track = stream?.getVideoTracks()[0];
+  if (!track) throw new Error("no local video");
+  const state = getCaptureState(track);
+  const next = state.queue.then(() => captureFrameSet(state, nx, ny));
+  state.queue = next.catch(() => {});
+  return next;
 }
 
 // Map a click on a fitted video to normalized source coordinates. A local 180°

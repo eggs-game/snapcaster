@@ -345,6 +345,7 @@ function loadCV() {
 let index = null, cards = null, manifest = null, shardedIndex = false, indexPromise = null;
 let globalIndexPromise = null;
 let colorIndex = null, artIndex = null; // v3 companion tables
+let printingIndexByKey = null;
 const COLOR_BYTES = 13, ART_BYTES = 32;
 
 // Multi-table Hamming retrieval for crop proposals. Each table keys 8 pHash
@@ -447,9 +448,25 @@ function loadIndex() {
   return indexPromise;
 }
 
+function ensurePrintingIndex() {
+  if (printingIndexByKey || !cards) return printingIndexByKey;
+  printingIndexByKey = new Map();
+  for (let i = 0; i < cards.length; i++) {
+    const row = cards[i];
+    printingIndexByKey.set(
+      `${String(row?.[3] || "").toLowerCase()}:${Number(row?.[4]) === 1 ? 1 : 0}`,
+      i,
+    );
+  }
+  return printingIndexByKey;
+}
+
 function loadGlobalIndex() {
   const companionsReady = (manifest?.version || 0) < 3 || (!!colorIndex && !!artIndex);
-  if (index && cards && companionsReady) return buildLshIndex().then(() => cards.length);
+  if (index && cards && companionsReady) {
+    ensurePrintingIndex();
+    return buildLshIndex().then(() => cards.length);
+  }
   if (globalIndexPromise) return globalIndexPromise;
   globalIndexPromise = (async () => {
     if (!index || !cards) {
@@ -462,6 +479,7 @@ function loadGlobalIndex() {
       cards = await cardsResponse.json();
       if (index.length !== cards.length * VEC_BYTES) throw new Error("Global fallback index corrupted");
     }
+    ensurePrintingIndex();
     // v3 companion tables: per-printing color histograms + art-region hashes.
     // A v2 deployment has none. On v3+, a failed fetch leaves the base grayscale
     // index usable but rejects the warm-up handshake instead of claiming the
@@ -535,6 +553,7 @@ function cardShapedStrategy(strategy) {
 // therefore adds a small bounded check and falls through to the full index.
 async function matchRecentHints(prepared, hints) {
   if (!index || !cards || !prepared.length || !Array.isArray(hints) || !hints.length) return null;
+  ensurePrintingIndex();
   const wanted = new Set();
   for (const hint of hints.slice(0, 12)) {
     const id = String(hint?.scryfall_id || "").toLowerCase();
@@ -543,13 +562,9 @@ async function matchRecentHints(prepared, hints) {
   }
   if (!wanted.size) return null;
 
-  const indices = [];
-  for (let i = 0; i < cards.length; i++) {
-    const row = cards[i];
-    if (wanted.has(`${String(row?.[3] || "").toLowerCase()}:${Number(row?.[4]) === 1 ? 1 : 0}`)) {
-      indices.push(i);
-    }
-  }
+  const indices = [...wanted]
+    .map((key) => printingIndexByKey?.get(key))
+    .filter((value) => Number.isInteger(value));
   if (!indices.length) return null;
 
   const scored = [];
@@ -1420,6 +1435,115 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
     if (!sourceImageData) sourceImageData = bitmapToImageData(bmp);
     return sourceImageData;
   };
+  const preparedCache = new WeakMap();
+  let hintedQuads = null;
+  let hintedOutlineCandidates = null;
+  // White-balance and hash only the crops a caller actually needs. In
+  // particular, the room-hint prepass prepares a tiny click-local set before
+  // paying for OpenCV contours and the full production crop family.
+  const prepareCandidate = (candidate) => {
+    const cached = preparedCache.get(candidate);
+    if (cached) return cached;
+    const wbImage = whiteBalance(candidate.image);
+    const gray = toGray(wbImage);
+    const variants = queryVariants(gray);
+    const prepared = {
+      candidate, wbImage, gray, variants, detail: detailScore(gray),
+      frame: candidate.isolationScore || 0,
+    };
+    preparedCache.set(candidate, prepared);
+    return prepared;
+  };
+  const recentResult = (recent, prepared) => {
+    if (bmp.close) bmp.close();
+    return {
+      matches: recent.matches,
+      printingMatches: recent.printingMatches,
+      queryCandidates: prepared.map((entry) => ({
+        strategy: entry.candidate.strategy,
+        vectors: entry.variants,
+      })),
+      titleSource: [],
+      titleCount: 0,
+      cardFound: false,
+      cvStatus,
+      candidatesTried: 0,
+      shardedIndex,
+      cropsDropped: 0,
+      isolationDebug: null,
+      isolationCandidates: 0,
+      artBest: recent.artBest,
+      artChecked: recent.artChecked,
+      artDecisive: recent.artDecisive,
+      hintHit: true,
+      stageMs: stage.ms,
+      wasmHeapMB: self.cv && self.cv.HEAPU8 ? Math.round(self.cv.HEAPU8.length / 1e6) : null,
+    };
+  };
+
+  if (Array.isArray(hints) && hints.length) {
+    if (shardedIndex && !index) {
+      try { await loadGlobalIndex(); } catch (e) { console.warn("[snapcast worker] global index unavailable", e); }
+    }
+    const hintCandidates = [];
+    const hintContentBox = contentBoxCropImageData(getSourceImageData());
+    if (hintContentBox) hintCandidates.push({ image: hintContentBox, strategy: "content-box" });
+    for (const scale of [0.6, 0.45, 0.35]) {
+      hintCandidates.push({
+        image: centerCropImageData(bmp, scale, normalizedPoint),
+        strategy: `center-${Math.round(scale * 100)}`,
+      });
+    }
+    hintCandidates.push({
+      image: anchoredCropImageData(bmp, 0.5, normalizedPoint, ART_CLICK_V),
+      strategy: "art-50",
+    });
+    hintCandidates.push({
+      image: centerCropImageData(
+        bmp,
+        0.4,
+        { nx: normalizedPoint.nx, ny: normalizedPoint.ny - 0.11 },
+      ),
+      strategy: "off0,-11",
+    });
+    const hintPrepared = hintCandidates.map(prepareCandidate);
+    mark("hintPrep");
+    const recent = await matchRecentHints(hintPrepared, hints);
+    mark("hint");
+    if (recent) return recentResult(recent, hintPrepared);
+
+    // Real camera/table crops are most accurately framed by a detected card
+    // outline. Prepare only those rectifications next and compare them with
+    // the tiny hint list. Reuse both the quads and prepared hashes if the hint
+    // is stale and the complete pipeline still has to run.
+    if (cvReady) {
+      try {
+        const srcImageData = getSourceImageData();
+        hintedQuads = findCardQuads(srcImageData, click);
+        hintedOutlineCandidates = [];
+        const inputAspect = Math.max(bmp.width, bmp.height) / Math.min(bmp.width, bmp.height);
+        if (Math.abs(inputAspect - CARD_H / CARD_W) < 0.12) {
+          hintedOutlineCandidates.push({ image: srcImageData, strategy: "full-frame" });
+        }
+        for (let i = 0; i < hintedQuads.length; i++) {
+          hintedOutlineCandidates.push({
+            image: rectifyCard(srcImageData, hintedQuads[i]),
+            strategy: `outline-${i + 1}`,
+          });
+        }
+        const outlinePrepared = hintedOutlineCandidates.map(prepareCandidate);
+        mark("hintPrep");
+        const outlineRecent = await matchRecentHints(outlinePrepared, hints);
+        mark("hint");
+        if (outlineRecent) return recentResult(outlineRecent, outlinePrepared);
+      } catch (e) {
+        hintedQuads = null;
+        hintedOutlineCandidates = null;
+        console.warn("[snapcast worker] hint outline detection failed", e);
+      }
+    }
+  }
+
   let clickInsideCardLikeQuad = false;
   if (cvReady) {
     try {
@@ -1428,16 +1552,20 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
       // hook or a tightly framed camera capture), preserve it. OpenCV may detect
       // an inner art/text frame rather than the outer edge.
       const inputAspect = Math.max(bmp.width, bmp.height) / Math.min(bmp.width, bmp.height);
-      if (Math.abs(inputAspect - CARD_H / CARD_W) < 0.12) {
-        candidates.push({ image: srcImageData, strategy: "full-frame" });
-      }
-      const quads = findCardQuads(srcImageData, click);
+      const quads = hintedQuads || findCardQuads(srcImageData, click);
       cardFound = quads.length > 0;
       clickInsideCardLikeQuad = quads.some((quad) => (
         cardLikeQuadContains(click, quad, bmp.width, bmp.height)
       ));
-      for (let i = 0; i < quads.length; i++) {
-        candidates.push({ image: rectifyCard(srcImageData, quads[i]), strategy: `outline-${i + 1}` });
+      if (hintedOutlineCandidates) {
+        candidates.push(...hintedOutlineCandidates);
+      } else {
+        if (Math.abs(inputAspect - CARD_H / CARD_W) < 0.12) {
+          candidates.push({ image: srcImageData, strategy: "full-frame" });
+        }
+        for (let i = 0; i < quads.length; i++) {
+          candidates.push({ image: rectifyCard(srcImageData, quads[i]), strategy: `outline-${i + 1}` });
+        }
       }
     } catch (e) {
       console.warn("[snapcast worker] outline detection failed", e);
@@ -1578,17 +1706,6 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
   // Prepare every candidate's hashes (cheap). The expensive full-index scans
   // below are limited to a few diverse SEED crops; scoring all ~27 crops
   // against 110k cards (8 hash variants each) was the dominant per-scan cost.
-  const prepareCandidate = (candidate) => {
-    // White-balance the crop so a warm/cool room cast doesn't bias the
-    // grayscale hash or the color signature toward mis-tinted cards.
-    const wbImage = whiteBalance(candidate.image);
-    const gray = toGray(wbImage);
-    const variants = queryVariants(gray);
-    return {
-      candidate, wbImage, gray, variants, detail: detailScore(gray),
-      frame: candidate.isolationScore || 0,
-    };
-  };
   const preparedAll = candidates.map(prepareCandidate);
   // Drop crops that contain no card — just wall, skin, or playmat. A
   // featureless crop hashes closest to a FEATURELESS INDEX ENTRY, which is why

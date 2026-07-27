@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { lazy, Suspense, useEffect, useState } from "react";
 import Lobby from "./Lobby.jsx";
-import Game from "./Game.jsx";
+
+const Game = lazy(() => import("./Game.jsx"));
 
 const THEME_KEY = "theme-preference";
 const ACTIVE_SESSION_KEY = "snapcast-active-room";
@@ -63,11 +64,15 @@ export default function App() {
   }, [themePreference]);
 
   return session
-    ? <Game
-        session={session}
-        onLeave={leaveSession}
-        themePreference={themePreference}
-        onThemePreferenceChange={setThemePreference}
-      />
+    ? (
+      <Suspense fallback={<div className="lobby"><p>Preparing game…</p></div>}>
+        <Game
+          session={session}
+          onLeave={leaveSession}
+          themePreference={themePreference}
+          onThemePreferenceChange={setThemePreference}
+        />
+      </Suspense>
+    )
     : <Lobby onStart={startSession} />;
 }

@@ -23,6 +23,18 @@ export function normalizeReceiverVideoQuality(value) {
   return RECEIVER_VIDEO_QUALITY_VALUES.includes(value) ? value : "auto";
 }
 
+export function resolveAdaptiveReceiverQuality({
+  preferred,
+  layout,
+  isPrimary = false,
+  hidden = false,
+}) {
+  const normalized = normalizeReceiverVideoQuality(preferred);
+  if (hidden || !isPrimary) return "720p";
+  if (layout === "tiles" && normalized === "auto") return "1080p";
+  return normalized;
+}
+
 export function resolveVideoEncoding(
   receiverQuality,
   outgoingQuality,

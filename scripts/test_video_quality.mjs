@@ -3,6 +3,7 @@ import {
   DEFAULT_OUTGOING_VIDEO_QUALITY,
   normalizeOutgoingVideoQuality,
   normalizeReceiverVideoQuality,
+  resolveAdaptiveReceiverQuality,
   resolveVideoEncoding,
 } from "../src/videoQuality.js";
 
@@ -10,6 +11,27 @@ assert.equal(normalizeOutgoingVideoQuality("1440p"), "1440p");
 assert.equal(normalizeOutgoingVideoQuality("unknown"), DEFAULT_OUTGOING_VIDEO_QUALITY);
 assert.equal(normalizeReceiverVideoQuality("720p"), "720p");
 assert.equal(normalizeReceiverVideoQuality("2160p"), "auto");
+assert.equal(resolveAdaptiveReceiverQuality({
+  preferred: "auto",
+  layout: "tiles",
+  isPrimary: true,
+}), "1080p");
+assert.equal(resolveAdaptiveReceiverQuality({
+  preferred: "1080p",
+  layout: "hero",
+  isPrimary: false,
+}), "720p");
+assert.equal(resolveAdaptiveReceiverQuality({
+  preferred: "auto",
+  layout: "follow",
+  isPrimary: true,
+}), "auto");
+assert.equal(resolveAdaptiveReceiverQuality({
+  preferred: "1080p",
+  layout: "hero",
+  isPrimary: true,
+  hidden: true,
+}), "720p");
 
 assert.deepEqual(
   resolveVideoEncoding("auto", "2160p", 3840),

@@ -4,7 +4,7 @@ import {
   Cat, Check, ChessQueen, ChevronDown, ChevronLeft, ChevronRight, Copy, Dices, Drum, ExternalLink, Hourglass, Laugh, Link2, MessageCircle, MessagesSquare, Mic, MicOff,
   LogOut, PanelLeft, Play, Search, Settings, Sparkles, Swords, ThumbsDown, UserPlus, UserRound, UsersRound, Video, VideoOff, X,
 } from "lucide-react";
-import { suggestCardNames } from "./cardSearch.js";
+import { fetchCardByName, suggestCardNames } from "./cardSearch.js";
 import {
   parseChatDraft, selectWhisperRecipient, whisperCommandMatches, whisperRecipientMatches,
 } from "./chatCommands.js";
@@ -417,11 +417,9 @@ export default function CardSidebar({
     setSuggestions([]);
     setQuery(cardName);
     try {
-      const response = await fetch(
-        `https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(cardName)}`,
-      );
-      if (!response.ok) throw new Error("Card not found");
-      const card = cardFromScryfall(await response.json());
+      const result = await fetchCardByName(cardName);
+      if (!result) throw new Error("Card not found");
+      const card = cardFromScryfall(result);
       onSearch?.(card);
       setQuery("");
     } catch (error) {
@@ -473,9 +471,9 @@ export default function CardSidebar({
     if (!wrongReport || !cardName || labelingWrongReport) return;
     setLabelingWrongReport(true);
     try {
-      const response = await fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(cardName)}`);
-      if (!response.ok) throw new Error("Card not found");
-      const card = cardFromScryfall(await response.json());
+      const result = await fetchCardByName(cardName);
+      if (!result) throw new Error("Card not found");
+      const card = cardFromScryfall(result);
       const truth = { ...card, recordedName: card.name };
       const saved = await onUpdateRecognitionReport?.(wrongReport.id, truth);
       if (saved === false) throw new Error("Could not save the label to Supabase");

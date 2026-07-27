@@ -9,6 +9,35 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-07-26 — `performance-pass-1` — bounded recognition and outline-first hints
+
+This performance pass keeps one active recognition and only the newest waiting
+click, transports native camera JPEGs as bounded binary data-channel chunks,
+reuses camera capture buffers, and verifies shared room hints in stages. A
+hint first sees six cheap click-local crops, then only OpenCV card-outline
+rectifications; the complete crop family and 110k-printing rank run only when
+those verified checks fail.
+
+- **Recent-card fast path (20 repeated scans):** **20/20 (100%)**, 0 errors,
+  **20/20 verified hint hits**, and **zero full-crop fallbacks**. Average repeat
+  recognition was **0.274s** versus **2.354s** for the normal first lookup, an
+  **8.59× speedup**. Median was 0.274s and p90 0.299s; hint preparation
+  averaged 0.270s and verification 0.003s. Every rotation and occlusion bucket
+  was 100%, and WASM stayed flat at 134→134MB.
+- **Tableau 10 — EDH staples (100 cards), no hints:** **99/100 (99.0%)**,
+  exceeding the 95% release gate with 0 errors. Clear cards were 94/94,
+  side-by-side 60/60, spaced 30/30, and overlapping 9/10. Upright and
+  upside-down were 55/55 and 14/14; tapped was 30/31. Accepted art matches
+  were **86/86 precise** and visual-exact matches **11/11 precise**. Median was
+  **1.840s**, p90 **5.047s**, and WASM stayed 134→134MB. The one miss was a
+  15.8%-covered tapped token in the deliberately overlapping scene.
+
+The first no-hint verification run exposed an undefined metadata-OCR parameter
+left behind by the new dynamic Tesseract import. That boundary was fixed and
+the complete 100-card run above repeated afterward; OCR metadata completed
+without an error. The recognition decision gates and hashing contract were not
+changed.
+
 ## 2026-07-26 — `recent-hints-1` — verified room cache
 
 Repeated lookups now use strong results from the current room as a spatial
