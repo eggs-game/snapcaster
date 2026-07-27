@@ -32,6 +32,8 @@ jobs:
         run: python3 scripts/test_metadata_analysis.py
       - name: Verify metadata evidence gates
         run: node scripts/test_metadata_evidence.mjs
+      - name: Verify outgoing video quality policy
+        run: node scripts/test_video_quality.mjs
 
   build:
     runs-on: ubuntu-latest

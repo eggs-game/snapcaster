@@ -1061,9 +1061,12 @@ input::placeholder { color: var(--text-tertiary); opacity: 1; }
 .leave-game-button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; width: 100%; min-height: var(--input-height); margin-top: var(--space-5); border: 1px solid var(--danger-border); border-radius: 8px; background: var(--danger-bg); color: var(--danger-text); font: inherit; font-size: var(--text-sm); font-weight: 500; cursor: pointer; }
 .leave-game-button:hover { filter: brightness(1.06); }
 .theme-field { min-width: 0; margin: 0 0 var(--space-5); padding: 0; border: 0; }
+.theme-field-tight { margin-bottom: 16px; }
 .theme-field legend { margin-bottom: var(--space-2); }
 .theme-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; height: var(--input-height); padding: 2px; border: 1px solid var(--border-default); border-radius: 8px; background: var(--input); }
 .theme-options.two-up { grid-template-columns: repeat(2, 1fr); }
+.theme-options.four-up { grid-template-columns: repeat(4, 1fr); }
+.setting-help { margin: var(--space-2) 2px 0; color: var(--text-tertiary); font-size: var(--text-xs); line-height: 1.4; }
 .view-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; height: var(--input-height); padding: 2px; border: 1px solid var(--border-default); border-radius: 8px; background: var(--input); }
 .theme-options button { border: 0; border-radius: 6px; background: transparent; color: var(--text-secondary); font-family: inherit; font-size: var(--text-sm); font-weight: 400; cursor: pointer; }
 .view-options button { border: 0; border-radius: 6px; background: transparent; color: var(--text-secondary); font-family: inherit; font-size: var(--text-sm); font-weight: 400; cursor: pointer; }

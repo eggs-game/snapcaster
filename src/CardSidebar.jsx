@@ -10,6 +10,7 @@ import {
 } from "./chatCommands.js";
 import { getSoundEffect, searchSoundEffects } from "./soundEffects.js";
 import { getCounterTextColor, getVideoCounterType, VIDEO_COUNTER_TYPES } from "./videoCounters.js";
+import { OUTGOING_VIDEO_QUALITY_OPTIONS } from "./videoQuality.js";
 
 // Labels for the ?debug=1 diagnostics panel.
 const CV_LABEL = {
@@ -141,6 +142,8 @@ export default function CardSidebar({
   onVideoLayoutChange,
   videoFit,
   onVideoFitChange,
+  outgoingVideoQuality,
+  onOutgoingVideoQualityChange,
   counterPlayers,
   onChangePoison,
   onChangeCommanderDamage,
@@ -833,6 +836,24 @@ export default function CardSidebar({
                   ))}
                 </select>
               </label>
+              <fieldset className="theme-field theme-field-tight">
+                <legend className="color-label">Outgoing video quality</legend>
+                <div className="theme-options four-up">
+                  {OUTGOING_VIDEO_QUALITY_OPTIONS.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      aria-pressed={outgoingVideoQuality === option.value}
+                      onClick={() => onOutgoingVideoQualityChange(option.value)}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+                <p className="setting-help">
+                  Caps the video sent to everyone. Lower quality uses less upload and processing.
+                </p>
+              </fieldset>
               <fieldset className="theme-field" aria-label="Video fit">
                 <div className="theme-options two-up">
                   {[

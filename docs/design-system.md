@@ -389,7 +389,8 @@ users too.
 ```
 
 Current examples: `.theme-options` (3-up: Appearance; 2-up via the
-`.two-up` modifier: Video fit, Chat notifications, and Turn notifications), `.view-options` (3-up: Game view). These
+`.two-up` modifier: Video fit, Chat notifications, and Turn notifications;
+4-up via `.four-up`: Outgoing video quality), `.view-options` (3-up: Game view). These
 two classes are near-duplicates that predate this doc — don't add a third
 one; extend `.theme-options` with a modifier the way `.two-up` does.
 
@@ -416,13 +417,13 @@ field            } 24px margin-bottom (last in group)
 field            } ...
 ```
 
-`.control-row` and `.device-field` both default to a 24px bottom margin
+`.control-row`, `.device-field`, and `.theme-field` use the normal group-ending
+spacing. `.control-row` and `.device-field` both default to a 24px bottom margin
 (i.e. "assume you're the last field in your group"); a `.device-field-tight`
-modifier (16px) exists for the one case so far where a field is
-mid-group — the camera toggle → camera select pairing, both followed by
-the Video-fit segmented control in the same "Video" section. Reach for
-that modifier (or add an equivalent) rather than a one-off margin value
-when a new field needs to sit mid-group.
+modifier and matching `.theme-field-tight` modifier (16px) exist where a field
+is mid-group — the camera toggle → camera select → outgoing-quality → Video-fit
+sequence in the same "Video" section. Reach for those modifiers rather than a
+one-off margin value when a new field needs to sit mid-group.
 
 Field labels are handled the same way as icon buttons above — a control
 that already has an on-screen state (the "Camera on"/"Mic on" toggle text)

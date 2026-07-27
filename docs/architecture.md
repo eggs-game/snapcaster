@@ -208,12 +208,17 @@ no separate in-app sound setting.
   button on a recent card to share it with the room. Every participant receives
   the normal card details and image in Recent and can click it to open locally;
   no camera capture is repeated.
-- **Video quality is per receiver.** Each remote tile can request Auto, 720p or
-  1080p. The camera owner applies that preference only to the sender for that
-  peer, so one viewer can request a sharper feed without forcing every other
-  viewer to spend the same bandwidth. WebRTC may still adapt down when the
-  source camera or network cannot sustain the request; the tile reports the
-  decoded resolution it is actually receiving.
+- **Video quality has sender and receiver ceilings.** Every player chooses an
+  outgoing ceiling of 720p, 1080p, 2K/1440p, or 4K/2160p in Settings; 1080p is
+  the default. That ceiling is persisted locally and retunes every active
+  `RTCRtpSender` without reconnecting. Each remote tile can separately request
+  Auto, 720p, or 1080p. The effective stream uses the lower of the sender's
+  ceiling and that receiver's request, so a viewer can save bandwidth but can
+  never force the camera owner to encode above their chosen limit. The raw
+  local camera track remains at native detail for card-recognition captures;
+  only the encoded WebRTC stream is capped. WebRTC may still adapt down when
+  the source camera or network cannot sustain the target, and the tile reports
+  the decoded resolution it is actually receiving.
 
 ## Security posture
 

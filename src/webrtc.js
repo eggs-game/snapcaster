@@ -5,24 +5,17 @@ import { joinRoom, saveConnectionEvent } from "./signaling.js";
 import { cropGeometry } from "./captureGeometry.js";
 import { getSoundEffect } from "./soundEffects.js";
 import { normalizeVideoCounter } from "./videoCounters.js";
+import {
+  DEFAULT_OUTGOING_VIDEO_QUALITY,
+  normalizeOutgoingVideoQuality,
+  normalizeReceiverVideoQuality,
+  resolveVideoEncoding,
+} from "./videoQuality.js";
 
 const FALLBACK_ICE_SERVERS = [
   { urls: "stun:stun.cloudflare.com:3478" },
   { urls: "stun:stun.l.google.com:19302" },
 ];
-
-// Without an explicit target, WebRTC's default video bitrate cap sits well
-// below what 1080p needs to look sharp, and the encoder's default
-// degradation preference favors smooth motion over resolution — the wrong
-// tradeoff for a mostly-static shot of a card table. 5 Mbps gives 1080p
-// headroom for a clean 1080p30 feed when the link can sustain it; WebRTC's
-// own congestion control still scales down automatically on a bad link.
-const VIDEO_MAX_BITRATE = 5_000_000;
-const VIDEO_QUALITY_VALUES = ["auto", "720p", "1080p"];
-
-function normalizeVideoQuality(value) {
-  return VIDEO_QUALITY_VALUES.includes(value) ? value : "auto";
-}
 
 // Tell the encoder this is a detail-heavy, mostly-static feed (a card table,
 // not a talking head) so it prioritizes keeping resolution/sharpness over
@@ -32,24 +25,29 @@ function tuneVideoTrack(track) {
   try { track.contentHint = "detail"; } catch { /* not supported in this browser */ }
 }
 
-async function tuneVideoSender(sender, quality = "auto") {
+async function tuneVideoSender(
+  sender,
+  receiverQuality = "auto",
+  outgoingQuality = DEFAULT_OUTGOING_VIDEO_QUALITY,
+) {
   if (!sender || sender.track?.kind !== "video") return;
   try {
     const params = sender.getParameters();
     params.encodings = params.encodings?.length ? params.encodings : [{}];
     const encoding = params.encodings[0];
-    const safeQuality = normalizeVideoQuality(quality);
-    const targetWidth = safeQuality === "720p" ? 1280 : safeQuality === "1080p" ? 1920 : 0;
     const sourceWidth = Number(sender.track.getSettings?.().width) || 1920;
-    if (targetWidth && sourceWidth > targetWidth) {
-      // scaleResolutionDownBy cannot upscale a 720p source into 1080p. When
-      // the camera is higher resolution, use the smallest scale that reaches
-      // the requested target while preserving WebRTC's aspect-ratio handling.
-      encoding.scaleResolutionDownBy = Math.max(1, Math.min(4, sourceWidth / targetWidth));
+    const profile = resolveVideoEncoding(receiverQuality, outgoingQuality, sourceWidth);
+    if (profile.scaleResolutionDownBy) {
+      // scaleResolutionDownBy cannot upscale a lower-resolution source. When
+      // the camera is sharper than the effective sender/receiver ceiling, use
+      // the smallest scale that reaches that ceiling while preserving WebRTC's
+      // aspect-ratio handling.
+      encoding.scaleResolutionDownBy = profile.scaleResolutionDownBy;
     } else {
       delete encoding.scaleResolutionDownBy;
     }
-    encoding.maxBitrate = safeQuality === "720p" ? 1_800_000 : VIDEO_MAX_BITRATE;
+    encoding.maxBitrate = profile.maxBitrate;
+    encoding.maxFramerate = 24;
     params.degradationPreference = "maintain-resolution";
     await sender.setParameters(params);
   } catch { /* setParameters can reject before the first negotiation completes */ }
@@ -119,6 +117,7 @@ export class GameConnection {
     this.gridOrder = [];
     this.videoCounters = [];
     this.videoQuality = new Map(); // peerId -> receiver's requested quality
+    this.outgoingVideoQuality = DEFAULT_OUTGOING_VIDEO_QUALITY;
     this.role = "player";
     this.name = "";
     this.identityNames = new Map();
@@ -388,7 +387,9 @@ export class GameConnection {
     videoDeviceId = "",
     audioDeviceId = "",
     startMuted = false,
+    outgoingVideoQuality = DEFAULT_OUTGOING_VIDEO_QUALITY,
   } = {}) {
+    this.outgoingVideoQuality = normalizeOutgoingVideoQuality(outgoingVideoQuality);
     // Ask for the camera's maximum resolution — recognition crops are taken
     // from the raw local track, so every native pixel directly improves card
     // identification (WebRTC scales the *sent* video down on its own).
@@ -458,7 +459,13 @@ export class GameConnection {
       const sender = pc.getSenders().find((s) => s.track?.kind === kind);
       if (sender) {
         await sender.replaceTrack(newTrack);
-        if (kind === "video") await tuneVideoSender(sender, this.videoQuality.get(peerId) || "auto");
+        if (kind === "video") {
+          await tuneVideoSender(
+            sender,
+            this.videoQuality.get(peerId) || "auto",
+            this.outgoingVideoQuality,
+          );
+        }
       }
     }
 
@@ -733,11 +740,13 @@ export class GameConnection {
         break;
       case "video-quality": {
         if (!this.roster.some((member) => member.id === msg.from)) break;
-        const quality = normalizeVideoQuality(msg.quality);
+        const quality = normalizeReceiverVideoQuality(msg.quality);
         this.videoQuality.set(msg.from, quality);
         const entry = this.peers.get(msg.from);
         if (entry) {
-          await Promise.all(entry.pc.getSenders().map((sender) => tuneVideoSender(sender, quality)));
+          await Promise.all(entry.pc.getSenders().map((sender) => (
+            tuneVideoSender(sender, quality, this.outgoingVideoQuality)
+          )));
         }
         break;
       }
@@ -880,7 +889,13 @@ export class GameConnection {
     this.peers.set(peerId, entry);
     for (const t of this.localStream?.getTracks() || []) {
       const sender = pc.addTrack(t, this.localStream);
-      if (t.kind === "video") void tuneVideoSender(sender, this.videoQuality.get(peerId) || "auto");
+      if (t.kind === "video") {
+        void tuneVideoSender(
+          sender,
+          this.videoQuality.get(peerId) || "auto",
+          this.outgoingVideoQuality,
+        );
+      }
     }
     // An audio-only visitor still needs a video m-line in offers so players
     // can send their camera feed back to the visitor.
@@ -943,7 +958,13 @@ export class GameConnection {
   async _tunePeerVideo(peerId) {
     const entry = this.peers.get(peerId);
     if (!entry) return;
-    await Promise.all(entry.pc.getSenders().map((sender) => tuneVideoSender(sender, this.videoQuality.get(peerId) || "auto")));
+    await Promise.all(entry.pc.getSenders().map((sender) => (
+      tuneVideoSender(
+        sender,
+        this.videoQuality.get(peerId) || "auto",
+        this.outgoingVideoQuality,
+      )
+    )));
   }
 
   async _makeOffer(peerId) {
@@ -1246,10 +1267,16 @@ export class GameConnection {
 
   requestVideoQuality(peerId, quality) {
     const targetId = String(peerId || "").slice(0, 40);
-    const safeQuality = normalizeVideoQuality(quality);
+    const safeQuality = normalizeReceiverVideoQuality(quality);
     if (!targetId || targetId === this.myId || !this.roster.some((member) => member.id === targetId)) return false;
     this.room?.send({ type: "video-quality", quality: safeQuality }, targetId);
     return true;
+  }
+
+  async setOutgoingVideoQuality(quality) {
+    this.outgoingVideoQuality = normalizeOutgoingVideoQuality(quality);
+    await Promise.all([...this.peers.keys()].map((peerId) => this._tunePeerVideo(peerId)));
+    return this.outgoingVideoQuality;
   }
 
   toggleTrack(kind, enabled) {

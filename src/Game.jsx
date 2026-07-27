@@ -10,6 +10,11 @@ import { identify as identifyCard, preload as preloadRecognition } from "./recog
 import CardSidebar, { cardFromScryfall, formatDiceResult, formatDiceSides } from "./CardSidebar.jsx";
 import { getSoundEffect, playChatNotification, playSoundEffect, playTurnNotification } from "./soundEffects.js";
 import { getCounterTextColor, getVideoCounterType, normalizeVideoCounter } from "./videoCounters.js";
+import {
+  DEFAULT_OUTGOING_VIDEO_QUALITY,
+  normalizeOutgoingVideoQuality,
+  RECEIVER_VIDEO_QUALITY_VALUES,
+} from "./videoQuality.js";
 
 const SOUND_COOLDOWN_MS = 120000;
 const CHAT_SHOWCASE_CARD = {
@@ -112,6 +117,13 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       return ["cover", "16:9"].includes(saved) ? saved : "cover";
     } catch {
       return "cover";
+    }
+  });
+  const [outgoingVideoQuality, setOutgoingVideoQuality] = useState(() => {
+    try {
+      return normalizeOutgoingVideoQuality(localStorage.getItem("snapcast-outgoing-video-quality"));
+    } catch {
+      return DEFAULT_OUTGOING_VIDEO_QUALITY;
     }
   });
   const [heroPlayerId, setHeroPlayerId] = useState("");
@@ -428,6 +440,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
           videoDeviceId: session.videoDeviceId,
           audioDeviceId: session.audioDeviceId,
           startMuted: !!session.startMuted,
+          outgoingVideoQuality,
         });
         setLocalStream(stream);
         setMicOn(!conn.muted);
@@ -1146,9 +1159,23 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   };
 
   const chooseVideoQuality = useCallback((playerId, quality) => {
-    if (!playerId || !["auto", "720p", "1080p"].includes(quality)) return;
+    if (!playerId || !RECEIVER_VIDEO_QUALITY_VALUES.includes(quality)) return;
     setVideoQualityByPlayer((values) => ({ ...values, [playerId]: quality }));
     connRef.current?.requestVideoQuality(playerId, quality);
+  }, []);
+
+  const chooseOutgoingVideoQuality = useCallback(async (quality) => {
+    const next = normalizeOutgoingVideoQuality(quality);
+    setOutgoingVideoQuality(next);
+    try {
+      localStorage.setItem("snapcast-outgoing-video-quality", next);
+    } catch { /* preference still applies for this session */ }
+    setDeviceError("");
+    try {
+      await connRef.current?.setOutgoingVideoQuality(next);
+    } catch (qualityError) {
+      setDeviceError(String(qualityError?.message || qualityError));
+    }
   }, []);
 
   const makeJoinLink = (visitor = false) => {
@@ -1361,6 +1388,8 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
             onVideoLayoutChange={chooseVideoLayout}
             videoFit={videoFit}
             onVideoFitChange={chooseVideoFit}
+            outgoingVideoQuality={outgoingVideoQuality}
+            onOutgoingVideoQualityChange={chooseOutgoingVideoQuality}
             counterPlayers={counterPreviewPlayers}
             onChangePoison={changePoison}
             onChangeCommanderDamage={changeCommanderDamage}
