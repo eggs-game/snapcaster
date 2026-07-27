@@ -1,15 +1,33 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
-  Check, Dices, FlipVertical2, Mic, MicOff, Minus, MoreVertical, PanelLeft, Plus, Shuffle, SkipForward,
+  Check, Crown, Dices, FlipVertical2, LogOut, Mic, MicOff, Minus, MoreVertical, PanelLeft, Plus, Shuffle, SkipForward,
   Swords, Video, VideoOff, X,
 } from "lucide-react";
 import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
+import LocalMockGameConnection from "./LocalMockGameConnection.js";
 import { labelRecognitionReport, saveRecognitionReport } from "./signaling.js";
 import { getCommanderPairing, suggestCardNames, suggestCommanderPartners } from "./cardSearch.js";
 import { identify as identifyCard, preload as preloadRecognition } from "./recognition/matcher.js";
 import CardSidebar, { cardFromScryfall, formatDiceResult, formatDiceSides } from "./CardSidebar.jsx";
 import { getSoundEffect, playChatNotification, playSoundEffect, playTurnNotification } from "./soundEffects.js";
 import { getCounterTextColor, getVideoCounterType, normalizeVideoCounter } from "./videoCounters.js";
+import GameManagement from "./GameManagement.jsx";
+import ReviewPrompt from "./ReviewPrompt.jsx";
+import { getSocialDashboard } from "./account.js";
+import {
+  cancelGameInvitation,
+  endDurableGame,
+  claimGameOwnership,
+  getGameMembershipStates,
+  leaveGameRoom,
+  manageGameMember,
+  recordGameTurn,
+  restartDurableGame,
+  startDurableGame,
+  touchGameMembership,
+  validateGameCommanderSelection,
+  inviteFriendToGame,
+} from "./gameRooms.js";
 
 const SOUND_COOLDOWN_MS = 120000;
 const CHAT_SHOWCASE_CARD = {
@@ -45,12 +63,16 @@ function makeChatShowcase(myId, myName) {
   ];
 }
 
-export default function Game({ session, onLeave, themePreference, onThemePreferenceChange }) {
+export default function Game({ session, account, onLeave, themePreference, onThemePreferenceChange }) {
   const isVisitor = session.role === "visitor";
+  const isLocalMock = Boolean(session.mockGame);
   const connRef = useRef(null);
   const rosterRef = useRef([]);
-  const livesRef = useRef({});
-  const commanderDamageRef = useRef({});
+  const verifiedMembershipStatesRef = useRef(null);
+  const realtimeEpochRef = useRef(session.realtimeEpoch || "");
+  const livesRef = useRef({ ...(session.mockGame?.lives || {}) });
+  const commanderDamageRef = useRef({ ...(session.mockGame?.commanderDamage || {}) });
+  const eliminationsRef = useRef({ ...(session.mockGame?.eliminations || {}) });
   const chatIdRef = useRef(0);
   const pendingLifeChatsRef = useRef(new Map());
   const readyCheckRef = useRef(null);
@@ -59,16 +81,18 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const myIdRef = useRef(null);
   const chatNotificationsEnabledRef = useRef(true);
   const turnNotificationsEnabledRef = useRef(true);
+  const membershipRefreshAtRef = useRef(0);
   const activePlayerIdRef = useRef("");
+  const gameStatusRef = useRef(session.roomStatus || "lobby");
   const chatShowcaseSeededRef = useRef(false);
   const chatShowcaseEnabled = import.meta.env.DEV;
   const [myId, setMyId] = useState(null);
   const [roster, setRoster] = useState([]);
-  const [lives, setLives] = useState({}); // id -> life
-  const [commanders, setCommanders] = useState({}); // id -> card name
-  const [commanderPartners, setCommanderPartners] = useState({}); // id -> paired commander name
-  const [commanderPartnerTypes, setCommanderPartnerTypes] = useState({}); // id -> partner type line
-  const [colors, setColors] = useState({}); // id -> hex color
+  const [lives, setLives] = useState(() => ({ ...(session.mockGame?.lives || {}) })); // id -> life
+  const [commanders, setCommanders] = useState(() => ({ ...(session.mockGame?.commanders || {}) })); // id -> card name
+  const [commanderPartners, setCommanderPartners] = useState(() => ({ ...(session.mockGame?.commanderPartners || {}) })); // id -> paired commander name
+  const [commanderPartnerTypes, setCommanderPartnerTypes] = useState(() => ({ ...(session.mockGame?.commanderPartnerTypes || {}) })); // id -> partner type line
+  const [colors, setColors] = useState(() => ({ ...(session.mockGame?.colors || {}) })); // id -> hex color
   const [mutedPlayers, setMutedPlayers] = useState({}); // id -> bool
   const [cameraEnabledByPlayer, setCameraEnabledByPlayer] = useState({}); // id -> bool
   const [streams, setStreams] = useState({});
@@ -79,7 +103,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(true);
   const [lookups, setLookups] = useState([]);
-  const [chatMessages, setChatMessages] = useState([]);
+  const [chatMessages, setChatMessages] = useState(() => [...(session.mockGame?.chat || [])]);
   const [diceOverlay, setDiceOverlay] = useState(null);
   const [counterDraft, setCounterDraft] = useState(null);
   const [videoCounters, setVideoCounters] = useState({});
@@ -94,9 +118,10 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       return Array.isArray(saved) ? saved.slice(-100) : [];
     } catch { return []; }
   });
-  const [activePlayerId, setActivePlayerId] = useState("");
-  const [poisonCounters, setPoisonCounters] = useState({});
-  const [commanderDamage, setCommanderDamage] = useState({});
+  const [activePlayerId, setActivePlayerId] = useState(session.mockGame?.activePlayerId || "");
+  const [poisonCounters, setPoisonCounters] = useState(() => ({ ...(session.mockGame?.poison || {}) }));
+  const [commanderDamage, setCommanderDamage] = useState(() => ({ ...(session.mockGame?.commanderDamage || {}) }));
+  const [eliminations, setEliminations] = useState(() => ({ ...(session.mockGame?.eliminations || {}) }));
   const [videoLayout, setVideoLayout] = useState(() => {
     try {
       const saved = localStorage.getItem("snapcast-video-layout");
@@ -145,6 +170,152 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       return true;
     }
   });
+  const [gameStatus, setGameStatus] = useState(session.roomStatus || "lobby");
+  const [durableSessionId, setDurableSessionId] = useState(session.gameSessionId || "");
+  const [gameManagementOpen, setGameManagementOpen] = useState(false);
+  const [roomMutedMemberships, setRoomMutedMemberships] = useState({});
+  const [gameFriends, setGameFriends] = useState([]);
+  const [isGameOwner, setIsGameOwner] = useState(Boolean(session.creator));
+  const [activeOwnerToken, setActiveOwnerToken] = useState(session.ownerToken || "");
+  const [reviewSessionId, setReviewSessionId] = useState("");
+  const [leaveAfterReview, setLeaveAfterReview] = useState(false);
+  const [membershipRefreshNonce, setMembershipRefreshNonce] = useState(0);
+
+  const resetTableState = () => {
+    const playerIds = rosterRef.current.filter((member) => member.role !== "visitor").map((member) => member.id);
+    const resetLives = Object.fromEntries(playerIds.map((id) => [id, 40]));
+    setLives(resetLives);
+    livesRef.current = resetLives;
+    setPoisonCounters({});
+    setCommanderDamage({});
+    commanderDamageRef.current = {};
+    setEliminations({});
+    eliminationsRef.current = {};
+    setCommanders({});
+    setCommanderPartners({});
+    setCommanderPartnerTypes({});
+    setActivePlayerId(playerIds[0] || "");
+    activePlayerIdRef.current = playerIds[0] || "";
+    setDurableSessionId("");
+    setGameStatus("lobby");
+    gameStatusRef.current = "lobby";
+    connRef.current?.setLife(40);
+    connRef.current?.setPoison(0);
+    connRef.current?.setCommander("");
+    connRef.current?.setCommanderPartner("");
+    connRef.current?.setElimination("");
+  };
+
+  useEffect(() => {
+    if (!gameManagementOpen || !account) return;
+    getSocialDashboard()
+      .then((dashboard) => setGameFriends(dashboard.friends || []))
+      .catch(() => setGameFriends([]));
+  }, [account, gameManagementOpen]);
+
+  useEffect(() => {
+    if (isLocalMock || !session.membershipId || !session.participantToken) return undefined;
+    const touch = () => {
+      touchGameMembership({
+        membershipId: session.membershipId,
+        participantToken: session.participantToken,
+      }).then((membership) => {
+        if (!membership.active) {
+          setError("The game owner removed you from this room.");
+          return null;
+        }
+        if (membership.room_status) {
+          const previousStatus = gameStatusRef.current;
+          if (membership.room_status === "lobby" && gameStatusRef.current !== "lobby") resetTableState();
+          if (
+            membership.room_status === "finished"
+            && previousStatus !== "finished"
+            && account
+            && !isVisitor
+            && membership.game_session_id
+          ) {
+            setReviewSessionId(membership.game_session_id);
+          }
+          gameStatusRef.current = membership.room_status;
+          setGameStatus(membership.room_status);
+        }
+        if (membership.realtime_epoch) {
+          realtimeEpochRef.current = membership.realtime_epoch;
+          connRef.current?.rotateRealtimeEpoch(membership.realtime_epoch).catch(() => {});
+        }
+        if (membership.game_session_id) setDurableSessionId(membership.game_session_id);
+        if (membership.owner_membership_id === session.membershipId) {
+          setIsGameOwner(true);
+          setActiveOwnerToken((token) => token || session.participantToken);
+        } else if (membership.owner_stale && !isVisitor) {
+          claimGameOwnership({
+            gameId: session.gameId,
+            membershipId: session.membershipId,
+            participantToken: session.participantToken,
+          }).then((claimed) => {
+            if (claimed) {
+              setIsGameOwner(true);
+              setActiveOwnerToken(session.participantToken);
+            }
+          }).catch(() => {});
+        }
+        if (isVisitor && membership.room_muted) {
+          for (const track of connRef.current?.localStream?.getAudioTracks?.() || []) track.enabled = false;
+          setMicOn(false);
+        }
+        if (Array.isArray(membership.memberships)) return membership.memberships;
+        return getGameMembershipStates({
+          gameId: session.gameId,
+          membershipId: session.membershipId,
+          participantToken: session.participantToken,
+        });
+      }).then((states) => {
+        if (!states) return;
+        const activeMemberships = new Set(states.map((state) => state.membership_id));
+        const mutedMemberships = new Set(states.filter((state) => state.room_muted).map((state) => state.membership_id));
+        verifiedMembershipStatesRef.current = states;
+        connRef.current?.setMembershipStates(states);
+        const byMembership = new Map(states.map((state) => [state.membership_id, state]));
+        setCommanders((values) => {
+          const next = { ...values };
+          for (const member of rosterRef.current) {
+            const state = byMembership.get(member.membershipId);
+            if (state) next[member.id] = state.commander_name || "";
+          }
+          return next;
+        });
+        setCommanderPartners((values) => {
+          const next = { ...values };
+          for (const member of rosterRef.current) {
+            const state = byMembership.get(member.membershipId);
+            if (state) next[member.id] = state.partner_commander_name || "";
+          }
+          return next;
+        });
+        setCommanderPartnerTypes((values) => {
+          const next = { ...values };
+          for (const member of rosterRef.current) {
+            const state = byMembership.get(member.membershipId);
+            if (state) next[member.id] = state.partner_commander_type_line || "";
+          }
+          return next;
+        });
+        setRoster((members) => members.filter((member) => !member.membershipId || activeMemberships.has(member.membershipId)));
+        setMutedPlayers((values) => {
+          const next = { ...values };
+          for (const member of rosterRef.current) {
+            if (member.role === "visitor" && member.membershipId) {
+              next[member.id] = mutedMemberships.has(member.membershipId);
+            }
+          }
+          return next;
+        });
+      }).catch(() => {});
+    };
+    touch();
+    const timer = window.setInterval(touch, 15000);
+    return () => window.clearInterval(timer);
+  }, [account, isLocalMock, isVisitor, session.membershipId, session.participantToken, membershipRefreshNonce]);
 
   useEffect(() => {
     chatNotificationsEnabledRef.current = chatNotificationsEnabled;
@@ -278,7 +449,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     // Spin up the recognition worker now so OpenCV compiles in the background
     // (off the main thread) while the player sets up their camera and cards.
     preloadRecognition();
-    const conn = new GameConnection({
+    const handlers = {
       onRoster: (nextRoster) => {
         rosterRef.current = nextRoster;
         setRoster(nextRoster);
@@ -343,6 +514,30 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
           [victimId]: { ...(values[victimId] || {}), [attackerId]: value },
         }));
       },
+      onElimination: (id, reason) => {
+        if ((eliminationsRef.current[id] || "") === reason) return;
+        const next = { ...eliminationsRef.current };
+        if (reason) next[id] = reason;
+        else delete next[id];
+        eliminationsRef.current = next;
+        setEliminations(next);
+        const player = rosterRef.current.find((member) => member.id === id);
+        setChatMessages((messages) => [...messages.slice(-99), {
+          id: `elimination-${id}-${Date.now()}-${++chatIdRef.current}`,
+          kind: "elimination",
+          system: true,
+          text: reason
+            ? `${player?.name || "A player"} is out (${reason.replace("_", " ")}).`
+            : `${player?.name || "A player"} returned to the game.`,
+          at: Date.now(),
+        }]);
+      },
+      onMembershipRefresh: () => {
+        const now = Date.now();
+        if (now - membershipRefreshAtRef.current < 5000) return;
+        membershipRefreshAtRef.current = now;
+        setMembershipRefreshNonce((value) => value + 1);
+      },
       onDiceRoll: (roll) => {
         const entry = {
           ...roll,
@@ -391,8 +586,12 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
         by: byName,
       }),
       onError: setError,
-    });
+    };
+    const conn = isLocalMock
+      ? new LocalMockGameConnection(handlers, session.mockGame)
+      : new GameConnection(handlers);
     connRef.current = conn;
+    if (verifiedMembershipStatesRef.current) conn.setMembershipStates(verifiedMembershipStatesRef.current);
     (async () => {
       try {
         const stream = await conn.initMedia({
@@ -406,7 +605,14 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
         const devices = await conn.listDevices();
         if (!isVisitor) setCameras(devices.cameras);
         setMics(devices.mics);
-        const id = await conn.join(session.code, session.name, isVisitor ? "visitor" : "player");
+        const id = await conn.join(
+          session.code,
+          session.name,
+          isVisitor ? "visitor" : "player",
+          session.membershipId,
+          session.profileId,
+          realtimeEpochRef.current,
+        );
         myIdRef.current = id;
         setMyId(id);
         if (!isVisitor && session.lobbyName) {
@@ -789,10 +995,19 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     const currentId = activePlayerId || playerIds[0];
     if (currentId !== myId) return;
     const nextId = playerIds[(playerIds.indexOf(currentId) + 1) % playerIds.length];
+    const nextMembershipId = roster.find((member) => member.id === nextId)?.membershipId;
+    if (durableSessionId && nextMembershipId) {
+      recordGameTurn({
+        sessionId: durableSessionId,
+        membershipId: session.membershipId,
+        participantToken: session.participantToken,
+        nextMembershipId,
+      }).catch(() => {});
+    }
     activePlayerIdRef.current = nextId;
     setActivePlayerId(nextId);
     connRef.current?.setActivePlayer(nextId);
-  }, [activePlayerId, isVisitor, myId, roster]);
+  }, [activePlayerId, durableSessionId, isVisitor, myId, roster, session.membershipId, session.participantToken]);
 
   useEffect(() => {
     const onKeyDown = (event) => {
@@ -821,30 +1036,52 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     connRef.current?.setLobbyName(name);
   };
 
-  const chooseCommander = (commander) => {
+  const chooseCommander = async (commander, partner = "") => {
     if (isVisitor) return;
-    setCommanders((values) => ({ ...values, [myId]: commander }));
-    setCommanderPartners((values) => ({ ...values, [myId]: "" }));
-    setCommanderPartnerTypes((values) => ({ ...values, [myId]: "" }));
-    connRef.current?.setCommander(commander);
-    connRef.current?.setCommanderPartner("", "");
+    try {
+      const selection = await validateGameCommanderSelection({
+        membershipId: session.membershipId,
+        participantToken: session.participantToken,
+        commanderName: commander,
+        partnerName: partner || null,
+      });
+      const commanderName = selection.commander.name;
+      const partnerName = selection.partner?.name || "";
+      const partnerTypeLine = selection.partner?.typeLine || "";
+      setCommanders((values) => ({ ...values, [myId]: commanderName }));
+      setCommanderPartners((values) => ({ ...values, [myId]: partnerName }));
+      setCommanderPartnerTypes((values) => ({ ...values, [myId]: partnerTypeLine }));
+      connRef.current?.setCommander(commanderName);
+      connRef.current?.setCommanderPartner(partnerName, partnerTypeLine);
+      connRef.current?.requestMembershipRefresh();
+    } catch (selectionError) {
+      setError(String(selectionError?.message || "Commander selection could not be validated."));
+    }
   };
 
   const chooseCommanderPartner = async (partner) => {
     if (isVisitor) return;
     const name = String(partner || "").trim();
     if (!name) return;
-    let typeLine = "";
     try {
-      const response = await fetch(`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(name)}`);
-      if (response.ok) typeLine = String((await response.json()).type_line || "");
-    } catch {
-      // Keep the pairing usable if Scryfall is temporarily unavailable. A
-      // missing type deliberately does not create a commander-damage row.
+      const selection = await validateGameCommanderSelection({
+        membershipId: session.membershipId,
+        participantToken: session.participantToken,
+        commanderName: commanders[myId] || "",
+        partnerName: name,
+      });
+      const commanderName = selection.commander.name;
+      const partnerName = selection.partner?.name || "";
+      const typeLine = selection.partner?.typeLine || "";
+      setCommanders((values) => ({ ...values, [myId]: commanderName }));
+      setCommanderPartners((values) => ({ ...values, [myId]: partnerName }));
+      setCommanderPartnerTypes((values) => ({ ...values, [myId]: typeLine }));
+      connRef.current?.setCommander(commanderName);
+      connRef.current?.setCommanderPartner(partnerName, typeLine);
+      connRef.current?.requestMembershipRefresh();
+    } catch (selectionError) {
+      setError(String(selectionError?.message || "Commander partner could not be validated."));
     }
-    setCommanderPartners((values) => ({ ...values, [myId]: name }));
-    setCommanderPartnerTypes((values) => ({ ...values, [myId]: typeLine }));
-    connRef.current?.setCommanderPartner(name, typeLine);
   };
 
   const chooseColor = (color) => {
@@ -943,7 +1180,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   }, [myId, notifyIncomingChat, session.name]);
 
   const randomizeGrid = useCallback(() => {
-    if (!session.creator || !myId) return;
+    if (!isGameOwner || !myId) return;
     const ids = rosterRef.current.filter((member) => member.role !== "visitor").map((member) => member.id);
     for (let i = ids.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -951,10 +1188,10 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     }
     setGridOrder(ids);
     connRef.current?.setGridOrder(ids);
-  }, [myId, session.creator]);
+  }, [isGameOwner, myId]);
 
   const startReadyCheck = useCallback(() => {
-    if (!session.creator || !myId || readyCheckRef.current) return;
+    if (!isGameOwner || !myId || readyCheckRef.current) return;
     const playerIds = rosterRef.current.filter((member) => member.role !== "visitor");
     if (!playerIds.length) return;
     const check = {
@@ -965,7 +1202,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     readyCheckRef.current = check;
     setReadyCheck(check);
     connRef.current?.startReadyCheck(check.checkId, check.expiresAt);
-  }, [myId, session.creator]);
+  }, [isGameOwner, myId]);
 
   const respondReady = useCallback((ready) => {
     const currentCheck = readyCheckRef.current;
@@ -1105,18 +1342,129 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     setTimeout(() => setGameCodeCopied(false), 1600);
   };
 
+  const leaveExplicitly = async () => {
+    try {
+      if (!isLocalMock) {
+        await leaveGameRoom({
+          membershipId: session.membershipId,
+          participantToken: session.participantToken,
+        });
+      }
+      connRef.current?.requestMembershipRefresh();
+    } catch {
+      // Leaving the local media room must remain available if persistence is
+      // temporarily unavailable. The stale membership expires from discovery.
+    }
+    connRef.current?.close();
+    if (!isLocalMock && account && durableSessionId) {
+      setLeaveAfterReview(true);
+      setReviewSessionId(durableSessionId);
+    } else {
+      onLeave();
+    }
+  };
+
+  const startManagedGame = async () => {
+    if (isLocalMock) {
+      setDurableSessionId(`mock-session-${session.code}`);
+      setGameStatus("live");
+      gameStatusRef.current = "live";
+      return;
+    }
+    const result = await startDurableGame({ gameId: session.gameId, ownerToken: activeOwnerToken });
+    setDurableSessionId(result.session_id);
+    setGameStatus("live");
+    gameStatusRef.current = "live";
+  };
+
+  const manageMember = async (participant, action) => {
+    if (!participant.membershipId) throw new Error("That participant is still connecting.");
+    if (isLocalMock) {
+      if (action === "remove") {
+        setRoster((members) => members.filter((member) => member.membershipId !== participant.membershipId));
+      } else {
+        setRoomMutedMemberships((values) => ({
+          ...values,
+          [participant.membershipId]: action === "mute",
+        }));
+      }
+      return;
+    }
+    await manageGameMember({
+      gameId: session.gameId,
+      ownerToken: activeOwnerToken,
+      membershipId: participant.membershipId,
+      action,
+    });
+    if (action === "remove") {
+      setRoster((members) => members.filter((member) => member.membershipId !== participant.membershipId));
+      connRef.current?.requestMembershipRefresh();
+      const membership = await touchGameMembership({
+        membershipId: session.membershipId,
+        participantToken: session.participantToken,
+      });
+      if (membership.realtime_epoch) {
+        realtimeEpochRef.current = membership.realtime_epoch;
+        await connRef.current?.rotateRealtimeEpoch(membership.realtime_epoch);
+      }
+    } else {
+      setRoomMutedMemberships((values) => ({
+        ...values,
+        [participant.membershipId]: action === "mute",
+      }));
+    }
+  };
+
+  const endManagedGame = async ({ resultKind, winnerMembershipId }) => {
+    const playerSnapshot = roster
+      .filter((member) => member.role !== "visitor" && member.membershipId)
+      .map((member) => ({
+        membership_id: member.membershipId,
+        result: resultKind === "winner" && member.membershipId !== winnerMembershipId
+          ? (eliminations[member.id] === "concede" ? "conceded" : "loss")
+          : "unknown",
+        loss_reason: eliminations[member.id] || null,
+        life: lives[member.id] ?? 40,
+        poison: poisonCounters[member.id] ?? 0,
+        commander_damage: commanderDamage[member.id] || {},
+      }));
+    if (!isLocalMock) {
+      await endDurableGame({
+        gameId: session.gameId,
+        ownerToken: activeOwnerToken,
+        resultKind,
+        winnerMembershipId,
+        finalSnapshot: { players: playerSnapshot },
+      });
+    }
+    setGameStatus("finished");
+    gameStatusRef.current = "finished";
+    setGameManagementOpen(false);
+    if (!isLocalMock && account && durableSessionId) setReviewSessionId(durableSessionId);
+  };
+
+  const restartManagedGame = async () => {
+    if (!window.confirm("Restart the table? Current game state will be preserved as unresolved if it has started.")) return;
+    if (!isLocalMock) await restartDurableGame({ gameId: session.gameId, ownerToken: activeOwnerToken });
+    resetTableState();
+    setGameManagementOpen(false);
+  };
+
   if (error) {
     return (
       <div className="lobby">
         <h2>Something went wrong</h2>
         <p className="error">{error}</p>
-        <button onClick={onLeave}>Back to lobby</button>
+        <button onClick={leaveExplicitly}>Back to lobby</button>
       </div>
     );
   }
 
-  const players = roster.filter((p) => p.role !== "visitor").slice(0, 4);
-  const visitors = roster.filter((p) => p.role === "visitor");
+  const players = roster.filter((p) => p.role !== "visitor").slice(0, 6);
+  const visitors = roster.filter((p) => p.role === "visitor").map((visitor) => ({
+    ...visitor,
+    roomMuted: Boolean(roomMutedMemberships[visitor.membershipId]),
+  }));
   const resolvedActivePlayerId = activePlayerId || players[0]?.id || "";
   const counterPlayers = [...players]
     .sort((a, b) => Number(b.id === myId) - Number(a.id === myId))
@@ -1170,7 +1518,8 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     isMe: p.id === myId,
     activeTurn: p.id === resolvedActivePlayerId,
   }));
-  while (tiles.length < 4) tiles.push({ id: `empty-${tiles.length}`, empty: true });
+  const displayedSeatLimit = Math.max(2, Math.min(6, Number(session.seatLimit) || 4));
+  while (tiles.length < displayedSeatLimit) tiles.push({ id: `empty-${tiles.length}`, empty: true });
   const resolvedHeroPlayerId = tiles.some((tile) => !tile.empty && tile.id === heroPlayerId)
     ? heroPlayerId
     : resolvedActivePlayerId;
@@ -1187,7 +1536,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       {visitors
         .filter((visitor) => visitor.id !== myId && streams[visitor.id])
         .map((visitor) => (
-          <RemoteAudio key={visitor.id} stream={streams[visitor.id]} />
+          <RemoteAudio key={visitor.id} stream={streams[visitor.id]} muted={mutedPlayers[visitor.id]} />
         ))}
       {videoLayout === "follow" && players
         .filter((player) => player.id !== resolvedActivePlayerId && player.id !== myId && streams[player.id])
@@ -1283,6 +1632,73 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
             onRenameLobby={chooseLobbyName}
           />
         <div className="video-panel">
+          {isGameOwner && activeOwnerToken && (
+            <button
+              className="game-management-trigger"
+              type="button"
+              onClick={() => setGameManagementOpen(true)}
+            >
+              <Crown size={16} />
+              Manage game
+              <span className={`game-status-badge ${gameStatus}`}>{gameStatus === "live" ? "Live" : gameStatus === "lobby" ? "Lobby" : "Finished"}</span>
+            </button>
+          )}
+          <button
+            className={`game-leave-trigger${isGameOwner && activeOwnerToken ? " owner-offset" : ""}`}
+            type="button"
+            onClick={leaveExplicitly}
+          >
+            <LogOut size={16} />
+            Leave game
+          </button>
+          {!isVisitor && myId && gameStatus === "live" && (
+            <button
+              className={`game-out-trigger${eliminations[myId] ? " active" : ""}`}
+              type="button"
+              onClick={() => {
+                if (eliminations[myId]) {
+                  if (!window.confirm("Return yourself to the active game?")) return;
+                  const next = { ...eliminationsRef.current };
+                  delete next[myId];
+                  eliminationsRef.current = next;
+                  setEliminations(next);
+                  connRef.current?.setElimination("");
+                  setChatMessages((messages) => [...messages.slice(-99), {
+                    id: `elimination-${myId}-${Date.now()}-${++chatIdRef.current}`,
+                    kind: "elimination",
+                    system: true,
+                    text: `${session.name} returned to the game.`,
+                    at: Date.now(),
+                  }]);
+                  return;
+                }
+                const reason = window.prompt("How were you eliminated? life, commander damage, poison, concede, or other");
+                const normalized = String(reason || "").trim().toLowerCase().replace(/\s+/g, "_");
+                const safeReason = {
+                  life: "life",
+                  commander_damage: "commander_damage",
+                  poison: "poison",
+                  concede: "concede",
+                  other: "other",
+                }[normalized];
+                if (!safeReason || !window.confirm(`Mark yourself out by ${safeReason.replace("_", " ")}?`)) return;
+                const next = { ...eliminationsRef.current, [myId]: safeReason };
+                eliminationsRef.current = next;
+                setEliminations(next);
+                connRef.current?.setElimination(safeReason);
+                setChatMessages((messages) => [...messages.slice(-99), {
+                  id: `elimination-${myId}-${Date.now()}-${++chatIdRef.current}`,
+                  kind: "elimination",
+                  system: true,
+                  text: `${session.name} is out (${safeReason.replace("_", " ")}).`,
+                  at: Date.now(),
+                }]);
+              }}
+            >
+              <X size={16} />
+              {eliminations[myId] ? "Out · Undo" : "I’m out"}
+            </button>
+          )}
           {!sidebarOpen && !sidebarCollapsed && (
             <div
               className="sidebar-edge-zone"
@@ -1330,19 +1746,21 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
               </div>
             </div>
           )}
-          <div className={`${videoLayout === "follow" ? "grid follow-active" : videoLayout === "hero" ? "grid hero-view" : "grid"}${videoFit === "16:9" ? " grid-fit-16-9" : ""}`}>
+          <div className={`${videoLayout === "follow" ? "grid follow-active" : videoLayout === "hero" ? "grid hero-view" : `grid${tiles.length > 4 ? " grid-six" : ""}`}${videoFit === "16:9" ? " grid-fit-16-9" : ""}`}>
             {visibleTiles.map((t, i) => (
               <VideoTile
                 key={t.id}
                 tile={t}
                 color={t.color || TILE_COLORS[i % TILE_COLORS.length]}
                 seatIndex={i}
+                seatCount={tiles.length}
                 innerSide={videoLayout === "follow" || i % 2 === 0 ? "right" : "left"}
                 flash={flash?.tileId === t.id ? flash : null}
                 scanNotice={t.isMe ? scanNotice : null}
                 onIdentify={identify}
                 onChooseCommander={chooseCommander}
                 onChooseCommanderPartner={chooseCommanderPartner}
+                savedCommanderDecks={session.savedCommanderDecks || []}
                 onLookupCommander={lookupCommanderName}
                 onChangeLife={changeLife}
                 onOpenCounters={openCounters}
@@ -1353,7 +1771,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
                 onToggleMic={toggleMic}
                 videoQuality={t.isMe ? "auto" : (videoQualityByPlayer[t.id] || "auto")}
                 onVideoQualityChange={t.isMe ? undefined : (quality) => chooseVideoQuality(t.id, quality)}
-                canRandomizeGrid={session.creator && t.isMe}
+                canRandomizeGrid={isGameOwner && t.isMe}
                 onRandomizeGrid={randomizeGrid}
                 onStartReadyCheck={startReadyCheck}
                 isReadyCheckActive={!!readyCheck}
@@ -1376,21 +1794,59 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
           </div>
         </div>
       </div>
+      {gameManagementOpen && isGameOwner && (
+        <GameManagement
+          status={gameStatus}
+          players={players.map((player) => ({
+            ...player,
+            isMe: player.id === myId,
+            commander: commanders[player.id] || "",
+            eliminated: Boolean(eliminations[player.id]),
+            lossReason: eliminations[player.id] || "",
+          }))}
+          visitors={visitors}
+          onClose={() => setGameManagementOpen(false)}
+          onStart={startManagedGame}
+          onManageMember={manageMember}
+          onEnd={endManagedGame}
+          onRestart={restartManagedGame}
+          friends={gameFriends}
+          onInviteFriend={(profileId) => inviteFriendToGame({
+            gameId: session.gameId,
+            ownerToken: activeOwnerToken,
+            profileId,
+          })}
+          onCancelInvitation={(invitationId) => cancelGameInvitation({
+            invitationId,
+            ownerToken: activeOwnerToken,
+          })}
+        />
+      )}
+      {reviewSessionId && account && (
+        <ReviewPrompt
+          sessionId={reviewSessionId}
+          onClose={() => {
+            setReviewSessionId("");
+            if (leaveAfterReview) onLeave();
+          }}
+        />
+      )}
     </div>
   );
 }
 
-function RemoteAudio({ stream }) {
+function RemoteAudio({ stream, muted = false }) {
   const ref = useRef(null);
   useEffect(() => {
     if (ref.current) {
       ref.current.srcObject = stream;
+      ref.current.muted = muted;
       ref.current.play().catch(() => {
         // Browsers normally allow this after the explicit Join click. If one
         // blocks autoplay, the element will retry when the stream updates.
       });
     }
-  }, [stream]);
+  }, [stream, muted]);
   return <audio ref={ref} autoPlay playsInline />;
 }
 
@@ -1491,7 +1947,7 @@ function formatVideoResolution(resolution) {
   return `${height}p`;
 }
 
-function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseCommander, onChooseCommanderPartner, onLookupCommander, onChangeLife, onOpenCounters, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, isReadyCheckActive, readyStatus, onReady, onNotReady, heroRole, onSelectHero, flash, scanNotice, camOn, micOn, onToggleCam, onToggleMic, videoQuality, onVideoQualityChange, videoCounters, counterDragPreview, onStartVideoCounterDrag, onChangeVideoCounter, onRemoveVideoCounter, flipped, onToggleFlip }) {
+function VideoTile({ tile, color, seatIndex, seatCount, innerSide, onIdentify, onChooseCommander, onChooseCommanderPartner, savedCommanderDecks, onLookupCommander, onChangeLife, onOpenCounters, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, isReadyCheckActive, readyStatus, onReady, onNotReady, heroRole, onSelectHero, flash, scanNotice, camOn, micOn, onToggleCam, onToggleMic, videoQuality, onVideoQualityChange, videoCounters, counterDragPreview, onStartVideoCounterDrag, onChangeVideoCounter, onRemoveVideoCounter, flipped, onToggleFlip }) {
   // Seats 3 and 4 (the bottom row of a 4-player grid) mirror their banner to
   // the bottom edge and their life badge to the top corner, since those
   // tiles sit upside-down relative to the viewer's side of the table.
@@ -1500,7 +1956,7 @@ function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseComm
   // The life badge's own tooltips must point away from whichever screen
   // edge the badge is flush against, or they'd render off-screen.
   const lifeBadgeAlign = isSeat3 ? "right" : isSeat4 ? "left" : innerSide;
-  const bannerAtBottom = isSeat3 || isSeat4;
+  const bannerAtBottom = seatCount > 4 ? seatIndex >= 3 : isSeat3 || isSeat4;
   const lifeTooltipPosition = bannerAtBottom
     ? lifeBadgeAlign === "left" ? "left-bottom" : "right-bottom"
     : lifeBadgeAlign === "left" ? "left-top" : "right-top";
@@ -1587,6 +2043,7 @@ function VideoTile({ tile, color, seatIndex, innerSide, onIdentify, onChooseComm
         tile={tile}
         onChoose={onChooseCommander}
         onChoosePartner={onChooseCommanderPartner}
+        savedCommanderDecks={savedCommanderDecks}
         onLookupCommander={onLookupCommander}
         speaking={speaking}
         onPassTurn={onPassTurn}
@@ -1921,7 +2378,7 @@ function TileMenu({ flipped, onToggleFlip, canPassTurn, onPassTurn, canRandomize
   );
 }
 
-function CommanderBanner({ tile, onChoose, onChoosePartner, onLookupCommander, speaking, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, flipped, onToggleFlip, camOn, micOn, onToggleCam, onToggleMic, videoQuality, videoResolution, onVideoQualityChange, atBottom }) {
+function CommanderBanner({ tile, onChoose, onChoosePartner, savedCommanderDecks = [], onLookupCommander, speaking, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, flipped, onToggleFlip, camOn, micOn, onToggleCam, onToggleMic, videoQuality, videoResolution, onVideoQualityChange, atBottom }) {
   const [draft, setDraft] = useState(tile.commander);
   const [suggestions, setSuggestions] = useState([]);
   const [highlight, setHighlight] = useState(-1);
@@ -2019,7 +2476,17 @@ function CommanderBanner({ tile, onChoose, onChoosePartner, onLookupCommander, s
   const playerRow = (
     <span className="banner-player-row">
       {tile.muted && !tile.isMe && <MicOff size={18} className="banner-muted" aria-label="Muted" />}
-      <span className="banner-player">{playerLabel}</span>
+      {tile.profileId ? (
+        <a
+          className="banner-player banner-player-link"
+          href={`/profile?id=${encodeURIComponent(tile.profileId)}`}
+          onClick={(event) => event.stopPropagation()}
+        >
+          {playerLabel}
+        </a>
+      ) : (
+        <span className="banner-player">{playerLabel}</span>
+      )}
       {speaking && (
         <span className="speaking-meter" role="img" aria-label="Speaking">
           <i /><i /><i /><i /><i />
@@ -2184,6 +2651,13 @@ function CommanderBanner({ tile, onChoose, onChoosePartner, onLookupCommander, s
     onChoose(commander);
     setEditing(false);
   };
+  const chooseSavedDeck = (deck) => {
+    setSuggestions([]);
+    setPartnerDraft("");
+    setEditingPartner(false);
+    onChoose(deck.commander_name, deck.partner_name || "");
+    setEditing(false);
+  };
   const submit = (event) => {
     event.preventDefault();
     const commander = (highlight >= 0 ? suggestions[highlight] : draft).trim();
@@ -2219,6 +2693,22 @@ function CommanderBanner({ tile, onChoose, onChoosePartner, onLookupCommander, s
           autoComplete="off"
           autoFocus
         />
+        {!draft.trim() && savedCommanderDecks.length > 0 && (
+          <ul className="commander-suggest saved-commander-suggest">
+            {savedCommanderDecks.map((deck) => (
+              <li
+                key={deck.id}
+                onMouseDown={(event) => {
+                  event.preventDefault();
+                  chooseSavedDeck(deck);
+                }}
+              >
+                <strong>{deck.label}</strong>
+                <span>{deck.commander_name}{deck.partner_name ? ` + ${deck.partner_name}` : ""}</span>
+              </li>
+            ))}
+          </ul>
+        )}
         {suggestions.length > 0 && (
           <ul className="commander-suggest">
             {suggestions.map((name, i) => (

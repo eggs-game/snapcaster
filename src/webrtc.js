@@ -84,6 +84,7 @@ const CHUNK_TTL_MS = 30000;        // drop transfers that never complete
 const CAPTURE_MIN_INTERVAL_MS = 1200; // per-peer floor between capture requests
 const CAPTURE_BURST = 4;              // allowance for a quick flurry of clicks
 const MAX_VISITORS = 8; // peer-to-peer video fan-out is not an unlimited broadcast service
+const MAX_PLAYERS = 6;
 
 export class GameConnection {
   constructor(handlers) {
@@ -110,11 +111,15 @@ export class GameConnection {
     this.activePlayerId = "";
     this.poison = 0;
     this.commanderDamage = {};
+    this.eliminationReason = "";
     this.gridOrder = [];
     this.videoCounters = [];
     this.videoQuality = new Map(); // peerId -> receiver's requested quality
     this.role = "player";
     this.roster = [];
+    this.rawRoster = [];
+    this.allowedMembershipIds = null;
+    this.verifiedMemberships = null;
     this.videoDeviceId = "";
     this.audioDeviceId = "";
     this.iceServers = FALLBACK_ICE_SERVERS;
@@ -242,23 +247,72 @@ export class GameConnection {
     return this.localStream;
   }
 
-  async join(code, name, role = "player") {
+  async join(code, name, role = "player", membershipId = "", profileId = "", realtimeEpoch = "") {
     this.role = role === "visitor" ? "visitor" : "player";
     await this._configureIceServers(code);
-    this.room = await joinRoom(code, name, this.role, {
+    this.joinDetails = { code, name, membershipId, profileId };
+    this.realtimeEpoch = realtimeEpoch;
+    this.signalHandlers = {
       onRoster: (roster) => {
         // Presence can sync before joinRoom has returned our ID.
         if (!this.myId) this.roster = roster;
         else this._onRoster(roster);
       },
       onMessage: (msg) => this._onSignal(msg),
-    });
+    };
+    this.room = await joinRoom(
+      code,
+      realtimeEpoch,
+      name,
+      this.role,
+      membershipId,
+      profileId,
+      this.signalHandlers,
+    );
     this.myId = this.room.myId;
     this._onRoster(this.roster);
     return this.myId;
   }
 
+  async rotateRealtimeEpoch(realtimeEpoch) {
+    const nextEpoch = String(realtimeEpoch || "");
+    if (!nextEpoch || nextEpoch === this.realtimeEpoch || nextEpoch === this.rotatingEpoch || !this.joinDetails || !this.myId) return;
+    const previousRoom = this.room;
+    this.rotatingEpoch = nextEpoch;
+    try {
+      const nextRoom = await joinRoom(
+        this.joinDetails.code,
+        nextEpoch,
+        this.joinDetails.name,
+        this.role,
+        this.joinDetails.membershipId,
+        this.joinDetails.profileId,
+        this.signalHandlers,
+        this.myId,
+      );
+      this.room = nextRoom;
+      this.realtimeEpoch = nextEpoch;
+      previousRoom?.leave();
+    } finally {
+      this.rotatingEpoch = "";
+    }
+  }
+
   _onRoster(roster) {
+    this.rawRoster = roster;
+    if (this.verifiedMemberships) {
+      roster = roster.flatMap((member) => {
+        const verified = this.verifiedMemberships.get(member.membershipId);
+        return verified ? [{
+          ...member,
+          name: verified.display_name,
+          role: verified.role,
+          profileId: verified.profile_id || "",
+        }] : [];
+      });
+    } else if (this.allowedMembershipIds) {
+      roster = roster.filter((member) => member.membershipId && this.allowedMembershipIds.has(member.membershipId));
+    }
     this.roster = roster;
     // Presence can sync before our own track has propagated, giving a roster
     // that lists existing members but not us. Deciding offers from such a
@@ -272,10 +326,10 @@ export class GameConnection {
     }
     const players = roster.filter((r) => r.role !== "visitor");
     const visitors = roster.filter((r) => r.role === "visitor");
-    if (this.role === "player" && players.length > 4) {
+    if (this.role === "player" && players.length > MAX_PLAYERS) {
       const myRank = players.findIndex((r) => r.id === this.myId);
-      if (myRank >= 4) {
-        this.h.onError?.("Game is full (4 players max)");
+      if (myRank >= MAX_PLAYERS) {
+        this.h.onError?.(`Game is full (${MAX_PLAYERS} players max)`);
         this.close();
         return;
       }
@@ -305,8 +359,6 @@ export class GameConnection {
     if (this.role === "player") {
       this.room?.send({ type: "life", life: this.life });
       if (this.lobbyName) this.room?.send({ type: "lobby-name", lobbyName: this.lobbyName });
-      if (this.commander) this.room?.send({ type: "commander", commander: this.commander });
-      if (this.commanderPartner) this.room?.send({ type: "commander-partner", partner: this.commanderPartner, typeLine: this.commanderPartnerType });
       if (this.color) this.room?.send({ type: "color", color: this.color });
       if (this.activePlayerId) this.room?.send({ type: "active-player", playerId: this.activePlayerId });
       if (this.gridOrder.length) this.room?.send({ type: "grid-order", order: this.gridOrder });
@@ -314,6 +366,7 @@ export class GameConnection {
       for (const [attackerId, value] of Object.entries(this.commanderDamage)) {
         if (value) this.room?.send({ type: "commander-damage", attackerId, value });
       }
+      if (this.eliminationReason) this.room?.send({ type: "elimination", reason: this.eliminationReason });
       for (const counter of this.videoCounters) {
         this.room?.send({ type: "video-counter", counter });
       }
@@ -323,7 +376,9 @@ export class GameConnection {
   }
 
   async _onSignal(msg) {
-    const senderRole = this.roster.find((r) => r.id === msg.from)?.role || "player";
+    const sender = this.roster.find((r) => r.id === msg.from);
+    if (this.allowedMembershipIds && !sender) return;
+    const senderRole = sender?.role || "player";
     switch (msg.type) {
       case "offer": {
         const p = this._getPeer(msg.from);
@@ -359,16 +414,13 @@ export class GameConnection {
         }
         break;
       case "commander":
-        if (senderRole !== "visitor") {
-          this.h.onCommander?.(msg.from, String(msg.commander || "").slice(0, 120));
-        }
+        // Commander state is server-authoritative. A legacy or modified
+        // client may still broadcast this message, but it cannot introduce a
+        // value; prompt a capability-checked membership refresh instead.
+        if (senderRole !== "visitor") this.h.onMembershipRefresh?.();
         break;
       case "commander-partner":
-        if (senderRole !== "visitor") this.h.onCommanderPartner?.(
-          msg.from,
-          String(msg.partner || "").slice(0, 120),
-          String(msg.typeLine || "").slice(0, 240),
-        );
+        if (senderRole !== "visitor") this.h.onMembershipRefresh?.();
         break;
       case "color":
         if (senderRole !== "visitor") this.h.onColor?.(msg.from, String(msg.color || "").slice(0, 20));
@@ -384,7 +436,6 @@ export class GameConnection {
         // accept a peer-provided media URL here.
         const soundId = getSoundEffect(msg.soundId)?.id || "";
         if (!text && !soundId) break;
-        const sender = this.roster.find((member) => member.id === msg.from);
         this.h.onChat?.({
           from: msg.from,
           name: sender?.name || (senderRole === "visitor" ? "Visitor" : "Player"),
@@ -447,6 +498,18 @@ export class GameConnection {
           }
         }
         break;
+      case "elimination": {
+        if (senderRole === "visitor") break;
+        const reason = String(msg.reason || "");
+        const safeReason = ["", "life", "commander_damage", "poison", "concede", "other", "unknown"].includes(reason)
+          ? reason
+          : "unknown";
+        this.h.onElimination?.(msg.from, safeReason);
+        break;
+      }
+      case "membership-refresh":
+        this.h.onMembershipRefresh?.();
+        break;
       case "dice-roll": {
         const sides = Math.max(2, Math.min(20, Number(msg.sides) || 20));
         const value = Math.max(1, Math.min(sides, Number(msg.value) || 1));
@@ -473,6 +536,17 @@ export class GameConnection {
         break;
       }
     }
+  }
+
+  setAllowedMemberships(membershipIds) {
+    this.allowedMembershipIds = new Set(membershipIds || []);
+    this._onRoster(this.rawRoster);
+  }
+
+  setMembershipStates(states) {
+    this.verifiedMemberships = new Map((states || []).map((state) => [state.membership_id, state]));
+    this.allowedMembershipIds = new Set(this.verifiedMemberships.keys());
+    this._onRoster(this.rawRoster);
   }
 
   _getPeer(peerId) {
@@ -664,13 +738,11 @@ export class GameConnection {
   setCommander(commander) {
     if (this.role === "visitor") return;
     this.commander = String(commander || "").trim().slice(0, 120);
-    this.room?.send({ type: "commander", commander: this.commander });
   }
   setCommanderPartner(partner, typeLine = "") {
     if (this.role === "visitor") return;
     this.commanderPartner = String(partner || "").trim().slice(0, 120);
     this.commanderPartnerType = String(typeLine || "").trim().slice(0, 240);
-    this.room?.send({ type: "commander-partner", partner: this.commanderPartner, typeLine: this.commanderPartnerType });
   }
   setColor(color) {
     if (this.role === "visitor") return;
@@ -762,6 +834,17 @@ export class GameConnection {
       value: safeValue,
       commanderName: String(commanderName || "").slice(0, 120),
     });
+  }
+  setElimination(reason = "") {
+    if (this.role === "visitor") return;
+    const value = String(reason || "");
+    this.eliminationReason = ["", "life", "commander_damage", "poison", "concede", "other", "unknown"].includes(value)
+      ? value
+      : "unknown";
+    this.room?.send({ type: "elimination", reason: this.eliminationReason });
+  }
+  requestMembershipRefresh() {
+    this.room?.send({ type: "membership-refresh" });
   }
   sendDiceRoll(value, sides = 20, at = Date.now()) {
     if (this.role === "visitor") return;

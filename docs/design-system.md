@@ -123,6 +123,68 @@ radius, `var(--text-primary)` fill and border, and inverse 600-weight label.
 They darken slightly on hover and keep their full width while disabled. The
 wrong-card report’s Submit report action uses this pattern.
 
+## Account and role controls
+
+The home header is a dark translucent glass navigation bar over the hero:
+Snapcast stays left-aligned and Discord sign-in or the signed-in profile stays
+right-aligned. It uses a restrained blur, a low-contrast bottom edge, and enough
+transparency for the hero to remain visible. The hero image uses matching dark
+fades at its top and bottom so both the header and footer remain readable. The
+bottom fade becomes fully opaque before the artwork ends, while the public-game
+section overlaps that faded region so its heading and table tiles arrive sooner
+without creating a visible seam between the hero and the canvas.
+Account access remains secondary to Create game and Join game. Its Discord
+sign-in and signed-in profile controls are 34px-tall labeled buttons with an 8px
+radius and the shared glass material. The profile menu uses the same dense glass
+overlay as other floating menus. Authentication failures appear directly below
+that control rather than disappearing into a game-creation modal.
+
+The join modal presents Player and Visitor as two equal choice cards, using the
+standard 8px control radius and focus color for the active role. At phone widths
+they stack into one column. The post-setup account prompt reuses the normal modal
+shell and action hierarchy; both choices have equal width so creating an account
+remains optional rather than visually mandatory.
+
+**My Profile** uses the same modal shell rather than introducing a separate
+settings language. Its 52px account avatar anchors the header; public identity,
+saved entry devices, and preferences are separated by the standard subtle
+divider. Saved-device rows use the raised surface and 8px control radius, while
+the privacy checkbox makes the whole row hoverable and clickable.
+
+Public-game cards use the normal raised panel hierarchy: 12px outer radius,
+8px actions, compact status pills, and commander names as quiet surface chips.
+Signed-in player names sit below those chips as subdued profile links.
+The directory reuses the segmented-control selected state for Lobby/Live and
+keeps bracket visible beside search rather than hiding primary filters.
+
+The owner-only Game Management trigger is a labeled glass control over the
+video panel, paired with a compact lifecycle badge. Its modal separates players
+and visitors into 52px participant rows; row actions use the standard 24px /
+16px tiny-button tier, while lifecycle actions use labeled 38px controls.
+During a live game, the player-owned **I’m out** control mirrors the same
+34px dense-glass treatment on the opposite edge; its active state uses the
+existing danger border/text role and remains explicitly reversible.
+
+Public profiles use a 76px identity avatar, a four-card summary grid, and the
+same 12px panel shell used by discovery cards. Saved Commander decks live
+inside My Profile as raised 50px rows; their remove action uses the 24px /
+16px tiny tier, and the add form keeps the shared 34px inputs and 8px radii.
+
+Friends and notifications remain inside My Profile. Notifications use raised
+52px action rows; friends use quiet 40px link rows with semantic presence dots.
+Profile search uses the normal labeled input and a compact raised result list.
+Public-profile social actions are labeled 34px buttons, with block and deletion
+using the existing danger color role rather than introducing a new red.
+
+The post-game review prompt reuses the modal shell, centered 42px star buttons,
+and shared form styling. The persistent Leave game control matches the owner
+trigger's glass material and shifts beside it when both are visible.
+
+The restricted moderation page uses the public-profile page width and the
+standard 14px operational panel shell. Reports and appeals stay in separate
+responsive columns, with quiet evidence blocks and labeled actions; permanent
+or destructive decisions never use an icon-only control.
+
 ## 32px icon buttons
 
 **Any icon-only button larger than 24px and smaller than 40px uses this

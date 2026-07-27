@@ -1,8 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ArrowRight, Camera, Mic, X } from "lucide-react";
+import { ArrowRight, Camera, LogIn, LogOut, Mic, Settings, UserRound, X } from "lucide-react";
 import { isConfigured, makeCode, CODE_LENGTH } from "./signaling.js";
 import { preload as preloadRecognition } from "./recognition/matcher.js";
 import SiteFooter from "./SiteFooter.jsx";
+import { accountAvatarUrl, accountDisplayName } from "./account.js";
+import { createGameRoom, joinGameRoom } from "./gameRooms.js";
+import { getLocalMockGame } from "./localMock.js";
+import { PublicGameCards } from "./PublicGames.jsx";
 
 function HeroBackdrop() {
   const [file, setFile] = useState(null);
@@ -32,7 +36,17 @@ function HeroBackdrop() {
   );
 }
 
-export default function Lobby({ onStart }) {
+export default function Lobby({
+  onStart,
+  account,
+  accountReady,
+  accountError = "",
+  onSignIn,
+  onSignOut,
+  onOpenProfile,
+  onSaveEntryPreferences,
+  notificationCount = 0,
+}) {
   const params = new URLSearchParams(window.location.search);
   const visitorMode = params.get("visitor") === "1";
   const initialCode = (params.get("code") || "").toUpperCase().slice(0, CODE_LENGTH);
@@ -42,6 +56,10 @@ export default function Lobby({ onStart }) {
   const [lobbyName, setLobbyName] = useState("");
   const [bracket, setBracket] = useState("3");
   const [seatLimit, setSeatLimit] = useState("4");
+  const [visibility, setVisibility] = useState("private");
+  const [joinRole, setJoinRole] = useState(visitorMode ? "visitor" : "player");
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [indexStatus, setIndexStatus] = useState("loading");
   const [indexCount, setIndexCount] = useState(0);
@@ -52,9 +70,20 @@ export default function Lobby({ onStart }) {
   const [audioDeviceId, setAudioDeviceId] = useState("");
   const [mediaError, setMediaError] = useState("");
   const [micLevel, setMicLevel] = useState(0);
+  const [localMockRoom, setLocalMockRoom] = useState(null);
+  const [localMockChecked, setLocalMockChecked] = useState(false);
   const previewRef = useRef(null);
   const previewStreamRef = useRef(null);
   const previewRequestRef = useRef(0);
+  const joiningAsVisitor = visitorMode || (modal === "join" && joinRole === "visitor");
+  const joiningLocalMock = modal === "join" && Boolean(localMockRoom);
+
+  useEffect(() => {
+    if (!account) return;
+    setName(accountDisplayName(account));
+    setVideoDeviceId(account.preferences?.preferred_camera_id || "");
+    setAudioDeviceId(account.preferences?.preferred_microphone_id || "");
+  }, [account]);
 
   useEffect(() => {
     preloadRecognition()
@@ -71,6 +100,22 @@ export default function Lobby({ onStart }) {
     return () => window.removeEventListener("keydown", close);
   }, [modal, visitorMode]);
 
+  useEffect(() => {
+    let cancelled = false;
+    if (modal !== "join") {
+      setLocalMockRoom(null);
+      setLocalMockChecked(true);
+      return undefined;
+    }
+    setLocalMockChecked(false);
+    getLocalMockGame(code).then((room) => {
+      if (cancelled) return;
+      setLocalMockRoom(room);
+      setLocalMockChecked(true);
+    });
+    return () => { cancelled = true; };
+  }, [code, modal]);
+
   const stopPreview = () => {
     previewRequestRef.current++;
     for (const track of previewStreamRef.current?.getTracks?.() || []) track.stop();
@@ -84,7 +129,7 @@ export default function Lobby({ onStart }) {
     setMediaError("");
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: visitorMode ? false : {
+        video: joiningAsVisitor ? false : {
           ...(nextVideoId ? { deviceId: { exact: nextVideoId } } : {}),
           width: { ideal: 1920 },
           height: { ideal: 1080 },
@@ -119,12 +164,17 @@ export default function Lobby({ onStart }) {
       stopPreview();
       return undefined;
     }
+    if (modal === "join" && (!localMockChecked || joiningLocalMock)) {
+      stopPreview();
+      setMediaError("");
+      return undefined;
+    }
     acquirePreview();
     return () => stopPreview();
     // Device changes are handled explicitly so opening the modal is the only
     // automatic permission request.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [modal, visitorMode]);
+  }, [modal, joiningAsVisitor, joiningLocalMock, localMockChecked]);
 
   useEffect(() => {
     if (previewRef.current && previewStream) {
@@ -180,11 +230,15 @@ export default function Lobby({ onStart }) {
       setError("Enter your player name to continue.");
       return;
     }
-    if (!isConfigured()) {
+    if (!isConfigured() && !settings.mockGame) {
       setError("Multiplayer is not configured for this deployment.");
       return;
     }
     localStorage.setItem("sc-name", playerName);
+    onSaveEntryPreferences?.({
+      preferredCameraId: settings.videoDeviceId || "",
+      preferredMicrophoneId: settings.audioDeviceId || "",
+    });
     onStart({
       name: playerName,
       code: roomCode,
@@ -206,35 +260,64 @@ export default function Lobby({ onStart }) {
     setModal("create-setup");
   };
 
-  const finishCreate = (event) => {
+  const finishCreate = async (event) => {
     event.preventDefault();
-    stopPreview();
-    go(code, "player", lobbyName, {
-      bracket: Number(bracket),
-      seatLimit: Number(seatLimit),
-      creator: true,
-      videoDeviceId,
-      audioDeviceId,
-    });
+    setError("");
+    setSubmitting(true);
+    try {
+      const capability = await createGameRoom({
+        code,
+        name: lobbyName,
+        bracket: Number(bracket),
+        visibility,
+        seatLimit: Number(seatLimit),
+        displayName: name.trim(),
+      });
+      stopPreview();
+      go(code, "player", lobbyName, {
+        bracket: Number(bracket),
+        seatLimit: Number(seatLimit),
+        visibility,
+        creator: true,
+        videoDeviceId,
+        audioDeviceId,
+        ...capability,
+      });
+    } catch (createError) {
+      setError(String(createError?.message || "Could not create this game."));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const joinGame = (event) => {
+  const joinGame = async (event) => {
     event.preventDefault();
     if (code.length !== CODE_LENGTH) {
-      setError("Enter the four-character game code.");
+      setError("Enter the six-character game code.");
       return;
     }
-    stopPreview();
-    go(code, visitorMode ? "visitor" : "player", "", {
-      videoDeviceId,
-      audioDeviceId,
-    });
+    setError("");
+    setSubmitting(true);
+    try {
+      const role = joiningAsVisitor ? "visitor" : "player";
+      const capability = await joinGameRoom({ code, displayName: name.trim(), role });
+      stopPreview();
+      go(code, role, "", {
+        videoDeviceId,
+        audioDeviceId,
+        ...capability,
+      });
+    } catch (joinError) {
+      setError(String(joinError?.message || "Could not join this game."));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const continueToSetup = (event) => {
     event.preventDefault();
     if (code.length !== CODE_LENGTH) {
-      setError("Enter the four-character game code.");
+      setError("Enter the six-character game code.");
       return;
     }
     setError("");
@@ -245,6 +328,55 @@ export default function Lobby({ onStart }) {
     <main className="lobby-home">
       <header className="site-header">
         <a className="site-brand" href="/">Snapcast</a>
+        <div className="site-account">
+          {account ? (
+            <>
+              <button
+                className="site-account-button"
+                type="button"
+                onClick={() => setAccountMenuOpen((open) => !open)}
+                aria-expanded={accountMenuOpen}
+              >
+                {accountAvatarUrl(account) ? (
+                  <img src={accountAvatarUrl(account)} alt="" />
+                ) : (
+                  <UserRound size={17} />
+                )}
+                <span>{accountDisplayName(account)}</span>
+                {notificationCount > 0 && (
+                  <span className="site-notification-badge" aria-label={`${notificationCount} unread notifications`}>
+                    {notificationCount > 9 ? "9+" : notificationCount}
+                  </span>
+                )}
+              </button>
+              {accountMenuOpen && (
+                <div className="site-account-menu">
+                  <button type="button" onClick={() => {
+                    setAccountMenuOpen(false);
+                    onOpenProfile?.();
+                  }}>
+                    <Settings size={16} />
+                    My Profile
+                  </button>
+                  <button type="button" onClick={() => onSignOut?.()}>
+                    <LogOut size={16} />
+                    Sign out
+                  </button>
+                </div>
+              )}
+            </>
+          ) : accountReady ? (
+            <>
+              <button className="site-discord-button" type="button" onClick={onSignIn}>
+                <LogIn size={17} />
+                Sign in with Discord
+              </button>
+              {accountError && (
+                <p className="site-account-error" role="alert">{accountError}</p>
+              )}
+            </>
+          ) : null}
+        </div>
       </header>
       <section className="lobby-hero lobby-hero-landing" aria-labelledby="snapcast-title">
         <HeroBackdrop />
@@ -259,6 +391,17 @@ export default function Lobby({ onStart }) {
             <button onClick={() => openModal("join-code")}>Join game</button>
           </div>
         </div>
+      </section>
+
+      <section className="home-public-games" aria-labelledby="home-public-games-title">
+        <div className="home-section-heading">
+          <div>
+            <p>Open tables</p>
+            <h2 id="home-public-games-title">Join a public game</h2>
+          </div>
+          <a href="/games/lobbies">View all games <ArrowRight size={16} /></a>
+        </div>
+        <PublicGameCards status="lobby" limit={3} compact />
       </section>
 
       <SiteFooter compact />
@@ -322,9 +465,17 @@ export default function Lobby({ onStart }) {
                       ))}
                     </select>
                   </label>
+                  <label className="modal-field">
+                    <span>Visibility</span>
+                    <select value={visibility} onChange={(event) => setVisibility(event.target.value)}>
+                      <option value="private">Private · Invite link only</option>
+                      <option value="public">Public · Listed in Games</option>
+                    </select>
+                  </label>
                 </div>
 
                 <ModalStatus status={indexStatus} count={indexCount} />
+                {accountError && <p className="modal-error" role="alert">{accountError}</p>}
                 {error && <p className="modal-error" role="alert">{error}</p>}
 
                 <footer className="modal-actions">
@@ -355,6 +506,29 @@ export default function Lobby({ onStart }) {
                       autoFocus
                     />
                   </label>
+                  {!visitorMode && (
+                    <fieldset className="join-role-field">
+                      <legend>Join as</legend>
+                      <div className="join-role-options">
+                        <button
+                          type="button"
+                          className={joinRole === "player" ? "active" : ""}
+                          onClick={() => setJoinRole("player")}
+                        >
+                          Player
+                          <small>Use camera and take a seat</small>
+                        </button>
+                        <button
+                          type="button"
+                          className={joinRole === "visitor" ? "active" : ""}
+                          onClick={() => setJoinRole("visitor")}
+                        >
+                          Visitor
+                          <small>Watch, listen, and use chat</small>
+                        </button>
+                      </div>
+                    </fieldset>
+                  )}
                 </div>
 
                 {error && <p className="modal-error" role="alert">{error}</p>}
@@ -369,24 +543,26 @@ export default function Lobby({ onStart }) {
               <form onSubmit={modal === "create-setup" ? finishCreate : joinGame}>
                 <header className="modal-head compact">
                   <h2 id="lobby-modal-title">
-                    {modal === "create-setup" ? `Set up before creating ${lobbyName}` : visitorMode ? "Join as a visitor" : `Join room ${code}`}
+                    {modal === "create-setup" ? `Set up before creating ${lobbyName}` : joiningAsVisitor ? "Join as a visitor" : `Join room ${code}`}
                   </h2>
                 </header>
 
                 <div className="prejoin-layout">
                   <div className="media-preview">
-                    {visitorMode ? (
+                    {joiningLocalMock ? (
+                      <div className="preview-placeholder"><Camera size={30} /><span>Local mock · no camera needed</span></div>
+                    ) : joiningAsVisitor ? (
                       <div className="preview-placeholder"><Mic size={30} /><span>Voice-only visitor</span></div>
                     ) : (
                       <video ref={previewRef} autoPlay muted playsInline />
                     )}
-                    {!visitorMode && !previewStream && !mediaError && (
+                    {!joiningLocalMock && !joiningAsVisitor && !previewStream && !mediaError && (
                       <div className="preview-placeholder"><Camera size={30} /><span>Starting camera…</span></div>
                     )}
-                    {mediaError && (
+                    {!joiningLocalMock && mediaError && (
                       <div className="preview-placeholder error">
-                        {visitorMode ? <Mic size={30} /> : <Camera size={30} />}
-                        <span>{visitorMode ? "Microphone unavailable" : "Preview unavailable"}</span>
+                        {joiningAsVisitor ? <Mic size={30} /> : <Camera size={30} />}
+                        <span>{joiningAsVisitor ? "Microphone unavailable" : "Preview unavailable"}</span>
                       </div>
                     )}
                   </div>
@@ -405,8 +581,9 @@ export default function Lobby({ onStart }) {
                       </label>
                     </div>
 
-                    <div className={`device-options${visitorMode ? " single" : ""}`}>
-                      {!visitorMode && (
+                    {!joiningLocalMock && (
+                    <div className={`device-options${joiningAsVisitor ? " single" : ""}`}>
+                      {!joiningAsVisitor && (
                         <label className="modal-field">
                           <span>Camera</span>
                           <select
@@ -443,11 +620,12 @@ export default function Lobby({ onStart }) {
                         </div>
                       </label>
                     </div>
+                    )}
                   </div>
                 </div>
 
                 <ModalStatus status={indexStatus} count={indexCount} />
-                {mediaError && <p className="media-error">{mediaError}</p>}
+                {!joiningLocalMock && mediaError && <p className="media-error">{mediaError}</p>}
                 {error && <p className="modal-error" role="alert">{error}</p>}
 
                 <footer className="modal-actions">
@@ -456,8 +634,14 @@ export default function Lobby({ onStart }) {
                       {modal === "create-setup" ? "Back" : "Cancel"}
                     </button>
                   )}
-                  <button className="primary" type="submit">
-                    {modal === "create-setup" ? "Create game" : visitorMode ? "Join as visitor" : "Join game"} <ArrowRight size={17} />
+                  <button className="primary" type="submit" disabled={submitting}>
+                    {submitting
+                      ? "Please wait…"
+                      : modal === "create-setup"
+                        ? "Create game"
+                        : joiningAsVisitor
+                          ? "Join as visitor"
+                          : "Join game"} {!submitting && <ArrowRight size={17} />}
                   </button>
                 </footer>
               </form>

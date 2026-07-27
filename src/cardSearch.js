@@ -1,3 +1,17 @@
+import {
+  getCommanderPairing,
+  getCommanderPairings,
+  isCommanderCard,
+  isValidCommanderPartner,
+} from "./commanderRules.js";
+
+export {
+  getCommanderPairing,
+  getCommanderPairings,
+  isCommanderCard,
+  isValidCommanderPartner,
+} from "./commanderRules.js";
+
 // Card-name suggestions backed by Scryfall.
 //
 // The autocomplete endpoint only matches names as one continuous prefix, so a
@@ -27,48 +41,6 @@ export async function suggestCardNames(query, signal) {
   return cards.slice(0, 12).map((card) => card.name);
 }
 
-function hasType(card, type) {
-  return new RegExp(`\\b${type}\\b`, "i").test(String(card?.type_line || ""));
-}
-
-function isLegendaryBackground(card) {
-  return hasType(card, "Legendary") && hasType(card, "Enchantment") && hasType(card, "Background");
-}
-
-function isEligibleDoctor(card) {
-  const typeLine = String(card?.type_line || "");
-  const [, subtypes = ""] = typeLine.split("—");
-  return hasType(card, "Legendary") && hasType(card, "Creature") && /^Time Lord Doctor$/i.test(subtypes.trim());
-}
-
-// Commander pairing is determined by the card's current Oracle wording and
-// type line, not its printed text. Keep Partner with ahead of the generic
-// Partner check: it names one specific legal co-commander instead of opening
-// the whole pool.
-export function getCommanderPairings(card) {
-  const oracle = String(card?.oracle_text || "");
-  const pairings = [];
-  for (const match of oracle.matchAll(/^Partner with ([^\n(]+?)(?:\s*\(|\s*$)/gim)) {
-    pairings.push({ kind: "named", name: match[1].trim() });
-  }
-  for (const match of oracle.matchAll(/^Partner[—-]([^\n(]+?)(?:\s*\(|\s*$)/gim)) {
-    pairings.push({ kind: "variant", label: match[1].trim().toLowerCase() });
-  }
-  if (/^Friends forever(?:\s|\(|$)/im.test(oracle)) pairings.push({ kind: "friends" });
-  if (/^Partner(?!\s+with\b)(?:\s|\(|$)/im.test(oracle)) pairings.push({ kind: "partner" });
-  if (/^Choose a Background(?:\s|\(|$)/im.test(oracle)) pairings.push({ kind: "choose-background" });
-  if (/^Doctor['’]s companion(?:\s|\(|$)/im.test(oracle)) pairings.push({ kind: "doctors-companion" });
-  if (isLegendaryBackground(card)) pairings.push({ kind: "background" });
-  if (isEligibleDoctor(card)) pairings.push({ kind: "doctor" });
-  return pairings;
-}
-
-// Kept as the simple availability check used by the banner. Search validation
-// below always considers every pairing ability a card has.
-export function getCommanderPairing(card) {
-  return getCommanderPairings(card)[0] || null;
-}
-
 function pairingSearch(pairing) {
   switch (pairing?.kind) {
     case "partner": return 't:legendary t:creature o:"Partner"';
@@ -80,21 +52,6 @@ function pairingSearch(pairing) {
     case "doctor": return 't:legendary t:creature o:"Doctor\'s companion"';
     default: return "";
   }
-}
-
-function isValidPartner(primary, candidate) {
-  const candidatePairings = getCommanderPairings(candidate);
-  return getCommanderPairings(primary).some((pairing) => {
-    if (pairing.kind === "named") {
-      return candidate?.name === pairing.name
-        && candidatePairings.some((other) => other.kind === "named" && other.name === primary?.name);
-    }
-    if (pairing.kind === "doctors-companion") return isEligibleDoctor(candidate);
-    if (pairing.kind === "doctor") return candidatePairings.some((other) => other.kind === "doctors-companion");
-    if (pairing.kind === "choose-background") return isLegendaryBackground(candidate);
-    if (pairing.kind === "background") return candidatePairings.some((other) => other.kind === "choose-background");
-    return candidatePairings.some((other) => other.kind === pairing.kind && other.label === pairing.label);
-  });
 }
 
 export async function suggestCommanderPartners(primaryCard, query, signal) {
@@ -122,7 +79,7 @@ export async function suggestCommanderPartners(primaryCard, query, signal) {
     });
   const cards = (await Promise.all([...searches, ...named])).flat();
   return [...new Map(cards
-    .filter((card) => isValidPartner(primaryCard, card))
+    .filter((card) => isValidCommanderPartner(primaryCard, card))
     .map((card) => [card.name, card]))
     .values()]
     .slice(0, 12)

@@ -1099,7 +1099,16 @@ export default function CardSidebar({
                     <div className={`chat-message-row${isMine ? " mine" : ""}`} key={message.id}>
                       <div className={`chat-message-wrap${isMine ? " mine" : ""}`}>
                         {!message.system && <div className="chat-message-header">
-                          <strong style={{ color: message.whisper ? "var(--whisper-text)" : senderColor }}>{headerName}</strong>
+                          {sender?.profileId ? (
+                            <a
+                              href={`/profile?id=${encodeURIComponent(sender.profileId)}`}
+                              style={{ color: message.whisper ? "var(--whisper-text)" : senderColor }}
+                            >
+                              {headerName}
+                            </a>
+                          ) : (
+                            <strong style={{ color: message.whisper ? "var(--whisper-text)" : senderColor }}>{headerName}</strong>
+                          )}
                           <span className="chat-message-timestamp">{timestamp}</span>
                         </div>}
                         <div className={`chat-message${isMine ? " mine" : ""}${message.whisper ? " whisper" : ""}${message.kind ? ` object ${message.kind}` : ""}${message.soundId ? " sound" : ""}${message.system ? " system" : ""}`}>

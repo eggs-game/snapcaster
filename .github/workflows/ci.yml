@@ -32,6 +32,8 @@ jobs:
         run: python3 scripts/test_metadata_analysis.py
       - name: Verify metadata evidence gates
         run: node scripts/test_metadata_evidence.mjs
+      - name: Verify account and social authorization guards
+        run: python3 scripts/test_account_security.py
 
   build:
     runs-on: ubuntu-latest

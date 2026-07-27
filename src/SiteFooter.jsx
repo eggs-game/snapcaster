@@ -8,6 +8,7 @@ export default function SiteFooter({ compact = false }) {
       <nav className="site-footer-nav" aria-label="Legal">
         <a href="/privacy">Privacy</a>
         <a href="/terms">Terms</a>
+        <a href="/community">Community</a>
       </nav>
       <p className="site-footer-copy">
         © {YEAR} Snapcast. Unofficial fan project — not affiliated with Wizards of the Coast.

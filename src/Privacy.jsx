@@ -3,7 +3,7 @@ import LegalPage from "./LegalPage.jsx";
 
 export default function Privacy() {
   return (
-    <LegalPage title="Privacy policy" updated="July 23, 2026">
+    <LegalPage title="Privacy policy" updated="July 26, 2026">
       <p>
         Snapcast is a remote paper Magic: The Gathering table. This policy explains what
         information is handled when you use <a href="https://snapcast.app">snapcast.app</a>,
@@ -12,19 +12,43 @@ export default function Privacy() {
 
       <h2>Summary</h2>
       <ul>
-        <li>There are no accounts. You pick a display name when you join a game.</li>
+        <li>Accounts are optional. You can still play as a guest with a per-session display name.</li>
+        <li>Guest play uses a pseudonymous authentication identifier to authorize a private game channel, but does not create a Snapcast profile.</li>
+        <li>If you sign in with Discord, we receive your Discord identity information and email when Discord makes it available and you authorize that access.</li>
         <li>Live camera and microphone streams are peer-to-peer. Snapcast does not record or store your live video.</li>
         <li>Game signaling (room join, life totals, public chat, turn state) goes through Supabase Realtime for the session.</li>
+        <li>Finished games can store participants, commanders, results, final counters, game duration, and turn timing for profiles and personal history.</li>
+        <li>Friendships, invitations, presence, notifications, and private reviews are stored only when signed-in players use those features.</li>
         <li>Card recognition runs in your browser. Optional “Wrong card” reports are the main way images leave your device for our servers.</li>
       </ul>
 
       <h2>Information we handle</h2>
+
+      <h3>Optional Discord account</h3>
+      <p>
+        If you choose “Sign in with Discord,” Discord and our authentication provider,
+        Supabase, process the sign-in. We request basic identity and email access. We store
+        your Discord account identifier, display name, avatar URL, and email when Discord
+        provides one. Your email and account preferences are private to your account; your
+        display name and avatar may be visible to other Snapcast users.
+      </p>
+      <p>
+        Creating an account is optional. An account supports your profile,
+        preferences, saved Commander decks, durable game history, friends,
+        invitations, notifications, and private reviews.
+      </p>
 
       <h3>Display name and game settings</h3>
       <p>
         The name you enter is stored in your browser’s local storage so it can be prefilled next time,
         and is shared with other people in your room through signaling. Game name, bracket, and seat
         limit are shared the same way for that session.
+      </p>
+      <p>
+        Supabase issues guests a pseudonymous authentication identifier so
+        private room policies can admit and later revoke that membership. It
+        is not shown as a public profile and is retained only under the
+        operational anonymous-user schedule.
       </p>
 
       <h3>Camera and microphone</h3>
@@ -48,6 +72,26 @@ export default function Privacy() {
         broadcast.
       </p>
 
+      <h3>Public games and durable game history</h3>
+      <p>
+        Public game names, brackets, seat counts, selected commanders, and
+        lobby/live status appear in public discovery. Private games do not.
+        When a game starts, Snapcast may retain its participants, commanders,
+        start and end times, turn durations, result, loss reasons, and final
+        life, poison, and commander-damage snapshot. Public profiles show
+        aggregates and, when enabled by the player, recent games. Detailed
+        personal history and turn timelines remain participant-only.
+      </p>
+
+      <h3>Friends, presence, invitations, and reviews</h3>
+      <p>
+        Signed-in players can store mutual friendships, blocks, short-lived
+        presence, direct game invitations, and notifications. Appear offline
+        hides presence and current-game status. Post-game ratings and comments
+        are private to the reviewed player; report and moderation records are
+        limited to authorized reviewers.
+      </p>
+
       <h3>Card recognition</h3>
       <p>
         Recognition (hashing, matching, OCR) runs locally in your browser against a card index we
@@ -65,7 +109,8 @@ export default function Privacy() {
       <h3>Preferences on your device</h3>
       <p>
         Theme preference, video layout, and similar UI choices are kept in local storage on your
-        device. They are not uploaded as a profile.
+        device. If you sign in, supported game-entry preferences may also be saved to your private
+        account preferences so they can follow you between devices.
       </p>
 
       <h3>Connectivity helpers</h3>
@@ -80,7 +125,7 @@ export default function Privacy() {
       <ul>
         <li>We do not sell your personal information.</li>
         <li>We do not run third-party advertising trackers in the app.</li>
-        <li>We do not require an account or email to play.</li>
+        <li>We do not require an account or email for guest play.</li>
         <li>We do not use live game video as a training upload unless you explicitly submit a recognition report.</li>
       </ul>
 
@@ -92,16 +137,23 @@ export default function Privacy() {
 
       <h2>Retention</h2>
       <p>
-        Session signaling is ephemeral to the game. Local preferences remain until you clear site
-        data. Opt-in recognition reports are kept long enough to review and improve recognition,
-        then may be deleted or anonymized. You can clear local data anytime in your browser settings.
+        Session signaling is ephemeral to the game. Local preferences remain
+        until you clear site data. Account profiles, preferences, friendships,
+        saved decks, and game history remain while the account is active.
+        Presence and invitations expire; notifications and operational audit
+        data are periodically purged under the service retention schedule.
+        Recognition and moderation evidence is kept only as long as needed for
+        review, safety, and appeals, then deleted or anonymized.
       </p>
 
       <h2>Your choices</h2>
       <ul>
         <li>Deny camera or microphone permission — you may still be able to join in a limited role, depending on the room.</li>
+        <li>Continue as a guest instead of signing in with Discord.</li>
         <li>Skip recognition feedback — reports are only sent when you choose to submit them.</li>
         <li>Leave a room or close the tab to end live streams and signaling for that session.</li>
+        <li>Hide recent games or appear offline from My Profile.</li>
+        <li>Export your account data or request deletion from My Profile. Shared historical games are anonymized rather than removed from other participants’ records.</li>
       </ul>
 
       <h2>Changes</h2>

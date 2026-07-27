@@ -17,6 +17,7 @@ builder). No terminal required.
 | [docs/testing.md](docs/testing.md) | SNAPTEST — how we prove it works and avoid fooling ourselves |
 | [docs/metadata-recognition.md](docs/metadata-recognition.md) | How v4 mana/type/text evidence will be measured and introduced |
 | [docs/design-system.md](docs/design-system.md) | Shared UI tokens and patterns — colors, spacing, radii, tiny buttons |
+| [docs/security-operations.md](docs/security-operations.md) | Account rollout, authorization checks, moderation, retention, backups, incident response |
 
 ## Why it beats SpellTable at recognition
 
@@ -63,7 +64,30 @@ It creates the private evidence bucket and report table used by the in-game
 **Wrong card** button. Reports are write-only from the app; review and curate
 them in the Supabase dashboard.
 
-### Step 5 — Deploy on Vercel
+### Step 5 — Enable optional Discord accounts
+
+Run
+[`supabase/migrations/20260726090000_accounts_phase_one.sql`](supabase/migrations/20260726090000_accounts_phase_one.sql)
+and every later timestamped migration in `supabase/migrations/` in order. In
+**Authentication → Providers**, enable Discord
+and enter the Discord application credentials. Add Supabase's callback URL to
+the Discord application, then add the production and local app origins to the
+Supabase redirect URL allowlist. The Discord secret stays in Supabase and must
+never be added to a `VITE_` environment variable.
+
+Also enable Supabase **Anonymous Sign-Ins**. Guest play remains available and
+does not create a Snapcast profile; the anonymous Auth identity exists only so
+private Realtime room policies can authorize and revoke that game membership.
+
+Set server-only `SUPABASE_URL`, `SUPABASE_ANON_KEY`,
+`SUPABASE_SERVICE_ROLE_KEY`, and `CRON_SECRET` in Vercel for account deletion
+and daily maintenance, and for trusted Commander/deck validation. Never prefix
+the service-role key or cron secret with `VITE_`. `vercel.json` schedules
+`/api/maintenance` daily; review the retention intervals and follow
+[the security operations runbook](docs/security-operations.md) before enabling
+account features.
+
+### Step 6 — Deploy on Vercel
 
 1. Sign up at [vercel.com](https://vercel.com) **with your GitHub account**.
 2. **Add New → Project** → Import your `snapcast` repo.
@@ -90,10 +114,10 @@ the account ID or API token.
 
 If you ran the index build *after* deploying, go to Vercel → your project → **Deployments** → ⋯ → **Redeploy** so the site picks up the new index.
 
-### Step 6 — Play
+### Step 7 — Play
 
 Open your URL, allow camera + mic, **Create game**, send the 6-character code
-to up to 3 friends. Click any card on any video to identify it. Players and
+to up to 5 friends. Click any card on any video to identify it. Players and
 visitors can use chat; type `/` and choose **/whisper**, then select an
 autocompleted `@name` to send that person a private, distinctly styled message.
 Whispers use the encrypted peer data channel and are never posted to the

@@ -3,7 +3,7 @@ import LegalPage from "./LegalPage.jsx";
 
 export default function Terms() {
   return (
-    <LegalPage title="Terms of use" updated="July 23, 2026">
+    <LegalPage title="Terms of use" updated="July 26, 2026">
       <p>
         These terms cover your use of Snapcast at{" "}
         <a href="https://snapcast.app">snapcast.app</a>. By using the service, you agree to them.
@@ -49,10 +49,31 @@ export default function Terms() {
         that access.
       </p>
 
-      <h2>No accounts</h2>
+      <h2>Optional accounts</h2>
       <p>
-        Snapcast does not provide user accounts. Display names are chosen per session and are not
-        verified. Anyone with a room code can join according to that room’s role limits.
+        You may use guest play or create an optional account by signing in with Discord. You are
+        responsible for activity associated with your account and for keeping access to your
+        Discord account secure. Guest display names are chosen per session and are not verified.
+        Anyone with a private room code can join according to that room’s role limits.
+      </p>
+
+      <h2>Public games and host controls</h2>
+      <p>
+        A public game is discoverable and may be watched by visitors. A private
+        game is accessible only through its invite or authorized direct
+        invitation. Game hosts may start and end a game, choose a proposed
+        result, remove participants, room-mute visitors, and restart the table.
+        Do not misuse host controls to harass, misrepresent results, or erase a
+        game in progress.
+      </p>
+
+      <h2>Results, profiles, and reviews</h2>
+      <p>
+        Finished-game results are participant records, not official tournament
+        rulings. Participants may request a correction during the displayed
+        correction window. Reviews must describe a verified shared game and
+        follow the <a href="/community">community guidelines</a>. Review
+        manipulation, retaliation, and false reports are prohibited.
       </p>
 
       <h2>Recognition and feedback</h2>

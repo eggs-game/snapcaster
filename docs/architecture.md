@@ -1,8 +1,9 @@
 # How Snapcast is built
 
-There is no stateful application backend. The app is static files plus two
-small same-origin Cloudflare TURN functions (credentials and usage analytics),
-and recognition remains in the browser.
+The app is primarily static files plus small same-origin serverless routes for
+TURN, account deletion, and scheduled maintenance. Supabase provides private
+Realtime signaling, optional/anonymous authentication, and the durable account
+data layer. Recognition remains in the browser.
 
 ```
 ┌─────────────┐   signaling only    ┌──────────────┐
@@ -24,15 +25,48 @@ and recognition remains in the browser.
 | Layer | Choice | Why |
 | --- | --- | --- |
 | Build | Vite | Fast, and bundles the Web Worker without extra config |
-| UI | React 18 | No router — the app has lobby/game screens plus benchmark and TURN-health pages |
-| Transport | WebRTC mesh (≤4 players) + Cloudflare TURN | Direct first; encrypted relay fallback for strict VPN/NAT/firewall paths |
+| UI | React 18 | Lightweight pathname dispatch for lobby/game, discovery, profiles, policy, moderation, benchmark, and TURN-health pages |
+| Accounts | Supabase Auth + Postgres | Optional Discord identity, profiles, private contact data, and preferences |
+| Transport | WebRTC mesh (2–6 players) + Cloudflare TURN | Direct first; encrypted relay fallback for strict VPN/NAT/firewall paths |
 | Signaling | Supabase Realtime | Presence + broadcast, free tier, no server code |
 | Vision | OpenCV.js (WASM) in a Worker | Contour detection and ORB, off the main thread |
 | OCR | tesseract.js | Title reading, main thread, heavily gated (see below) |
-| Hosting | Vercel | Auto-deploys `main`; static files plus two stateless serverless functions |
+| Hosting | Vercel | Auto-deploys `main`; static files plus narrowly scoped stateless serverless routes |
 
 Dependencies are deliberately few: `react`, `react-dom`, `@supabase/supabase-js`,
 `tesseract.js`, `lucide-react`. OpenCV loads at runtime from `docs.opencv.org`.
+
+## Optional accounts
+
+Guest play remains available. A player may instead sign in with Discord through
+Supabase Auth. The browser requests only Discord's `identify` and `email`
+scopes and uses the PKCE authorization-code flow. The OAuth client secret stays
+in the Supabase provider configuration and is never shipped in the browser
+bundle.
+
+Guests receive an anonymous Supabase Auth identity solely to authorize a
+private Realtime room. The account trigger skips anonymous users, so they have
+no Snapcast profile, contact row, preferences, public history, or social
+identity. A signed-in player can securely claim the same capability-backed
+membership after OAuth.
+
+`supabase/migrations/20260726090000_accounts_phase_one.sql` creates three
+separate account surfaces:
+
+- `profiles` contains public display name and avatar data.
+- `account_private` contains the Discord provider ID and email, readable only
+  by that account.
+- `account_preferences` contains owner-only game-entry preferences.
+
+Row-level security keeps private contact and preference rows owner-only. Public
+profiles deliberately do not include email. The auth trigger creates all three
+rows and safely backfills accounts that predate the migration.
+
+To enable Discord sign-in, enable the Discord provider in Supabase, add the
+Supabase callback URL to the Discord application, and allow both the production
+origin and local development origin as Supabase redirect URLs. Existing
+`VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` variables are reused; the
+Discord secret belongs only in Supabase.
 
 ## Source layout
 
@@ -40,6 +74,16 @@ Dependencies are deliberately few: `react`, `react-dom`, `@supabase/supabase-js`
 src/
   main.jsx              entry; lazy routes /snaptest and /turntest vs the app
   App.jsx               Lobby ↔ Game switch, theme
+  AccountPrompt.jsx     optional post-setup Discord account prompt
+  AccountProfile.jsx    private profile, preferences, decks, friends, export
+  PublicGames.jsx       public Lobby and Live Game directories
+  ProfilePage.jsx       public finished-game statistics and matchups
+  GameManagement.jsx    owner lifecycle and participant moderation controls
+  ReviewPrompt.jsx      private post-game review flow
+  ModerationPage.jsx    least-privilege report and appeal queue
+  account.js            auth session, Discord OAuth, pending-game restoration
+  gameRooms.js          capability-backed room and durable-game RPC client
+  supabase.js           shared browser Supabase client
   Lobby.jsx             create/join, device pick, core recognition warm-up/readiness
   Game.jsx              video tiles, life, turns, public chat/whispers, dice, capture clicks
   CardSidebar.jsx       results panel + ?debug=1 diagnostics
@@ -49,7 +93,8 @@ src/
   webrtc.js             mesh, data channels, capture request/response
   signaling.js          Supabase Realtime room join, room codes
   captureGeometry.js    crop maths shared by production and the benchmark
-  cardSearch.js         local name autocomplete
+  cardSearch.js         Scryfall-backed name and partner suggestions
+  commanderRules.js     pure Commander legality rules shared with the API
   recognition/
     recognizer.js       ★ Web Worker: OpenCV, crops, hashing, ORB
     matcher.js          main-thread front end: worker plumbing, OCR, gating
@@ -79,6 +124,21 @@ production health page.
 Cloudflare Account Analytics token in Vercel, it aggregates current-month TURN
 egress and projects month-end use against the 1,000 GB allowance without
 exposing the account ID or analytics token.
+
+`api/account-delete.js` revalidates a signed-in user before running the
+service-only anonymization and Auth deletion path. `api/maintenance.js` accepts
+only Vercel's cron secret, runs retention, finalizes due results, and processes
+the delayed deletion queue. The service-role key exists only in these
+serverless functions. Moderator access is an explicit service-managed
+allowlist; the browser can reach report evidence only through
+moderator-checking RPCs.
+
+`api/commanders.js` revalidates both account and anonymous game sessions, loads
+current Oracle data from Scryfall, and applies the shared Commander/partner
+legality rules. It is the only writer for saved decks and live membership
+Commander fields. Presence heartbeats ignore their legacy Commander
+parameters, and peers refresh the database-authorized membership snapshot
+instead of accepting Commander names broadcast by another browser.
 
 ## The card index
 
@@ -133,17 +193,24 @@ the main thread — an early bug that made the lobby unresponsive.
 
 ## Multiplayer
 
-- **Room codes** are 6 characters from `crypto.getRandomValues` (~887M). A code
-  is the only thing protecting a game, so it must not be guessable.
-- **Roles**: up to 4 `player`s (camera + mic) and up to 8 `visitor`s (audio
+- **Room codes** are 6 characters from `crypto.getRandomValues` (~887M). They
+  are unguessable discovery capabilities; database membership and private
+  Realtime policies separately authorize the room transport.
+- **Roles**: up to 6 `player`s (camera + mic) and up to 8 `visitor`s (audio
   only, cannot be captured, cannot change game state). Visitors receive every
   player video and audio stream, can use card lookup and Chat (including sound
   effects), but do not see interactive Dice or combat-counter controls.
 - **Two transports, one authorisation model.** Supabase broadcast carries game
   state (life, commander, turn, chat) and gates every privileged message on
-  sender role. WebRTC data channels carry capture requests and apply the same
-  rule — a visitor cannot request a capture, requests are rate limited per
-  peer, and every peer-controlled field is bounds-checked.
+  sender role. Official clients replace self-published Realtime identity and
+  role fields with capability-authorized database membership state, close
+  removed peers, and discard broadcasts from memberships that are no longer
+  active. Private Realtime policies require an active membership for the
+  current room epoch; removal rotates that epoch so an already-connected or
+  modified client cannot stay on the new topic. WebRTC data channels carry
+  capture requests and apply the same rule —
+  a visitor cannot request a capture, requests are rate limited per peer, and
+  every peer-controlled field is bounds-checked.
 - **Public chat and private whispers take different routes.** Ordinary chat is
   a Supabase room broadcast. `/whisper @name` resolves the selected roster ID
   and sends only over that participant's encrypted WebRTC data channel. Both
@@ -203,8 +270,10 @@ no separate in-app sound setting.
   variables. Browsers receive expiring credentials, never the key itself.
 - The Supabase key is publishable. Realtime handles the game; opt-in
   recognition reports use a private Storage bucket plus a write-only table and
-  token-scoped labeling function from `supabase/migrations/`. There is still
-  no app server and no live video upload.
+  token-scoped labeling function from `supabase/migrations/`. Optional account
+  tables use Row Level Security, and email/preferences are readable only by
+  their owner. Narrow same-origin serverless routes validate sensitive
+  mutations; live video is never uploaded to an application server.
 
 ## Conventions
 

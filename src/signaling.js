@@ -1,16 +1,8 @@
 // Room signaling over Supabase Realtime (broadcast + presence). No server code.
-import { createClient } from "@supabase/supabase-js";
+import { getSupabase, isSupabaseConfigured } from "./supabase.js";
 
-const URL = import.meta.env.VITE_SUPABASE_URL;
-const KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-export const isConfigured = () => Boolean(URL && KEY);
-
-let supabase = null;
-function client() {
-  if (!supabase) supabase = createClient(URL, KEY, { realtime: { params: { eventsPerSecond: 20 } } });
-  return supabase;
-}
+export const isConfigured = isSupabaseConfigured;
+const client = getSupabase;
 
 const REPORT_BUCKET = "recognition-reports";
 
@@ -110,12 +102,12 @@ export const makeCode = () => {
  *           onMessage(msg) — broadcast messages addressed to us (or everyone)
  * returns { myId, send(msg, to?), leave() }
  */
-export async function joinRoom(code, name, role, { onRoster, onMessage }) {
+export async function joinRoom(code, realtimeEpoch, name, role, membershipId, profileId, { onRoster, onMessage }, connectionId = "") {
   const safeRole = role === "visitor" ? "visitor" : "player";
-  const myId = crypto.randomUUID().slice(0, 8);
+  const myId = connectionId || crypto.randomUUID().slice(0, 8);
   const joinedAt = Date.now();
-  const ch = client().channel(`room-${code}`, {
-    config: { broadcast: { self: false }, presence: { key: myId } },
+  const ch = client().channel(`room-${code}-${realtimeEpoch}`, {
+    config: { private: true, broadcast: { self: false }, presence: { key: myId } },
   });
 
   ch.on("presence", { event: "sync" }, () => {
@@ -126,6 +118,8 @@ export async function joinRoom(code, name, role, { onRoster, onMessage }) {
         name: metas[0]?.name || "Player",
         joinedAt: metas[0]?.joinedAt || 0,
         role: metas[0]?.role === "visitor" ? "visitor" : "player",
+        membershipId: String(metas[0]?.membershipId || "").slice(0, 40),
+        profileId: String(metas[0]?.profileId || "").slice(0, 40),
       }))
       .sort((a, b) => a.joinedAt - b.joinedAt);
     onRoster(roster);
@@ -140,7 +134,7 @@ export async function joinRoom(code, name, role, { onRoster, onMessage }) {
   await new Promise((resolve, reject) => {
     ch.subscribe(async (status) => {
       if (status === "SUBSCRIBED") {
-        await ch.track({ name, joinedAt, role: safeRole });
+        await ch.track({ name, joinedAt, role: safeRole, membershipId, profileId });
         resolve();
       } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
         reject(new Error("Could not connect to game server (check Supabase config)"));
