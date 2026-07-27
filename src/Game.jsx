@@ -7,6 +7,12 @@ import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.j
 import { labelRecognitionReport, saveRecognitionReport, saveRecognitionTiming } from "./signaling.js";
 import { getCommanderPairing, suggestCardNames, suggestCommanderPartners } from "./cardSearch.js";
 import { identify as identifyCard, preload as preloadRecognition } from "./recognition/matcher.js";
+import {
+  isReusableRecognitionMatch,
+  nearbyRecognitionHints,
+  normalizeRecognitionHint,
+  rememberRecognitionHint,
+} from "./recognitionHints.js";
 import CardSidebar, { cardFromScryfall, formatDiceResult, formatDiceSides } from "./CardSidebar.jsx";
 import { getSoundEffect, playChatNotification, playSoundEffect, playTurnNotification } from "./soundEffects.js";
 import { getCounterTextColor, getVideoCounterType, normalizeVideoCounter } from "./videoCounters.js";
@@ -62,6 +68,9 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
   const diceOverlayTimerRef = useRef(null);
   const recentSoundBySenderRef = useRef({});
   const myIdRef = useRef(null);
+  const recognitionHintsRef = useRef([]);
+  const activeRecognitionRef = useRef(null);
+  const latestRecognitionRequestRef = useRef(0);
   const chatNotificationsEnabledRef = useRef(true);
   const turnNotificationsEnabledRef = useRef(true);
   const activePlayerIdRef = useRef("");
@@ -360,6 +369,9 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
           at,
         }]);
       },
+      onRecognitionHint: (hint) => {
+        recognitionHintsRef.current = rememberRecognitionHint(recognitionHintsRef.current, hint);
+      },
       onChat: (message) => {
         const soundId = acceptIncomingSound(message.from, message.soundId);
         if (!soundId && message.from !== myIdRef.current) notifyIncomingChat();
@@ -573,16 +585,26 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     const conn = connRef.current;
     const pt = clickToNormalized(videoEl, clientX, clientY, flipped);
     if (!pt) return;
+    const rect = videoEl.getBoundingClientRect();
+    setFlash({ tileId, x: clientX - rect.left, y: clientY - rect.top });
+    setTimeout(() => setFlash(null), 600);
+    openCardPanel();
+    const active = activeRecognitionRef.current;
+    if (active && active.tileId === tileId) {
+      const dx = active.nx - pt.nx;
+      const dy = active.ny - pt.ny;
+      // A second click on the same spot while its lookup is already running is
+      // almost always impatience, not a request for another full worker job.
+      if (dx * dx + dy * dy < 0.0016) return;
+    }
+    const requestId = ++latestRecognitionRequestRef.current;
+    activeRecognitionRef.current = { requestId, tileId, nx: pt.nx, ny: pt.ny };
     const scanStartedAt = performance.now();
     let captureStartedAt = 0;
     let recognitionStartedAt = 0;
     let captureMs = 0;
     let captureChars = 0;
     let phase = "capture";
-    const rect = videoEl.getBoundingClientRect();
-    setFlash({ tileId, x: clientX - rect.left, y: clientY - rect.top });
-    setTimeout(() => setFlash(null), 600);
-    openCardPanel();
     setCurrent({ loading: true });
     try {
       // Captures are native-resolution crops around the clicked point (both
@@ -597,9 +619,17 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       captureChars = String(cap.url || "").length;
       phase = "recognition";
       recognitionStartedAt = performance.now();
+      const hints = nearbyRecognitionHints(
+        recognitionHintsRef.current,
+        tileId,
+        pt.nx,
+        pt.ny,
+      );
       const data = await identifyCard(cap.url, {
         nx: cap.px ?? 0.5,
         ny: cap.py ?? 0.5,
+      }, {
+        hints,
       });
       const recognitionMs = Math.round(performance.now() - recognitionStartedAt);
       const timing = {
@@ -611,6 +641,7 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
         stages: data.stage_ms || {},
         candidatesTried: data.candidates_tried || 0,
         isolationCandidates: data.isolation_candidates || 0,
+        hintHit: !!data.hint_hit,
       };
       globalThis.__SNAP_RECOGNITION_TIMINGS = [
         ...(globalThis.__SNAP_RECOGNITION_TIMINGS || []).slice(-49),
@@ -621,6 +652,24 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
         outcome: data.matches?.length ? "matched" : "no-match",
         captureChars,
       }, tileId);
+      const top = data.matches?.[0];
+      if (isReusableRecognitionMatch(top)) {
+        const hint = normalizeRecognitionHint({
+          ownerId: tileId,
+          nx: pt.nx,
+          ny: pt.ny,
+          at: Date.now(),
+          card: top,
+        });
+        if (hint) {
+          recognitionHintsRef.current = rememberRecognitionHint(recognitionHintsRef.current, hint);
+          conn.announceRecognitionHint(hint);
+        }
+      }
+      // A newer click supersedes this result. Keep its timing and reusable
+      // hint, but never let an older queued scan replace the card the player
+      // most recently asked for.
+      if (requestId !== latestRecognitionRequestRef.current) return;
       setCurrent({
         matches: data.matches || [],
         cardFound: data.card_found,
@@ -653,7 +702,6 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
           return s?.width ? `${s.width}×${s.height}` : "";
         })(),
       });
-      const top = data.matches?.[0];
       if (top && (top.identified_by === "ocr-title" || top.distance <= 170)) {
         // Recognition is a local inspection action. Cards enter Chat only
         // through the explicit Share card control in the Cards panel.
@@ -691,7 +739,11 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
         outcome,
         captureChars,
       }, tileId);
-      setCurrent({ error: message });
+      if (requestId === latestRecognitionRequestRef.current) setCurrent({ error: message });
+    } finally {
+      if (activeRecognitionRef.current?.requestId === requestId) {
+        activeRecognitionRef.current = null;
+      }
     }
   }, [myId, openCardPanel, persistRecognitionTiming, session.name]);
 

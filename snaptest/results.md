@@ -9,6 +9,28 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-07-26 — `recent-hints-1` — verified room cache
+
+Repeated lookups now use strong results from the current room as a spatial
+shortlist shared by players and visitors. The worker still verifies each
+hinted printing against the new capture and falls back to the unchanged
+full-index pipeline when verification does not pass. Duplicate in-flight
+clicks at the same spot are coalesced, and only the newest distinct click may
+update the card panel.
+
+- **Recent-card fast path (20 repeated scans):** **20/20 (100%)**, 0 errors,
+  with **20/20 verified hint hits**. Average repeat recognition was **0.482s**
+  versus **1.841s** for the first full lookup, a **3.82× speedup**. The repeat
+  stage means were 0.461s prep and 0.019s hint verification. All four rotation
+  and all four occlusion buckets were 100%; WASM stayed flat at 134→134MB.
+- **Tableau 10 — EDH staples (100 cards), no hints:** **96/100 (96.0%)**,
+  meeting the 95% gate with 0 errors. Side-by-side was 60/60, spaced 29/30,
+  overlapping 7/10, and fully clear cards 90/91. Median was **1.828s**, p90
+  **5.386s**, and WASM stayed 134→134MB. Visual-exact was 9/9 precise;
+  art-match was 85/86, with the single wrong art match on a 15.8%-covered card
+  in the deliberately overlapping scene—the known cursor-isolation failure
+  that also predates this no-hint-equivalent code path.
+
 ## 2026-07-25 — `isolation-speed-2` — single-pass exact ranking
 
 Exact full-index ranking now evaluates all eight rotation/contrast variants

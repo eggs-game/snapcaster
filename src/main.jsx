@@ -10,7 +10,7 @@ const Privacy = lazy(() => import("./Privacy.jsx"));
 const Terms = lazy(() => import("./Terms.jsx"));
 import "./styles.css";
 
-const BUILD = "timing-telemetry-1 (privacy-limited live lookup timings)";
+const BUILD = "recent-hints-2 (all-participant room cache + latest-click wins)";
 window.__SNAP_BUILD = BUILD;
 console.log(`%c[snapcast] build: ${BUILD}`, "color:#0a0;font-weight:bold");
 

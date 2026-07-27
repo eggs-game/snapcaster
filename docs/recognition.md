@@ -214,6 +214,27 @@ camera, or player data. The first Tesseract worker warms only after the core is
 ready and the browser is idle, so optional OCR cannot compete with the common
 visual fast path.
 
+## Verified recent-card fast path
+
+Players and visitors repeatedly inspect the same permanents during a game.
+After a high-confidence result, the scanning browser keeps a bounded hint
+containing the printing ID, board owner, approximate normalized position, and
+timestamp, and shares it ephemerally with the room. Every participant
+contributes to and consumes this shortlist. A later click within 15% of that
+board position tests at most 12 hinted printings before the full index.
+
+Hints are candidates, never answers. The worker hashes every prepared crop
+against the hinted printing and accepts it only at distance 90 or better, or
+after a decisive ORB art verification when the distance is at most 180. A
+stale, moved, or incorrect hint therefore falls through to the unchanged
+110,000-printing rank/verify/OCR pipeline. The local cache contains at most 32
+hints, expires them after four hours, and is discarded with the page.
+
+The click scheduler separately coalesces an in-flight duplicate at the same
+spot. A different newer click can start immediately, but only its result may
+update the card panel; the older completion cannot surface later and replace
+what the player most recently requested.
+
 ## Where the time goes
 
 The deterministic 100-card realistic tableau currently measures a 2.1s
@@ -223,6 +244,7 @@ because most scans activate click-local isolation:
 | Stage | Typical |
 | --- | --- |
 | prep (crops, contours) | ~0.5s |
+| hint (when a nearby card was seen) | ~0.02s after prep |
 | rank (seed scans + refine) | ~1.3s |
 | ORB verification | ~0.6s |
 | OCR | usually skipped |

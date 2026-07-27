@@ -90,6 +90,7 @@ add ~1%.
 | **Tableau 10 / 100** | Same scenes, uniform draw from the whole index |
 | **Random 200** | Single cards, fresh sample — discovers new failure cases |
 | **Fixed 200 / 1000** | Single cards, identical every run — regression checking |
+| **Recent-card fast path (20 repeated scans)** | Runs each degraded card normally, then repeats the exact capture with the first result as a hint; verifies both correctness and measured speedup |
 | **Fixed top-edge 64** | Four deterministic repetitions of degrade-v2's hardest clipped placement |
 | **EDH staples 200** | Single cards from the realistic pool |
 
@@ -122,6 +123,12 @@ hit bursty reference-image delivery and produced misleading latency tails. A
 recognition change ships only when the target suite improves beyond the
 documented two-card noise band and the other suites stay within their gates.
 
+For a recent-card optimization, additionally run **Recent-card fast path (20
+repeated scans)**. `summary.recentHint.hits` must equal `attempted`, accuracy
+must remain 100%, the WASM heap must stay flat, and `baselineAvgMs /
+hintAvgMs` must show a material speedup. This targeted mode proves the fast
+path; it does not replace the ordinary no-hint release suites.
+
 ## Reading the results
 
 The headline accuracy is the least useful number. These are the ones that
@@ -131,8 +138,9 @@ diagnose:
   means candidate generation worked and ranking is at fault; **`absent`** means
   no crop ever surfaced it, which is a framing problem. Opposite fixes.
 - **`byPathway`** — which path decided. `visual-exact` and `art-match` have
-  been 100% precise; loss concentrates in cards that fall through to plain
-  ranking.
+  been 100% precise; `recent-hint` must also remain precise because it is
+  verified against the new capture. Loss concentrates in cards that fall
+  through to plain ranking.
 - **`byRotation`** — upright / tapped / upside-down. This is how the tapped
   (42%) and upside-down (33%) regressions were both caught.
 - **`byLayout`** — side-by-side / spaced / overlapping. Isolates crowding.

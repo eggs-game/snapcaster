@@ -145,9 +145,10 @@ the main thread — an early bug that made the lobby unresponsive.
   editing controls.
 - **Two transports, one authorisation model.** Supabase broadcast carries game
   state (life, commander, turn, chat) and gates every privileged message on
-  sender role. WebRTC data channels carry capture requests and apply the same
-  rule — a visitor cannot request a capture, requests are rate limited per
-  peer, and every peer-controlled field is bounds-checked.
+  sender role. WebRTC data channels carry capture requests from known room
+  participants. Both players and visitors can inspect cards; requests are
+  rate limited per peer, every capture is visibly announced to the board
+  owner, and every peer-controlled field is bounds-checked.
 - **Connection failures are observable.** Supabase Realtime heartbeats run in
   its worker so a backgrounded tab is less likely to disappear from presence.
   The client keeps the latest 80 connection events locally at
@@ -181,6 +182,22 @@ the main thread — an early bug that made the lobby unresponsive.
   IDs; they exclude raw room codes, names, card identities/results, images,
   OCR text, device labels, and raw errors. Anonymous clients cannot select
   telemetry rows.
+- **Recent-card hints are ephemeral, bounded room state.** A strong lookup by
+  any player or visitor broadcasts the Scryfall printing ID, board owner,
+  approximate normalized click position, and timestamp to the current room.
+  Every participant's browser contributes to and consumes the same shared
+  shortlist. Each browser keeps at most 32 hints for four hours and considers
+  at most 12 nearby hints per scan.
+  The worker never trusts a hint as the result: it compares the named printing
+  with the new capture and accepts only a near-exact visual hash or decisive
+  ORB art match, otherwise it runs the unchanged full-index pipeline. Hints
+  are not chat, are not written to Supabase tables or Storage, and disappear
+  when the room/tab ends.
+- **Card clicks are latest-request-wins.** A second click on the same board
+  spot while recognition is active is coalesced instead of queueing duplicate
+  work. A click elsewhere supersedes the older result, so a slow earlier scan
+  cannot replace the card the player most recently requested. Completed stale
+  scans may still contribute verified room hints and content-free timings.
 - **Public chat and private whispers take different routes.** Ordinary chat is
   a Supabase room broadcast. `/whisper @name` resolves the selected roster ID
   and sends only over that participant's encrypted WebRTC data channel. Both

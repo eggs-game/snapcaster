@@ -17,7 +17,8 @@ export default function Privacy() {
         <li>Game signaling (room join, life totals, public chat, turn state) goes through Supabase Realtime for the session.</li>
         <li>Limited connection diagnostics are recorded so unexpected game drops can be investigated.</li>
         <li>Content-free card-lookup timing metrics are recorded so slow scans and timeouts can be investigated.</li>
-        <li>Card recognition runs in your browser. Optional “Wrong card” reports are the main way images leave your device for our servers.</li>
+        <li>Card recognition runs in your browser. Recent strong results from players and visitors may be shared ephemerally within your room to speed everyone’s repeated lookups.</li>
+        <li>Optional “Wrong card” reports are the main way images are stored on our servers.</li>
       </ul>
 
       <h2>Information we handle</h2>
@@ -54,6 +55,15 @@ export default function Privacy() {
       <p>
         Recognition (hashing, matching, OCR) runs locally in your browser against a card index we
         host. Card art looked up for results may be loaded from Scryfall’s image hosts.
+      </p>
+      <p>
+        To speed up repeated lookups of the same permanent, a strong result from any player or
+        visitor may broadcast its card printing identifier, the temporary room participant whose
+        board was scanned, an approximate board position, and a timestamp to the people in your
+        current room. Everyone contributes to and benefits from this shared shortlist. Their
+        browsers keep a small, short-lived memory of these hints and verify the card against each
+        new capture before showing it. Hints are not placed in Chat, are not written to Supabase
+        tables or Storage, and disappear when the room or browser session ends.
       </p>
       <p>
         To diagnose slow scans and timeouts, Snapcast records bounded lookup-performance metrics:

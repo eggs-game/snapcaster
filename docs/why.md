@@ -58,6 +58,14 @@ because it belongs to the player across the table, partly covered, dimly lit,
 with glare. The pipeline generates many candidate framings of a single click
 rather than assuming the card is where you clicked.
 
+**Remember what this table has already identified.** Games repeatedly revisit
+the same permanents. A strong result from any player or visitor becomes a
+short-lived, room-local hint for that player's nearby board position. Everyone
+in the room contributes to and benefits from the same shortlist. Later scans
+verify those few exact printings against the new capture before doing a full
+110,000-printing search; a stale or wrong hint cannot become an answer by
+itself.
+
 **Measure against realistic scenes, not clean scans.** A benchmark that feeds
 the recogniser tidy card images will report 99% and tell you nothing. Ours
 renders whole tables of cards under realistic conditions and clicks them the
@@ -86,7 +94,9 @@ another card, which is uncommon in real play.
   Opt-in wrong-card reports explicitly save a cropped capture plus diagnostics
   to private Supabase Storage for later curation. Content-free lookup timing
   records are stored separately so live performance can be diagnosed without
-  retaining cards, images, names, or raw room codes. No live stream is stored.
+  retaining cards, images, names, or raw room codes. Repeated-card hints are
+  ephemeral room signaling and are not written to that telemetry store. No
+  live stream is stored.
 - **Free to run.** The whole stack sits on free tiers.
 - **Physics is the real limit.** A 20-card playmat on a 720p camera simply
   does not contain enough pixels per card. 1080p is borderline; 4K is

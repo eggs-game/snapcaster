@@ -3,6 +3,7 @@
 // recipient-only chat whispers that must never enter the room broadcast.
 import { joinRoom, saveConnectionEvent } from "./signaling.js";
 import { cropGeometry } from "./captureGeometry.js";
+import { normalizeRecognitionHint } from "./recognitionHints.js";
 import { getSoundEffect } from "./soundEffects.js";
 import { normalizeVideoCounter } from "./videoCounters.js";
 import {
@@ -92,7 +93,8 @@ const LIFECYCLE_HEARTBEAT_MS = 5000;
 export class GameConnection {
   constructor(handlers) {
     // handlers: onRoster, onRemoteStream, onPeerLeft, onLife,
-    // onCommander, onCommanderPartner, onColor, onCardIdentified, onChat (public or whisper), onActivePlayer,
+    // onCommander, onCommanderPartner, onColor, onCardIdentified, onRecognitionHint,
+    // onChat (public or whisper), onActivePlayer,
     // onGridOrder, onReadyCheckStart, onReadyCheckResponse, onReadyCheckEnd,
     // onVideoCounter, onVideoCounterRemove,
     // onError
@@ -778,6 +780,17 @@ export class GameConnection {
       case "card-identified":
         if (senderRole !== "visitor") this.h.onCardIdentified?.(msg);
         break;
+      case "recognition-hint": {
+        // Card lookup is available to both seated players and visitors. Every
+        // recognized room participant may contribute a hint, while the board
+        // owner must still be a seated player with a camera.
+        const sender = this.roster.find((member) => member.id === msg.from);
+        if (!sender) break;
+        const hint = normalizeRecognitionHint(msg);
+        const owner = hint && this.roster.find((member) => member.id === hint.ownerId);
+        if (hint && owner?.role !== "visitor") this.h.onRecognitionHint?.(hint);
+        break;
+      }
       case "chat": {
         const text = String(msg.text || "").trim().slice(0, 500);
         // A chat packet can name only one bundled, allow-listed sound. Never
@@ -1051,13 +1064,15 @@ export class GameConnection {
     };
   }
 
-  // Capture authorisation: players only, and no faster than a human clicking.
+  // Capture authorisation: known room participants only, and no faster than a
+  // human clicking. Visitors can inspect cards, so they use the same bounded
+  // capture path and visible scan notice as seated players.
   // Without this a peer can poll cap-req in a loop and reconstruct a video
   // feed of this player at full camera resolution.
   _mayCapture(peerId) {
     if (!this.localStream) return false;
     const role = this.roster.find((r) => r.id === peerId)?.role;
-    if (role === "visitor") return false;
+    if (role !== "player" && role !== "visitor") return false;
     const entry = this.peers.get(peerId);
     if (!entry) return false;
     const now = Date.now();
@@ -1162,6 +1177,11 @@ export class GameConnection {
   announceCard(card, byName, at = Date.now()) {
     if (this.role === "visitor") return;
     this.room?.send({ type: "card-identified", card, byName, at });
+  }
+  announceRecognitionHint(value) {
+    const hint = normalizeRecognitionHint(value);
+    if (!hint) return;
+    this.room?.send({ type: "recognition-hint", ...hint });
   }
   sendChat(text, at = Date.now(), soundId = "") {
     const message = String(text || "").trim().slice(0, 500);

@@ -1168,6 +1168,7 @@ export default function CardSidebar({
                     Timing: {current.scanTiming.totalMs}ms total
                     {` · ${current.scanTiming.captureMs}ms capture`}
                     {` · ${current.scanTiming.recognitionMs}ms recognition`}
+                    {current.scanTiming.hintHit ? " · recent-card fast path" : ""}
                     {current.scanTiming.isolationCandidates
                       ? ` · ${current.scanTiming.isolationCandidates} isolation proposals`
                       : ""}

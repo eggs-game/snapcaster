@@ -60,7 +60,8 @@ export default function Terms() {
         Card identification is best-effort. Results can be wrong. Optional “Wrong card” reports
         may upload crops and diagnostics so recognition can improve; only submit reports you are
         comfortable sharing. Content-free lookup timing metrics are recorded separately to diagnose
-        slow scans and timeouts. See the{" "}
+        slow scans and timeouts. Strong card results from players and visitors may also be shared
+        ephemerally within your room as verified hints for everyone’s faster repeated lookups. See the{" "}
         <a href="/privacy">privacy policy</a> for details.
       </p>
 

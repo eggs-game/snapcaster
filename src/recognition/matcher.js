@@ -110,7 +110,7 @@ function getWorker() {
         id, matches, printingMatches, titleCandidates, metadataStrips, titleCount, queryCandidates,
         shardedIndex, cardFound, cvStatus, candidatesTried, cropsDropped, artBest, artChecked,
         artDecisive, isolationDebug, isolationCandidates, stageMs, wasmHeapMB,
-        preloaded, indexReady, indexCount, workerMs, error,
+        hintHit, preloaded, indexReady, indexCount, workerMs, error,
       } = e.data || {};
       const p = pending.get(id);
       if (!p) return;
@@ -142,6 +142,7 @@ function getWorker() {
         art_decisive: !!artDecisive,
         isolation_debug: isolationDebug || null,
         isolation_candidates: Number(isolationCandidates) || 0,
+        hint_hit: !!hintHit,
         stage_ms: stageMs || {},
         wasm_heap_mb: typeof wasmHeapMB === "number" ? wasmHeapMB : null,
       });
@@ -679,7 +680,7 @@ function applyTitleOCR(result) {
   return withOCRLock(() => applyTitleOCRUnlocked(result));
 }
 
-function runOnWorker(bmp, point = { nx: 0.5, ny: 0.5 }) {
+function runOnWorker(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
   const w = getWorker();
   const id = ++seq;
   return new Promise((resolve, reject) => {
@@ -688,7 +689,7 @@ function runOnWorker(bmp, point = { nx: 0.5, ny: 0.5 }) {
       reject(new Error("Card recognition timed out. Please try again."));
     }, IDENTIFY_TIMEOUT_MS);
     pending.set(id, { resolve, reject, timer });
-    w.postMessage({ type: "identify", id, bmp, point }, [bmp]);
+    w.postMessage({ type: "identify", id, bmp, point, hints: Array.isArray(hints) ? hints.slice(0, 12) : [] }, [bmp]);
   });
 }
 
@@ -782,10 +783,10 @@ async function finishIdentify(result) {
   return out;
 }
 
-export async function identify(imageDataUrl, point) {
+export async function identify(imageDataUrl, point, { hints = [] } = {}) {
   const t0 = performance.now();
   const bmp = await dataUrlToBitmap(imageDataUrl);
-  const out = await finishIdentify(await runOnWorker(bmp, point));
+  const out = await finishIdentify(await runOnWorker(bmp, point, hints));
   out.stage_ms = { ...(out.stage_ms || {}), total: Math.round(performance.now() - t0) };
   return out;
 }
@@ -793,7 +794,7 @@ export async function identify(imageDataUrl, point) {
 // Console debug hook: `await window.__scIdentifyUrl("<card image url>")`
 // runs a full recognition on a fetched image (no camera needed).
 if (typeof window !== "undefined") {
-  window.__scIdentifyUrl = async (url, point = { nx: 0.5, ny: 0.5 }) => {
+  window.__scIdentifyUrl = async (url, point = { nx: 0.5, ny: 0.5 }, hints = []) => {
     const img = await new Promise((res, rej) => {
       const i = new Image();
       i.crossOrigin = "anonymous";
@@ -802,7 +803,7 @@ if (typeof window !== "undefined") {
       i.src = url;
     });
     const bmp = await createImageBitmap(img);
-    const r = await finishIdentify(await runOnWorker(bmp, point));
+    const r = await finishIdentify(await runOnWorker(bmp, point, hints));
     console.log("[snapcast] __scIdentifyUrl top matches:", r.matches.map((m) => `${m.name} (d=${m.distance}, conf=${m.confidence.toFixed(2)})`));
     return r;
   };

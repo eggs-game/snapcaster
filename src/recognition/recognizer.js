@@ -514,6 +514,115 @@ function cardMeta(i, distance) {
   };
 }
 
+const RECENT_HINT_EXACT_DISTANCE = 90;
+const RECENT_HINT_VERIFY_DISTANCE = 180;
+const SCRYFALL_ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+
+function cardShapedStrategy(strategy) {
+  const value = String(strategy || "");
+  return value === "full-frame"
+    || value === "content-box"
+    || value.startsWith("outline-")
+    || value.startsWith("art-")
+    || value.startsWith("artf-")
+    || value.startsWith("title-")
+    || value.startsWith("tap-");
+}
+
+// A room hint is never trusted as an answer. Score only its exact printing(s)
+// against every prepared crop, then accept it only at the same near-exact hash
+// gate as ordinary recognition or after a decisive ORB art match. A stale hint
+// therefore adds a small bounded check and falls through to the full index.
+async function matchRecentHints(prepared, hints) {
+  if (!index || !cards || !prepared.length || !Array.isArray(hints) || !hints.length) return null;
+  const wanted = new Set();
+  for (const hint of hints.slice(0, 12)) {
+    const id = String(hint?.scryfall_id || "").toLowerCase();
+    if (!SCRYFALL_ID_RE.test(id)) continue;
+    wanted.add(`${id}:${Number(hint?.face) === 1 ? 1 : 0}`);
+  }
+  if (!wanted.size) return null;
+
+  const indices = [];
+  for (let i = 0; i < cards.length; i++) {
+    const row = cards[i];
+    if (wanted.has(`${String(row?.[3] || "").toLowerCase()}:${Number(row?.[4]) === 1 ? 1 : 0}`)) {
+      indices.push(i);
+    }
+  }
+  if (!indices.length) return null;
+
+  const scored = [];
+  for (const idx of indices) {
+    const off = idx * VEC_BYTES;
+    let bestDistance = 0xffff;
+    let bestPrepared = null;
+    for (const p of prepared) {
+      let distance = 0xffff;
+      for (const query of p.variants) {
+        let current = 0;
+        for (let b = 0; b < VEC_BYTES; b++) current += POPCOUNT[index[off + b] ^ query[b]];
+        if (current < distance) distance = current;
+      }
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        bestPrepared = p;
+      }
+    }
+    scored.push({
+      match: { ...cardMeta(idx, bestDistance), strategy: bestPrepared?.candidate.strategy || "recent-hint" },
+      prepared: bestPrepared,
+    });
+  }
+  scored.sort((a, b) => a.match.distance - b.match.distance);
+  if (!scored.length || scored[0].match.distance > RECENT_HINT_VERIFY_DISTANCE) return null;
+
+  const printingMatches = scored.map((entry) => entry.match);
+  if (printingMatches[0].distance <= RECENT_HINT_EXACT_DISTANCE) {
+    printingMatches[0].identified_by = "recent-hint";
+    const names = new Set();
+    return {
+      matches: printingMatches.filter((match) => {
+        if (names.has(match.name)) return false;
+        names.add(match.name);
+        return true;
+      }),
+      printingMatches,
+      bestPrepared: scored[0].prepared,
+      artBest: null,
+      artChecked: 0,
+      artDecisive: false,
+    };
+  }
+  if (!cvReady || !scored[0].prepared) return null;
+
+  const bestPrepared = scored[0].prepared;
+  const candidates = prepared.map((entry) => entry.candidate);
+  const queryImages = [
+    bestPrepared.candidate.image,
+    candidates.find((candidate) => candidate.strategy === "content-box")?.image,
+    ...candidates.filter((candidate) => candidate.strategy.startsWith("outline-"))
+      .slice(0, 2).map((candidate) => candidate.image),
+    candidates.find((candidate) => candidate.strategy === "art-50")?.image,
+    candidates.find((candidate) => candidate.strategy === "off0,-11")?.image,
+    candidates.find((candidate) => candidate.strategy === "center-45")?.image,
+  ].filter((image, index, all) => image && all.indexOf(image) === index).slice(0, 6);
+  const verified = await verifyTopMatches(
+    printingMatches.slice(0, 12),
+    queryImages,
+    cardShapedStrategy(bestPrepared.candidate.strategy),
+  );
+  if (!verified.artDecisive) return null;
+  return {
+    matches: verified.matches,
+    printingMatches,
+    bestPrepared,
+    artBest: verified.artBest,
+    artChecked: verified.artChecked,
+    artDecisive: true,
+  };
+}
+
 // ---------- OpenCV card outline detection + perspective rectify ----------
 function orderCorners(pts) {
   const cx = pts.reduce((sum, p) => sum + p.x, 0) / pts.length;
@@ -1282,7 +1391,7 @@ function waitForCV(ms) {
   });
 }
 
-async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
+async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
   await loadIndex();
   // Prefer the accurate OpenCV pipeline, but don't hang the first scan forever
   // if it's still compiling — fall back to center-crop this once; the diagnostic
@@ -1512,6 +1621,33 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }) {
     bestCandidateStrategy = prepared[0].candidate.strategy;
   }
   mark("prep");
+
+  if (Array.isArray(hints) && hints.length) {
+    const recent = await matchRecentHints(prepared, hints);
+    mark("hint");
+    if (recent) {
+      return {
+        matches: recent.matches,
+        printingMatches: recent.printingMatches,
+        queryCandidates,
+        titleSource: [],
+        titleCount: 0,
+        cardFound,
+        cvStatus,
+        candidatesTried: 0,
+        shardedIndex,
+        cropsDropped: preparedAll.length - prepared.length,
+        isolationDebug: null,
+        isolationCandidates: 0,
+        artBest: recent.artBest,
+        artChecked: recent.artChecked,
+        artDecisive: recent.artDecisive,
+        hintHit: true,
+        stageMs: stage.ms,
+        wasmHeapMB: self.cv && self.cv.HEAPU8 ? Math.round(self.cv.HEAPU8.length / 1e6) : null,
+      };
+    }
+  }
 
   const artVecsFor = (gray, { shifts = false } = {}) => {
     if (!(useV3 && artIndex)) return null;
@@ -2313,7 +2449,7 @@ loadCV().catch(() => {});
 let lastTitleSource = { scanId: null, candidates: [] };
 
 self.onmessage = async (e) => {
-  const { id, type, bmp, point, queryCandidates, scanId } = e.data || {};
+  const { id, type, bmp, point, hints, queryCandidates, scanId } = e.data || {};
   if (type === "preload") {
     try {
       const ready = await warmCore();
@@ -2323,7 +2459,7 @@ self.onmessage = async (e) => {
     }
   } else if (type === "identify") {
     try {
-      const res = await identify(bmp, point);
+      const res = await identify(bmp, point, hints);
       lastTitleSource = { scanId: id, candidates: res.titleSource || [] };
       delete res.titleSource; // ImageData payloads stay in-worker
       self.postMessage({ id, ...res });
