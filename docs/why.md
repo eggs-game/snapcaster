@@ -84,7 +84,9 @@ another card, which is uncommon in real play.
   private whispers travel over encrypted WebRTC: directly when possible, or
   through Cloudflare TURN when a VPN/NAT/firewall blocks the direct path.
   Opt-in wrong-card reports explicitly save a cropped capture plus diagnostics
-  to private Supabase Storage for later curation. No live stream is stored.
+  to private Supabase Storage for later curation. Content-free lookup timing
+  records are stored separately so live performance can be diagnosed without
+  retaining cards, images, names, or raw room codes. No live stream is stored.
 - **Free to run.** The whole stack sits on free tiers.
 - **Physics is the real limit.** A 20-card playmat on a 720p camera simply
   does not contain enough pixels per card. 1080p is borderline; 4K is

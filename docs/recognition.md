@@ -236,6 +236,16 @@ breakdown. This makes a slow remote capture distinguishable from a slow
 recognition fallback instead of treating the entire click-to-result delay as
 one opaque number.
 
+The same content-free breakdown is submitted asynchronously to the insert-only
+Supabase `recognition_timing_events` table. The upload is not awaited by the
+lookup UI, so telemetry cannot add card-result latency. Rows include the build,
+success/failure category, local-versus-remote flag, capture payload character
+count, outgoing quality setting, bounded timing/count fields, temporary
+room-scoped participant IDs, and a one-way room fingerprint. They explicitly
+exclude the room code, names, card identity/results, images, OCR text, device
+labels, and raw errors. Anonymous clients can insert rows but cannot read them;
+analysis and retention management happen in the Supabase dashboard.
+
 The tail is dominated by scenes with many overlapping cards, which generate
 far more contour quads (60–74 crops tried instead of ~39).
 

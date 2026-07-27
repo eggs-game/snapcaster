@@ -4,7 +4,7 @@ import {
   Swords, Video, VideoOff, X,
 } from "lucide-react";
 import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
-import { labelRecognitionReport, saveRecognitionReport } from "./signaling.js";
+import { labelRecognitionReport, saveRecognitionReport, saveRecognitionTiming } from "./signaling.js";
 import { getCommanderPairing, suggestCardNames, suggestCommanderPartners } from "./cardSearch.js";
 import { identify as identifyCard, preload as preloadRecognition } from "./recognition/matcher.js";
 import CardSidebar, { cardFromScryfall, formatDiceResult, formatDiceSides } from "./CardSidebar.jsx";
@@ -546,6 +546,27 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     setSidebarOpen(true);
   }, []);
 
+  const persistRecognitionTiming = useCallback((timing, subjectId) => {
+    // This upload is deliberately detached from the lookup result. Telemetry
+    // must never make a player wait longer for a card or turn a successful
+    // local recognition into a visible Supabase error.
+    void saveRecognitionTiming({
+      id: crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      roomCode: session.code,
+      observerId: myId,
+      subjectId,
+      role: session.role,
+      build: globalThis.__SNAP_BUILD || "",
+      outgoingVideoQuality,
+      visibilityState: typeof document === "undefined" ? "" : document.visibilityState,
+      browserOnline: typeof navigator === "undefined" ? true : navigator.onLine !== false,
+      ...timing,
+    }).catch(() => {
+      // Timing telemetry is diagnostic-only and may be unavailable when the
+      // browser is offline or before its database migration has been applied.
+    });
+  }, [myId, outgoingVideoQuality, session.code, session.role]);
+
   // Flipped tiles pass reflected coordinates for capture while the click flash
   // stays where the player actually clicked.
   const identify = useCallback(async (tileId, videoEl, clientX, clientY, flipped = false) => {
@@ -553,7 +574,11 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
     const pt = clickToNormalized(videoEl, clientX, clientY, flipped);
     if (!pt) return;
     const scanStartedAt = performance.now();
+    let captureStartedAt = 0;
+    let recognitionStartedAt = 0;
     let captureMs = 0;
+    let captureChars = 0;
+    let phase = "capture";
     const rect = videoEl.getBoundingClientRect();
     setFlash({ tileId, x: clientX - rect.left, y: clientY - rect.top });
     setTimeout(() => setFlash(null), 600);
@@ -564,12 +589,14 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
       // local and remote). The crop is clamped to stay inside the camera frame,
       // so the click is at the crop center only when it was far enough from an
       // edge — cap.px/py reports where it actually landed.
-      const captureStartedAt = performance.now();
+      captureStartedAt = performance.now();
       const cap = tileId === myId
         ? await captureLocalFrame(conn.localStream, pt.nx, pt.ny)
         : await conn.requestRemoteCapture(tileId, pt.nx, pt.ny);
       captureMs = Math.round(performance.now() - captureStartedAt);
-      const recognitionStartedAt = performance.now();
+      captureChars = String(cap.url || "").length;
+      phase = "recognition";
+      recognitionStartedAt = performance.now();
       const data = await identifyCard(cap.url, {
         nx: cap.px ?? 0.5,
         ny: cap.py ?? 0.5,
@@ -589,6 +616,11 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
         ...(globalThis.__SNAP_RECOGNITION_TIMINGS || []).slice(-49),
         timing,
       ];
+      persistRecognitionTiming({
+        ...timing,
+        outcome: data.matches?.length ? "matched" : "no-match",
+        captureChars,
+      }, tileId);
       setCurrent({
         matches: data.matches || [],
         cardFound: data.card_found,
@@ -628,19 +660,40 @@ export default function Game({ session, onLeave, themePreference, onThemePrefere
         setLookups((l) => [...l.slice(-11), { by: session.name, card: top, at: Date.now() }]);
       }
     } catch (e) {
+      const now = performance.now();
+      if (phase === "capture" && captureStartedAt) {
+        captureMs = Math.round(now - captureStartedAt);
+      }
+      const recognitionMs = phase === "recognition" && recognitionStartedAt
+        ? Math.round(now - recognitionStartedAt)
+        : 0;
+      const message = String(e.message || e);
+      const outcome = phase === "capture"
+        ? (message === "Capture timed out" ? "capture-timeout" : "capture-error")
+        : (message.startsWith("Card recognition timed out")
+          ? "recognition-timeout"
+          : "recognition-error");
+      const timing = {
+        at: Date.now(),
+        remote: tileId !== myId,
+        captureMs,
+        recognitionMs,
+        totalMs: Math.round(now - scanStartedAt),
+        error: message,
+      };
       globalThis.__SNAP_RECOGNITION_TIMINGS = [
         ...(globalThis.__SNAP_RECOGNITION_TIMINGS || []).slice(-49),
-        {
-          at: Date.now(),
-          remote: tileId !== myId,
-          captureMs,
-          totalMs: Math.round(performance.now() - scanStartedAt),
-          error: String(e.message || e),
-        },
+        timing,
       ];
-      setCurrent({ error: String(e.message || e) });
+      persistRecognitionTiming({
+        ...timing,
+        error: undefined,
+        outcome,
+        captureChars,
+      }, tileId);
+      setCurrent({ error: message });
     }
-  }, [myId, openCardPanel, session.name]);
+  }, [myId, openCardPanel, persistRecognitionTiming, session.name]);
 
   // Clicking an opponent's commander name does a plain text lookup (same
   // Scryfall path as the sidebar search box) rather than the visual capture

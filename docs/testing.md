@@ -161,6 +161,29 @@ time. The same breakdown appears in the card panel under `?debug=1`. The ring
 contains timing and counts only, never camera frames, card identity, room
 identity, or player content.
 
+Future live scans are also written asynchronously to the insert-only
+`recognition_timing_events` table. In the Supabase SQL editor, this query gives
+a content-free recent-room overview:
+
+```sql
+select
+  room_fingerprint,
+  count(*) as scans,
+  count(*) filter (where outcome like '%timeout') as timeouts,
+  round(avg(capture_ms)) as avg_capture_ms,
+  round(avg(recognition_ms)) as avg_recognition_ms,
+  percentile_cont(0.9) within group (order by total_ms) as p90_total_ms,
+  max(received_at) as last_seen
+from recognition_timing_events
+where received_at > now() - interval '2 hours'
+group by room_fingerprint
+order by last_seen desc;
+```
+
+Use the newest fingerprint to drill into `outcome`, `remote`, `capture_chars`,
+`outgoing_video_quality`, and `stage_ms`. The table intentionally has no card
+or player content, and anonymous app clients cannot read it.
+
 ## Workflow
 
 1. Run **Tableau 10 — EDH staples**, click **Copy results**, paste the JSON.

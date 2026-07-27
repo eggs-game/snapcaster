@@ -3,7 +3,7 @@ import LegalPage from "./LegalPage.jsx";
 
 export default function Terms() {
   return (
-    <LegalPage title="Terms of use" updated="July 23, 2026">
+    <LegalPage title="Terms of use" updated="July 27, 2026">
       <p>
         These terms cover your use of Snapcast at{" "}
         <a href="https://snapcast.app">snapcast.app</a>. By using the service, you agree to them.
@@ -59,7 +59,8 @@ export default function Terms() {
       <p>
         Card identification is best-effort. Results can be wrong. Optional “Wrong card” reports
         may upload crops and diagnostics so recognition can improve; only submit reports you are
-        comfortable sharing. See the{" "}
+        comfortable sharing. Content-free lookup timing metrics are recorded separately to diagnose
+        slow scans and timeouts. See the{" "}
         <a href="/privacy">privacy policy</a> for details.
       </p>
 

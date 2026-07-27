@@ -60,6 +60,62 @@ export async function saveConnectionEvent(event) {
   if (error) throw error;
 }
 
+const RECOGNITION_OUTCOMES = new Set([
+  "matched",
+  "no-match",
+  "capture-timeout",
+  "recognition-timeout",
+  "capture-error",
+  "recognition-error",
+]);
+const RECOGNITION_STAGE_KEYS = new Set(["prep", "rank", "orb", "ocr", "total"]);
+const VIDEO_QUALITY_VALUES = new Set(["720p", "1080p", "1440p", "2160p"]);
+
+function boundedInteger(value, max) {
+  const number = Math.round(Number(value) || 0);
+  return Math.max(0, Math.min(max, number));
+}
+
+// Automatic recognition telemetry is intentionally timing-only. In
+// particular, do not add card names, OCR text, images, room codes, display
+// names, device labels, or peer-provided error strings to this payload.
+export async function saveRecognitionTiming(event) {
+  if (!isConfigured()) return;
+  const stages = Object.fromEntries(
+    Object.entries(event?.stages || {})
+      .filter(([key]) => RECOGNITION_STAGE_KEYS.has(key))
+      .map(([key, value]) => [key, boundedInteger(value, 300000)]),
+  );
+  const outcome = RECOGNITION_OUTCOMES.has(event?.outcome)
+    ? event.outcome
+    : "recognition-error";
+  const quality = VIDEO_QUALITY_VALUES.has(event?.outgoingVideoQuality)
+    ? event.outgoingVideoQuality
+    : "1080p";
+  const { error } = await client().from("recognition_timing_events").insert({
+    id: event.id,
+    room_fingerprint: await roomFingerprint(event.roomCode),
+    observer_id: String(event.observerId || "").slice(0, 40),
+    subject_id: String(event.subjectId || "").slice(0, 40),
+    role: event.role === "visitor" ? "visitor" : "player",
+    build: String(event.build || "").slice(0, 160),
+    occurred_at: new Date(event.at || Date.now()).toISOString(),
+    remote: !!event.remote,
+    outcome,
+    capture_ms: boundedInteger(event.captureMs, 300000),
+    recognition_ms: boundedInteger(event.recognitionMs, 300000),
+    total_ms: boundedInteger(event.totalMs, 300000),
+    capture_chars: boundedInteger(event.captureChars, 8 * 1024 * 1024),
+    candidates_tried: boundedInteger(event.candidatesTried, 1000),
+    isolation_candidates: boundedInteger(event.isolationCandidates, 1000),
+    stage_ms: stages,
+    outgoing_video_quality: quality,
+    visibility_state: String(event.visibilityState || "").slice(0, 20),
+    browser_online: event.browserOnline !== false,
+  });
+  if (error) throw error;
+}
+
 async function dataUrlBlob(dataUrl) {
   if (!dataUrl || !String(dataUrl).startsWith("data:")) return null;
   const response = await fetch(dataUrl);

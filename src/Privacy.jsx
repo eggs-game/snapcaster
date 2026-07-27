@@ -3,7 +3,7 @@ import LegalPage from "./LegalPage.jsx";
 
 export default function Privacy() {
   return (
-    <LegalPage title="Privacy policy" updated="July 25, 2026">
+    <LegalPage title="Privacy policy" updated="July 27, 2026">
       <p>
         Snapcast is a remote paper Magic: The Gathering table. This policy explains what
         information is handled when you use <a href="https://snapcast.app">snapcast.app</a>,
@@ -16,6 +16,7 @@ export default function Privacy() {
         <li>Live camera and microphone streams are peer-to-peer. Snapcast does not record or store your live video.</li>
         <li>Game signaling (room join, life totals, public chat, turn state) goes through Supabase Realtime for the session.</li>
         <li>Limited connection diagnostics are recorded so unexpected game drops can be investigated.</li>
+        <li>Content-free card-lookup timing metrics are recorded so slow scans and timeouts can be investigated.</li>
         <li>Card recognition runs in your browser. Optional “Wrong card” reports are the main way images leave your device for our servers.</li>
       </ul>
 
@@ -53,6 +54,15 @@ export default function Privacy() {
       <p>
         Recognition (hashing, matching, OCR) runs locally in your browser against a card index we
         host. Card art looked up for results may be loaded from Scryfall’s image hosts.
+      </p>
+      <p>
+        To diagnose slow scans and timeouts, Snapcast records bounded lookup-performance metrics:
+        capture, recognition, and worker-stage timings; whether the scan was local or remote; a
+        success or failure category; candidate counts; capture payload size; outgoing quality;
+        temporary room-scoped participant identifiers; the app build; and a one-way fingerprint
+        of the room code. These automatic timing records do not contain the raw room code, display
+        names, card identities or results, images, OCR text, device labels, or raw error messages.
+        Uploading them happens in the background and is not part of producing the card result.
       </p>
 
       <h3>Optional recognition reports</h3>
@@ -106,9 +116,9 @@ export default function Privacy() {
       <h2>Retention</h2>
       <p>
         Session signaling is ephemeral to the game. Local preferences remain until you clear site
-        data. Opt-in recognition reports and limited connection diagnostics are kept long enough to
-        review and improve the service, then may be deleted or anonymized. You can clear local data
-        anytime in your browser settings.
+        data. Opt-in recognition reports, limited connection diagnostics, and content-free lookup
+        timing records are kept long enough to review and improve the service, then may be deleted
+        or anonymized. You can clear local data anytime in your browser settings.
       </p>
 
       <h2>Your choices</h2>

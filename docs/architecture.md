@@ -172,6 +172,15 @@ the main thread — an early bug that made the lobby unresponsive.
   the same seat and republishes the restored state. Lifecycle heartbeat and
   navigation evidence classify recovery as a refresh, connectivity loss,
   likely crash, or generic session resume.
+- **Recognition latency is observable without storing card content.** The
+  latest 50 scans remain available in the scanning browser at
+  `window.__SNAP_RECOGNITION_TIMINGS`. A bounded copy is also submitted
+  asynchronously to the insert-only `recognition_timing_events` table so live
+  capture/network time can be separated from worker stages after the fact.
+  Rows use a one-way room fingerprint and temporary room-scoped participant
+  IDs; they exclude raw room codes, names, card identities/results, images,
+  OCR text, device labels, and raw errors. Anonymous clients cannot select
+  telemetry rows.
 - **Public chat and private whispers take different routes.** Ordinary chat is
   a Supabase room broadcast. `/whisper @name` resolves the selected roster ID
   and sends only over that participant's encrypted WebRTC data channel. Both
