@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Eye, Search, Users } from "lucide-react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowRight, Check, ChevronDown, Search } from "lucide-react";
 import SiteFooter from "./SiteFooter.jsx";
 import { listPublicGameRooms } from "./gameRooms.js";
 
@@ -29,9 +29,114 @@ function commanderDisplayName(value) {
   return separator >= 0 ? label.slice(separator + 3) : label;
 }
 
-function PublicGameArtwork({ cards }) {
+function FilterDropdown({ label, value, options, onChange }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef(null);
+  const triggerRef = useRef(null);
+  const optionRefs = useRef([]);
+  const selected = options.find((option) => option.value === value) || options[0];
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const close = (event) => {
+      if (event.type === "keydown" && event.key === "Escape") {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
+      if (event.type === "pointerdown" && !rootRef.current?.contains(event.target)) setOpen(false);
+    };
+    document.addEventListener("keydown", close);
+    document.addEventListener("pointerdown", close);
+    return () => {
+      document.removeEventListener("keydown", close);
+      document.removeEventListener("pointerdown", close);
+    };
+  }, [open]);
+
+  const focusOption = (index) => {
+    const nextIndex = (index + options.length) % options.length;
+    optionRefs.current[nextIndex]?.focus();
+  };
+
+  const openMenu = () => {
+    setOpen(true);
+    window.requestAnimationFrame(() => {
+      const selectedIndex = Math.max(0, options.findIndex((option) => option.value === value));
+      focusOption(selectedIndex);
+    });
+  };
+
+  return (
+    <div className="games-filter-dropdown" ref={rootRef}>
+      <button
+        type="button"
+        className="games-filter-trigger"
+        ref={triggerRef}
+        aria-label={label}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => (open ? setOpen(false) : openMenu())}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+            event.preventDefault();
+            openMenu();
+          }
+        }}
+      >
+        <span>{selected.label}</span>
+        <ChevronDown size={16} aria-hidden="true" />
+      </button>
+      {open && (
+        <div className="games-filter-menu" role="listbox" aria-label={label}>
+          {options.map((option, index) => (
+            <button
+              type="button"
+              role="option"
+              key={option.value || "all"}
+              ref={(node) => { optionRefs.current[index] = node; }}
+              aria-selected={option.value === value}
+              onClick={() => {
+                onChange(option.value);
+                setOpen(false);
+                triggerRef.current?.focus();
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  onChange(option.value);
+                  setOpen(false);
+                  triggerRef.current?.focus();
+                } else if (event.key === "ArrowDown") {
+                  event.preventDefault();
+                  focusOption(index + 1);
+                } else if (event.key === "ArrowUp") {
+                  event.preventDefault();
+                  focusOption(index - 1);
+                } else if (event.key === "Home") {
+                  event.preventDefault();
+                  focusOption(0);
+                } else if (event.key === "End") {
+                  event.preventDefault();
+                  focusOption(options.length - 1);
+                } else if (event.key === "Tab") {
+                  setOpen(false);
+                }
+              }}
+            >
+              <span>{option.label}</span>
+              {option.value === value && <Check size={15} aria-hidden="true" />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PublicGameArtwork({ cards, openSeats = 0 }) {
   const artwork = commanderArtwork(cards);
-  if (!artwork.length) return null;
+  const placeholders = Array.from({ length: Math.max(0, openSeats) });
+  if (!artwork.length && !placeholders.length) return null;
   return (
     <div className="public-game-art" aria-label="Commanders at this table">
       {artwork.map((card, index) => (
@@ -42,6 +147,13 @@ function PublicGameArtwork({ cards }) {
           title={card.name}
           loading={index > 2 ? "lazy" : "eager"}
           decoding="async"
+        />
+      ))}
+      {placeholders.map((_, index) => (
+        <span
+          key={`open-seat-${index}`}
+          className="public-game-empty-card"
+          aria-label="Open player seat"
         />
       ))}
     </div>
@@ -87,13 +199,13 @@ function PublicGameCard({ game }) {
   const visitorHref = `/?code=${encodeURIComponent(game.code)}&visitor=1`;
   return (
     <article className="public-game-card">
-      <PublicGameArtwork cards={game.commander_cards} />
+      <PublicGameArtwork cards={game.commander_cards} openSeats={openSeats} />
       <div className="public-game-card-body">
         {isLive && <span className="game-status-badge live">Live</span>}
         <h3>{game.name}</h3>
         <div className="public-game-counts">
-          <span><Users size={15} /> {game.player_count}/{game.seat_limit} players</span>
-          <span><Eye size={15} /> {game.visitor_count} watching</span>
+          <span>{game.player_count}/{game.seat_limit} players</span>
+          <span>{game.visitor_count} {Number(game.visitor_count) === 1 ? "viewer" : "viewers"}</span>
           <span>Bracket {game.bracket}</span>
         </div>
         {game.commanders?.length > 0 && (
@@ -182,17 +294,21 @@ export default function PublicGames() {
               aria-label="Search game or commander"
             />
           </label>
-          <label className="games-bracket-filter">
-            <select aria-label="Bracket" value={bracket} onChange={(event) => setBracket(event.target.value)}>
-              <option value="">All brackets</option>
-              {[1, 2, 3, 4, 5].map((value) => <option key={value} value={value}>Bracket {value}</option>)}
-            </select>
-          </label>
-          <label className="games-bracket-filter">
-            <select aria-label="Player count" value={seatLimit} onChange={(event) => setSeatLimit(event.target.value)}>
-              {[2, 3, 4, 5, 6].map((value) => <option key={value} value={value}>{value} players</option>)}
-            </select>
-          </label>
+          <FilterDropdown
+            label="Bracket"
+            value={bracket}
+            onChange={setBracket}
+            options={[
+              { value: "", label: "All brackets" },
+              ...[1, 2, 3, 4, 5].map((option) => ({ value: String(option), label: `Bracket ${option}` })),
+            ]}
+          />
+          <FilterDropdown
+            label="Player count"
+            value={seatLimit}
+            onChange={setSeatLimit}
+            options={[2, 3, 4, 5, 6].map((option) => ({ value: String(option), label: `${option} players` }))}
+          />
         </div>
 
         {loading ? (

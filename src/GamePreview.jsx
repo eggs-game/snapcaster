@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
-  ChevronLeft, ChevronRight, Droplet, Drum, ExternalLink, Flame, MessageCircle, MessagesSquare, Mic, MoreVertical,
-  PanelLeft, Play, Search, Settings, Sun, TreePine, Users, Video,
+  ChevronLeft, ChevronRight, Drum, ExternalLink, MessageCircle, MessagesSquare, Mic, MoreVertical,
+  PanelLeft, Play, Search, Settings, Users, Video,
 } from "lucide-react";
 
 const CARD_IDS = {
@@ -96,19 +96,12 @@ function CardStackIcon() {
   );
 }
 
-const DECK_BACK_ICONS = {
-  U: Droplet,
-  R: Flame,
-  W: Sun,
-  G: TreePine,
-};
-
 function DeckBack({ mana }) {
-  const ManaIcon = DECK_BACK_ICONS[mana] || Sun;
   return (
-    <span className={`home-preview-deck home-preview-deck-${mana}`}>
-      <span className="home-preview-deck-frame" />
-      <ManaIcon aria-hidden="true" strokeWidth={1.8} />
+    <span className={`home-preview-deck home-preview-deck-${mana}`} aria-hidden="true">
+      <span className="home-preview-deck-layer home-preview-deck-layer-back" />
+      <span className="home-preview-deck-layer home-preview-deck-layer-edge" />
+      <span className="home-preview-deck-layer home-preview-deck-layer-face" />
     </span>
   );
 }
@@ -164,14 +157,25 @@ function PreviewTile({ player, index }) {
         <div className="video-fit-box">
           <div className="home-preview-playmat">
             <DeckBack mana={player.pips[0]} />
-            <img
-              className="home-preview-commander"
-              src={scryfallCardImage(player.commanderCard)}
-              alt=""
-              loading="lazy"
-              decoding="async"
-            />
-            <div className="home-preview-creatures">
+            {index !== 3 && (
+              <img
+                className="home-preview-commander"
+                src={scryfallCardImage(player.commanderCard)}
+                alt=""
+                loading="lazy"
+                decoding="async"
+              />
+            )}
+            <div className={`home-preview-creatures${index === 3 ? " has-commander" : ""}`}>
+              {index === 3 && (
+                <img
+                  className="home-preview-commander-in-row"
+                  src={scryfallCardImage(player.commanderCard)}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                />
+              )}
               {player.creatures.map((cardId, cardIndex) => (
                 <img
                   key={`${cardId}-creature-${cardIndex}`}

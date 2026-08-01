@@ -1,7 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { BarChart3, Clock3, Trophy, UserRound } from "lucide-react";
+import AccountProfile from "./AccountProfile.jsx";
 import SiteFooter from "./SiteFooter.jsx";
-import { blockPlayer, getAccountSession, getProfileMatchups, getPublicProfile, sendFriendRequest } from "./account.js";
+import {
+  blockPlayer,
+  getAccountSession,
+  getProfileMatchups,
+  getPublicProfile,
+  sendFriendRequest,
+  signInWithDiscord,
+  updateAccountSettings,
+} from "./account.js";
 
 function percent(value) {
   return `${Math.round((Number(value) || 0) * 100)}%`;
@@ -23,6 +32,78 @@ function turnDuration(milliseconds) {
 
 export default function ProfilePage() {
   const profileId = new URLSearchParams(window.location.search).get("id");
+  return profileId ? <PublicProfilePage profileId={profileId} /> : <MyProfilePage />;
+}
+
+function MyProfilePage() {
+  const [account, setAccount] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    getAccountSession()
+      .then((nextAccount) => {
+        if (active) setAccount(nextAccount);
+      })
+      .catch((loadError) => {
+        if (active) setError(String(loadError?.message || "Could not load your account."));
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => { active = false; };
+  }, []);
+
+  const saveProfile = async (values) => {
+    const nextAccount = await updateAccountSettings(account, values);
+    setAccount(nextAccount);
+    localStorage.setItem("sc-name", nextAccount.profile.display_name);
+    localStorage.setItem("theme-preference", nextAccount.preferences.theme);
+    const preference = nextAccount.preferences.theme;
+    const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    document.documentElement.dataset.theme = preference === "system"
+      ? (systemDark ? "dark" : "light")
+      : preference;
+    document.documentElement.dataset.themePreference = preference;
+  };
+
+  return (
+    <main className="profile-page account-profile-page">
+      <header className="site-header">
+        <a className="site-brand" href="/">Snapcast</a>
+        <nav className="site-header-actions" aria-label="Profile navigation">
+          <a className="site-header-link" href="/games/lobbies">View games</a>
+          <a className="site-header-link primary" href="/?action=create">Create game</a>
+        </nav>
+      </header>
+      <section className="account-profile-page-shell">
+        {loading ? (
+          <p className="public-games-state">Loading your profile…</p>
+        ) : error ? (
+          <div className="games-empty"><h1>Profile unavailable</h1><p>{error}</p></div>
+        ) : account ? (
+          <AccountProfile
+            account={account}
+            page
+            view="profile"
+            onSave={saveProfile}
+          />
+        ) : (
+          <div className="games-empty account-profile-sign-in">
+            <UserRound size={30} />
+            <h1>Sign in to open your profile</h1>
+            <p>Your friends, saved commanders, and match history live here.</p>
+            <button type="button" onClick={() => signInWithDiscord({ redirectPath: "/profile" })}>Sign in with Discord</button>
+          </div>
+        )}
+      </section>
+      <SiteFooter />
+    </main>
+  );
+}
+
+function PublicProfilePage({ profileId }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");

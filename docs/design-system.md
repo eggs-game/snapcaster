@@ -165,7 +165,8 @@ the slots so typing, pasting, browser one-time-code autofill, validation, and
 screen-reader labeling remain one accessible control; focus advances visually
 through the slots without splitting keyboard interaction across six inputs.
 Below the hero, the homepage includes a non-interactive four-player Commander
-game preview inside a 24px rounded frame. It is coded from the same DOM classes
+game preview inside a 14px rounded frame. That tighter shell follows the
+10px player-tile curves with only the preview's narrow inset between them. It is coded from the same DOM classes
 as the actual game rather than drawn as a separate marketing mockup: the real
 left icon rail and card panel, video-panel spacing, 2×2 tile grid, Commander
 banners, media controls, mana pips, life-badge corner rules, and
@@ -189,8 +190,10 @@ color identity, so the coded board reads like a plausible Commander game rather
 than a decorative card fan. The sample lists follow the commanders' current
 EDHREC recommendations: Sai on blue, Krenko on red, Giada on white, and Ghalta
 on green. Each land row is mostly the matching basic land plus one EDHREC-listed
-utility land. The commander anchors the upper-left of every camera view, with
-the face-down library directly beneath it. The camera is represented as pointing
+utility land. Sai, Krenko, and Giada anchor the upper-left of their camera views,
+with the face-down library directly beneath them. Ghalta instead joins the green
+creature row so the large creature reads as part of Nora's battlefield rather
+than an isolated card beside it. The camera is represented as pointing
 straight down: every commander, library sleeve, creature, support, and land uses
 the same card width and the rows have no perspective, skew, or casual-angle
 rotation. Cards begin at 78px on the normal 1280px preview and grow fluidly to
@@ -201,18 +204,24 @@ shadow plus a soft, low-offset falloff from one overhead light direction. It
 avoids bright outlines and large dark halos that make cards look like floating
 cutouts, while restrained contrast and small exposure differences preserve the
 printed-card feel without obscuring rules text.
-Each library is one code-rendered card
-back—not a sleeve image or stacked-card asset—with an inset frame and a simple
-SVG mana mark whose color matches that player's playmat: water for Maya, flame
-for Drew, sun for Sam, and tree for Nora. No offset second-card silhouette is
-rendered. The camera
+Each library is a code-rendered stack of solid sleeves rather than a graphic
+card back. Three slightly offset layers create a dark rear sleeve, fine striped
+card edges, and the colored top sleeve, with compact contact shadows and tiny
+alignment differences that read like a physical Commander deck. Blue, red,
+off-white, and green match the corresponding playmats; no mana symbol or other
+graphic appears on the sleeve face. The camera
 uses the corresponding four supplied full-playmat images in the same order. A
 uniform 30% black background layer quiets
 each printed playmat without dimming the cards or controls above it. Playmat
-art slightly overscans the complete camera frame so only the rounded border
-baked into the source is cropped; the white Giada feed uses a warm yellow player accent for a distinct
-life badge and border. At narrow
-breakpoints the desktop game surface scales as one unit, preserving its exact
+art uses proportional sizing with a slight centered vertical overscan so it
+fills the complete camera frame without stretching while cropping the rounded
+edge baked into the supplied source outside the player tile.
+The white Giada feed uses a warm yellow player accent for a distinct
+life badge and border.
+The two players across the table use a 180-degree camera-content rotation, so
+their cards face them at the top edge of the table. Player banners, media
+controls, and life totals remain unrotated and readable to the viewer.
+At narrow breakpoints the desktop game surface scales as one unit, preserving its exact
 layout instead of inventing a different preview-only responsive composition.
 The preview's main surface uses one 4px inset on every outer edge, while the
 video grid adds no one-sided padding. Including the preview border, the visible
@@ -270,12 +279,12 @@ useful without taking space from the four camera feeds. The loop pauses offscree
 reduced-motion visitors see the complete chat state without timed transitions.
 The product preview is followed by a twelve-card feature grid on the shared
 1280px content width. It uses four columns on wide screens, three and then two
-at intermediate widths, and one on phones. Each non-interactive feature card
-uses the standard 12px panel radius, a quiet raised-surface fill, and one Lucide
-icon inside a 42px informational well; those icon wells are not buttons and do
-not inherit the interactive icon-button tiers. The section names only shipped
-product behavior, with short descriptions that stay readable at a glance
-rather than reproducing settings documentation.
+at intermediate widths, and one on phones. Features sit directly on the page
+without individual card borders or fills. Their Lucide icons are likewise
+unboxed and sit close to the title, so each item reads as one compact piece of
+content instead of a grid of controls. The section names only shipped product
+behavior, with short descriptions that stay readable at a glance rather than
+reproducing settings documentation.
 Account access remains secondary to those hero actions. Outside the landing
 header, Discord sign-in and signed-in profile controls remain 34px-tall labeled
 buttons with an 8px radius and the shared glass material. The profile menu uses the same dense glass
@@ -288,26 +297,36 @@ they stack into one column. The post-setup account prompt reuses the normal moda
 shell and action hierarchy; both choices have equal width so creating an account
 remains optional rather than visually mandatory.
 
-**My Profile** uses the same modal shell rather than introducing a separate
-settings language. Its 52px account avatar anchors the header; public identity,
-saved entry devices, and preferences are separated by the standard subtle
-divider. Saved-device rows use the raised surface and 8px control radius, while
-the privacy checkbox makes the whole row hoverable and clickable.
+**My Profile** is a full `/profile` page, not an overlay. It uses the shared
+site header and a 1280px content shell so account editing, friends, saved
+commanders, reviews, and match history remain navigable even when the page is
+long. Its 52px account avatar anchors a raised identity header. Settings are
+grouped into responsive 12px-radius panels; saved-device rows use the raised
+surface and 8px control radius, while privacy checkboxes make the whole row
+hoverable and clickable. Public profiles keep the query-string form
+`/profile?id=…` and retain their read-only layout.
 
 Public-game cards use the normal raised panel hierarchy: 12px outer radius,
 8px actions, compact status pills, and commander names as quiet surface chips.
-When verified playable-card Scryfall IDs are available, a 146px commander-card
-stack sits at the top of the panel; it uses full card-frame images from Scryfall's static CDN and
-never adds per-card API lookups to discovery. Discovery cards intentionally
+When verified playable-card Scryfall IDs are available, a 158px commander-card
+strip sits at the top of the panel. Its 98px-wide card frames are large enough
+to read as cards at directory scale, and every unoccupied player seat appears
+beside them as a dashed card-shaped placeholder. The strip uses full card-frame
+images from Scryfall's static CDN and never adds per-card API lookups to
+discovery. Discovery cards intentionally
 omit player names so the commander lineup stays the only public table detail.
 The directory reuses the segmented-control selected state for Lobby/Live and
 keeps its intentionally small filter set on the bare page canvas: a compact
 search field, an “All brackets” selector, and a table-size selector that
 defaults to four players. Field titles and the old filter-panel shell are
-omitted so selected values do the labeling. Lobby results always require an
+omitted so selected values do the labeling. Both selectors use the app's
+custom dense-glass listbox pattern—shared 10px overlay radius, blur, border,
+shadow, 34px option rows, and raised selected state—rather than an OS-native
+menu that breaks visual consistency. Lobby results always require an
 open player seat; that invariant is no longer presented as an optional
-checkbox. Directory cards omit the redundant Lobby badge and place bracket
-beside player/watcher counts, while Live retains its status badge. Create game
+checkbox. Directory cards omit the redundant Lobby badge and separate player,
+viewer, and bracket metadata with quiet middle dots rather than icons. Their
+Play and Watch actions use a 40px target, while Live retains its status badge. Create game
 and Join game are distinct header actions on the right and deep-link to their
 matching homepage flows.
 
@@ -321,12 +340,16 @@ existing danger border/text role and remains explicitly reversible.
 
 Public profiles use a 76px identity avatar, a four-card summary grid, and the
 same 12px panel shell used by discovery cards. Saved Commander decks live
-inside My Profile as raised 50px rows; their remove action uses the 24px /
-16px tiny tier, and the add form keeps the shared 34px inputs and 8px radii.
+inside My Profile as a horizontally scrolling, snap-aligned rail of 208px
+tiles. Each tile leads with the framed Scryfall printing; partner cards overlap
+without perspective. The rail uses the shared 8px inset scrollbar, the remove
+action uses the 24px / 16px tiny tier, and the add form keeps the shared 34px
+inputs and 8px radii.
 
-Friends and notifications remain inside My Profile. Notifications use raised
-52px action rows; friends use quiet 40px link rows with semantic presence dots.
-Profile search uses the normal labeled input and a compact raised result list.
+Friends live on their own account page and use quiet 40px link rows with
+semantic presence dots. Player search uses the normal labeled input and a
+compact raised result list. Notifications use raised 52px action rows on the
+separate Notifications page.
 Public-profile social actions are labeled 34px buttons, with block and deletion
 using the existing danger color role rather than introducing a new red.
 
@@ -593,6 +616,25 @@ elevation. Prejoin/create-setup flows reuse the same modal shell with a
 `prejoin-modal` modifier rather than a bespoke layout — new multi-step
 flows in the lobby should follow that pattern (same shell, a modifier
 class, and a `modal` state string per step) instead of a new component.
+
+Signed-in account navigation uses the compact account dropdown as a route
+switcher, not as a container for account UI. Its primary destinations are
+Profile, Friends, Settings, and Notifications. Each destination is a full page
+with the shared sticky site header and normal content gutter:
+
+- **Profile** owns saved Commander decks, match history, and moderation status.
+- **Friends** owns player search, social connections, presence, and friend
+  removal.
+- **Settings** owns editable identity, saved entry devices, appearance,
+  presence/privacy preferences, and account data controls.
+- **Notifications** owns friend requests and game invitations plus private
+  reviews received and sent. Unread activity is counted in both the account
+  trigger and the Notifications menu row; opening the page marks notification
+  records read without removing them.
+
+Account activity pages use 12px surface radii and compact 7-9px nested row
+radii. Keep review history grouped separately from actionable requests so
+private feedback reads as durable account history instead of a transient toast.
 
 The card lookup's expanded-card preview (`.card-preview-backdrop` /
 `.card-preview-tile`) is the compact exception: it uses the same scrim and

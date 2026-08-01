@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Bell, Download, Plus, Trash2, UserRound, X } from "lucide-react";
+import { Download, Plus, Trash2, UserRound, X } from "lucide-react";
 import {
   accountAvatarUrl,
   accountDisplayName,
   cancelAccountDeletion,
   createSavedCommanderDeck,
   deleteSavedCommanderDeck,
-  dismissNotification,
   exportMyAccountData,
   finalizeAccountDeletion,
   getAccountDeletionStatus,
@@ -16,11 +15,8 @@ import {
   getMySentReviews,
   getMyGameHistory,
   listSavedCommanderDecks,
-  markNotificationsRead,
   requestAccountDeletion,
   removeFriend,
-  respondFriendRequest,
-  respondGameInvitation,
   reportPlayerReview,
   searchPublicProfiles,
   sendFriendRequest,
@@ -43,12 +39,30 @@ function timingLabel(milliseconds) {
   return minutes ? `${minutes}m ${seconds % 60}s` : `${seconds}s`;
 }
 
+function scryfallCardImage(scryfallId, cardName) {
+  const params = new URLSearchParams({ format: "image", version: "normal" });
+  if (scryfallId) return `https://api.scryfall.com/cards/${encodeURIComponent(scryfallId)}?${params}`;
+  params.set("exact", cardName || "");
+  return `https://api.scryfall.com/cards/named?${params}`;
+}
+
+function useNamedCardFallback(event, cardName) {
+  const image = event.currentTarget;
+  if (image.dataset.namedFallback) {
+    image.hidden = true;
+    return;
+  }
+  image.dataset.namedFallback = "true";
+  image.src = scryfallCardImage(null, cardName);
+}
+
 export default function AccountProfile({
   account,
   onClose,
   onSave,
   onDecksChange,
-  onNotificationsRead,
+  page = false,
+  view = "profile",
 }) {
   const [displayName, setDisplayName] = useState(() => accountDisplayName(account));
   const [theme, setTheme] = useState(account?.preferences?.theme || "dark");
@@ -93,7 +107,7 @@ export default function AccountProfile({
     getMyReceivedReviews().then(setReceivedReviews).catch(() => {});
     getMySentReviews().then(setSentReviews).catch(() => {});
     getMyModerationCases().then(setModerationCases).catch(() => {});
-    getMyGameHistory(12).then(setGameHistory).catch(() => {});
+    getMyGameHistory(20).then(setGameHistory).catch(() => {});
     getAccountDeletionStatus().then((status) => {
       if (!status?.execute_after || status.canceled_at || status.completed_at) {
         localStorage.removeItem("sc-account-deletion-deadline");
@@ -103,9 +117,6 @@ export default function AccountProfile({
       localStorage.setItem("sc-account-deletion-deadline", status.execute_after);
       setDeletionDeadline(status.execute_after);
     }).catch(() => {});
-    markNotificationsRead(account)
-      .then(() => onNotificationsRead?.())
-      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -128,15 +139,17 @@ export default function AccountProfile({
   }, [account.user.id, friendQuery, social.friends]);
 
   useEffect(() => {
+    if (page || !onClose) return undefined;
     const closeOnEscape = (event) => {
       if (event.key === "Escape") onClose();
     };
     window.addEventListener("keydown", closeOnEscape);
     return () => window.removeEventListener("keydown", closeOnEscape);
-  }, [onClose]);
+  }, [onClose, page]);
 
   const submit = async (event) => {
     event.preventDefault();
+    if (view !== "settings") return;
     setError("");
     setSaving(true);
     try {
@@ -148,7 +161,7 @@ export default function AccountProfile({
         appearOffline,
         showRecentGames,
       });
-      onClose();
+      onClose?.();
     } catch (saveError) {
       setError(String(saveError?.message || "Could not save your profile."));
     } finally {
@@ -230,20 +243,22 @@ export default function AccountProfile({
 
   return (
     <div
-      className="lobby-modal-backdrop account-profile-backdrop"
+      className={page ? "account-profile-page-content" : "lobby-modal-backdrop account-profile-backdrop"}
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose();
+        if (!page && event.target === event.currentTarget) onClose?.();
       }}
     >
       <section
-        className="lobby-modal account-profile"
-        role="dialog"
-        aria-modal="true"
+        className={page ? `account-profile account-profile-page-panel account-profile-${view}` : "lobby-modal account-profile"}
+        role={page ? undefined : "dialog"}
+        aria-modal={page ? undefined : "true"}
         aria-labelledby="account-profile-title"
       >
-        <button className="modal-close" type="button" onClick={onClose} aria-label="Close">
-          <X size={20} />
-        </button>
+        {!page && (
+          <button className="modal-close" type="button" onClick={onClose} aria-label="Close">
+            <X size={20} />
+          </button>
+        )}
         <header className="account-profile-header">
           <div className="account-profile-avatar">
             {accountAvatarUrl(account) ? (
@@ -253,14 +268,14 @@ export default function AccountProfile({
             )}
           </div>
           <div>
-            <p>My Profile</p>
-            <h2 id="account-profile-title">{accountDisplayName(account)}</h2>
+            <p>{view === "settings" ? "Account settings" : view === "friends" ? "Your circle" : "My profile"}</p>
+            <h2 id="account-profile-title">{view === "friends" ? "Friends" : accountDisplayName(account)}</h2>
             {account?.privateAccount?.email && <span>{account.privateAccount.email}</span>}
           </div>
         </header>
 
         <form onSubmit={submit}>
-          <div className="account-profile-section">
+          {view === "settings" && <div className="account-profile-section">
             <h3>Public profile</h3>
             <label className="modal-field">
               <span>Display name</span>
@@ -275,9 +290,9 @@ export default function AccountProfile({
             <p className="account-profile-help">
               This is shown on your public profile and wherever your signed-in seat appears.
             </p>
-          </div>
+          </div>}
 
-          <div className="account-profile-section">
+          {view === "settings" && <div className="account-profile-section">
             <h3>Game entry</h3>
             <div className="account-device-row">
               <div>
@@ -300,9 +315,9 @@ export default function AccountProfile({
             <p className="account-profile-help">
               Device choices are saved after you enter a game. Clearing one lets your browser choose next time.
             </p>
-          </div>
+          </div>}
 
-          <div className="account-profile-section">
+          {view === "settings" && <div className="account-profile-section">
             <h3>Preferences</h3>
             <label className="modal-field">
               <span>Appearance</span>
@@ -334,15 +349,34 @@ export default function AccountProfile({
                 <small>Include recent completed games on your public profile.</small>
               </span>
             </label>
-          </div>
+          </div>}
 
-          <div className="account-profile-section">
+          {view === "profile" && <div className="account-profile-section">
             <h3>Saved commanders</h3>
             {decks.length > 0 && (
-              <div className="saved-deck-list">
+              <div className="saved-deck-list" aria-label="Saved commander decks">
                 {decks.map((deck) => (
-                  <div className="saved-deck-row" key={deck.id}>
-                    <div>
+                  <article className="saved-deck-row" key={deck.id}>
+                    <div className={`saved-deck-card-stack${deck.partner_name ? " is-partner" : ""}`}>
+                      <div className="saved-deck-card-placeholder" aria-hidden="true">
+                        {(deck.commander_name || "?").slice(0, 1)}
+                      </div>
+                      <img
+                        src={scryfallCardImage(deck.commander_scryfall_id, deck.commander_name)}
+                        alt={`${deck.commander_name} card`}
+                        loading="lazy"
+                        onError={(event) => useNamedCardFallback(event, deck.commander_name)}
+                      />
+                      {deck.partner_name && (
+                        <img
+                          src={scryfallCardImage(deck.partner_scryfall_id, deck.partner_name)}
+                          alt={`${deck.partner_name} card`}
+                          loading="lazy"
+                          onError={(event) => useNamedCardFallback(event, deck.partner_name)}
+                        />
+                      )}
+                    </div>
+                    <div className="saved-deck-copy">
                       <strong>{deck.label}</strong>
                       <span>{deck.commander_name}{deck.partner_name ? ` + ${deck.partner_name}` : ""}</span>
                     </div>
@@ -351,10 +385,11 @@ export default function AccountProfile({
                       onClick={() => removeDeck(deck)}
                       aria-label={`Remove ${deck.label}`}
                       data-tooltip="Remove saved deck"
+                      data-tooltip-pos="right-top"
                     >
-                      <Trash2 size={16} />
+                      <Trash2 size={15} />
                     </button>
-                  </div>
+                  </article>
                 ))}
               </div>
             )}
@@ -375,10 +410,10 @@ export default function AccountProfile({
                 <Plus size={16} /> {deckSaving ? "Saving…" : "Save commander deck"}
               </button>
             </div>
-          </div>
+          </div>}
 
-          <div className="account-profile-section">
-            <h3>Friends and notifications</h3>
+          {view === "friends" && <div className="account-profile-section">
+            <h3>Friends</h3>
             <label className="modal-field profile-friend-search">
               <span>Find a player</span>
               <input
@@ -405,83 +440,6 @@ export default function AccountProfile({
                 ))}
               </div>
             )}
-            {social.notifications.length > 0 && (
-              <div className="profile-notification-list">
-                {social.notifications.map((notification) => (
-                  <div key={notification.id} className="profile-notification-row">
-                    <Bell size={16} />
-                    <div>
-                      <strong>{notification.kind === "friend_request"
-                        ? `${notification.actor?.display_name || "A player"} sent a friend request`
-                        : notification.kind === "friend_accepted"
-                          ? `${notification.actor?.display_name || "A player"} accepted your request`
-                          : notification.kind === "game_invitation"
-                            ? `${notification.actor?.display_name || "A friend"} invited you to a game`
-                          : "You have a Snapcast notification"}</strong>
-                      {notification.actor?.id && (
-                        <a href={`/profile?id=${encodeURIComponent(notification.actor.id)}`}>View profile</a>
-                      )}
-                      {notification.kind === "game_invitation" && notification.invitation && (
-                        <span>
-                          {notification.invitation.name} · {notification.invitation.visibility} {notification.invitation.status}
-                          {" · "}{notification.invitation.player_count}/{notification.invitation.seat_limit} players
-                        </span>
-                      )}
-                      <span>{new Date(notification.created_at).toLocaleDateString()}</span>
-                    </div>
-                    {notification.kind === "friend_request" && (
-                      <div>
-                        <button type="button" onClick={async () => {
-                          await respondFriendRequest(notification.reference_id, false);
-                          refreshSocial();
-                        }}>Decline</button>
-                        <button type="button" onClick={async () => {
-                          await respondFriendRequest(notification.reference_id, true);
-                          refreshSocial();
-                        }}>Accept</button>
-                      </div>
-                    )}
-                    {notification.kind === "game_invitation" && (
-                      <div>
-                        <button type="button" onClick={async () => {
-                          await respondGameInvitation(notification.reference_id, false);
-                          refreshSocial();
-                        }}>Decline</button>
-                        <button type="button" onClick={async () => {
-                          const invitation = await respondGameInvitation(notification.reference_id, true);
-                          if (invitation?.accepted && invitation.code) {
-                            window.location.href = `/?code=${encodeURIComponent(invitation.code)}${invitation.role === "visitor" ? "&visitor=1" : ""}`;
-                          } else {
-                            await refreshSocial();
-                            if (invitation?.expired) setError("That game invitation expired because the game ended or filled up.");
-                          }
-                        }}>Join</button>
-                      </div>
-                    )}
-                    {!["friend_request", "game_invitation"].includes(notification.kind) && (
-                      <button
-                        className="notification-dismiss"
-                        type="button"
-                        aria-label="Dismiss notification"
-                        onClick={async () => {
-                          try {
-                            await dismissNotification(notification.id);
-                            setSocial((current) => ({
-                              ...current,
-                              notifications: current.notifications.filter((item) => item.id !== notification.id),
-                            }));
-                          } catch (dismissError) {
-                            setError(String(dismissError?.message || "Could not dismiss this notification."));
-                          }
-                        }}
-                      >
-                        <X size={14} />
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
             <div className="profile-friend-list">
               {social.friends.length ? social.friends.map((friend) => (
                 <div className="profile-friend-row" key={friend.id}>
@@ -496,9 +454,9 @@ export default function AccountProfile({
                 </div>
               )) : <p className="account-profile-help">Friends you add will appear here with privacy-aware presence.</p>}
             </div>
-          </div>
+          </div>}
 
-          <div className="account-profile-section">
+          {view === "profile" && <div className="account-profile-section">
             <h3>Recent game history</h3>
             {gameHistory.length ? (
               <div className="account-history-list">
@@ -609,9 +567,9 @@ export default function AccountProfile({
                 ))}
               </div>
             ) : <p className="account-profile-help">Completed games will appear here after results are recorded.</p>}
-          </div>
+          </div>}
 
-          <div className="account-profile-section">
+          {view === "settings" && <div className="account-profile-section">
             <h3>Account data</h3>
             <div className="account-data-actions">
               <button type="button" onClick={downloadExport}><Download size={16} /> Export my data</button>
@@ -655,9 +613,9 @@ export default function AccountProfile({
                 Deletion is scheduled after {new Date(deletionDeadline).toLocaleString()}. You can cancel until final deletion begins.
               </p>
             )}
-          </div>
+          </div>}
 
-          {sentReviews.length > 0 && (
+          {view === "notifications" && sentReviews.length > 0 && (
             <div className="account-profile-section">
               <h3>Reviews you sent</h3>
               <div className="received-review-list">
@@ -690,7 +648,7 @@ export default function AccountProfile({
             </div>
           )}
 
-          {receivedReviews.length > 0 && (
+          {view === "notifications" && receivedReviews.length > 0 && (
             <div className="account-profile-section">
               <h3>Private player reviews</h3>
               <div className="received-review-list">
@@ -717,7 +675,7 @@ export default function AccountProfile({
             </div>
           )}
 
-          {moderationCases.length > 0 && (
+          {view === "profile" && moderationCases.length > 0 && (
             <div className="account-profile-section">
               <h3>Reports and appeals</h3>
               <div className="received-review-list">
@@ -753,12 +711,12 @@ export default function AccountProfile({
           )}
 
           {error && <p className="modal-error" role="alert">{error}</p>}
-          <footer className="modal-actions">
-            <button type="button" onClick={onClose}>Cancel</button>
+          {view === "settings" && <footer className="modal-actions">
+            {!page && <button type="button" onClick={onClose}>Cancel</button>}
             <button className="primary" type="submit" disabled={saving}>
-              {saving ? "Saving…" : "Save profile"}
+              {saving ? "Saving…" : page ? "Save changes" : "Save profile"}
             </button>
-          </footer>
+          </footer>}
         </form>
       </section>
     </div>

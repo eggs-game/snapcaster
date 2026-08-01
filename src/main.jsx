@@ -10,6 +10,9 @@ const TurnTest = lazy(() => import("./TurnTest.jsx"));
 const Privacy = lazy(() => import("./Privacy.jsx"));
 const Terms = lazy(() => import("./Terms.jsx"));
 const ProfilePage = lazy(() => import("./ProfilePage.jsx"));
+const FriendsPage = lazy(() => import("./FriendsPage.jsx"));
+const SettingsPage = lazy(() => import("./SettingsPage.jsx"));
+const NotificationsPage = lazy(() => import("./NotificationsPage.jsx"));
 const Community = lazy(() => import("./Community.jsx"));
 const ModerationPage = lazy(() => import("./ModerationPage.jsx"));
 import "./styles.css";
@@ -26,6 +29,9 @@ const page = route === "/snaptest" ? <SnapTest />
   : route === "/terms" ? <Terms />
   : route === "/games" || route === "/games/lobbies" || route === "/games/live" ? <PublicGames />
   : route === "/profile" ? <ProfilePage />
+  : route === "/friends" ? <FriendsPage />
+  : route === "/settings" ? <SettingsPage />
+  : route === "/notifications" ? <NotificationsPage />
   : route === "/community" ? <Community />
   : route === "/moderation" ? <ModerationPage />
   : null;

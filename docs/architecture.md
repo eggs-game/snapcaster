@@ -50,6 +50,12 @@ no Snapcast profile, contact row, preferences, public history, or social
 identity. A signed-in player can securely claim the same capability-backed
 membership after OAuth.
 
+Local profile, social, history, and public-room fixtures live only in the
+ignored `public/mock-data.local.json` working-copy file. `localMock.js` refuses
+to load them away from loopback hosts, and the Vite production build removes
+that filename from `dist` as a second boundary. This keeps local feature tours
+realistic without putting fake people or game records in Git or a deployment.
+
 `supabase/migrations/20260726090000_accounts_phase_one.sql` creates three
 separate account surfaces:
 
@@ -75,7 +81,11 @@ src/
   main.jsx              entry; lazy routes /snaptest and /turntest vs the app
   App.jsx               Lobby ↔ Game switch, theme
   AccountPrompt.jsx     optional post-setup Discord account prompt
-  AccountProfile.jsx    private profile, preferences, decks, friends, export
+  AccountProfile.jsx    shared account content for profile, settings, and friends pages
+  SettingsPage.jsx      profile, devices, preferences, and account data
+  FriendsPage.jsx       player search, presence, and friend management
+  NotificationsPage.jsx friend requests plus received and sent review activity
+  localMock.js          loopback-only loader for ignored local fixture data
   PublicGames.jsx       public Lobby and Live Game directories
   ProfilePage.jsx       public finished-game statistics and matchups
   GameManagement.jsx    owner lifecycle and participant moderation controls

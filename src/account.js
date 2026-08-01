@@ -401,7 +401,18 @@ export async function sendFriendRequest(profileId) {
 }
 
 export async function respondFriendRequest(requestId, accept) {
-  if (await getLocalMockData()) return Boolean(accept);
+  if (await getLocalMockData()) {
+    await updateLocalMock((data) => {
+      const notification = (data.social.notifications || []).find((item) => (
+        item.kind === "friend_request" && item.reference_id === requestId
+      ));
+      if (accept && notification?.actor && !data.social.friends.some((friend) => friend.id === notification.actor.id)) {
+        data.social.friends.push({ ...notification.actor, status: "offline" });
+      }
+      data.social.notifications = (data.social.notifications || []).filter((item) => item.reference_id !== requestId);
+    });
+    return Boolean(accept);
+  }
   const { data, error } = await getSupabase().rpc("respond_friend_request", {
     target_request_id: requestId,
     accept_request: Boolean(accept),

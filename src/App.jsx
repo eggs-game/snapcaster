@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import Lobby from "./Lobby.jsx";
 import Game from "./Game.jsx";
 import AccountPrompt from "./AccountPrompt.jsx";
-import AccountProfile from "./AccountProfile.jsx";
 import { claimGuestGameMembership } from "./gameRooms.js";
 import {
   getAccountSession,
@@ -14,7 +13,6 @@ import {
   subscribeToAccount,
   subscribeToNotifications,
   takePendingGame,
-  updateAccountSettings,
   updatePresence,
 } from "./account.js";
 
@@ -39,7 +37,6 @@ export default function App() {
   const [accountReady, setAccountReady] = useState(false);
   const [accountError, setAccountError] = useState("");
   const [accountPromptDismissed, setAccountPromptDismissed] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
   const [savedCommanderDecks, setSavedCommanderDecks] = useState([]);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [themePreference, setThemePreference] = useState(initialThemePreference);
@@ -178,13 +175,6 @@ export default function App() {
     }
   };
 
-  const saveProfile = async (values) => {
-    const nextAccount = await updateAccountSettings(account, values);
-    setAccount(nextAccount);
-    setThemePreference(nextAccount.preferences.theme);
-    localStorage.setItem("sc-name", nextAccount.profile.display_name);
-  };
-
   const saveDevices = async (values) => {
     try {
       const nextAccount = await saveEntryDevices(account, values);
@@ -217,19 +207,9 @@ export default function App() {
           accountError={accountError}
           onSignIn={() => beginDiscordSignIn()}
           onSignOut={signOut}
-          onOpenProfile={() => setProfileOpen(true)}
           onSaveEntryPreferences={saveDevices}
           notificationCount={unreadNotifications}
         />
-        {profileOpen && account && (
-          <AccountProfile
-            account={account}
-            onClose={() => setProfileOpen(false)}
-            onSave={saveProfile}
-            onDecksChange={setSavedCommanderDecks}
-            onNotificationsRead={() => setUnreadNotifications(0)}
-          />
-        )}
       </>
     );
   }
@@ -248,15 +228,6 @@ export default function App() {
           error={accountError}
           onContinue={() => beginDiscordSignIn(session)}
           onDismiss={() => setAccountPromptDismissed(true)}
-        />
-      )}
-      {profileOpen && account && (
-        <AccountProfile
-          account={account}
-          onClose={() => setProfileOpen(false)}
-          onSave={saveProfile}
-          onDecksChange={setSavedCommanderDecks}
-          onNotificationsRead={() => setUnreadNotifications(0)}
         />
       )}
     </>

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   AudioLines,
+  Bell,
   Camera,
   Eye,
   Globe2,
@@ -17,6 +18,7 @@ import {
   Share2,
   Smile,
   Users,
+  UserRound,
   Video,
   X,
 } from "lucide-react";
@@ -122,7 +124,6 @@ export default function Lobby({
   accountError = "",
   onSignIn,
   onSignOut,
-  onOpenProfile,
   onSaveEntryPreferences,
   notificationCount = 0,
 }) {
@@ -438,13 +439,14 @@ export default function Lobby({
               </button>
               {accountMenuOpen && (
                 <div className="site-account-menu">
-                  <button type="button" onClick={() => {
-                    setAccountMenuOpen(false);
-                    onOpenProfile?.();
-                  }}>
-                    <Settings size={16} />
-                    My Profile
-                  </button>
+                  <a href="/profile"><UserRound size={16} />Profile</a>
+                  <a href="/friends"><Users size={16} />Friends</a>
+                  <a href="/settings"><Settings size={16} />Settings</a>
+                  <a href="/notifications">
+                    <Bell size={16} />
+                    <span>Notifications</span>
+                    {notificationCount > 0 && <strong>{notificationCount > 9 ? "9+" : notificationCount}</strong>}
+                  </a>
                   <button type="button" onClick={() => onSignOut?.()}>
                     <LogOut size={16} />
                     Sign out
