@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { BarChart3, Clock3, Trophy, UserRound } from "lucide-react";
 import AccountProfile from "./AccountProfile.jsx";
 import SiteFooter from "./SiteFooter.jsx";
+import SiteHeader from "./SiteHeader.jsx";
 import {
   blockPlayer,
   getAccountSession,
@@ -9,6 +10,7 @@ import {
   getPublicProfile,
   sendFriendRequest,
   signInWithDiscord,
+  signOutAccount,
   updateAccountSettings,
 } from "./account.js";
 
@@ -70,14 +72,19 @@ function MyProfilePage() {
 
   return (
     <main className="profile-page account-profile-page">
-      <header className="site-header">
-        <a className="site-brand" href="/">Snapcast</a>
-        <nav className="site-header-actions" aria-label="Profile navigation">
-          <a className="site-header-link" href="/games/lobbies">View games</a>
-          <a className="site-header-link primary" href="/?action=create">Create game</a>
-        </nav>
-      </header>
-      <section className="account-profile-page-shell">
+      <SiteHeader
+        account={account}
+        accountReady={!loading}
+        accountError={error}
+        onCreate={() => { window.location.href = "/?action=create"; }}
+        onJoin={() => { window.location.href = "/?action=join"; }}
+        onSignIn={() => signInWithDiscord({ redirectPath: "/profile" })}
+        onSignOut={async () => {
+          await signOutAccount();
+          window.location.href = "/";
+        }}
+      />
+      <section className="account-profile-page-shell profile-account-page-shell">
         {loading ? (
           <p className="public-games-state">Loading your profile…</p>
         ) : error ? (

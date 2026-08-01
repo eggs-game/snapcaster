@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Bell, MessageSquareText, Star, UserPlus, X } from "lucide-react";
 import SiteFooter from "./SiteFooter.jsx";
+import SiteHeader from "./SiteHeader.jsx";
 import {
   dismissNotification,
   getAccountSession,
@@ -12,6 +13,7 @@ import {
   respondFriendRequest,
   respondGameInvitation,
   signInWithDiscord,
+  signOutAccount,
   updateMyPlayerReview,
 } from "./account.js";
 
@@ -34,6 +36,7 @@ export default function NotificationsPage() {
   const [sentReviews, setSentReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [activeTab, setActiveTab] = useState("friend-requests");
 
   const refreshNotifications = async () => setSocial(await getSocialDashboard());
 
@@ -85,13 +88,18 @@ export default function NotificationsPage() {
 
   return (
     <main className="profile-page notifications-page">
-      <header className="site-header">
-        <a className="site-brand" href="/">Snapcast</a>
-        <nav className="site-header-actions" aria-label="Account navigation">
-          <a className="site-header-link" href="/profile">Profile</a>
-          <a className="site-header-link" href="/settings">Settings</a>
-        </nav>
-      </header>
+      <SiteHeader
+        account={account}
+        accountReady={!loading}
+        accountError={error}
+        onCreate={() => { window.location.href = "/?action=create"; }}
+        onJoin={() => { window.location.href = "/?action=join"; }}
+        onSignIn={() => signInWithDiscord({ redirectPath: "/notifications" })}
+        onSignOut={async () => {
+          await signOutAccount();
+          window.location.href = "/";
+        }}
+      />
       <section className="notifications-page-shell">
         {loading ? (
           <p className="public-games-state">Loading notifications…</p>
@@ -106,14 +114,52 @@ export default function NotificationsPage() {
           </div>
         ) : (
           <>
-            <header className="notifications-hero">
+            <header className="account-page-hero notifications-hero">
               <p>Account activity</p>
               <h1>Notifications</h1>
               <span>Friend requests and review history, all in one place.</span>
             </header>
+            <div className="account-page-tabs notifications-tabs" role="tablist" aria-label="Notification activity">
+              <button
+                id="notifications-tab-friend-requests"
+                type="button"
+                role="tab"
+                aria-selected={activeTab === "friend-requests"}
+                aria-controls="notifications-panel-friend-requests"
+                onClick={() => setActiveTab("friend-requests")}
+              >
+                Friend requests
+              </button>
+              <button
+                id="notifications-tab-reviews-received"
+                type="button"
+                role="tab"
+                aria-selected={activeTab === "reviews-received"}
+                aria-controls="notifications-panel-reviews-received"
+                onClick={() => setActiveTab("reviews-received")}
+              >
+                Reviews received
+              </button>
+              <button
+                id="notifications-tab-reviews-sent"
+                type="button"
+                role="tab"
+                aria-selected={activeTab === "reviews-sent"}
+                aria-controls="notifications-panel-reviews-sent"
+                onClick={() => setActiveTab("reviews-sent")}
+              >
+                Reviews sent
+              </button>
+            </div>
             {error && <p className="modal-error" role="alert">{error}</p>}
             <div className="notifications-layout">
-              <section className="notifications-panel notifications-panel-wide">
+              {activeTab === "friend-requests" && (
+              <section
+                id="notifications-panel-friend-requests"
+                className="notifications-panel notifications-panel-wide"
+                role="tabpanel"
+                aria-labelledby="notifications-tab-friend-requests"
+              >
                 <header><UserPlus size={18} /><div><h2>Requests and updates</h2><p>Friend requests, invitations, and account activity.</p></div></header>
                 {social.notifications.length ? (
                   <div className="notifications-feed">
@@ -163,8 +209,15 @@ export default function NotificationsPage() {
                   </div>
                 ) : <p className="notifications-empty">You’re all caught up.</p>}
               </section>
+              )}
 
-              <section className="notifications-panel">
+              {activeTab === "reviews-received" && (
+              <section
+                id="notifications-panel-reviews-received"
+                className="notifications-panel notifications-panel-wide"
+                role="tabpanel"
+                aria-labelledby="notifications-tab-reviews-received"
+              >
                 <header><Star size={18} /><div><h2>Reviews received</h2><p>Private feedback other players left for you.</p></div></header>
                 <div className="review-activity-list">
                   {receivedReviews.length ? receivedReviews.map((review) => (
@@ -188,8 +241,15 @@ export default function NotificationsPage() {
                   )) : <p className="notifications-empty">No reviews received yet.</p>}
                 </div>
               </section>
+              )}
 
-              <section className="notifications-panel">
+              {activeTab === "reviews-sent" && (
+              <section
+                id="notifications-panel-reviews-sent"
+                className="notifications-panel notifications-panel-wide"
+                role="tabpanel"
+                aria-labelledby="notifications-tab-reviews-sent"
+              >
                 <header><MessageSquareText size={18} /><div><h2>Reviews sent</h2><p>Your private feedback for other players.</p></div></header>
                 <div className="review-activity-list">
                   {sentReviews.length ? sentReviews.map((review) => (
@@ -219,6 +279,7 @@ export default function NotificationsPage() {
                   )) : <p className="notifications-empty">No reviews sent yet.</p>}
                 </div>
               </section>
+              )}
             </div>
           </>
         )}

@@ -72,6 +72,7 @@ export default function AccountProfile({
   const [showRecentGames, setShowRecentGames] = useState(account?.preferences?.show_recent_games !== false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [activeProfileTab, setActiveProfileTab] = useState("decks");
   const [decks, setDecks] = useState([]);
   const [deckLabel, setDeckLabel] = useState("");
   const [commanderName, setCommanderName] = useState("");
@@ -252,29 +253,92 @@ export default function AccountProfile({
         className={page ? `account-profile account-profile-page-panel account-profile-${view}` : "lobby-modal account-profile"}
         role={page ? undefined : "dialog"}
         aria-modal={page ? undefined : "true"}
-        aria-labelledby="account-profile-title"
+        aria-labelledby={page && view === "settings"
+          ? "account-settings-title"
+          : page && view === "profile"
+            ? "my-profile-title"
+            : "account-profile-title"}
       >
         {!page && (
           <button className="modal-close" type="button" onClick={onClose} aria-label="Close">
             <X size={20} />
           </button>
         )}
-        <header className="account-profile-header">
-          <div className="account-profile-avatar">
-            {accountAvatarUrl(account) ? (
-              <img src={accountAvatarUrl(account)} alt="" />
-            ) : (
-              <UserRound size={26} />
-            )}
-          </div>
-          <div>
-            <p>{view === "settings" ? "Account settings" : view === "friends" ? "Your circle" : "My profile"}</p>
-            <h2 id="account-profile-title">{view === "friends" ? "Friends" : accountDisplayName(account)}</h2>
+        {page && view === "settings" ? (
+          <header className="account-page-hero account-settings-hero">
+            <div className="account-page-hero-copy">
+              <p>Account settings</p>
+              <h1 id="account-settings-title">Settings</h1>
+              <span>Manage your profile, game devices, preferences, and account data.</span>
+            </div>
+            <button
+              className="primary account-settings-save"
+              type="submit"
+              form="account-settings-form"
+              disabled={saving}
+            >
+              {saving ? "Saving…" : "Save changes"}
+            </button>
+          </header>
+        ) : page && view === "profile" ? (
+          <header className="account-page-hero my-profile-hero">
+            <p>My profile</p>
+            <h1 id="my-profile-title">{accountDisplayName(account)}</h1>
             {account?.privateAccount?.email && <span>{account.privateAccount.email}</span>}
-          </div>
-        </header>
+          </header>
+        ) : (
+          <header className="account-profile-header">
+            <div className="account-profile-avatar">
+              {accountAvatarUrl(account) ? (
+                <img src={accountAvatarUrl(account)} alt="" />
+              ) : (
+                <UserRound size={26} />
+              )}
+            </div>
+            <div>
+              <p>{view === "settings" ? "Account settings" : view === "friends" ? "Your circle" : "My profile"}</p>
+              <h2 id="account-profile-title">{view === "friends" ? "Friends" : accountDisplayName(account)}</h2>
+              {account?.privateAccount?.email && <span>{account.privateAccount.email}</span>}
+            </div>
+          </header>
+        )}
 
-        <form onSubmit={submit}>
+        {page && view === "profile" && (
+          <div className="account-page-tabs profile-page-tabs" role="tablist" aria-label="Profile sections">
+            <button
+              id="profile-tab-decks"
+              type="button"
+              role="tab"
+              aria-selected={activeProfileTab === "decks"}
+              aria-controls="profile-panel-decks"
+              onClick={() => setActiveProfileTab("decks")}
+            >
+              Decks
+            </button>
+            <button
+              id="profile-tab-game-history"
+              type="button"
+              role="tab"
+              aria-selected={activeProfileTab === "game-history"}
+              aria-controls="profile-panel-game-history"
+              onClick={() => setActiveProfileTab("game-history")}
+            >
+              Game history
+            </button>
+            <button
+              id="profile-tab-stats"
+              type="button"
+              role="tab"
+              aria-selected={activeProfileTab === "stats"}
+              aria-controls="profile-panel-stats"
+              onClick={() => setActiveProfileTab("stats")}
+            >
+              Stats
+            </button>
+          </div>
+        )}
+
+        <form id={page && view === "settings" ? "account-settings-form" : undefined} onSubmit={submit}>
           {view === "settings" && <div className="account-profile-section">
             <h3>Public profile</h3>
             <label className="modal-field">
@@ -351,7 +415,12 @@ export default function AccountProfile({
             </label>
           </div>}
 
-          {view === "profile" && <div className="account-profile-section">
+          {view === "profile" && (!page || activeProfileTab === "decks") && <div
+            id={page ? "profile-panel-decks" : undefined}
+            className="account-profile-section"
+            role={page ? "tabpanel" : undefined}
+            aria-labelledby={page ? "profile-tab-decks" : undefined}
+          >
             <h3>Saved commanders</h3>
             {decks.length > 0 && (
               <div className="saved-deck-list" aria-label="Saved commander decks">
@@ -456,7 +525,12 @@ export default function AccountProfile({
             </div>
           </div>}
 
-          {view === "profile" && <div className="account-profile-section">
+          {view === "profile" && (!page || activeProfileTab === "game-history") && <div
+            id={page ? "profile-panel-game-history" : undefined}
+            className="account-profile-section"
+            role={page ? "tabpanel" : undefined}
+            aria-labelledby={page ? "profile-tab-game-history" : undefined}
+          >
             <h3>Recent game history</h3>
             {gameHistory.length ? (
               <div className="account-history-list">
@@ -675,7 +749,7 @@ export default function AccountProfile({
             </div>
           )}
 
-          {view === "profile" && moderationCases.length > 0 && (
+          {view === "profile" && (!page || activeProfileTab === "game-history") && moderationCases.length > 0 && (
             <div className="account-profile-section">
               <h3>Reports and appeals</h3>
               <div className="received-review-list">
@@ -710,8 +784,17 @@ export default function AccountProfile({
             </div>
           )}
 
+          {page && view === "profile" && activeProfileTab === "stats" && (
+            <div
+              id="profile-panel-stats"
+              className="profile-stats-blank"
+              role="tabpanel"
+              aria-labelledby="profile-tab-stats"
+            />
+          )}
+
           {error && <p className="modal-error" role="alert">{error}</p>}
-          {view === "settings" && <footer className="modal-actions">
+          {view === "settings" && !page && <footer className="modal-actions">
             {!page && <button type="button" onClick={onClose}>Cancel</button>}
             <button className="primary" type="submit" disabled={saving}>
               {saving ? "Saving…" : page ? "Save changes" : "Save profile"}

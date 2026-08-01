@@ -2,31 +2,27 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   AudioLines,
-  Bell,
   Camera,
   Eye,
   FlipVertical2,
   Globe2,
   HeartPulse,
   LayoutGrid,
-  LogIn,
-  LogOut,
   Maximize,
   MessagesSquare,
   Mic,
   MicOff,
   ScanLine,
-  Settings,
   Share2,
   Smile,
   Users,
-  UserRound,
   Video,
   X,
 } from "lucide-react";
 import { isConfigured, makeCode, CODE_LENGTH } from "./roomCode.js";
 import { preload as preloadRecognition } from "./recognition/matcher.js";
 import SiteFooter from "./SiteFooter.jsx";
+import SiteHeader from "./SiteHeader.jsx";
 import { accountDisplayName } from "./account.js";
 import { createGameRoom, joinGameRoom } from "./gameRooms.js";
 import { getLocalMockGame } from "./localMock.js";
@@ -149,7 +145,6 @@ export default function Lobby({
   const [seatLimit, setSeatLimit] = useState("4");
   const [visibility, setVisibility] = useState("private");
   const [joinRole, setJoinRole] = useState(visitorMode ? "visitor" : "player");
-  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [indexStatus, setIndexStatus] = useState("loading");
@@ -441,58 +436,16 @@ export default function Lobby({
 
   return (
     <main className="lobby-home">
-      <header className="site-header">
-        <a className="site-brand" href="/">Snapcast</a>
-        <nav className="home-header-actions" aria-label="Game actions">
-          <button className="home-header-create" type="button" onClick={() => openModal("create")}>Create</button>
-          <button className="home-header-join" type="button" onClick={() => openModal("join-code")}>Join</button>
-        </nav>
-        <div className="site-account">
-          {account ? (
-            <>
-              <button
-                className="site-account-button"
-                type="button"
-                onClick={() => setAccountMenuOpen((open) => !open)}
-                aria-expanded={accountMenuOpen}
-              >
-                <span>{accountDisplayName(account)}</span>
-                {notificationCount > 0 && (
-                  <span className="site-notification-badge" aria-label={`${notificationCount} unread notifications`}>
-                    {notificationCount > 9 ? "9+" : notificationCount}
-                  </span>
-                )}
-              </button>
-              {accountMenuOpen && (
-                <div className="site-account-menu">
-                  <a href="/profile"><UserRound size={16} />Profile</a>
-                  <a href="/friends"><Users size={16} />Friends</a>
-                  <a href="/settings"><Settings size={16} />Settings</a>
-                  <a href="/notifications">
-                    <Bell size={16} />
-                    <span>Notifications</span>
-                    {notificationCount > 0 && <strong>{notificationCount > 9 ? "9+" : notificationCount}</strong>}
-                  </a>
-                  <button type="button" onClick={() => onSignOut?.()}>
-                    <LogOut size={16} />
-                    Sign out
-                  </button>
-                </div>
-              )}
-            </>
-          ) : accountReady ? (
-            <>
-              <button className="site-discord-button" type="button" onClick={onSignIn}>
-                <LogIn size={17} />
-                Sign in with Discord
-              </button>
-              {accountError && (
-                <p className="site-account-error" role="alert">{accountError}</p>
-              )}
-            </>
-          ) : null}
-        </div>
-      </header>
+      <SiteHeader
+        account={account}
+        accountReady={accountReady}
+        accountError={accountError}
+        notificationCount={notificationCount}
+        onCreate={() => openModal("create")}
+        onJoin={() => openModal("join-code")}
+        onSignIn={onSignIn}
+        onSignOut={onSignOut}
+      />
       <section className="lobby-hero lobby-hero-landing" aria-labelledby="snapcast-title">
         <div className="lobby-hero-content">
           <h1 id="snapcast-title">Online paper Magic with real table feel.</h1>

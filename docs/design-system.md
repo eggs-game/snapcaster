@@ -173,6 +173,24 @@ The hero is deliberately shorter than a full viewport (roughly 70vh, capped at
 white, Join uses a strong white outline, and the equally sized signed-in profile
 control shows only the display name and notification badge (no avatar). They
 open the same modal and account flows as the primary page actions.
+The notifications page reuses this shared header component rather than a
+page-specific navigation variant: Create and Join keep the same sizing and
+roles, and the signed-in display name opens the same Profile, Friends,
+Settings, Notifications, and Sign out menu. Directly below its page heading,
+the page uses the shared segmented-control treatment for three accessible
+tabs—Friend requests, Reviews received, and Reviews sent—so only one full-width
+activity panel is visible at a time while its actions remain in context.
+Settings follows the same account-page header and 1120px content grid. Its
+primary Save changes action sits at the right edge of the heading on desktop
+and becomes full-width below the heading on small screens. Editable profile,
+device, preference, and account-data groups stack in one vertical column, with
+individual controls limited to a readable 720px measure instead of spreading
+into a dashboard grid.
+The signed-in profile also uses this unboxed account-page heading, with the
+player's display name as the primary heading. Decks, Game history, and Stats use
+the same three-part segmented control as Notifications; Decks opens first,
+existing match records live under Game history, and Stats intentionally remains
+an empty reserved view until that product area is defined.
 The join flow presents its six-character game code as six large 82px-high
 verification slots with 30px mono characters. A single transparent input spans
 the slots so typing, pasting, browser one-time-code autofill, validation, and
