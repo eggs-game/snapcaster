@@ -90,6 +90,7 @@ add ~1%.
 | **Tableau 10 / 100** | Same scenes, uniform draw from the whole index |
 | **Random 200** | Single cards, fresh sample — discovers new failure cases |
 | **Fixed 200 / 1000** | Single cards, identical every run — regression checking |
+| **Recent-card fast path (20 repeated scans)** | Runs each degraded card normally, then repeats the exact capture with the first result as a hint; verifies correctness, speedup, and whether any scan escaped the outline-only hint tier into the complete crop/index pipeline |
 | **Fixed top-edge 64** | Four deterministic repetitions of degrade-v2's hardest clipped placement |
 | **EDH staples 200** | Single cards from the realistic pool |
 
@@ -122,6 +123,35 @@ hit bursty reference-image delivery and produced misleading latency tails. A
 recognition change ships only when the target suite improves beyond the
 documented two-card noise band and the other suites stay within their gates.
 
+For a recent-card optimization, additionally run **Recent-card fast path (20
+repeated scans)**. `summary.recentHint.hits` must equal `attempted`, accuracy
+must remain 100%, the WASM heap must stay flat, and `baselineAvgMs /
+hintAvgMs` must show a material speedup. This targeted mode proves the fast
+path; it does not replace the ordinary no-hint release suites.
+
+`summary.recentHint.fullCropFallbacks` must be empty for this deterministic
+mode. Each fallback records the framing strategy and stage timings so a future
+crop change cannot quietly move repeated scans back onto the expensive full
+path.
+
+## Fast local policy checks
+
+These do not replace SNAPTEST, but catch contracts that do not require pixels:
+
+```sh
+node scripts/test_recognition_hints.mjs
+node scripts/test_recognition_queue.mjs
+node scripts/test_video_quality.mjs
+node scripts/test_card_search_cache.mjs
+node scripts/test_metadata_evidence.mjs
+python3 scripts/check_hash_duplication.py
+```
+
+`test_card_search_cache.mjs` verifies multi-word local autocomplete and that
+concurrent identical Scryfall lookups share one request. Hash-compatibility and
+index-generation Python checks additionally require OpenCV (`cv2`) in the
+Python environment.
+
 ## Reading the results
 
 The headline accuracy is the least useful number. These are the ones that
@@ -131,8 +161,9 @@ diagnose:
   means candidate generation worked and ranking is at fault; **`absent`** means
   no crop ever surfaced it, which is a framing problem. Opposite fixes.
 - **`byPathway`** — which path decided. `visual-exact` and `art-match` have
-  been 100% precise; loss concentrates in cards that fall through to plain
-  ranking.
+  been 100% precise; `recent-hint` must also remain precise because it is
+  verified against the new capture. Loss concentrates in cards that fall
+  through to plain ranking.
 - **`byRotation`** — upright / tapped / upside-down. This is how the tapped
   (42%) and upside-down (33%) regressions were both caught.
 - **`byLayout`** — side-by-side / spaced / overlapping. Isolates crowding.
@@ -153,6 +184,36 @@ After a run, `window.__SNAPTEST_LAST_RESULT` and the hidden
 `#snaptest-result` element contain the exact **Copy results** payload, including
 metadata observations on misses, so completed diagnostics remain available
 when browser clipboard or page-world access is unavailable.
+
+For a slow scan observed during a real game, inspect
+`window.__SNAP_RECOGNITION_TIMINGS`. It retains the latest 50 local timing
+records and separates capture/network delay from recognition and worker-stage
+time. The same breakdown appears in the card panel under `?debug=1`. The ring
+contains timing and counts only, never camera frames, card identity, room
+identity, or player content.
+
+Future live scans are also written asynchronously to the insert-only
+`recognition_timing_events` table. In the Supabase SQL editor, this query gives
+a content-free recent-room overview:
+
+```sql
+select
+  room_fingerprint,
+  count(*) as scans,
+  count(*) filter (where outcome like '%timeout') as timeouts,
+  round(avg(capture_ms)) as avg_capture_ms,
+  round(avg(recognition_ms)) as avg_recognition_ms,
+  percentile_cont(0.9) within group (order by total_ms) as p90_total_ms,
+  max(received_at) as last_seen
+from recognition_timing_events
+where received_at > now() - interval '2 hours'
+group by room_fingerprint
+order by last_seen desc;
+```
+
+Use the newest fingerprint to drill into `outcome`, `remote`, `capture_chars`,
+`outgoing_video_quality`, and `stage_ms`. The table intentionally has no card
+or player content, and anonymous app clients cannot read it.
 
 ## Workflow
 

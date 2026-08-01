@@ -18,26 +18,85 @@ export {
 // multi-word fragment like "jodah un" returns nothing even though it clearly
 // means "Jodah, the Unifier". When autocomplete comes back empty we fall back
 // to the full search API with per-word name filters.
+import { suggestLocalCardNames } from "./cardNameIndex.js";
+
+const SCRYFALL_CACHE_LIMIT = 200;
+const scryfallCache = new Map();
+
+function cachedScryfall(url) {
+  if (scryfallCache.has(url)) return scryfallCache.get(url);
+  const request = fetch(url)
+    .then(async (response) => ({
+      ok: response.ok,
+      status: response.status,
+      data: response.ok ? await response.json() : null,
+    }))
+    .catch((error) => {
+      scryfallCache.delete(url);
+      throw error;
+    });
+  scryfallCache.set(url, request);
+  if (scryfallCache.size > SCRYFALL_CACHE_LIMIT) {
+    scryfallCache.delete(scryfallCache.keys().next().value);
+  }
+  return request;
+}
+
+function withAbort(promise, signal) {
+  if (!signal) return promise;
+  if (signal.aborted) return Promise.reject(new DOMException("Aborted", "AbortError"));
+  return new Promise((resolve, reject) => {
+    const abort = () => reject(new DOMException("Aborted", "AbortError"));
+    signal.addEventListener("abort", abort, { once: true });
+    promise.then(
+      (value) => {
+        signal.removeEventListener("abort", abort);
+        resolve(value);
+      },
+      (error) => {
+        signal.removeEventListener("abort", abort);
+        reject(error);
+      },
+    );
+  });
+}
+
+export async function fetchCardByName(name, { exact = false, signal } = {}) {
+  const mode = exact ? "exact" : "fuzzy";
+  const result = await withAbort(
+    cachedScryfall(
+      `https://api.scryfall.com/cards/named?${mode}=${encodeURIComponent(String(name || "").trim())}`,
+    ),
+    signal,
+  );
+  return result.ok ? result.data : null;
+}
+
 export async function suggestCardNames(query, signal) {
   const q = query.trim();
   if (q.length < 2) return [];
 
-  const autoResp = await fetch(
-    `https://api.scryfall.com/cards/autocomplete?q=${encodeURIComponent(q)}`,
-    { signal },
+  const localNames = await suggestLocalCardNames(q);
+  if (localNames.length) return localNames;
+
+  const autoResp = await withAbort(
+    cachedScryfall(`https://api.scryfall.com/cards/autocomplete?q=${encodeURIComponent(q)}`),
+    signal,
   );
-  const names = autoResp.ok ? (await autoResp.json()).data || [] : [];
+  const names = autoResp.ok ? autoResp.data?.data || [] : [];
   if (names.length) return names;
 
   const words = q.split(/\s+/).filter(Boolean);
   if (!words.length) return [];
   const search = words.map((w) => `name:"${w.replace(/"/g, "")}"`).join(" ");
-  const searchResp = await fetch(
-    `https://api.scryfall.com/cards/search?q=${encodeURIComponent(search)}&unique=cards&order=name`,
-    { signal },
+  const searchResp = await withAbort(
+    cachedScryfall(
+      `https://api.scryfall.com/cards/search?q=${encodeURIComponent(search)}&unique=cards&order=name`,
+    ),
+    signal,
   );
   if (!searchResp.ok) return []; // 404 = no matches
-  const cards = (await searchResp.json()).data || [];
+  const cards = searchResp.data?.data || [];
   return cards.slice(0, 12).map((card) => card.name);
 }
 
@@ -65,17 +124,19 @@ export async function suggestCommanderPartners(primaryCard, query, signal) {
     .map(pairingSearch)
     .filter(Boolean)
     .map(async (searchFilter) => {
-      const response = await fetch(
-        `https://api.scryfall.com/cards/search?q=${encodeURIComponent(`${searchFilter} ${nameFilters}`)}&unique=cards&order=name`,
-        { signal },
+      const response = await withAbort(
+        cachedScryfall(
+          `https://api.scryfall.com/cards/search?q=${encodeURIComponent(`${searchFilter} ${nameFilters}`)}&unique=cards&order=name`,
+        ),
+        signal,
       );
-      return response.ok ? (await response.json()).data || [] : [];
+      return response.ok ? response.data?.data || [] : [];
     });
   const named = pairings
     .filter((pairing) => pairing.kind === "named" && pairing.name.toLowerCase().includes(q.toLowerCase()))
     .map(async (pairing) => {
-      const response = await fetch(`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(pairing.name)}`, { signal });
-      return response.ok ? [await response.json()] : [];
+      const card = await fetchCardByName(pairing.name, { exact: true, signal });
+      return card ? [card] : [];
     });
   const cards = (await Promise.all([...searches, ...named])).flat();
   return [...new Map(cards

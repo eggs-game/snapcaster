@@ -1,15 +1,16 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
-  Cat, Check, ChevronDown, ChevronLeft, ChevronRight, Copy, Dices, Drum, ExternalLink, Hourglass, Laugh, Link2, MessageCircle, MessagesSquare, Mic, MicOff,
-  PanelLeft, Play, Search, Settings, Sparkles, Swords, ThumbsDown, UserPlus, UserRound, Video, VideoOff, X,
+  Cat, Check, ChessQueen, ChevronDown, ChevronLeft, ChevronRight, Copy, Dices, Drum, ExternalLink, Hourglass, Laugh, Link2, MessageCircle, MessagesSquare, Mic, MicOff,
+  LogOut, PanelLeft, Play, Search, Settings, Sparkles, Swords, ThumbsDown, UserPlus, UserRound, UsersRound, Video, VideoOff, X,
 } from "lucide-react";
-import { suggestCardNames } from "./cardSearch.js";
+import { fetchCardByName, suggestCardNames } from "./cardSearch.js";
 import {
   parseChatDraft, selectWhisperRecipient, whisperCommandMatches, whisperRecipientMatches,
 } from "./chatCommands.js";
 import { getSoundEffect, searchSoundEffects } from "./soundEffects.js";
 import { getCounterTextColor, getVideoCounterType, VIDEO_COUNTER_TYPES } from "./videoCounters.js";
+import { OUTGOING_VIDEO_QUALITY_OPTIONS } from "./videoQuality.js";
 
 // Labels for the ?debug=1 diagnostics panel.
 const CV_LABEL = {
@@ -67,6 +68,32 @@ function CardStackIcon({ size = 20, className }) {
   );
 }
 
+function CardPlaceholder({ identifying = false, failed = false, onFix }) {
+  return (
+    <div
+      className={`card-empty-state${failed ? " failed" : ""}`}
+      role={identifying || failed ? "status" : undefined}
+      aria-live={identifying || failed ? "polite" : undefined}
+    >
+      <div className="card-empty-illustration" aria-hidden="true">
+        <div className="card-empty-art">
+          {failed ? <Search size={28} /> : <Sparkles size={28} />}
+        </div>
+      </div>
+      <p>
+        {identifying
+          ? "Identifying…"
+          : failed ? "Image lookup failed" : "Cards you click on or look up will be displayed here."}
+      </p>
+      {failed && onFix && (
+        <button type="button" className="card-empty-fix" onClick={onFix}>
+          Help me fix it
+        </button>
+      )}
+    </div>
+  );
+}
+
 export default function CardSidebar({
   current,
   lookups,
@@ -76,6 +103,7 @@ export default function CardSidebar({
   chatMessages,
   currentUserId,
   chatRecipients,
+  chatParticipants,
   chatNameColors = {},
   onSendChat,
   soundCooldownUntil = 0,
@@ -114,6 +142,8 @@ export default function CardSidebar({
   onVideoLayoutChange,
   videoFit,
   onVideoFitChange,
+  outgoingVideoQuality,
+  onOutgoingVideoQualityChange,
   counterPlayers,
   onChangePoison,
   onChangeCommanderDamage,
@@ -133,6 +163,9 @@ export default function CardSidebar({
   onCopyGameCode,
   lobbyName,
   onRenameLobby,
+  onLeave,
+  isCreator = false,
+  managementParticipants = [],
 }) {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
@@ -157,6 +190,7 @@ export default function CardSidebar({
   const [truthQuery, setTruthQuery] = useState("");
   const [truthSuggestions, setTruthSuggestions] = useState([]);
   const [truthHighlight, setTruthHighlight] = useState(-1);
+  const safeChatParticipants = Array.isArray(chatParticipants) ? chatParticipants : [];
   const [labelingWrongReport, setLabelingWrongReport] = useState(false);
   const [cardPreview, setCardPreview] = useState(null);
   const soundPickerTriggerRef = useRef(null);
@@ -170,6 +204,7 @@ export default function CardSidebar({
   const counters = view === "counters";
   const invite = view === "invite";
   const dice = view === "dice";
+  const management = view === "management";
   const recentCards = [...(lookups || [])].reverse();
   const safeChatRecipients = chatRecipients || [];
   const chatCommandSuggestions = whisperCommandMatches(chatDraft);
@@ -213,6 +248,13 @@ export default function CardSidebar({
     const frame = requestAnimationFrame(scrollChatToLatest);
     return () => cancelAnimationFrame(frame);
   }, [lookupTab]);
+
+  // A video-card click opens the outer lookup view before recognition starts.
+  // Follow that loading state into the Cards tab so the panel cannot remain
+  // visibly parked on Chat while the requested card is being identified.
+  useEffect(() => {
+    if (view === "lookup" && current?.loading) setLookupTab("cards");
+  }, [current?.loading, view]);
 
   // Keep a message the local player just sent in view without pulling someone
   // reading older room activity away from their place for incoming messages.
@@ -375,11 +417,9 @@ export default function CardSidebar({
     setSuggestions([]);
     setQuery(cardName);
     try {
-      const response = await fetch(
-        `https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(cardName)}`,
-      );
-      if (!response.ok) throw new Error("Card not found");
-      const card = cardFromScryfall(await response.json());
+      const result = await fetchCardByName(cardName);
+      if (!result) throw new Error("Card not found");
+      const card = cardFromScryfall(result);
       onSearch?.(card);
       setQuery("");
     } catch (error) {
@@ -431,9 +471,9 @@ export default function CardSidebar({
     if (!wrongReport || !cardName || labelingWrongReport) return;
     setLabelingWrongReport(true);
     try {
-      const response = await fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(cardName)}`);
-      if (!response.ok) throw new Error("Card not found");
-      const card = cardFromScryfall(await response.json());
+      const result = await fetchCardByName(cardName);
+      if (!result) throw new Error("Card not found");
+      const card = cardFromScryfall(result);
       const truth = { ...card, recordedName: card.name };
       const saved = await onUpdateRecognitionReport?.(wrongReport.id, truth);
       if (saved === false) throw new Error("Could not save the label to Supabase");
@@ -461,6 +501,7 @@ export default function CardSidebar({
   // A decisive identification (art keypoints, title read, or manual search).
   // Anything else is a ranked guess and must say so.
   const decisive = !!top && ["ocr-title", "art-match", "search", "visual-exact"].includes(top.identified_by);
+  const identifying = Boolean(current?.loading || searching);
   const debugMode = typeof window !== "undefined"
     && new URLSearchParams(window.location.search).has("debug");
   const gameNameControl = editingLobbyName && !isVisitor ? (
@@ -506,8 +547,9 @@ export default function CardSidebar({
         counters ? "counters-view" : "",
         invite ? "invite-view" : "",
         dice ? "dice-view" : "",
+        management ? "management-view" : "",
         collapsed ? "collapsed" : "",
-        !settings && lookupTab === "chat" ? "chat-view" : "",
+        !settings && !management && lookupTab === "chat" ? "chat-view" : "",
         entering && !closing ? "slide-in" : "",
         closing ? "slide-out" : "",
       ].filter(Boolean).join(" ")}
@@ -547,7 +589,7 @@ export default function CardSidebar({
         </button>
         <button
           type="button"
-          className={!settings && !counters && !invite && !dice && lookupTab === "cards" ? "drawer-toggle active" : "drawer-toggle"}
+          className={!settings && !counters && !invite && !dice && !management && lookupTab === "cards" ? "drawer-toggle active" : "drawer-toggle"}
           onClick={() => {
             if (collapsed) onOpen?.();
             onViewChange("lookup");
@@ -561,7 +603,7 @@ export default function CardSidebar({
         </button>
         <button
           type="button"
-          className={!settings && !counters && !invite && !dice && lookupTab === "chat" ? "drawer-toggle sidebar-chat-toggle active" : "drawer-toggle sidebar-chat-toggle"}
+          className={!settings && !counters && !invite && !dice && !management && lookupTab === "chat" ? "drawer-toggle sidebar-chat-toggle active" : "drawer-toggle sidebar-chat-toggle"}
           onClick={() => {
             if (collapsed) onOpen?.();
             onViewChange("lookup");
@@ -576,19 +618,19 @@ export default function CardSidebar({
           <MessagesSquare size={20} />
           {hasUnreadChat && <span className="chat-unread-dot" aria-hidden="true" />}
         </button>
-        {!isVisitor && <>
-          <button
-            className={counters ? "drawer-toggle active" : "drawer-toggle"}
-            onClick={() => {
-              if (collapsed) onOpen?.();
-              onViewChange("counters");
-            }}
-            aria-label="Open combat counters"
-            data-tooltip="Combat counters"
-            data-tooltip-pos="right"
-          >
-            <Swords size={20} />
-          </button>
+        <button
+          className={counters ? "drawer-toggle active" : "drawer-toggle"}
+          onClick={() => {
+            if (collapsed) onOpen?.();
+            onViewChange("counters");
+          }}
+          aria-label="Open Commander damage"
+          data-tooltip="Commander damage"
+          data-tooltip-pos="right"
+        >
+          <Swords size={20} />
+        </button>
+        {!isVisitor && (
           <button
             className={dice ? "drawer-toggle active" : "drawer-toggle"}
             onClick={() => {
@@ -601,7 +643,7 @@ export default function CardSidebar({
           >
             <Dices size={20} />
           </button>
-        </>}
+        )}
         <span className="sidebar-rail-divider" aria-hidden="true" />
         {!isVisitor && (
           <button
@@ -629,17 +671,66 @@ export default function CardSidebar({
         >
           <Settings size={20} />
         </button>
+        {isCreator && (
+          <>
+            <span className="sidebar-rail-divider management-divider" aria-hidden="true" />
+            <button
+              className={management ? "drawer-toggle active" : "drawer-toggle"}
+              onClick={() => {
+                if (collapsed) onOpen?.();
+                onViewChange("management");
+              }}
+              aria-label="Open game management"
+              data-tooltip="Game management"
+              data-tooltip-pos="right"
+            >
+              <ChessQueen size={20} />
+            </button>
+          </>
+        )}
       </nav>
 
       <div className="sidebar-content" aria-hidden={collapsed}>
       <div className="sidebar-head">
-        {(settings || counters || invite || dice) && (
-          <span className="logo">{settings ? "Settings" : counters ? "Commander damage" : invite ? "Invite" : "Dice & counters"}</span>
+        {(settings || counters || invite || dice || management) && (
+          <span className="logo">{settings ? "Settings" : counters ? "Commander damage" : invite ? "Invite" : dice ? "Dice & counters" : "Game management"}</span>
         )}
-        {!settings && !counters && !invite && !dice && (lookupTab === "chat" ? <span className="logo">Chat</span> : gameNameControl)}
+        {!settings && !counters && !invite && !dice && !management && (lookupTab === "chat" ? (
+          <>
+            <span className="logo">Chat</span>
+            <div className="chat-presence">
+              <button
+                type="button"
+                className="chat-presence-trigger"
+                aria-label={`${safeChatParticipants.length} ${safeChatParticipants.length === 1 ? "person" : "people"} in chat`}
+                aria-describedby="chat-presence-list"
+              >
+                <UsersRound size={16} aria-hidden="true" />
+                <span>{safeChatParticipants.length}</span>
+              </button>
+              <div className="chat-presence-popover" id="chat-presence-list" role="tooltip">
+                <strong>In chat</strong>
+                <ul>
+                  {safeChatParticipants.map((participant) => (
+                    <li key={participant.id}>
+                      <span>{participant.name || (participant.role === "visitor" ? "Visitor" : "Player")}</span>
+                      <small>
+                        {participant.id === currentUserId
+                          ? "You"
+                          : participant.role === "visitor" ? "Visitor" : "Player"}
+                      </small>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </>
+        ) : gameNameControl)}
       </div>
 
-      {settings ? (
+      {management ? (
+        <GameManagementPanel participants={managementParticipants} currentUserId={currentUserId} />
+      ) : settings ? (
         <div className="sidebar-settings">
           <fieldset className="theme-field">
             <legend className="color-label">Game view</legend>
@@ -743,6 +834,24 @@ export default function CardSidebar({
                   ))}
                 </select>
               </label>
+              <fieldset className="theme-field theme-field-tight">
+                <legend className="color-label">Outgoing video quality</legend>
+                <div className="theme-options four-up">
+                  {OUTGOING_VIDEO_QUALITY_OPTIONS.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      aria-pressed={outgoingVideoQuality === option.value}
+                      onClick={() => onOutgoingVideoQualityChange(option.value)}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+                <p className="setting-help">
+                  Caps the video sent to everyone. Lower quality uses less upload and processing.
+                </p>
+              </fieldset>
               <fieldset className="theme-field" aria-label="Video fit">
                 <div className="theme-options two-up">
                   {[
@@ -792,20 +901,25 @@ export default function CardSidebar({
             <div className="color-picker">
               <span className="color-label">Your color</span>
               <div className="color-swatches">
-                {tileColors.map((color) => (
+                {tileColors.map((color, index) => (
                   <button
                     key={color}
                     type="button"
                     className={myColor === color ? "color-swatch selected" : "color-swatch"}
                     style={{ background: color }}
                     aria-label={`Choose color ${color}`}
-                    title="Choose seat color"
+                    data-tooltip="Choose seat color"
+                    data-tooltip-pos={index < Math.ceil(tileColors.length / 2) ? "left-top" : "right-top"}
                     onClick={() => onChooseColor(color)}
                   />
                 ))}
               </div>
             </div>
           )}
+          <button type="button" className="leave-game-button" onClick={onLeave}>
+            <LogOut size={16} />
+            <span>Leave game</span>
+          </button>
         </div>
       ) : counters ? (
         <CounterPanel
@@ -885,18 +999,13 @@ export default function CardSidebar({
             )}
             </div>
 
-            {!current && !recentCards.length && (
-              <div className="card-empty-state">
-                <div className="card-empty-illustration" aria-hidden="true">
-                  <div className="card-empty-art"><Sparkles size={28} /></div>
-                </div>
-                <p>Cards you click on or look up will be displayed here.</p>
-              </div>
+            {!identifying && !current && !recentCards.length && <CardPlaceholder />}
+            {identifying && <CardPlaceholder identifying />}
+            {!identifying && current?.error && <div className="lookup-status error">{current.error}</div>}
+            {!identifying && current?.matches?.length === 0 && (
+              <CardPlaceholder failed onFix={current.captureImage ? beginWrongCardReport : undefined} />
             )}
-            {(current?.loading || searching) && <div className="lookup-status">Identifying…</div>}
-            {current?.error && <div className="lookup-status error">{current.error}</div>}
-            {current?.matches?.length === 0 && <div className="lookup-status">No match found. Try clicking closer to the card center.</div>}
-            {top && decisive && (
+            {!identifying && top && decisive && (
               <div className="card-hit">
                 <button
                   type="button"
@@ -921,6 +1030,18 @@ export default function CardSidebar({
                         <ThumbsDown size={16} />
                       </button>
                     )}
+                    {!isVisitor && (
+                      <button
+                        type="button"
+                        className="card-share-btn"
+                        onClick={() => onShareCard?.(top)}
+                        aria-label={`Share ${top.name} to chat`}
+                        data-tooltip="Share to chat"
+                        data-tooltip-pos="right-top"
+                      >
+                        <MessagesSquare size={16} />
+                      </button>
+                    )}
                     {top.scryfall_uri && (
                       <a
                         className="scryfall-link"
@@ -938,15 +1059,8 @@ export default function CardSidebar({
                 </div>
               </div>
             )}
-            {best && !decisive && (
-              <button
-                type="button"
-                className="bad-match-link"
-                onClick={beginWrongCardReport}
-                disabled={!current.captureImage}
-              >
-                Bad match — help me fix it
-              </button>
+            {!identifying && best && !decisive && (
+              <CardPlaceholder failed onFix={current.captureImage ? beginWrongCardReport : undefined} />
             )}
             {wrongReport && (
               <section className="wrong-card-report" aria-label="Wrong card report">
@@ -1032,7 +1146,7 @@ export default function CardSidebar({
                           onClick={() => onShareCard?.(entry.card)}
                           aria-label={`Share ${entry.card?.name || "card"}`}
                           data-tooltip="Share card"
-                          data-tooltip-pos="left-bottom"
+                          data-tooltip-pos="right-top"
                         >
                           <MessageCircle size={16} />
                         </button>
@@ -1047,6 +1161,23 @@ export default function CardSidebar({
                 <span>{CV_LABEL[current.cvStatus] || CV_LABEL.unknown}</span>
                 <span>{current.cardFound ? "Card outline detected" : "No outline — using crops"}</span>
                 {current.cameraRes && <span>Camera: {current.cameraRes}</span>}
+                {current.scanTiming && (
+                  <span>
+                    Timing: {current.scanTiming.totalMs}ms total
+                    {` · ${current.scanTiming.captureMs}ms capture`}
+                    {` · ${current.scanTiming.recognitionMs}ms recognition`}
+                    {current.scanTiming.hintHit ? " · recent-card fast path" : ""}
+                    {current.scanTiming.isolationCandidates
+                      ? ` · ${current.scanTiming.isolationCandidates} isolation proposals`
+                      : ""}
+                  </span>
+                )}
+                {current.scanTiming?.stages && Object.keys(current.scanTiming.stages).length > 0 && (
+                  <span>
+                    Stages: {Object.entries(current.scanTiming.stages)
+                      .map(([name, ms]) => `${name} ${ms}ms`).join(" · ")}
+                  </span>
+                )}
                 {best && (
                   <span>
                     Best: d{best.distance} via {best.strategy || "?"} ({current.candidatesTried || 1} tried{current.cropsDropped ? `, ${current.cropsDropped} empty dropped` : ""})
@@ -1159,6 +1290,7 @@ export default function CardSidebar({
                               onClick={() => previewSound(message.soundId)}
                               aria-label={`Play ${getSoundEffect(message.soundId)?.label || "sound effect"} locally`}
                               data-tooltip="Play"
+                              data-tooltip-pos="right-top"
                             >
                               <Play size={16} aria-hidden="true" />
                             </button>
@@ -1213,6 +1345,7 @@ export default function CardSidebar({
                         type="button"
                         aria-label={`Remove ${selectedSound.label}`}
                         data-tooltip="Remove sound"
+                        data-tooltip-pos="right-top"
                         onClick={() => setSelectedSoundId("")}
                       >
                         <X size={14} />
@@ -1274,7 +1407,7 @@ export default function CardSidebar({
                       <strong>Add sound effect</strong>
                       <span>Plays for everyone · 2–3 seconds</span>
                     </div>
-                    <button type="button" aria-label="Close sound picker" data-tooltip="Close" onClick={() => setSoundPickerOpen(false)}><X size={16} /></button>
+                    <button type="button" aria-label="Close sound picker" data-tooltip="Close" data-tooltip-pos="right-bottom" onClick={() => setSoundPickerOpen(false)}><X size={16} /></button>
                   </div>
                   <div className="sound-picker-tabs" role="tablist" aria-label="Sound effect category">
                     {[["emotes", "Emotes"], ["creatures", "Creatures"]].map(([tab, label]) => (
@@ -1299,7 +1432,7 @@ export default function CardSidebar({
                     autoFocus
                   />
                   <div className="sound-picker-list">
-                    {soundResults.length ? soundResults.map((sound) => (
+                    {soundResults.length ? soundResults.map((sound, index) => (
                       <div className="sound-picker-item" key={sound.id}>
                         <button type="button" className="sound-picker-select" onClick={() => {
                           setSelectedSoundId(sound.id);
@@ -1314,7 +1447,7 @@ export default function CardSidebar({
                           className={previewingSoundId === sound.id ? "sound-preview playing" : "sound-preview"}
                           aria-label={`Preview ${sound.label}`}
                           data-tooltip="Preview"
-                          data-tooltip-pos="right-top"
+                          data-tooltip-pos={index < 2 ? "right-bottom" : "right-top"}
                           onClick={() => previewSound(sound.id)}
                         ><Play size={16} /></button>
                       </div>
@@ -1499,6 +1632,69 @@ export function formatDiceResult(value, sides) {
   return String(value ?? "—");
 }
 
+function GameManagementPanel({ participants, currentUserId }) {
+  const safeParticipants = Array.isArray(participants) ? participants : [];
+
+  return (
+    <div className="game-management-panel">
+      <p className="game-management-summary">
+        {safeParticipants.length} {safeParticipants.length === 1 ? "person" : "people"} in this game
+      </p>
+      <div className="game-management-list">
+        {safeParticipants.map((participant) => {
+          const isVisitorParticipant = participant.role === "visitor";
+          const displayName = participant.name || (isVisitorParticipant ? "Visitor" : "Player");
+          return (
+            <section className="game-management-tile" key={participant.id}>
+              <div className="game-management-person">
+                <span
+                  className="game-management-avatar"
+                  style={{ "--participant-color": participant.color }}
+                  aria-hidden="true"
+                >
+                  {displayName.trim().charAt(0).toUpperCase() || "?"}
+                </span>
+                <div className="game-management-identity">
+                  <strong>{displayName}</strong>
+                  <span>
+                    {participant.id === currentUserId
+                      ? `You · ${isVisitorParticipant ? "Visitor" : "Player"}`
+                      : isVisitorParticipant ? "Visitor" : "Player"}
+                  </span>
+                </div>
+                {participant.reconnecting && <span className="game-management-status">Reconnecting</span>}
+              </div>
+
+              {!isVisitorParticipant && participant.commander && (
+                <div className="game-management-commander">
+                  <small>Commander</small>
+                  <span>
+                    {participant.commander}
+                    {participant.commanderPartner ? ` / ${participant.commanderPartner}` : ""}
+                  </span>
+                </div>
+              )}
+
+              <div className="game-management-media" aria-label={`${displayName} media status`}>
+                {!isVisitorParticipant && (
+                  <span className={participant.cameraOn ? "" : "off"}>
+                    {participant.cameraOn ? <Video size={16} /> : <VideoOff size={16} />}
+                    {participant.cameraOn ? "Camera on" : "Camera off"}
+                  </span>
+                )}
+                <span className={participant.muted ? "off" : ""}>
+                  {participant.muted ? <MicOff size={16} /> : <Mic size={16} />}
+                  {participant.muted ? "Muted" : "Mic on"}
+                </span>
+              </div>
+            </section>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function CounterPanel({ players, onChangePoison, onChangeCommanderDamage }) {
   if (!players.length) {
     return <p className="counter-empty">Player counters will appear when someone joins the game.</p>;
@@ -1580,9 +1776,9 @@ function CounterStepper({ value, lethal, editable, label, onDecrease, onIncrease
   }
   return (
     <div className={`counter-stepper${lethal ? " lethal" : ""}${zero ? " zero" : ""}`} aria-label={label}>
-      {editable && <button type="button" onClick={onDecrease} aria-label={`Decrease ${label}`} data-tooltip={`Decrease ${label}`}>−</button>}
+      {editable && <button type="button" onClick={onDecrease} aria-label={`Decrease ${label}`} data-tooltip={`Decrease ${label}`} data-tooltip-pos="right-top">−</button>}
       <strong>{value}</strong>
-      {editable && <button type="button" onClick={onIncrease} aria-label={`Increase ${label}`} data-tooltip={`Increase ${label}`}>+</button>}
+      {editable && <button type="button" onClick={onIncrease} aria-label={`Increase ${label}`} data-tooltip={`Increase ${label}`} data-tooltip-pos="right-top">+</button>}
     </div>
   );
 }

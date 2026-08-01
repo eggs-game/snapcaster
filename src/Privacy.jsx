@@ -3,7 +3,7 @@ import LegalPage from "./LegalPage.jsx";
 
 export default function Privacy() {
   return (
-    <LegalPage title="Privacy policy" updated="July 26, 2026">
+    <LegalPage title="Privacy policy" updated="July 27, 2026">
       <p>
         Snapcast is a remote paper Magic: The Gathering table. This policy explains what
         information is handled when you use <a href="https://snapcast.app">snapcast.app</a>,
@@ -19,7 +19,10 @@ export default function Privacy() {
         <li>Game signaling (room join, life totals, public chat, turn state) goes through Supabase Realtime for the session.</li>
         <li>Finished games can store participants, commanders, results, final counters, game duration, and turn timing for profiles and personal history.</li>
         <li>Friendships, invitations, presence, notifications, and private reviews are stored only when signed-in players use those features.</li>
-        <li>Card recognition runs in your browser. Optional “Wrong card” reports are the main way images leave your device for our servers.</li>
+        <li>Limited connection diagnostics are recorded so unexpected game drops can be investigated.</li>
+        <li>Content-free card-lookup timing metrics are recorded so slow scans and timeouts can be investigated.</li>
+        <li>Card recognition runs in your browser. Recent strong results from players and visitors may be shared ephemerally within your room to speed everyone’s repeated lookups.</li>
+        <li>Optional “Wrong card” reports are the main way images are stored on our servers.</li>
       </ul>
 
       <h2>Information we handle</h2>
@@ -97,6 +100,24 @@ export default function Privacy() {
         Recognition (hashing, matching, OCR) runs locally in your browser against a card index we
         host. Card art looked up for results may be loaded from Scryfall’s image hosts.
       </p>
+      <p>
+        To speed up repeated lookups of the same permanent, a strong result from any player or
+        visitor may broadcast its card printing identifier, the temporary room participant whose
+        board was scanned, an approximate board position, and a timestamp to the people in your
+        current room. Everyone contributes to and benefits from this shared shortlist. Their
+        browsers keep a small, short-lived memory of these hints and verify the card against each
+        new capture before showing it. Hints are not placed in Chat, are not written to Supabase
+        tables or Storage, and disappear when the room or browser session ends.
+      </p>
+      <p>
+        To diagnose slow scans and timeouts, Snapcast records bounded lookup-performance metrics:
+        capture, recognition, and worker-stage timings; whether the scan was local or remote; a
+        success or failure category; candidate counts; capture payload size; outgoing quality;
+        temporary room-scoped participant identifiers; the app build; and a one-way fingerprint
+        of the room code. These automatic timing records do not contain the raw room code, display
+        names, card identities or results, images, OCR text, device labels, or raw error messages.
+        Uploading them happens in the background and is not part of producing the card result.
+      </p>
 
       <h3>Optional recognition reports</h3>
       <p>
@@ -110,7 +131,11 @@ export default function Privacy() {
       <p>
         Theme preference, video layout, and similar UI choices are kept in local storage on your
         device. If you sign in, supported game-entry preferences may also be saved to your private
-        account preferences so they can follow you between devices.
+        account preferences so they can follow you between devices. While a room is active,
+        session storage also keeps a room-scoped participant
+        identifier, original seat time, and your player-owned game state so a refresh can restore
+        your seat, life, commander, counters, and media-toggle state. Choosing “Leave game” clears
+        that active-room recovery data. These values are not uploaded as a profile.
       </p>
 
       <h3>Connectivity helpers</h3>
@@ -119,6 +144,15 @@ export default function Privacy() {
         WebRTC can relay when needed. Those requests may be rate-limited (for example by IP and
         room) to reduce abuse. Hosting and CDN providers (such as Vercel) may keep standard
         technical access logs.
+      </p>
+      <p>
+        To diagnose unexpected drops, Snapcast records limited connection events such as signaling
+        timeouts, browser offline/online transitions, WebRTC failure and recovery, and a participant
+        unexpectedly disappearing from room presence. Reports contain temporary participant and
+        browser-session identifiers, connection states, visibility/online state, event timing, and
+        a one-way fingerprint of the room code. They do not include display names, messages, card
+        data, device labels, camera or microphone content, or the raw room code. A short recent
+        diagnostic trail is also kept in your browser’s local storage.
       </p>
 
       <h2>What we do not do</h2>
@@ -142,8 +176,10 @@ export default function Privacy() {
         saved decks, and game history remain while the account is active.
         Presence and invitations expire; notifications and operational audit
         data are periodically purged under the service retention schedule.
-        Recognition and moderation evidence is kept only as long as needed for
-        review, safety, and appeals, then deleted or anonymized.
+        Opt-in recognition reports, limited connection diagnostics, content-free lookup timing
+        records, and moderation evidence are kept only as long as needed for service improvement,
+        review, safety, and appeals, then deleted or anonymized. You can clear local data anytime
+        in your browser settings.
       </p>
 
       <h2>Your choices</h2>

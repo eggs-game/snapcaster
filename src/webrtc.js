@@ -1,28 +1,22 @@
 // WebRTC 4-player mesh over Supabase signaling.
 // Data channels carry high-res capture requests/responses (chunked JSON) and
 // recipient-only chat whispers that must never enter the room broadcast.
-import { joinRoom } from "./signaling.js";
+import { joinRoom, saveConnectionEvent } from "./signaling.js";
 import { cropGeometry } from "./captureGeometry.js";
+import { normalizeRecognitionHint } from "./recognitionHints.js";
 import { getSoundEffect } from "./soundEffects.js";
 import { normalizeVideoCounter } from "./videoCounters.js";
+import {
+  DEFAULT_OUTGOING_VIDEO_QUALITY,
+  normalizeOutgoingVideoQuality,
+  normalizeReceiverVideoQuality,
+  resolveVideoEncoding,
+} from "./videoQuality.js";
 
 const FALLBACK_ICE_SERVERS = [
   { urls: "stun:stun.cloudflare.com:3478" },
   { urls: "stun:stun.l.google.com:19302" },
 ];
-
-// Without an explicit target, WebRTC's default video bitrate cap sits well
-// below what 1080p needs to look sharp, and the encoder's default
-// degradation preference favors smooth motion over resolution — the wrong
-// tradeoff for a mostly-static shot of a card table. 5 Mbps gives 1080p
-// headroom for a clean 1080p30 feed when the link can sustain it; WebRTC's
-// own congestion control still scales down automatically on a bad link.
-const VIDEO_MAX_BITRATE = 5_000_000;
-const VIDEO_QUALITY_VALUES = ["auto", "720p", "1080p"];
-
-function normalizeVideoQuality(value) {
-  return VIDEO_QUALITY_VALUES.includes(value) ? value : "auto";
-}
 
 // Tell the encoder this is a detail-heavy, mostly-static feed (a card table,
 // not a talking head) so it prioritizes keeping resolution/sharpness over
@@ -32,24 +26,29 @@ function tuneVideoTrack(track) {
   try { track.contentHint = "detail"; } catch { /* not supported in this browser */ }
 }
 
-async function tuneVideoSender(sender, quality = "auto") {
+async function tuneVideoSender(
+  sender,
+  receiverQuality = "auto",
+  outgoingQuality = DEFAULT_OUTGOING_VIDEO_QUALITY,
+) {
   if (!sender || sender.track?.kind !== "video") return;
   try {
     const params = sender.getParameters();
     params.encodings = params.encodings?.length ? params.encodings : [{}];
     const encoding = params.encodings[0];
-    const safeQuality = normalizeVideoQuality(quality);
-    const targetWidth = safeQuality === "720p" ? 1280 : safeQuality === "1080p" ? 1920 : 0;
     const sourceWidth = Number(sender.track.getSettings?.().width) || 1920;
-    if (targetWidth && sourceWidth > targetWidth) {
-      // scaleResolutionDownBy cannot upscale a 720p source into 1080p. When
-      // the camera is higher resolution, use the smallest scale that reaches
-      // the requested target while preserving WebRTC's aspect-ratio handling.
-      encoding.scaleResolutionDownBy = Math.max(1, Math.min(4, sourceWidth / targetWidth));
+    const profile = resolveVideoEncoding(receiverQuality, outgoingQuality, sourceWidth);
+    if (profile.scaleResolutionDownBy) {
+      // scaleResolutionDownBy cannot upscale a lower-resolution source. When
+      // the camera is sharper than the effective sender/receiver ceiling, use
+      // the smallest scale that reaches that ceiling while preserving WebRTC's
+      // aspect-ratio handling.
+      encoding.scaleResolutionDownBy = profile.scaleResolutionDownBy;
     } else {
       delete encoding.scaleResolutionDownBy;
     }
-    encoding.maxBitrate = safeQuality === "720p" ? 1_800_000 : VIDEO_MAX_BITRATE;
+    encoding.maxBitrate = profile.maxBitrate;
+    encoding.maxFramerate = 24;
     params.degradationPreference = "maintain-resolution";
     await sender.setParameters(params);
   } catch { /* setParameters can reject before the first negotiation completes */ }
@@ -75,21 +74,45 @@ function safeIceServers(value) {
 }
 
 const CHUNK = 12000; // chars per data-channel chunk
+const BINARY_CHUNK = 48 * 1024;
 
 // Hard limits on anything a PEER can influence. The data channel carries JSON
 // straight from another browser, so every field below is attacker-controlled.
 const MAX_CAPTURE_CHARS = 8 * 1024 * 1024;              // ~8MB assembled data URL
 const MAX_CHUNKS = Math.ceil(MAX_CAPTURE_CHARS / CHUNK);
+const MAX_BINARY_CHUNKS = Math.ceil(MAX_CAPTURE_CHARS / BINARY_CHUNK);
 const CHUNK_TTL_MS = 30000;        // drop transfers that never complete
 const CAPTURE_MIN_INTERVAL_MS = 1200; // per-peer floor between capture requests
 const CAPTURE_BURST = 4;              // allowance for a quick flurry of clicks
 const MAX_VISITORS = 8; // peer-to-peer video fan-out is not an unlimited broadcast service
 const MAX_PLAYERS = 6;
+const CONNECTION_DIAGNOSTIC_KEY = "snapcast-connection-diagnostics";
+const CONNECTION_DIAGNOSTIC_LIMIT = 80;
+const PEER_DISCONNECT_GRACE_MS = 15000;
+const PLAYER_STATE_KEY_PREFIX = "snapcast-room-player-state:";
+const LIFECYCLE_KEY_PREFIX = "snapcast-room-lifecycle:";
+const LIFECYCLE_HEARTBEAT_MS = 5000;
+const SNAPSHOT_MESSAGE_TYPES = new Set([
+  "identity",
+  "life",
+  "lobby-name",
+  "commander",
+  "commander-partner",
+  "color",
+  "muted",
+  "camera-enabled",
+  "active-player",
+  "grid-order",
+  "poison",
+  "commander-damage",
+  "video-counter",
+]);
 
 export class GameConnection {
   constructor(handlers) {
     // handlers: onRoster, onRemoteStream, onPeerLeft, onLife,
-    // onCommander, onCommanderPartner, onColor, onCardIdentified, onChat (public or whisper), onActivePlayer,
+    // onCommander, onCommanderPartner, onColor, onCardIdentified, onRecognitionHint,
+    // onChat (public or whisper), onActivePlayer,
     // onGridOrder, onReadyCheckStart, onReadyCheckResponse, onReadyCheckEnd,
     // onVideoCounter, onVideoCounterRemove,
     // onError
@@ -115,7 +138,10 @@ export class GameConnection {
     this.gridOrder = [];
     this.videoCounters = [];
     this.videoQuality = new Map(); // peerId -> receiver's requested quality
+    this.outgoingVideoQuality = DEFAULT_OUTGOING_VIDEO_QUALITY;
     this.role = "player";
+    this.name = "";
+    this.identityNames = new Map();
     this.roster = [];
     this.rawRoster = [];
     this.allowedMembershipIds = null;
@@ -124,6 +150,222 @@ export class GameConnection {
     this.audioDeviceId = "";
     this.iceServers = FALLBACK_ICE_SERVERS;
     this.turnStatus = "fallback";
+    this.roomCode = "";
+    this.connectionSessionId = crypto.randomUUID?.() || Math.random().toString(36).slice(2);
+    this.closed = false;
+    this.lastRealtimeProblemAt = 0;
+    this.selfPresenceMissingAt = 0;
+    this.connectionDiagnosticPersistenceUnavailable = false;
+    this.networkListeners = null;
+    this.intentionalLeaves = new Map();
+    this.presenceRoster = [];
+    this.departureTimers = new Map();
+    this.participantId = "";
+    this.joinedAt = 0;
+    this.reconnectReason = "new-session";
+    this.lifecycleTimer = null;
+  }
+
+  _playerStateKey() {
+    return `${PLAYER_STATE_KEY_PREFIX}${this.roomCode}:${this.participantId || this.myId || ""}`;
+  }
+
+  _lifecycleKey() {
+    return `${LIFECYCLE_KEY_PREFIX}${this.roomCode}:${this.participantId || this.myId || ""}`;
+  }
+
+  _readSessionValue(key) {
+    try { return JSON.parse(sessionStorage.getItem(key) || "null"); } catch { return null; }
+  }
+
+  _writeSessionValue(key, value) {
+    try { sessionStorage.setItem(key, JSON.stringify(value)); } catch { /* recovery remains best effort */ }
+  }
+
+  _removeSessionValue(key) {
+    try { sessionStorage.removeItem(key); } catch { /* recovery remains best effort */ }
+  }
+
+  _restorePlayerState() {
+    const saved = this._readSessionValue(this._playerStateKey());
+    if (!saved || typeof saved !== "object") return null;
+    this.muted = !!saved.muted;
+    this.cameraEnabled = saved.cameraEnabled !== false;
+    if (this.role === "visitor") {
+      for (const track of this.localStream?.getAudioTracks() || []) track.enabled = !this.muted;
+      return {
+        muted: this.muted,
+        cameraEnabled: false,
+      };
+    }
+    this.life = Math.max(0, Math.min(999, Number(saved.life) || 0));
+    this.commander = String(saved.commander || "").slice(0, 120);
+    this.commanderPartner = String(saved.commanderPartner || "").slice(0, 120);
+    this.commanderPartnerType = String(saved.commanderPartnerType || "").slice(0, 240);
+    this.color = String(saved.color || "").slice(0, 20);
+    this.poison = Math.max(0, Math.min(99, Number(saved.poison) || 0));
+    this.commanderDamage = saved.commanderDamage && typeof saved.commanderDamage === "object"
+      ? Object.fromEntries(Object.entries(saved.commanderDamage).slice(0, 16).map(([id, value]) => (
+        [String(id).slice(0, 40), Math.max(0, Math.min(99, Number(value) || 0))]
+      )))
+      : {};
+    this.videoCounters = Array.isArray(saved.videoCounters)
+      ? saved.videoCounters.map(normalizeVideoCounter).filter(Boolean).slice(-24)
+      : [];
+    for (const track of this.localStream?.getAudioTracks() || []) track.enabled = !this.muted;
+    for (const track of this.localStream?.getVideoTracks() || []) track.enabled = this.cameraEnabled;
+    return {
+      life: this.life,
+      commander: this.commander,
+      commanderPartner: this.commanderPartner,
+      commanderPartnerType: this.commanderPartnerType,
+      color: this.color,
+      muted: this.muted,
+      cameraEnabled: this.cameraEnabled,
+      poison: this.poison,
+      commanderDamage: this.commanderDamage,
+      videoCounters: this.videoCounters,
+    };
+  }
+
+  _persistPlayerState() {
+    if (!this.roomCode || !this.participantId) return;
+    const state = {
+      muted: this.muted,
+      cameraEnabled: this.cameraEnabled,
+      savedAt: Date.now(),
+    };
+    if (this.role !== "visitor") Object.assign(state, {
+      life: this.life,
+      commander: this.commander,
+      commanderPartner: this.commanderPartner,
+      commanderPartnerType: this.commanderPartnerType,
+      color: this.color,
+      poison: this.poison,
+      commanderDamage: this.commanderDamage,
+      videoCounters: this.videoCounters,
+    });
+    this._writeSessionValue(this._playerStateKey(), state);
+  }
+
+  _markLifecycle(exitHint) {
+    if (!this.roomCode || !this.participantId) return;
+    const previous = this._readSessionValue(this._lifecycleKey());
+    this._writeSessionValue(this._lifecycleKey(), {
+      participantId: this.participantId,
+      lastHeartbeat: Date.now(),
+      exitHint: exitHint === undefined ? String(previous?.exitHint || "") : exitHint,
+    });
+  }
+
+  _classifyReconnect(previousLifecycle) {
+    if (!previousLifecycle) return "new-session";
+    const navigationType = globalThis.performance?.getEntriesByType?.("navigation")?.[0]?.type || "";
+    if (navigationType === "reload") return "refresh";
+    if (previousLifecycle.exitHint === "connection-loss") return "connection-loss";
+    if (!previousLifecycle.exitHint && Date.now() - Number(previousLifecycle.lastHeartbeat || 0) < 30000) {
+      return "likely-crash";
+    }
+    return "session-resume";
+  }
+
+  _startLifecycleHeartbeat() {
+    if (this.lifecycleTimer) clearInterval(this.lifecycleTimer);
+    this._markLifecycle("");
+    this.lifecycleTimer = setInterval(() => this._markLifecycle(), LIFECYCLE_HEARTBEAT_MS);
+  }
+
+  _stopLifecycleHeartbeat() {
+    if (this.lifecycleTimer) clearInterval(this.lifecycleTimer);
+    this.lifecycleTimer = null;
+  }
+
+  _diagnostic(type, {
+    subjectId = "",
+    details = {},
+    persist = false,
+  } = {}) {
+    const entry = {
+      id: crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      type,
+      at: Date.now(),
+      observerId: this.myId || "",
+      observerSessionId: this.connectionSessionId,
+      subjectId: String(subjectId || "").slice(0, 40),
+      role: this.role,
+      visibilityState: typeof document === "undefined" ? "" : document.visibilityState,
+      browserOnline: typeof navigator === "undefined" ? true : navigator.onLine !== false,
+      details,
+    };
+    try {
+      const previous = JSON.parse(localStorage.getItem(CONNECTION_DIAGNOSTIC_KEY) || "[]");
+      const next = [...(Array.isArray(previous) ? previous : []), entry].slice(-CONNECTION_DIAGNOSTIC_LIMIT);
+      localStorage.setItem(CONNECTION_DIAGNOSTIC_KEY, JSON.stringify(next));
+      globalThis.__SNAP_CONNECTION_DIAGNOSTICS = next;
+    } catch {
+      const previous = Array.isArray(globalThis.__SNAP_CONNECTION_DIAGNOSTICS)
+        ? globalThis.__SNAP_CONNECTION_DIAGNOSTICS
+        : [];
+      globalThis.__SNAP_CONNECTION_DIAGNOSTICS = [...previous, entry].slice(-CONNECTION_DIAGNOSTIC_LIMIT);
+    }
+    if (persist && this.roomCode && !this.connectionDiagnosticPersistenceUnavailable) {
+      void saveConnectionEvent({ ...entry, roomCode: this.roomCode }).catch((error) => {
+        this.connectionDiagnosticPersistenceUnavailable = true;
+        console.warn("[snapcast] Connection diagnostics could not be submitted", error);
+      });
+    }
+    if (persist) console.warn(`[snapcast] connection event: ${type}`, entry);
+    return entry;
+  }
+
+  _onRealtimeStatus(status, error) {
+    if (this.closed) return;
+    const detail = error ? String(error?.message || error).slice(0, 500) : "";
+    if (status === "CHANNEL_ERROR") {
+      this.lastRealtimeProblemAt = Date.now();
+      this._diagnostic("realtime-channel-error", { details: { error: detail }, persist: true });
+    } else if (status === "TIMED_OUT") {
+      this.lastRealtimeProblemAt = Date.now();
+      this._diagnostic("realtime-timed-out", { details: { error: detail }, persist: true });
+    } else if (status === "CLOSED") {
+      this.lastRealtimeProblemAt = Date.now();
+      this._diagnostic("realtime-closed", { details: { error: detail }, persist: true });
+    } else if (status === "SUBSCRIBED" && this.lastRealtimeProblemAt) {
+      const outageMs = Date.now() - this.lastRealtimeProblemAt;
+      this.lastRealtimeProblemAt = 0;
+      this._diagnostic("realtime-recovered", { details: { outageMs }, persist: true });
+    }
+  }
+
+  _startNetworkMonitoring() {
+    if (this.networkListeners || typeof window === "undefined") return;
+    const offline = () => {
+      this._markLifecycle("connection-loss");
+      this._diagnostic("browser-offline", { persist: true });
+    };
+    const online = () => {
+      this._markLifecycle("");
+      this._diagnostic("browser-online", { persist: true });
+    };
+    const pagehide = (event) => {
+      this._markLifecycle(event.persisted ? "page-cache" : "navigation");
+      this._diagnostic("page-hidden", {
+        details: { persisted: !!event.persisted },
+        persist: false,
+      });
+    };
+    window.addEventListener("offline", offline);
+    window.addEventListener("online", online);
+    window.addEventListener("pagehide", pagehide);
+    this.networkListeners = { offline, online, pagehide };
+  }
+
+  _stopNetworkMonitoring() {
+    if (!this.networkListeners || typeof window === "undefined") return;
+    window.removeEventListener("offline", this.networkListeners.offline);
+    window.removeEventListener("online", this.networkListeners.online);
+    window.removeEventListener("pagehide", this.networkListeners.pagehide);
+    this.networkListeners = null;
   }
 
   async _configureIceServers(code) {
@@ -164,7 +406,14 @@ export class GameConnection {
     }
   }
 
-  async initMedia({ audioOnly = false, videoDeviceId = "", audioDeviceId = "" } = {}) {
+  async initMedia({
+    audioOnly = false,
+    videoDeviceId = "",
+    audioDeviceId = "",
+    startMuted = false,
+    outgoingVideoQuality = DEFAULT_OUTGOING_VIDEO_QUALITY,
+  } = {}) {
+    this.outgoingVideoQuality = normalizeOutgoingVideoQuality(outgoingVideoQuality);
     // Ask for the camera's maximum resolution — recognition crops are taken
     // from the raw local track, so every native pixel directly improves card
     // identification (WebRTC scales the *sent* video down on its own).
@@ -183,6 +432,8 @@ export class GameConnection {
     });
     this.videoDeviceId = this.localStream.getVideoTracks()[0]?.getSettings?.().deviceId || "";
     this.audioDeviceId = this.localStream.getAudioTracks()[0]?.getSettings?.().deviceId || "";
+    this.muted = !!startMuted;
+    for (const track of this.localStream.getAudioTracks()) track.enabled = !this.muted;
     for (const track of this.localStream.getVideoTracks()) tuneVideoTrack(track);
     return this.localStream;
   }
@@ -232,7 +483,13 @@ export class GameConnection {
       const sender = pc.getSenders().find((s) => s.track?.kind === kind);
       if (sender) {
         await sender.replaceTrack(newTrack);
-        if (kind === "video") await tuneVideoSender(sender, this.videoQuality.get(peerId) || "auto");
+        if (kind === "video") {
+          await tuneVideoSender(
+            sender,
+            this.videoQuality.get(peerId) || "auto",
+            this.outgoingVideoQuality,
+          );
+        }
       }
     }
 
@@ -247,10 +504,29 @@ export class GameConnection {
     return this.localStream;
   }
 
-  async join(code, name, role = "player", membershipId = "", profileId = "", realtimeEpoch = "") {
+  async join(code, name, role = "player", {
+    participantId = "",
+    joinedAt = 0,
+    membershipId = "",
+    profileId = "",
+    realtimeEpoch = "",
+  } = {}) {
     this.role = role === "visitor" ? "visitor" : "player";
+    this.name = String(name || "").trim().slice(0, 24)
+      || (this.role === "visitor" ? "Visitor" : "Player");
+    this.roomCode = String(code || "").toUpperCase();
+    this.participantId = String(participantId || "").replace(/[^a-zA-Z0-9-]/g, "").slice(0, 40)
+      || crypto.randomUUID().slice(0, 40);
+    this.joinedAt = Number(joinedAt) || Date.now();
+    const previousLifecycle = this._readSessionValue(this._lifecycleKey());
+    this.reconnectReason = this._classifyReconnect(previousLifecycle);
+    const restoredState = this._restorePlayerState();
+    this._persistPlayerState();
+    this.closed = false;
+    this._startNetworkMonitoring();
+    this._startLifecycleHeartbeat();
     await this._configureIceServers(code);
-    this.joinDetails = { code, name, membershipId, profileId };
+    this.joinDetails = { code, name: this.name, membershipId, profileId };
     this.realtimeEpoch = realtimeEpoch;
     this.signalHandlers = {
       onRoster: (roster) => {
@@ -259,18 +535,30 @@ export class GameConnection {
         else this._onRoster(roster);
       },
       onMessage: (msg) => this._onSignal(msg),
+      onStatus: (status, error) => this._onRealtimeStatus(status, error),
     };
-    this.room = await joinRoom(
-      code,
+    this.room = await joinRoom(code, this.name, this.role, {
+      ...this.signalHandlers,
+      participantId: this.participantId,
+      joinedAt: this.joinedAt,
       realtimeEpoch,
-      name,
-      this.role,
       membershipId,
       profileId,
-      this.signalHandlers,
-    );
+    });
     this.myId = this.room.myId;
+    this._diagnostic("room-joined", {
+      details: { turnStatus: this.turnStatus, reconnectReason: this.reconnectReason },
+      persist: true,
+    });
+    if (this.reconnectReason !== "new-session") {
+      this._diagnostic("client-rejoined", {
+        details: { reason: this.reconnectReason },
+        persist: true,
+      });
+    }
+    this.h.onRestoredState?.({ id: this.myId, ...(restoredState || {}) });
     this._onRoster(this.roster);
+    this.room?.send({ type: "reconnect-context", reason: this.reconnectReason });
     return this.myId;
   }
 
@@ -280,16 +568,14 @@ export class GameConnection {
     const previousRoom = this.room;
     this.rotatingEpoch = nextEpoch;
     try {
-      const nextRoom = await joinRoom(
-        this.joinDetails.code,
-        nextEpoch,
-        this.joinDetails.name,
-        this.role,
-        this.joinDetails.membershipId,
-        this.joinDetails.profileId,
-        this.signalHandlers,
-        this.myId,
-      );
+      const nextRoom = await joinRoom(this.joinDetails.code, this.joinDetails.name, this.role, {
+        ...this.signalHandlers,
+        participantId: this.participantId,
+        joinedAt: this.joinedAt,
+        realtimeEpoch: nextEpoch,
+        membershipId: this.joinDetails.membershipId,
+        profileId: this.joinDetails.profileId,
+      });
       this.room = nextRoom;
       this.realtimeEpoch = nextEpoch;
       previousRoom?.leave();
@@ -298,10 +584,68 @@ export class GameConnection {
     }
   }
 
-  _onRoster(roster) {
-    this.rawRoster = roster;
+  _finalizeDeparture(departed, intentional = false) {
+    const id = departed.id;
+    const entry = this.peers.get(id);
+    const timer = this.departureTimers.get(id);
+    if (timer) clearTimeout(timer);
+    this.departureTimers.delete(id);
+    this.intentionalLeaves.delete(id);
+    this._diagnostic(intentional ? "intentional-leave" : "unexpected-peer-drop", {
+      subjectId: id,
+      details: {
+        subjectRole: departed.role || "player",
+        peerConnectionState: entry?.pc.connectionState || "not-created",
+        iceConnectionState: entry?.pc.iceConnectionState || "not-created",
+        graceMs: intentional ? 0 : PEER_DISCONNECT_GRACE_MS,
+        rosterSizeAfter: this.presenceRoster.length,
+      },
+      persist: true,
+    });
+    if (entry?.disconnectTimer) clearTimeout(entry.disconnectTimer);
+    entry?.pc.close();
+    if (entry) this.peers.delete(id);
+    this.knownIds.delete(id);
+    this.roster = this.roster.filter((member) => member.id !== id);
+    this.h.onPeerReconnecting?.(id, false);
+    this.h.onPeerLeft?.(id, { unexpected: !intentional });
+    this.h.onRoster?.(this.roster);
+  }
+
+  _stateSnapshotMessages() {
+    const messages = [
+      { type: "identity", name: this.name },
+      { type: "muted", muted: this.muted },
+      { type: "camera-enabled", enabled: this.cameraEnabled },
+    ];
+    if (this.role === "visitor") return messages;
+    messages.push(
+      { type: "life", life: this.life },
+      ...(this.lobbyName ? [{ type: "lobby-name", lobbyName: this.lobbyName }] : []),
+      { type: "commander", commander: this.commander },
+      {
+        type: "commander-partner",
+        partner: this.commanderPartner,
+        typeLine: this.commanderPartnerType,
+      },
+      { type: "color", color: this.color },
+      ...(this.activePlayerId ? [{ type: "active-player", playerId: this.activePlayerId }] : []),
+      ...(this.gridOrder.length ? [{ type: "grid-order", order: this.gridOrder }] : []),
+      { type: "poison", value: this.poison },
+      ...Object.entries(this.commanderDamage).map(([attackerId, value]) => ({
+        type: "commander-damage",
+        attackerId,
+        value,
+      })),
+      ...this.videoCounters.map((counter) => ({ type: "video-counter", counter })),
+    );
+    return messages;
+  }
+
+  _onRoster(presenceRoster) {
+    this.rawRoster = presenceRoster;
     if (this.verifiedMemberships) {
-      roster = roster.flatMap((member) => {
+      presenceRoster = presenceRoster.flatMap((member) => {
         const verified = this.verifiedMemberships.get(member.membershipId);
         return verified ? [{
           ...member,
@@ -311,21 +655,36 @@ export class GameConnection {
         }] : [];
       });
     } else if (this.allowedMembershipIds) {
-      roster = roster.filter((member) => member.membershipId && this.allowedMembershipIds.has(member.membershipId));
+      presenceRoster = presenceRoster.filter((member) => (
+        member.membershipId && this.allowedMembershipIds.has(member.membershipId)
+      ));
     }
-    this.roster = roster;
+    const previousRoster = this.roster;
+    const snapshotTargets = new Set();
+    this.presenceRoster = presenceRoster;
     // Presence can sync before our own track has propagated, giving a roster
     // that lists existing members but not us. Deciding offers from such a
     // snapshot marks every existing peer as "known" without ever offering to
     // them — they would never get our connection (visitors saw no video at
     // all). Render the roster, but defer connection decisions until a sync
     // that includes us arrives.
-    if (this.myId && !roster.some((r) => r.id === this.myId)) {
-      this.h.onRoster?.(roster);
+    if (this.myId && !presenceRoster.some((r) => r.id === this.myId)) {
+      const now = Date.now();
+      if (!this.selfPresenceMissingAt || now - this.selfPresenceMissingAt > 15000) {
+        this.selfPresenceMissingAt = now;
+        this._diagnostic("self-presence-missing", {
+          details: { rosterSize: presenceRoster.length },
+          persist: true,
+        });
+      }
+      // Keep the last complete roster visible while our own presence is
+      // recovering; an empty intermediate sync should not dismantle the room.
+      this.h.onRoster?.(previousRoster);
       return;
     }
-    const players = roster.filter((r) => r.role !== "visitor");
-    const visitors = roster.filter((r) => r.role === "visitor");
+    this.selfPresenceMissingAt = 0;
+    const players = presenceRoster.filter((r) => r.role !== "visitor");
+    const visitors = presenceRoster.filter((r) => r.role === "visitor");
     if (this.role === "player" && players.length > MAX_PLAYERS) {
       const myRank = players.findIndex((r) => r.id === this.myId);
       if (myRank >= MAX_PLAYERS) {
@@ -339,47 +698,136 @@ export class GameConnection {
       this.close();
       return;
     }
-    const ids = new Set(roster.map((r) => r.id));
-    // peers that left
-    for (const id of [...this.peers.keys()]) {
-      if (!ids.has(id)) {
-        this.peers.get(id).pc.close();
-        this.peers.delete(id);
-        this.h.onPeerLeft?.(id);
+    const ids = new Set(presenceRoster.map((r) => r.id));
+
+    // A participant who returns during the grace period keeps the same roster
+    // identity and seat. If their old peer connection did not survive, allow
+    // the normal deterministic offer rule below to build a fresh one.
+    for (const member of presenceRoster) {
+      const departureTimer = this.departureTimers.get(member.id);
+      if (!departureTimer) continue;
+      snapshotTargets.add(member.id);
+      clearTimeout(departureTimer);
+      this.departureTimers.delete(member.id);
+      this.h.onPeerReconnecting?.(member.id, false);
+      const entry = this.peers.get(member.id);
+      if (entry) {
+        if (entry.disconnectTimer) clearTimeout(entry.disconnectTimer);
+        entry.pc.close();
+        this.peers.delete(member.id);
+        this.knownIds.delete(member.id);
       }
+      this._diagnostic("peer-presence-restored", {
+        subjectId: member.id,
+        details: { withinGraceMs: PEER_DISCONNECT_GRACE_MS },
+        persist: false,
+      });
+    }
+
+    // Missing participants retain their tile and seat during the grace period.
+    // A deliberate departure skips the delay; an unannounced disappearance is
+    // only classified as a drop if it does not recover before the timer ends.
+    const departedMembers = previousRoster.filter((member) => (
+      member.id !== this.myId && !ids.has(member.id)
+    ));
+    for (const departed of departedMembers) {
+      const intentionalAt = this.intentionalLeaves.get(departed.id) || 0;
+      const intentional = Date.now() - intentionalAt < 5000;
+      if (intentional) {
+        this._finalizeDeparture(departed, true);
+        continue;
+      }
+      if (this.departureTimers.has(departed.id)) continue;
+      this.h.onPeerReconnecting?.(departed.id, true);
+      const timer = setTimeout(() => {
+        if (this.presenceRoster.some((member) => member.id === departed.id)) return;
+        this._finalizeDeparture(departed, false);
+      }, PEER_DISCONNECT_GRACE_MS);
+      this.departureTimers.set(departed.id, timer);
+    }
+    const intentionalCutoff = Date.now() - 5000;
+    for (const [id, at] of this.intentionalLeaves) {
+      if (at < intentionalCutoff) this.intentionalLeaves.delete(id);
     }
     // I initiate offers to everyone who joined BEFORE me (newcomer initiates)
-    const me = roster.find((r) => r.id === this.myId);
-    for (const r of roster) {
+    const retained = previousRoster.filter((member) => (
+      !ids.has(member.id) && this.departureTimers.has(member.id)
+    ));
+    this.roster = [...presenceRoster, ...retained]
+      .map((member) => ({
+        ...member,
+        name: this.identityNames.get(member.id)
+          || String(member.name || "").trim()
+          || (member.role === "visitor" ? "Visitor" : "Player"),
+      }))
+      .filter((member, index, all) => all.findIndex((candidate) => candidate.id === member.id) === index)
+      .sort((a, b) => a.joinedAt - b.joinedAt);
+
+    const me = presenceRoster.find((r) => r.id === this.myId);
+    for (const r of presenceRoster) {
       if (r.id === this.myId || this.knownIds.has(r.id)) continue;
+      snapshotTargets.add(r.id);
       this.knownIds.add(r.id);
       if (me && r.joinedAt < me.joinedAt) this._makeOffer(r.id);
     }
-    this.h.onRoster?.(roster);
-    if (this.role === "player") {
-      this.room?.send({ type: "life", life: this.life });
-      if (this.lobbyName) this.room?.send({ type: "lobby-name", lobbyName: this.lobbyName });
-      if (this.color) this.room?.send({ type: "color", color: this.color });
-      if (this.activePlayerId) this.room?.send({ type: "active-player", playerId: this.activePlayerId });
-      if (this.gridOrder.length) this.room?.send({ type: "grid-order", order: this.gridOrder });
-      if (this.poison) this.room?.send({ type: "poison", value: this.poison });
-      for (const [attackerId, value] of Object.entries(this.commanderDamage)) {
-        if (value) this.room?.send({ type: "commander-damage", attackerId, value });
-      }
-      if (this.eliminationReason) this.room?.send({ type: "elimination", reason: this.eliminationReason });
-      for (const counter of this.videoCounters) {
-        this.room?.send({ type: "video-counter", counter });
+    this.h.onRoster?.(this.roster);
+    const messages = this._stateSnapshotMessages();
+    for (const targetId of snapshotTargets) {
+      const target = presenceRoster.find((member) => member.id === targetId);
+      if ((target?.protocol || 1) >= 2) {
+        this.room?.send({ type: "state-snapshot", messages }, targetId);
+      } else {
+        // Tabs loaded before protocol 2 do not understand snapshots. Keep a
+        // rolling deploy compatible by targeting the legacy messages to them.
+        for (const message of messages) this.room?.send(message, targetId);
       }
     }
-    if (this.muted) this.room?.send({ type: "muted", muted: true });
-    if (!this.cameraEnabled) this.room?.send({ type: "camera-enabled", enabled: false });
   }
 
   async _onSignal(msg) {
     const sender = this.roster.find((r) => r.id === msg.from);
     if (this.allowedMembershipIds && !sender) return;
+    if (msg.type === "participant-leaving") {
+      this.intentionalLeaves.set(String(msg.from || "").slice(0, 40), Date.now());
+      return;
+    }
+    if (msg.type === "reconnect-context") {
+      const reason = ["refresh", "connection-loss", "likely-crash", "session-resume"].includes(msg.reason)
+        ? msg.reason
+        : "";
+      if (reason) {
+        this._diagnostic("peer-reconnected", {
+          subjectId: String(msg.from || "").slice(0, 40),
+          details: { reason },
+          persist: true,
+        });
+      }
+      return;
+    }
     const senderRole = sender?.role || "player";
     switch (msg.type) {
+      case "state-snapshot": {
+        if (!this.roster.some((member) => member.id === msg.from)) break;
+        const messages = Array.isArray(msg.messages) ? msg.messages.slice(0, 40) : [];
+        for (const message of messages) {
+          if (!SNAPSHOT_MESSAGE_TYPES.has(message?.type)) continue;
+          await this._onSignal({ ...message, from: msg.from });
+        }
+        break;
+      }
+      case "identity": {
+        const identityName = String(msg.name || "").trim().slice(0, 24);
+        if (!identityName) break;
+        this.identityNames.set(msg.from, identityName);
+        let changed = false;
+        this.roster = this.roster.map((member) => {
+          if (member.id !== msg.from || member.name === identityName) return member;
+          changed = true;
+          return { ...member, name: identityName };
+        });
+        if (changed) this.h.onRoster?.(this.roster);
+        break;
+      }
       case "offer": {
         const p = this._getPeer(msg.from);
         await p.pc.setRemoteDescription({ type: "offer", sdp: msg.sdp });
@@ -397,11 +845,13 @@ export class GameConnection {
         break;
       case "video-quality": {
         if (!this.roster.some((member) => member.id === msg.from)) break;
-        const quality = normalizeVideoQuality(msg.quality);
+        const quality = normalizeReceiverVideoQuality(msg.quality);
         this.videoQuality.set(msg.from, quality);
         const entry = this.peers.get(msg.from);
         if (entry) {
-          await Promise.all(entry.pc.getSenders().map((sender) => tuneVideoSender(sender, quality)));
+          await Promise.all(entry.pc.getSenders().map((sender) => (
+            tuneVideoSender(sender, quality, this.outgoingVideoQuality)
+          )));
         }
         break;
       }
@@ -430,6 +880,17 @@ export class GameConnection {
       case "card-identified":
         if (senderRole !== "visitor") this.h.onCardIdentified?.(msg);
         break;
+      case "recognition-hint": {
+        // Card lookup is available to both seated players and visitors. Every
+        // recognized room participant may contribute a hint, while the board
+        // owner must still be a seated player with a camera.
+        const sender = this.roster.find((member) => member.id === msg.from);
+        if (!sender) break;
+        const hint = normalizeRecognitionHint(msg);
+        const owner = hint && this.roster.find((member) => member.id === hint.ownerId);
+        if (hint && owner?.role !== "visitor") this.h.onRecognitionHint?.(hint);
+        break;
+      }
       case "chat": {
         const text = String(msg.text || "").trim().slice(0, 500);
         // A chat packet can name only one bundled, allow-listed sound. Never
@@ -552,11 +1013,24 @@ export class GameConnection {
   _getPeer(peerId) {
     if (this.peers.has(peerId)) return this.peers.get(peerId);
     const pc = new RTCPeerConnection({ iceServers: this.iceServers });
-    const entry = { pc, dc: null, chunks: new Map() };
+    const entry = {
+      pc,
+      dc: null,
+      chunks: new Map(),
+      disconnectTimer: null,
+      connectionWasInterrupted: false,
+      failureReported: false,
+    };
     this.peers.set(peerId, entry);
     for (const t of this.localStream?.getTracks() || []) {
       const sender = pc.addTrack(t, this.localStream);
-      if (t.kind === "video") void tuneVideoSender(sender, this.videoQuality.get(peerId) || "auto");
+      if (t.kind === "video") {
+        void tuneVideoSender(
+          sender,
+          this.videoQuality.get(peerId) || "auto",
+          this.outgoingVideoQuality,
+        );
+      }
     }
     // An audio-only visitor still needs a video m-line in offers so players
     // can send their camera feed back to the visitor.
@@ -564,13 +1038,68 @@ export class GameConnection {
     pc.onicecandidate = (e) => e.candidate && this.room.send({ type: "ice", candidate: e.candidate }, peerId);
     pc.ontrack = (e) => this.h.onRemoteStream?.(peerId, e.streams[0]);
     pc.ondatachannel = (e) => this._setupDC(peerId, e.channel);
+    pc.onconnectionstatechange = () => {
+      if (this.closed || !this.peers.has(peerId)) return;
+      const state = pc.connectionState;
+      if (state === "connected") {
+        if (entry.disconnectTimer) clearTimeout(entry.disconnectTimer);
+        entry.disconnectTimer = null;
+        if (entry.connectionWasInterrupted) {
+          entry.connectionWasInterrupted = false;
+          entry.failureReported = false;
+          this._diagnostic("peer-connection-recovered", {
+            subjectId: peerId,
+            details: { iceConnectionState: pc.iceConnectionState },
+            persist: true,
+          });
+        }
+        return;
+      }
+      if (state === "failed") {
+        if (entry.disconnectTimer) clearTimeout(entry.disconnectTimer);
+        entry.disconnectTimer = null;
+        entry.connectionWasInterrupted = true;
+        if (entry.failureReported) return;
+        entry.failureReported = true;
+        this._diagnostic("peer-connection-failed", {
+          subjectId: peerId,
+          details: { iceConnectionState: pc.iceConnectionState },
+          persist: true,
+        });
+        return;
+      }
+      if (state === "disconnected" && !entry.disconnectTimer) {
+        entry.connectionWasInterrupted = true;
+        entry.disconnectTimer = setTimeout(() => {
+          entry.disconnectTimer = null;
+          if (pc.connectionState !== "disconnected" || this.closed) return;
+          if (entry.failureReported) return;
+          entry.failureReported = true;
+          this._diagnostic("peer-connection-failed", {
+            subjectId: peerId,
+            details: {
+              connectionState: "disconnected",
+              iceConnectionState: pc.iceConnectionState,
+              graceMs: PEER_DISCONNECT_GRACE_MS,
+            },
+            persist: true,
+          });
+        }, PEER_DISCONNECT_GRACE_MS);
+      }
+    };
     return entry;
   }
 
   async _tunePeerVideo(peerId) {
     const entry = this.peers.get(peerId);
     if (!entry) return;
-    await Promise.all(entry.pc.getSenders().map((sender) => tuneVideoSender(sender, this.videoQuality.get(peerId) || "auto")));
+    await Promise.all(entry.pc.getSenders().map((sender) => (
+      tuneVideoSender(
+        sender,
+        this.videoQuality.get(peerId) || "auto",
+        this.outgoingVideoQuality,
+      )
+    )));
   }
 
   async _makeOffer(peerId) {
@@ -585,7 +1114,54 @@ export class GameConnection {
   _setupDC(peerId, dc) {
     const entry = this.peers.get(peerId);
     entry.dc = dc;
+    dc.binaryType = "arraybuffer";
     dc.onmessage = async (e) => {
+      if (e.data instanceof ArrayBuffer || ArrayBuffer.isView(e.data) || e.data instanceof Blob) {
+        const meta = entry.nextBinaryChunk;
+        entry.nextBinaryChunk = null;
+        if (!meta || !this.pending.has(meta.id)) return;
+        const bytes = e.data instanceof Blob
+          ? new Uint8Array(await e.data.arrayBuffer())
+          : e.data instanceof ArrayBuffer
+            ? new Uint8Array(e.data)
+            : new Uint8Array(e.data.buffer, e.data.byteOffset, e.data.byteLength);
+        if (bytes.byteLength > BINARY_CHUNK) return;
+        const key = `binary:${meta.id}`;
+        this._sweepChunks(entry);
+        if (!entry.chunks.has(key)) {
+          entry.chunks.set(key, {
+            parts: new Array(meta.n),
+            got: 0,
+            bytes: 0,
+            at: Date.now(),
+            mime: meta.mime,
+            px: meta.px,
+            py: meta.py,
+          });
+        }
+        const buf = entry.chunks.get(key);
+        if (buf.parts[meta.i] === undefined) {
+          buf.bytes += bytes.byteLength;
+          if (buf.bytes > MAX_CAPTURE_CHARS) {
+            entry.chunks.delete(key);
+            return;
+          }
+          buf.parts[meta.i] = bytes;
+          buf.got++;
+        }
+        if (buf.got === meta.n) {
+          entry.chunks.delete(key);
+          const blob = new Blob(buf.parts, { type: buf.mime || "image/jpeg" });
+          this._resolveCapture(meta.id, {
+            blob,
+            url: URL.createObjectURL(blob),
+            bytes: blob.size,
+            px: buf.px,
+            py: buf.py,
+          });
+        }
+        return;
+      }
       let m;
       try { m = JSON.parse(e.data); } catch { return; }
       if (typeof m?.t !== "string" || typeof m.id !== "string" || m.id.length > 64) return;
@@ -598,7 +1174,24 @@ export class GameConnection {
         if (!this._mayCapture(peerId)) return;
         try {
           const cap = await captureLocalFrame(this.localStream, m.nx, m.ny);
-          this._sendChunked(peerId, { t: "cap-res", id: m.id, px: cap.px, py: cap.py }, cap.url);
+          try {
+            if (m.binary === 1) {
+              const sent = await this._sendBinaryChunked(
+                peerId,
+                { id: m.id, px: cap.px, py: cap.py, mime: cap.blob.type },
+                cap.blob,
+              );
+              if (!sent) throw new Error("capture channel closed");
+            } else {
+              this._sendChunked(
+                peerId,
+                { t: "cap-res", id: m.id, px: cap.px, py: cap.py },
+                await blobToDataUrl(cap.blob),
+              );
+            }
+          } finally {
+            URL.revokeObjectURL(cap.url);
+          }
           // Tell this player their board was just scanned, and by whom.
           const by = this.roster.find((r) => r.id === peerId)?.name || "Someone";
           this.h.onCaptured?.(peerId, by);
@@ -613,6 +1206,18 @@ export class GameConnection {
           if (typeof m.data !== "string" || m.data.length > MAX_CAPTURE_CHARS) return;
           this._resolveCapture(m.id, { url: m.data, px: m.px, py: m.py });
         }
+      } else if (m.t === "bin-chunk") {
+        if (!this.pending.has(m.id)) return;
+        if (!Number.isInteger(m.n) || m.n < 1 || m.n > MAX_BINARY_CHUNKS) return;
+        if (!Number.isInteger(m.i) || m.i < 0 || m.i >= m.n) return;
+        entry.nextBinaryChunk = {
+          id: m.id,
+          i: m.i,
+          n: m.n,
+          mime: String(m.mime || "image/jpeg").slice(0, 40),
+          px: Number.isFinite(Number(m.px)) ? Number(m.px) : undefined,
+          py: Number.isFinite(Number(m.py)) ? Number(m.py) : undefined,
+        };
       } else if (m.t === "chunk") {
         // Every field here is peer-controlled. Unvalidated, `new Array(m.n)`
         // and an unbounded `parts` accumulator let a peer exhaust this tab.
@@ -657,13 +1262,15 @@ export class GameConnection {
     };
   }
 
-  // Capture authorisation: players only, and no faster than a human clicking.
+  // Capture authorisation: known room participants only, and no faster than a
+  // human clicking. Visitors can inspect cards, so they use the same bounded
+  // capture path and visible scan notice as seated players.
   // Without this a peer can poll cap-req in a loop and reconstruct a video
   // feed of this player at full camera resolution.
   _mayCapture(peerId) {
     if (!this.localStream) return false;
     const role = this.roster.find((r) => r.id === peerId)?.role;
-    if (role === "visitor") return false;
+    if (role !== "player" && role !== "visitor") return false;
     const entry = this.peers.get(peerId);
     if (!entry) return false;
     const now = Date.now();
@@ -706,6 +1313,36 @@ export class GameConnection {
     }
   }
 
+  async _sendBinaryChunked(peerId, header, blob) {
+    const dc = this.peers.get(peerId)?.dc;
+    if (!dc || dc.readyState !== "open" || !(blob instanceof Blob)) return false;
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    if (!bytes.byteLength || bytes.byteLength > MAX_CAPTURE_CHARS) return false;
+    const n = Math.ceil(bytes.byteLength / BINARY_CHUNK);
+    dc.bufferedAmountLowThreshold = 512 * 1024;
+    for (let i = 0; i < n; i++) {
+      if (dc.bufferedAmount > 1024 * 1024) {
+        await new Promise((resolve) => {
+          const timer = setTimeout(resolve, 2000);
+          dc.addEventListener("bufferedamountlow", () => {
+            clearTimeout(timer);
+            resolve();
+          }, { once: true });
+        });
+      }
+      this._dcSend(peerId, {
+        t: "bin-chunk",
+        id: header.id,
+        i,
+        n,
+        mime: header.mime,
+        ...(i === 0 ? { px: header.px, py: header.py } : {}),
+      });
+      dc.send(bytes.slice(i * BINARY_CHUNK, (i + 1) * BINARY_CHUNK));
+    }
+    return true;
+  }
+
   _resolveCapture(id, data, error) {
     const p = this.pending.get(id);
     if (!p) return;
@@ -721,13 +1358,14 @@ export class GameConnection {
       if (!dc || dc.readyState !== "open") return reject(new Error("Not connected to that player yet"));
       const timer = setTimeout(() => { this.pending.delete(id); reject(new Error("Capture timed out")); }, timeoutMs);
       this.pending.set(id, { resolve, reject, timer });
-      this._dcSend(peerId, { t: "cap-req", id, nx, ny });
+      this._dcSend(peerId, { t: "cap-req", id, nx, ny, binary: 1 });
     });
   }
 
   setLife(life) {
     if (this.role === "visitor") return;
-    this.life = Number(life);
+    this.life = Math.max(0, Number(life) || 0);
+    this._persistPlayerState();
     this.room?.send({ type: "life", life: this.life });
   }
   setLobbyName(lobbyName) {
@@ -738,28 +1376,46 @@ export class GameConnection {
   setCommander(commander) {
     if (this.role === "visitor") return;
     this.commander = String(commander || "").trim().slice(0, 120);
+    this._persistPlayerState();
+    if (!this.allowedMembershipIds) this.room?.send({ type: "commander", commander: this.commander });
   }
   setCommanderPartner(partner, typeLine = "") {
     if (this.role === "visitor") return;
     this.commanderPartner = String(partner || "").trim().slice(0, 120);
     this.commanderPartnerType = String(typeLine || "").trim().slice(0, 240);
+    this._persistPlayerState();
+    if (!this.allowedMembershipIds) {
+      this.room?.send({
+        type: "commander-partner",
+        partner: this.commanderPartner,
+        typeLine: this.commanderPartnerType,
+      });
+    }
   }
   setColor(color) {
     if (this.role === "visitor") return;
     this.color = String(color || "").trim().slice(0, 20);
+    this._persistPlayerState();
     this.room?.send({ type: "color", color: this.color });
   }
   setMuted(muted) {
     this.muted = !!muted;
+    this._persistPlayerState();
     this.room?.send({ type: "muted", muted: this.muted });
   }
   setCameraEnabled(enabled) {
     this.cameraEnabled = !!enabled;
+    this._persistPlayerState();
     this.room?.send({ type: "camera-enabled", enabled: this.cameraEnabled });
   }
   announceCard(card, byName, at = Date.now()) {
     if (this.role === "visitor") return;
     this.room?.send({ type: "card-identified", card, byName, at });
+  }
+  announceRecognitionHint(value) {
+    const hint = normalizeRecognitionHint(value);
+    if (!hint) return;
+    this.room?.send({ type: "recognition-hint", ...hint });
   }
   sendChat(text, at = Date.now(), soundId = "") {
     const message = String(text || "").trim().slice(0, 500);
@@ -820,6 +1476,7 @@ export class GameConnection {
   setPoison(value) {
     if (this.role === "visitor") return;
     this.poison = Math.max(0, Math.min(99, Number(value) || 0));
+    this._persistPlayerState();
     this.room?.send({ type: "poison", value: this.poison });
   }
   setCommanderDamage(attackerId, value, commanderName = "") {
@@ -828,6 +1485,7 @@ export class GameConnection {
     if (!safeAttackerId) return;
     const safeValue = Math.max(0, Math.min(99, Number(value) || 0));
     this.commanderDamage = { ...this.commanderDamage, [safeAttackerId]: safeValue };
+    this._persistPlayerState();
     this.room?.send({
       type: "commander-damage",
       attackerId: safeAttackerId,
@@ -860,6 +1518,7 @@ export class GameConnection {
     this.videoCounters = (exists
       ? this.videoCounters.map((item) => item.id === safeCounter.id ? safeCounter : item)
       : [...this.videoCounters, safeCounter]).slice(-24);
+    this._persistPlayerState();
     this.room?.send({ type: "video-counter", counter: safeCounter });
   }
   removeVideoCounter(counterId) {
@@ -867,15 +1526,22 @@ export class GameConnection {
     const safeId = String(counterId || "").slice(0, 64);
     if (!safeId) return;
     this.videoCounters = this.videoCounters.filter((counter) => counter.id !== safeId);
+    this._persistPlayerState();
     this.room?.send({ type: "video-counter-remove", counterId: safeId });
   }
 
   requestVideoQuality(peerId, quality) {
     const targetId = String(peerId || "").slice(0, 40);
-    const safeQuality = normalizeVideoQuality(quality);
+    const safeQuality = normalizeReceiverVideoQuality(quality);
     if (!targetId || targetId === this.myId || !this.roster.some((member) => member.id === targetId)) return false;
     this.room?.send({ type: "video-quality", quality: safeQuality }, targetId);
     return true;
+  }
+
+  async setOutgoingVideoQuality(quality) {
+    this.outgoingVideoQuality = normalizeOutgoingVideoQuality(quality);
+    await Promise.all([...this.peers.keys()].map((peerId) => this._tunePeerVideo(peerId)));
+    return this.outgoingVideoQuality;
   }
 
   toggleTrack(kind, enabled) {
@@ -884,10 +1550,37 @@ export class GameConnection {
   }
 
   close() {
-    for (const p of this.peers.values()) p.pc.close();
+    if (this.closed) return;
+    this.closed = true;
+    this._stopNetworkMonitoring();
+    this._stopLifecycleHeartbeat();
+    for (const timer of this.departureTimers.values()) clearTimeout(timer);
+    this.departureTimers.clear();
+    for (const p of this.peers.values()) {
+      if (p.disconnectTimer) clearTimeout(p.disconnectTimer);
+      p.pc.close();
+    }
     this.peers.clear();
     this.room?.leave();
     for (const t of this.localStream?.getTracks() || []) t.stop();
+  }
+
+  async leaveIntentionally() {
+    this._markLifecycle("intentional-leave");
+    this._diagnostic("intentional-leave", {
+      subjectId: this.myId || this.participantId,
+      details: { local: true },
+      persist: true,
+    });
+    try {
+      await Promise.race([
+        this.room?.announceLeave?.(),
+        new Promise((resolve) => setTimeout(resolve, 300)),
+      ]);
+    } catch { /* presence removal still completes below */ }
+    this.close();
+    this._removeSessionValue(this._playerStateKey());
+    this._removeSessionValue(this._lifecycleKey());
   }
 }
 
@@ -942,71 +1635,120 @@ export async function testTurnConnectivity(roomCode = "ABC234") {
 
 if (typeof window !== "undefined") window.__scTestTurn = testTurnConnectivity;
 
-// Recognition capture: a native-resolution crop centered on the clicked point.
-// Never downscales — a card that fills 1/10th of a playmat frame keeps every
-// pixel the sensor recorded, which is what makes small-card OCR and hashing
-// possible. The clicked point always maps to the crop center (out-of-frame
-// areas pad with black), so downstream code can assume {nx:0.5, ny:0.5}.
-// Takes the sharpest of three frames to dodge motion blur and autofocus hunts.
-export async function captureLocalFrame(stream, nx = 0.5, ny = 0.5) {
-  const track = stream?.getVideoTracks()[0];
-  if (!track) throw new Error("no local video");
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(reader.error || new Error("Could not encode capture"));
+    reader.readAsDataURL(blob);
+  });
+}
+
+function canvasToBlob(canvas, type = "image/jpeg", quality = 0.9) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => blob ? resolve(blob) : reject(new Error("Could not encode camera capture")),
+      type,
+      quality,
+    );
+  });
+}
+
+const captureStateByTrack = new WeakMap();
+
+function getCaptureState(track) {
+  if (captureStateByTrack.has(track)) return captureStateByTrack.get(track);
   const video = document.createElement("video");
   video.srcObject = new MediaStream([track]);
   video.muted = true;
-  await video.play();
-  const w = video.videoWidth, h = video.videoHeight;
+  video.playsInline = true;
+  const state = {
+    video,
+    frames: Array.from({ length: 3 }, () => document.createElement("canvas")),
+    thumb: document.createElement("canvas"),
+    queue: Promise.resolve(),
+  };
+  state.thumb.width = 160;
+  state.thumb.height = 160;
+  track.addEventListener("ended", () => {
+    video.pause();
+    video.srcObject = null;
+  }, { once: true });
+  captureStateByTrack.set(track, state);
+  return state;
+}
+
+function captureSharpness(state, canvas) {
+  const context = state.thumb.getContext("2d", { willReadFrequently: true });
+  context.drawImage(canvas, 0, 0, 160, 160);
+  const d = context.getImageData(0, 0, 160, 160).data;
+  let sum = 0, sumSq = 0, count = 0;
+  for (let y = 1; y < 159; y++) {
+    for (let x = 1; x < 159; x++) {
+      const i = (y * 160 + x) * 4;
+      const g = (d[i] + d[i + 1] + d[i + 2]) / 3;
+      const gx = (d[i + 4] + d[i + 5] + d[i + 6]) / 3 - g;
+      const gy = (d[i + 640] + d[i + 641] + d[i + 642]) / 3 - g;
+      const energy = gx * gx + gy * gy;
+      sum += energy;
+      sumSq += energy * energy;
+      count++;
+    }
+  }
+  const mean = sum / count;
+  return sumSq / count - mean * mean;
+}
+
+async function captureFrameSet(state, nx, ny) {
+  const { video } = state;
+  if (video.paused) await video.play();
+  const w = video.videoWidth;
+  const h = video.videoHeight;
   if (!w || !h) throw new Error("camera frame is not ready");
-  // The crop is clamped inside the frame (see cropGeometry): a card held beside
-  // the head puts the click near a frame border, and an unclamped crop filled
-  // 30%+ of the capture with black — throwing away real pixels and skewing the
-  // color signature, gradient score and hash toward a featureless region.
   const geom = cropGeometry(w, h, nx, ny);
   const { side } = geom;
+  let best = null;
+  let bestScore = -Infinity;
 
-  const grab = () => {
-    const canvas = document.createElement("canvas");
-    canvas.width = side; canvas.height = side;
-    const ctx = canvas.getContext("2d");
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, side, side);
-    ctx.drawImage(video, geom.sx, geom.sy, side, side, 0, 0, side, side);
-    return canvas;
-  };
-  const sharpness = (canvas) => {
-    // Variance of a simple gradient on a small gray thumbnail — enough to
-    // rank motion blur without noticeable cost.
-    const t = document.createElement("canvas");
-    t.width = 160; t.height = 160;
-    t.getContext("2d").drawImage(canvas, 0, 0, 160, 160);
-    const d = t.getContext("2d").getImageData(0, 0, 160, 160).data;
-    let sum = 0, sumSq = 0, count = 0;
-    for (let y = 1; y < 159; y++) {
-      for (let x = 1; x < 159; x++) {
-        const i = (y * 160 + x) * 4;
-        const g = (d[i] + d[i + 1] + d[i + 2]) / 3;
-        const gx = (d[i + 4] + d[i + 5] + d[i + 6]) / 3 - g;
-        const gy = (d[i + 640] + d[i + 641] + d[i + 642]) / 3 - g;
-        const e = gx * gx + gy * gy;
-        sum += e; sumSq += e * e; count++;
-      }
+  for (let i = 0; i < state.frames.length; i++) {
+    if (i > 0) await new Promise((resolve) => setTimeout(resolve, 120));
+    const canvas = state.frames[i];
+    if (canvas.width !== side) canvas.width = side;
+    if (canvas.height !== side) canvas.height = side;
+    const context = canvas.getContext("2d");
+    context.fillStyle = "#000";
+    context.fillRect(0, 0, side, side);
+    context.drawImage(video, geom.sx, geom.sy, side, side, 0, 0, side, side);
+    const score = captureSharpness(state, canvas);
+    if (score > bestScore) {
+      best = canvas;
+      bestScore = score;
     }
-    const mean = sum / count;
-    return sumSq / count - mean * mean;
-  };
-
-  let best = grab(), bestScore = sharpness(best);
-  for (let i = 0; i < 2; i++) {
-    await new Promise((r) => setTimeout(r, 120));
-    const next = grab();
-    const score = sharpness(next);
-    if (score > bestScore) { best = next; bestScore = score; }
   }
-  video.pause(); video.srcObject = null;
-  // px/py is where the click landed *inside* the crop. It is 0.5,0.5 unless the
-  // crop was clamped away from a frame edge, in which case the caller needs the
-  // real position so downstream crops still center on the card.
-  return { url: best.toDataURL("image/jpeg", 0.9), px: geom.px, py: geom.py };
+
+  const blob = await canvasToBlob(best);
+  return {
+    blob,
+    url: URL.createObjectURL(blob),
+    bytes: blob.size,
+    px: geom.px,
+    py: geom.py,
+  };
+}
+
+// Recognition capture: a native-resolution crop centered on the clicked point.
+// Never downscales — a card that fills 1/10th of a playmat frame keeps every
+// pixel the sensor recorded, which is what makes small-card OCR and hashing
+// possible. Edge crops clamp inside the sensor and return the click's actual
+// crop coordinate. Reused canvases take the sharpest of three frames to dodge
+// motion blur/autofocus hunts, then encode asynchronously to avoid UI stalls.
+export async function captureLocalFrame(stream, nx = 0.5, ny = 0.5) {
+  const track = stream?.getVideoTracks()[0];
+  if (!track) throw new Error("no local video");
+  const state = getCaptureState(track);
+  const next = state.queue.then(() => captureFrameSet(state, nx, ny));
+  state.queue = next.catch(() => {});
+  return next;
 }
 
 // Map a click on a fitted video to normalized source coordinates. A local 180°

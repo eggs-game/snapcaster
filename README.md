@@ -125,7 +125,7 @@ room-wide chat broadcast.
 
 ## Notes
 
-- **Fast at full scale:** the main thread loads only a 0.67 MB name dictionary; the recognition worker keeps the hash index resident and scans it with a coarse-to-fine strategy rather than brute-forcing all 110,524 printings for every candidate crop. See [docs/recognition.md](docs/recognition.md).
+- **Fast at full scale:** the main thread loads only a 0.67 MB name dictionary; the recognition worker keeps the hash index resident and scans it with a coarse-to-fine strategy rather than brute-forcing all 110,592 printings for every candidate crop. See [docs/recognition.md](docs/recognition.md).
 - **Strict NATs and VPNs:** WebRTC prefers a direct peer connection, then falls
   back to Cloudflare Realtime TURN over UDP, TCP, or TLS/443. Cloudflare's TURN
   key stays in the server-side Vercel function; only expiring credentials reach

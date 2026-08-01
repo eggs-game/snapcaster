@@ -34,6 +34,8 @@ jobs:
         run: node scripts/test_metadata_evidence.mjs
       - name: Verify account and social authorization guards
         run: python3 scripts/test_account_security.py
+      - name: Verify outgoing video quality policy
+        run: node scripts/test_video_quality.mjs
 
   build:
     runs-on: ubuntu-latest

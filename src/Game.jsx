@@ -1,16 +1,49 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import {
   Check, Crown, Dices, FlipVertical2, LogOut, Mic, MicOff, Minus, MoreVertical, PanelLeft, Plus, Shuffle, SkipForward,
   Swords, Video, VideoOff, X,
 } from "lucide-react";
 import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
 import LocalMockGameConnection from "./LocalMockGameConnection.js";
-import { labelRecognitionReport, saveRecognitionReport } from "./signaling.js";
-import { getCommanderPairing, suggestCardNames, suggestCommanderPartners } from "./cardSearch.js";
-import { identify as identifyCard, preload as preloadRecognition } from "./recognition/matcher.js";
+import { labelRecognitionReport, saveRecognitionReport, saveRecognitionTiming } from "./signaling.js";
+import {
+  fetchCardByName,
+  getCommanderPairing,
+  suggestCardNames,
+  suggestCommanderPartners,
+} from "./cardSearch.js";
+import {
+  identify as identifyCard,
+  preload as preloadRecognition,
+  preloadOCR,
+} from "./recognition/matcher.js";
+import {
+  isReusableRecognitionMatch,
+  nearbyRecognitionHints,
+  normalizeRecognitionHint,
+  rememberRecognitionHint,
+} from "./recognitionHints.js";
 import CardSidebar, { cardFromScryfall, formatDiceResult, formatDiceSides } from "./CardSidebar.jsx";
 import { getSoundEffect, playChatNotification, playSoundEffect, playTurnNotification } from "./soundEffects.js";
 import { getCounterTextColor, getVideoCounterType, normalizeVideoCounter } from "./videoCounters.js";
+import {
+  DEFAULT_OUTGOING_VIDEO_QUALITY,
+  normalizeOutgoingVideoQuality,
+  RECEIVER_VIDEO_QUALITY_VALUES,
+  resolveAdaptiveReceiverQuality,
+} from "./videoQuality.js";
+
+function shallowNonFunctionPropsEqual(previous, next) {
+  const keys = new Set([...Object.keys(previous), ...Object.keys(next)]);
+  for (const key of keys) {
+    if (typeof previous[key] === "function" && typeof next[key] === "function") continue;
+    if (!Object.is(previous[key], next[key])) return false;
+  }
+  return true;
+}
+
+const StableCardSidebar = React.memo(CardSidebar, shallowNonFunctionPropsEqual);
+
 import GameManagement from "./GameManagement.jsx";
 import ReviewPrompt from "./ReviewPrompt.jsx";
 import { getSocialDashboard } from "./account.js";
@@ -79,6 +112,11 @@ export default function Game({ session, account, onLeave, themePreference, onThe
   const diceOverlayTimerRef = useRef(null);
   const recentSoundBySenderRef = useRef({});
   const myIdRef = useRef(null);
+  const recognitionHintsRef = useRef([]);
+  const activeRecognitionRef = useRef(null);
+  const latestRecognitionRequestRef = useRef(0);
+  const captureObjectUrlsRef = useRef([]);
+  const requestedVideoQualityRef = useRef(new Map());
   const chatNotificationsEnabledRef = useRef(true);
   const turnNotificationsEnabledRef = useRef(true);
   const membershipRefreshAtRef = useRef(0);
@@ -95,12 +133,13 @@ export default function Game({ session, account, onLeave, themePreference, onThe
   const [colors, setColors] = useState(() => ({ ...(session.mockGame?.colors || {}) })); // id -> hex color
   const [mutedPlayers, setMutedPlayers] = useState({}); // id -> bool
   const [cameraEnabledByPlayer, setCameraEnabledByPlayer] = useState({}); // id -> bool
+  const [reconnectingPlayers, setReconnectingPlayers] = useState({}); // id -> bool
   const [streams, setStreams] = useState({});
   const [videoQualityByPlayer, setVideoQualityByPlayer] = useState({});
   const [localStream, setLocalStream] = useState(null);
   const [lobbyName, setLobbyName] = useState(() => session.lobbyName || "");
   const [error, setError] = useState(null);
-  const [micOn, setMicOn] = useState(true);
+  const [micOn, setMicOn] = useState(!session.startMuted);
   const [camOn, setCamOn] = useState(true);
   const [lookups, setLookups] = useState([]);
   const [chatMessages, setChatMessages] = useState(() => [...(session.mockGame?.chat || [])]);
@@ -138,6 +177,13 @@ export default function Game({ session, account, onLeave, themePreference, onThe
       return "cover";
     }
   });
+  const [outgoingVideoQuality, setOutgoingVideoQuality] = useState(() => {
+    try {
+      return normalizeOutgoingVideoQuality(localStorage.getItem("snapcast-outgoing-video-quality"));
+    } catch {
+      return DEFAULT_OUTGOING_VIDEO_QUALITY;
+    }
+  });
   const [heroPlayerId, setHeroPlayerId] = useState("");
   const [current, setCurrent] = useState(null);
   const [flash, setFlash] = useState(null);
@@ -146,7 +192,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
   const [sidebarClosing, setSidebarClosing] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [edgeTabY, setEdgeTabY] = useState(null);
-  const [sidebarView, setSidebarView] = useState("lookup"); // "lookup" | "settings"
+  const [sidebarView, setSidebarView] = useState("lookup"); // lookup | settings | counters | invite | dice | management
   const [linkCopied, setLinkCopied] = useState(false);
   const [visitorLinkCopied, setVisitorLinkCopied] = useState(false);
   const [gameCodeCopied, setGameCodeCopied] = useState(false);
@@ -455,11 +501,38 @@ export default function Game({ session, account, onLeave, themePreference, onThe
         setRoster(nextRoster);
       },
       onRemoteStream: (id, stream) => setStreams((s) => ({ ...s, [id]: stream })),
+      onPeerReconnecting: (id, reconnecting) => setReconnectingPlayers((values) => ({
+        ...values,
+        [id]: reconnecting,
+      })),
       onPeerLeft: (id) => {
         setStreams((s) => { const c = { ...s }; delete c[id]; return c; });
         setVideoCounters((counters) => { const next = { ...counters }; delete next[id]; return next; });
         setCameraEnabledByPlayer((values) => { const next = { ...values }; delete next[id]; return next; });
         setMutedPlayers((values) => { const next = { ...values }; delete next[id]; return next; });
+        setReconnectingPlayers((values) => { const next = { ...values }; delete next[id]; return next; });
+      },
+      onRestoredState: (state) => {
+        const id = state.id;
+        if (!id) return;
+        if (state.life != null) {
+          livesRef.current = { ...livesRef.current, [id]: state.life };
+          setLives((values) => ({ ...values, [id]: state.life }));
+        }
+        if (state.commander != null) setCommanders((values) => ({ ...values, [id]: state.commander }));
+        if (state.commanderPartner != null) setCommanderPartners((values) => ({ ...values, [id]: state.commanderPartner }));
+        if (state.commanderPartnerType != null) setCommanderPartnerTypes((values) => ({ ...values, [id]: state.commanderPartnerType }));
+        if (state.color) setColors((values) => ({ ...values, [id]: state.color }));
+        setMutedPlayers((values) => ({ ...values, [id]: !!state.muted }));
+        setCameraEnabledByPlayer((values) => ({ ...values, [id]: state.cameraEnabled !== false }));
+        setMicOn(!state.muted);
+        if (!isVisitor) setCamOn(state.cameraEnabled !== false);
+        if (state.poison != null) setPoisonCounters((values) => ({ ...values, [id]: state.poison }));
+        if (state.commanderDamage) {
+          commanderDamageRef.current = { ...commanderDamageRef.current, [id]: state.commanderDamage };
+          setCommanderDamage((values) => ({ ...values, [id]: state.commanderDamage }));
+        }
+        if (state.videoCounters) setVideoCounters((values) => ({ ...values, [id]: state.videoCounters }));
       },
       onLife: (id, life) => {
         const previous = livesRef.current[id];
@@ -490,6 +563,9 @@ export default function Game({ session, account, onLeave, themePreference, onThe
           card: msg.card,
           at,
         }]);
+      },
+      onRecognitionHint: (hint) => {
+        recognitionHintsRef.current = rememberRecognitionHint(recognitionHintsRef.current, hint);
       },
       onChat: (message) => {
         const soundId = acceptIncomingSound(message.from, message.soundId);
@@ -598,8 +674,11 @@ export default function Game({ session, account, onLeave, themePreference, onThe
           audioOnly: isVisitor,
           videoDeviceId: session.videoDeviceId,
           audioDeviceId: session.audioDeviceId,
+          startMuted: !!session.startMuted,
+          outgoingVideoQuality,
         });
         setLocalStream(stream);
+        setMicOn(!conn.muted);
         setVideoDeviceId(conn.videoDeviceId);
         setAudioDeviceId(conn.audioDeviceId);
         const devices = await conn.listDevices();
@@ -609,12 +688,20 @@ export default function Game({ session, account, onLeave, themePreference, onThe
           session.code,
           session.name,
           isVisitor ? "visitor" : "player",
-          session.membershipId,
-          session.profileId,
-          realtimeEpochRef.current,
+          {
+            participantId: session.participantId,
+            joinedAt: session.joinedAt,
+            membershipId: session.membershipId,
+            profileId: session.profileId,
+            realtimeEpoch: realtimeEpochRef.current,
+          },
         );
         myIdRef.current = id;
         setMyId(id);
+        if (!isVisitor && session.videoFlipped) {
+          setFlippedVideos((values) => ({ ...values, [id]: true }));
+        }
+        setMutedPlayers((values) => ({ ...values, [id]: conn.muted }));
         if (!isVisitor && session.lobbyName) {
           conn.setLobbyName(session.lobbyName);
           setLobbyName(session.lobbyName);
@@ -639,7 +726,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
       myIdRef.current = null;
       conn.close();
     };
-  }, [isVisitor, markPendingCommanderDamageChat, notifyIncomingChat, queueLifeChat, session.code, session.name, session.videoDeviceId, session.audioDeviceId, updateActivePlayer]);
+  }, [isVisitor, markPendingCommanderDamageChat, notifyIncomingChat, queueLifeChat, session.audioDeviceId, session.code, session.joinedAt, session.name, session.participantId, session.startMuted, session.videoDeviceId, session.videoFlipped, updateActivePlayer]);
 
   // A readiness prompt is deliberately ephemeral. The timer is local so a
   // lost broadcast cannot leave a stale prompt on one player's screen.
@@ -668,6 +755,17 @@ export default function Game({ session, account, onLeave, themePreference, onThe
     const t = setTimeout(() => setScanNotice(null), 2600);
     return () => clearTimeout(t);
   }, [scanNotice]);
+
+  useEffect(() => () => {
+    for (const url of captureObjectUrlsRef.current) URL.revokeObjectURL(url);
+    captureObjectUrlsRef.current = [];
+  }, []);
+
+  useEffect(() => {
+    if (!myId) return undefined;
+    const timer = setTimeout(() => preloadOCR(), 5000);
+    return () => clearTimeout(timer);
+  }, [myId]);
 
   // The first seated player establishes the opening turn. If the active
   // player leaves, the first remaining seat establishes the replacement.
@@ -702,6 +800,27 @@ export default function Game({ session, account, onLeave, themePreference, onThe
     setSidebarOpen(true);
   }, []);
 
+  const persistRecognitionTiming = useCallback((timing, subjectId) => {
+    // This upload is deliberately detached from the lookup result. Telemetry
+    // must never make a player wait longer for a card or turn a successful
+    // local recognition into a visible Supabase error.
+    void saveRecognitionTiming({
+      id: crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      roomCode: session.code,
+      observerId: myId,
+      subjectId,
+      role: session.role,
+      build: globalThis.__SNAP_BUILD || "",
+      outgoingVideoQuality,
+      visibilityState: typeof document === "undefined" ? "" : document.visibilityState,
+      browserOnline: typeof navigator === "undefined" ? true : navigator.onLine !== false,
+      ...timing,
+    }).catch(() => {
+      // Timing telemetry is diagnostic-only and may be unavailable when the
+      // browser is offline or before its database migration has been applied.
+    });
+  }, [myId, outgoingVideoQuality, session.code, session.role]);
+
   // Flipped tiles pass reflected coordinates for capture while the click flash
   // stays where the player actually clicked.
   const identify = useCallback(async (tileId, videoEl, clientX, clientY, flipped = false) => {
@@ -712,19 +831,93 @@ export default function Game({ session, account, onLeave, themePreference, onThe
     setFlash({ tileId, x: clientX - rect.left, y: clientY - rect.top });
     setTimeout(() => setFlash(null), 600);
     openCardPanel();
+    const active = activeRecognitionRef.current;
+    if (active && active.tileId === tileId) {
+      const dx = active.nx - pt.nx;
+      const dy = active.ny - pt.ny;
+      // A second click on the same spot while its lookup is already running is
+      // almost always impatience, not a request for another full worker job.
+      if (dx * dx + dy * dy < 0.0016) return;
+    }
+    const requestId = ++latestRecognitionRequestRef.current;
+    activeRecognitionRef.current = { requestId, tileId, nx: pt.nx, ny: pt.ny };
+    const scanStartedAt = performance.now();
+    let captureStartedAt = 0;
+    let recognitionStartedAt = 0;
+    let captureMs = 0;
+    let captureChars = 0;
+    let phase = "capture";
     setCurrent({ loading: true });
     try {
       // Captures are native-resolution crops around the clicked point (both
       // local and remote). The crop is clamped to stay inside the camera frame,
       // so the click is at the crop center only when it was far enough from an
       // edge — cap.px/py reports where it actually landed.
+      captureStartedAt = performance.now();
       const cap = tileId === myId
         ? await captureLocalFrame(conn.localStream, pt.nx, pt.ny)
         : await conn.requestRemoteCapture(tileId, pt.nx, pt.ny);
-      const data = await identifyCard(cap.url, {
+      if (String(cap.url || "").startsWith("blob:")) {
+        captureObjectUrlsRef.current.push(cap.url);
+        while (captureObjectUrlsRef.current.length > 32) {
+          URL.revokeObjectURL(captureObjectUrlsRef.current.shift());
+        }
+      }
+      captureMs = Math.round(performance.now() - captureStartedAt);
+      captureChars = Number(cap.bytes) || String(cap.url || "").length;
+      phase = "recognition";
+      recognitionStartedAt = performance.now();
+      const hints = nearbyRecognitionHints(
+        recognitionHintsRef.current,
+        tileId,
+        pt.nx,
+        pt.ny,
+      );
+      const data = await identifyCard(cap.blob || cap.url, {
         nx: cap.px ?? 0.5,
         ny: cap.py ?? 0.5,
+      }, {
+        hints,
       });
+      const recognitionMs = Math.round(performance.now() - recognitionStartedAt);
+      const timing = {
+        at: Date.now(),
+        remote: tileId !== myId,
+        captureMs,
+        recognitionMs,
+        totalMs: Math.round(performance.now() - scanStartedAt),
+        stages: data.stage_ms || {},
+        candidatesTried: data.candidates_tried || 0,
+        isolationCandidates: data.isolation_candidates || 0,
+        hintHit: !!data.hint_hit,
+      };
+      globalThis.__SNAP_RECOGNITION_TIMINGS = [
+        ...(globalThis.__SNAP_RECOGNITION_TIMINGS || []).slice(-49),
+        timing,
+      ];
+      persistRecognitionTiming({
+        ...timing,
+        outcome: data.matches?.length ? "matched" : "no-match",
+        captureChars,
+      }, tileId);
+      const top = data.matches?.[0];
+      if (isReusableRecognitionMatch(top)) {
+        const hint = normalizeRecognitionHint({
+          ownerId: tileId,
+          nx: pt.nx,
+          ny: pt.ny,
+          at: Date.now(),
+          card: top,
+        });
+        if (hint) {
+          recognitionHintsRef.current = rememberRecognitionHint(recognitionHintsRef.current, hint);
+          conn.announceRecognitionHint(hint);
+        }
+      }
+      // A newer click supersedes this result. Keep its timing and reusable
+      // hint, but never let an older queued scan replace the card the player
+      // most recently asked for.
+      if (requestId !== latestRecognitionRequestRef.current) return;
       setCurrent({
         matches: data.matches || [],
         cardFound: data.card_found,
@@ -743,6 +936,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
         metadataVetoed: data.metadata_vetoed,
         metadataConflictAll: data.metadata_conflict_all,
         metadataError: data.metadata_error,
+        scanTiming: timing,
         captureImage: cap.url,
         captureContext: {
           tileId,
@@ -756,15 +950,51 @@ export default function Game({ session, account, onLeave, themePreference, onThe
           return s?.width ? `${s.width}×${s.height}` : "";
         })(),
       });
-      const top = data.matches?.[0];
       if (top && (top.identified_by === "ocr-title" || top.distance <= 170)) {
-        shareCard(top);
+        // Recognition is a local inspection action. Cards enter Chat only
+        // through the explicit Share card control in the Cards panel.
         setLookups((l) => [...l.slice(-11), { by: session.name, card: top, at: Date.now() }]);
       }
     } catch (e) {
-      setCurrent({ error: String(e.message || e) });
+      if (e?.code === "RECOGNITION_SUPERSEDED") return;
+      const now = performance.now();
+      if (phase === "capture" && captureStartedAt) {
+        captureMs = Math.round(now - captureStartedAt);
+      }
+      const recognitionMs = phase === "recognition" && recognitionStartedAt
+        ? Math.round(now - recognitionStartedAt)
+        : 0;
+      const message = String(e.message || e);
+      const outcome = phase === "capture"
+        ? (message === "Capture timed out" ? "capture-timeout" : "capture-error")
+        : (message.startsWith("Card recognition timed out")
+          ? "recognition-timeout"
+          : "recognition-error");
+      const timing = {
+        at: Date.now(),
+        remote: tileId !== myId,
+        captureMs,
+        recognitionMs,
+        totalMs: Math.round(now - scanStartedAt),
+        error: message,
+      };
+      globalThis.__SNAP_RECOGNITION_TIMINGS = [
+        ...(globalThis.__SNAP_RECOGNITION_TIMINGS || []).slice(-49),
+        timing,
+      ];
+      persistRecognitionTiming({
+        ...timing,
+        error: undefined,
+        outcome,
+        captureChars,
+      }, tileId);
+      if (requestId === latestRecognitionRequestRef.current) setCurrent({ error: message });
+    } finally {
+      if (activeRecognitionRef.current?.requestId === requestId) {
+        activeRecognitionRef.current = null;
+      }
     }
-  }, [myId, openCardPanel, session.name, shareCard]);
+  }, [myId, openCardPanel, persistRecognitionTiming, session.name]);
 
   // Clicking an opponent's commander name does a plain text lookup (same
   // Scryfall path as the sidebar search box) rather than the visual capture
@@ -775,9 +1005,9 @@ export default function Game({ session, account, onLeave, themePreference, onThe
     openCardPanel();
     setCurrent({ loading: true });
     try {
-      const response = await fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(cardName)}`);
-      if (!response.ok) throw new Error("Card not found");
-      const card = cardFromScryfall(await response.json());
+      const result = await fetchCardByName(cardName);
+      if (!result) throw new Error("Card not found");
+      const card = cardFromScryfall(result);
       setCurrent({ matches: [card] });
       setLookups((l) => [...l.slice(-11), { by: session.name, card, at: Date.now() }]);
     } catch (e) {
@@ -994,7 +1224,17 @@ export default function Game({ session, account, onLeave, themePreference, onThe
     if (!playerIds.length) return;
     const currentId = activePlayerId || playerIds[0];
     if (currentId !== myId) return;
-    const nextId = playerIds[(playerIds.indexOf(currentId) + 1) % playerIds.length];
+    const currentIndex = Math.max(0, playerIds.indexOf(currentId));
+    let nextId = "";
+    for (let offset = 1; offset <= playerIds.length; offset++) {
+      const candidateId = playerIds[(currentIndex + offset) % playerIds.length];
+      const candidateLife = livesRef.current[candidateId] ?? 40;
+      if (candidateLife > 0) {
+        nextId = candidateId;
+        break;
+      }
+    }
+    if (!nextId) return;
     const nextMembershipId = roster.find((member) => member.id === nextId)?.membershipId;
     if (durableSessionId && nextMembershipId) {
       recordGameTurn({
@@ -1303,9 +1543,22 @@ export default function Game({ session, account, onLeave, themePreference, onThe
   };
 
   const chooseVideoQuality = useCallback((playerId, quality) => {
-    if (!playerId || !["auto", "720p", "1080p"].includes(quality)) return;
+    if (!playerId || !RECEIVER_VIDEO_QUALITY_VALUES.includes(quality)) return;
     setVideoQualityByPlayer((values) => ({ ...values, [playerId]: quality }));
-    connRef.current?.requestVideoQuality(playerId, quality);
+  }, []);
+
+  const chooseOutgoingVideoQuality = useCallback(async (quality) => {
+    const next = normalizeOutgoingVideoQuality(quality);
+    setOutgoingVideoQuality(next);
+    try {
+      localStorage.setItem("snapcast-outgoing-video-quality", next);
+    } catch { /* preference still applies for this session */ }
+    setDeviceError("");
+    try {
+      await connRef.current?.setOutgoingVideoQuality(next);
+    } catch (qualityError) {
+      setDeviceError(String(qualityError?.message || qualityError));
+    }
   }, []);
 
   const makeJoinLink = (visitor = false) => {
@@ -1344,6 +1597,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
 
   const leaveExplicitly = async () => {
     try {
+      await connRef.current?.leaveIntentionally?.();
       if (!isLocalMock) {
         await leaveGameRoom({
           membershipId: session.membershipId,
@@ -1450,23 +1704,53 @@ export default function Game({ session, account, onLeave, themePreference, onThe
     setGameManagementOpen(false);
   };
 
-  if (error) {
-    return (
-      <div className="lobby">
-        <h2>Something went wrong</h2>
-        <p className="error">{error}</p>
-        <button onClick={leaveExplicitly}>Back to lobby</button>
-      </div>
-    );
-  }
-
   const players = roster.filter((p) => p.role !== "visitor").slice(0, 6);
   const visitors = roster.filter((p) => p.role === "visitor").map((visitor) => ({
     ...visitor,
     roomMuted: Boolean(roomMutedMemberships[visitor.membershipId]),
   }));
   const resolvedActivePlayerId = activePlayerId || players[0]?.id || "";
-  const counterPlayers = [...players]
+
+  useEffect(() => {
+    const remotePlayers = roster.filter((member) => (
+      member.role !== "visitor" && member.id !== myId
+    ));
+    const playerIds = roster.filter((member) => member.role !== "visitor").map((member) => member.id);
+    const activeId = activePlayerId || playerIds[0] || "";
+    const heroId = playerIds.includes(heroPlayerId) ? heroPlayerId : activeId;
+    const applyQuality = () => {
+      const liveIds = new Set(remotePlayers.map((player) => player.id));
+      for (const id of requestedVideoQualityRef.current.keys()) {
+        if (!liveIds.has(id)) requestedVideoQualityRef.current.delete(id);
+      }
+      for (const player of remotePlayers) {
+        const preferred = videoQualityByPlayer[player.id] || "auto";
+        const isPrimary = videoLayout === "tiles"
+          || (videoLayout === "follow" ? player.id === activeId : player.id === heroId);
+        const quality = resolveAdaptiveReceiverQuality({
+          preferred,
+          layout: videoLayout,
+          isPrimary,
+          hidden: document.hidden,
+        });
+        const stream = streams[player.id] || null;
+        const previous = requestedVideoQualityRef.current.get(player.id);
+        if (previous?.quality === quality && previous?.stream === stream) continue;
+        if (connRef.current?.requestVideoQuality(player.id, quality)) {
+          requestedVideoQualityRef.current.set(player.id, { quality, stream });
+        }
+      }
+    };
+    applyQuality();
+    document.addEventListener("visibilitychange", applyQuality);
+    return () => document.removeEventListener("visibilitychange", applyQuality);
+  }, [activePlayerId, heroPlayerId, myId, roster, streams, videoLayout, videoQualityByPlayer]);
+
+  const sidebarChatRecipients = useMemo(
+    () => roster.filter((member) => member.id !== myId),
+    [myId, roster],
+  );
+  const counterPlayers = useMemo(() => [...players]
     .sort((a, b) => Number(b.id === myId) - Number(a.id === myId))
     .map((player, index) => ({
       ...player,
@@ -1477,28 +1761,40 @@ export default function Game({ session, account, onLeave, themePreference, onThe
       commanderPartnerType: commanderPartnerTypes[player.id] || "",
       poison: poisonCounters[player.id] || 0,
       commanderDamage: commanderDamage[player.id] || {},
-    }));
-  // Local-only preview for reviewing the Commander damage layout with a full
-  // table. It is not included in the production build.
-  const counterPreviewPlayers = import.meta.env.DEV && counterPlayers.length === 1
-    ? [
-      {
-        ...counterPlayers[0],
-        // Seed the local visual preview, but let any adjustment replace its
-        // sample value rather than resetting after every render.
-        commanderDamage: {
-          "preview-maya": 6,
-          "p:preview-maya": 4,
-          "preview-drew": 12,
-          "preview-sam": 0,
-          ...counterPlayers[0].commanderDamage,
+    })), [
+    colors,
+    commanderDamage,
+    commanderPartnerTypes,
+    commanderPartners,
+    commanders,
+    myId,
+    poisonCounters,
+    roster,
+  ]);
+  const counterPreviewPlayers = useMemo(() => (
+    import.meta.env.DEV && counterPlayers.length === 1
+      ? [
+        {
+          ...counterPlayers[0],
+          commanderDamage: {
+            "preview-maya": 6,
+            "p:preview-maya": 4,
+            "preview-drew": 12,
+            "preview-sam": 0,
+            ...counterPlayers[0].commanderDamage,
+          },
         },
-      },
-      { id: "preview-maya", name: "Maya", color: TILE_COLORS[1], commander: "Atraxa, Praetors’ Voice", commanderPartner: "Tymna the Weaver", commanderPartnerType: "Legendary Creature — Human Cleric", poison: 0, commanderDamage: {}, isMe: false },
-      { id: "preview-drew", name: "Drew", color: TILE_COLORS[2], commander: "The Ur-Dragon", commanderPartner: "Feywild Visitor", commanderPartnerType: "Legendary Enchantment — Background", poison: 2, commanderDamage: {}, isMe: false },
-      { id: "preview-sam", name: "Sam", color: TILE_COLORS[3], commander: "Muldrotha, the Gravetide", poison: 0, commanderDamage: {}, isMe: false },
-    ]
-    : counterPlayers;
+        { id: "preview-maya", name: "Maya", color: TILE_COLORS[1], commander: "Atraxa, Praetors’ Voice", commanderPartner: "Tymna the Weaver", commanderPartnerType: "Legendary Creature — Human Cleric", poison: 0, commanderDamage: {}, isMe: false },
+        { id: "preview-drew", name: "Drew", color: TILE_COLORS[2], commander: "The Ur-Dragon", commanderPartner: "Feywild Visitor", commanderPartnerType: "Legendary Enchantment — Background", poison: 2, commanderDamage: {}, isMe: false },
+        { id: "preview-sam", name: "Sam", color: TILE_COLORS[3], commander: "Muldrotha, the Gravetide", poison: 0, commanderDamage: {}, isMe: false },
+      ]
+      : counterPlayers
+  ), [counterPlayers]);
+  const sidebarChatNameColors = useMemo(
+    () => Object.fromEntries(counterPlayers.map((player) => [player.id, player.color])),
+    [counterPlayers],
+  );
+
   const orderedPlayers = [...players].sort((a, b) => {
     const ai = gridOrder.indexOf(a.id);
     const bi = gridOrder.indexOf(b.id);
@@ -1517,6 +1813,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
     stream: p.id === myId ? localStream : streams[p.id],
     isMe: p.id === myId,
     activeTurn: p.id === resolvedActivePlayerId,
+    reconnecting: !!reconnectingPlayers[p.id],
   }));
   const displayedSeatLimit = Math.max(2, Math.min(6, Number(session.seatLimit) || 4));
   while (tiles.length < displayedSeatLimit) tiles.push({ id: `empty-${tiles.length}`, empty: true });
@@ -1530,6 +1827,28 @@ export default function Game({ session, account, onLeave, themePreference, onThe
       ? [heroTile, ...tiles.filter((tile) => tile.id !== heroTile.id)]
       : tiles;
   const myColor = colors[myId] || TILE_COLORS[Math.max(0, players.findIndex((p) => p.id === myId))] || TILE_COLORS[0];
+  const managementParticipants = roster.map((participant, index) => ({
+    ...participant,
+    isMe: participant.id === myId,
+    color: participant.role === "visitor"
+      ? "#a5a7ad"
+      : colors[participant.id] || TILE_COLORS[index % TILE_COLORS.length],
+    commander: commanders[participant.id] || "",
+    commanderPartner: commanderPartners[participant.id] || "",
+    muted: !!mutedPlayers[participant.id],
+    cameraOn: participant.role !== "visitor" && cameraEnabledByPlayer[participant.id] !== false,
+    reconnecting: !!reconnectingPlayers[participant.id],
+  }));
+
+  if (error) {
+    return (
+      <div className="lobby">
+        <h2>Something went wrong</h2>
+        <p className="error">{error}</p>
+        <button onClick={leaveExplicitly}>Back to lobby</button>
+      </div>
+    );
+  }
 
   return (
     <div className="game">
@@ -1545,7 +1864,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
         ))}
 
       <div className="main">
-        <CardSidebar
+        <StableCardSidebar
             current={current}
             lookups={lookups}
             recognitionReports={recognitionReports}
@@ -1553,8 +1872,9 @@ export default function Game({ session, account, onLeave, themePreference, onThe
             onUpdateRecognitionReport={updateRecognitionReport}
             chatMessages={chatMessages}
             currentUserId={myId}
-            chatRecipients={roster.filter((member) => member.id !== myId)}
-            chatNameColors={Object.fromEntries(tiles.filter((tile) => !tile.empty).map((tile) => [tile.id, tile.color]))}
+            chatRecipients={sidebarChatRecipients}
+            chatParticipants={roster}
+            chatNameColors={sidebarChatNameColors}
             onSendChat={sendChat}
             soundCooldownUntil={soundCooldownUntil}
             onPreviewSound={(soundId, onError) => {
@@ -1611,6 +1931,8 @@ export default function Game({ session, account, onLeave, themePreference, onThe
             onVideoLayoutChange={chooseVideoLayout}
             videoFit={videoFit}
             onVideoFitChange={chooseVideoFit}
+            outgoingVideoQuality={outgoingVideoQuality}
+            onOutgoingVideoQualityChange={chooseOutgoingVideoQuality}
             counterPlayers={counterPreviewPlayers}
             onChangePoison={changePoison}
             onChangeCommanderDamage={changeCommanderDamage}
@@ -1630,6 +1952,9 @@ export default function Game({ session, account, onLeave, themePreference, onThe
             onCopyGameCode={copyGameCode}
             lobbyName={lobbyName || "Untitled game"}
             onRenameLobby={chooseLobbyName}
+            onLeave={leaveExplicitly}
+            isCreator={!!session.creator}
+            managementParticipants={managementParticipants}
           />
         <div className="video-panel">
           {isGameOwner && activeOwnerToken && (
@@ -1715,26 +2040,11 @@ export default function Game({ session, account, onLeave, themePreference, onThe
                   setSidebarOpen(true);
                 }}
                 aria-label="Open card panel"
-                title="Open card panel"
+                data-tooltip="Open card panel"
+                data-tooltip-pos="right"
               >
                 <PanelLeft size={18} />
               </button>
-            </div>
-          )}
-          {visitors.length > 0 && (
-            <div className="video-visitor-overlay">
-              <div className="visitor-strip" aria-label={`${visitors.length} visitors`}>
-                {visitors.map((visitor) => (
-                  <div
-                    key={visitor.id}
-                    className="visitor-avatar"
-                    title={`${visitor.name}${mutedPlayers[visitor.id] ? " (muted)" : ""}`}
-                  >
-                    {visitor.name.trim().charAt(0).toUpperCase() || "V"}
-                    {mutedPlayers[visitor.id] && <MicOff size={9} className="visitor-muted" />}
-                  </div>
-                ))}
-              </div>
             </div>
           )}
           {diceOverlay && (
@@ -1887,12 +2197,11 @@ function useSpeaking(stream, disabled = false) {
     if (!context) return undefined;
     const source = context.createMediaStreamSource(stream);
     const analyser = context.createAnalyser();
-    analyser.fftSize = 1024;
+    analyser.fftSize = 256;
     analyser.smoothingTimeConstant = 0.35;
     source.connect(analyser);
 
     const samples = new Float32Array(analyser.fftSize);
-    let frame = 0;
     let lastVoiceAt = 0;
     let active = false;
     let noiseFloor = 0.004;
@@ -1916,13 +2225,13 @@ function useSpeaking(stream, disabled = false) {
         active = next;
         setSpeaking(next);
       }
-      frame = requestAnimationFrame(update);
     };
     if (context.state === "suspended") context.resume().catch(() => {});
-    frame = requestAnimationFrame(update);
+    update();
+    const timer = setInterval(update, 66);
 
     return () => {
-      cancelAnimationFrame(frame);
+      clearInterval(timer);
       source.disconnect();
       analyser.disconnect();
     };
@@ -1947,7 +2256,7 @@ function formatVideoResolution(resolution) {
   return `${height}p`;
 }
 
-function VideoTile({ tile, color, seatIndex, seatCount, innerSide, onIdentify, onChooseCommander, onChooseCommanderPartner, savedCommanderDecks, onLookupCommander, onChangeLife, onOpenCounters, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, isReadyCheckActive, readyStatus, onReady, onNotReady, heroRole, onSelectHero, flash, scanNotice, camOn, micOn, onToggleCam, onToggleMic, videoQuality, onVideoQualityChange, videoCounters, counterDragPreview, onStartVideoCounterDrag, onChangeVideoCounter, onRemoveVideoCounter, flipped, onToggleFlip }) {
+const VideoTile = React.memo(function VideoTile({ tile, color, seatIndex, seatCount, innerSide, onIdentify, onChooseCommander, onChooseCommanderPartner, savedCommanderDecks, onLookupCommander, onChangeLife, onOpenCounters, onPassTurn, canRandomizeGrid, onRandomizeGrid, onStartReadyCheck, isReadyCheckActive, readyStatus, onReady, onNotReady, heroRole, onSelectHero, flash, scanNotice, camOn, micOn, onToggleCam, onToggleMic, videoQuality, onVideoQualityChange, videoCounters, counterDragPreview, onStartVideoCounterDrag, onChangeVideoCounter, onRemoveVideoCounter, flipped, onToggleFlip }) {
   // Seats 3 and 4 (the bottom row of a 4-player grid) mirror their banner to
   // the bottom edge and their life badge to the top corner, since those
   // tiles sit upside-down relative to the viewer's side of the table.
@@ -2005,11 +2314,15 @@ function VideoTile({ tile, color, seatIndex, seatCount, innerSide, onIdentify, o
       // to report the dimensions actually decoded by this browser.
       const width = video.videoWidth || Number(settings?.width) || 0;
       const height = video.videoHeight || Number(settings?.height) || 0;
-      setVideoResolution(width && height ? { width, height } : null);
+      setVideoResolution((current) => {
+        if (!width || !height) return current == null ? current : null;
+        if (current?.width === width && current?.height === height) return current;
+        return { width, height };
+      });
     };
     video.addEventListener("loadedmetadata", update);
     video.addEventListener("resize", update);
-    const timer = setInterval(update, 2000);
+    const timer = setInterval(update, 5000);
     update();
     return () => {
       video.removeEventListener("loadedmetadata", update);
@@ -2103,6 +2416,11 @@ function VideoTile({ tile, color, seatIndex, seatCount, innerSide, onIdentify, o
             preview
           />
         )}
+        {tile.reconnecting && (
+          <div className="reconnecting-overlay" role="status">
+            Reconnecting…
+          </div>
+        )}
         {isReadyCheckActive && (
           <div className="ready-check-overlay" role="status">
             <strong>{readyStatus === true ? "Ready" : readyStatus === false ? "Not ready" : tile.isMe ? "Are you ready?" : "Waiting…"}</strong>
@@ -2137,7 +2455,7 @@ function VideoTile({ tile, color, seatIndex, seatCount, innerSide, onIdentify, o
         >
           {tile.isMe && (
             <>
-              <button className="life-btn life-sword-btn" onClick={() => onOpenCounters?.()} aria-label="Add commander damage" data-tooltip="Add commander damage">
+              <button className="life-btn life-sword-btn" onClick={() => onOpenCounters?.()} aria-label="Add commander damage" data-tooltip="Add commander damage" data-tooltip-pos={lifeTooltipPosition}>
                 <Swords size={20} fill="currentColor" />
               </button>
               <span className="life-divider" aria-hidden="true" />
@@ -2190,7 +2508,12 @@ function VideoTile({ tile, color, seatIndex, seatCount, innerSide, onIdentify, o
       </div>
     </div>
   );
-}
+}, (previous, next) => {
+  const { tile: previousTile, ...previousProps } = previous;
+  const { tile: nextTile, ...nextProps } = next;
+  return shallowNonFunctionPropsEqual(previousProps, nextProps)
+    && shallowNonFunctionPropsEqual(previousTile || {}, nextTile || {});
+});
 
 function VideoCounterSticker({ counter, color, editable, preview, onStartDrag, onChange, onRemove }) {
   const type = getVideoCounterType(counter.type);
@@ -2404,18 +2727,12 @@ function CommanderBanner({ tile, onChoose, onChoosePartner, savedCommanderDecks 
     const controller = new AbortController();
     (async () => {
       try {
-        const response = await fetch(`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(name)}`, {
-          signal: controller.signal,
-        });
-        if (!response.ok) return;
-        const card = await response.json();
+        const card = await fetchCardByName(name, { exact: true, signal: controller.signal });
+        if (!card) return;
         const partnerName = tile.commanderPartner?.trim();
-        const partnerResponse = partnerName
-          ? await fetch(`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(partnerName)}`, {
-            signal: controller.signal,
-          })
+        const partner = partnerName
+          ? await fetchCardByName(partnerName, { exact: true, signal: controller.signal })
           : null;
-        const partner = partnerResponse?.ok ? await partnerResponse.json() : null;
         setCommanderCard(card);
         setCommanderColors([...new Set([
           ...(Array.isArray(card.color_identity) ? card.color_identity : []),
@@ -2472,7 +2789,8 @@ function CommanderBanner({ tile, onChoose, onChoosePartner, savedCommanderDecks 
     };
   }, [draft, tile.commander]);
 
-  const playerLabel = `${tile.name}${tile.isMe ? " (you)" : ""}`;
+  const playerName = String(tile.name || "").trim() || (tile.isMe ? "You" : "Player");
+  const playerLabel = `${playerName}${tile.isMe ? " (you)" : ""}`;
   const playerRow = (
     <span className="banner-player-row">
       {tile.muted && !tile.isMe && <MicOff size={18} className="banner-muted" aria-label="Muted" />}
@@ -2513,7 +2831,8 @@ function CommanderBanner({ tile, onChoose, onChoosePartner, savedCommanderDecks 
                 type="button"
                 className="commander-name commander-name-link"
                 onClick={(event) => { event.stopPropagation(); onLookupCommander?.(tile.commander); }}
-                title="Look up this commander"
+                data-tooltip="Look up this commander"
+                data-tooltip-pos={atBottom ? "left-top" : "left-bottom"}
               >
                 {tile.commander}
               </button>
@@ -2524,7 +2843,8 @@ function CommanderBanner({ tile, onChoose, onChoosePartner, savedCommanderDecks 
                     type="button"
                     className="commander-name commander-name-link"
                     onClick={(event) => { event.stopPropagation(); onLookupCommander?.(tile.commanderPartner); }}
-                    title="Look up this partner commander"
+                    data-tooltip="Look up this partner commander"
+                    data-tooltip-pos={atBottom ? "left-top" : "left-bottom"}
                   >
                     {tile.commanderPartner}
                   </button>
@@ -2586,7 +2906,7 @@ function CommanderBanner({ tile, onChoose, onChoosePartner, savedCommanderDecks 
             autoFocus
           />
           {partnerSuggestions.length > 0 && (
-            <ul className="commander-suggest">
+            <ul className={atBottom ? "commander-suggest menu-up" : "commander-suggest"}>
               {partnerSuggestions.map((name, i) => (
                 <li
                   key={name}
@@ -2710,7 +3030,7 @@ function CommanderBanner({ tile, onChoose, onChoosePartner, savedCommanderDecks 
           </ul>
         )}
         {suggestions.length > 0 && (
-          <ul className="commander-suggest">
+          <ul className={atBottom ? "commander-suggest menu-up" : "commander-suggest"}>
             {suggestions.map((name, i) => (
               <li
                 key={name}

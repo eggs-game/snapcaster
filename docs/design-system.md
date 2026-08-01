@@ -115,10 +115,24 @@ app's own themed background (adapts correctly between light/dark mode).
 one exception: it sits on a translucent dark banner overlaid on live
 video, which stays dark regardless of app theme, so it uses a fixed light
 `rgba(255,255,255,0.82)` instead of a theme variable — using a
-theme-aware token there would go invisible in light mode.
+theme-aware token there would go invisible in light mode. Player names in that
+banner follow the same rule at a slightly softer fixed-light opacity; their
+identity must remain readable even when a browser or theme transforms the
+app's normal secondary-text token.
 
 Current examples: `.menu-btn`, `.wrong-card-btn` (thumbs-down report
-button), `.scryfall-link` (arrow-out-of-box link to Scryfall).
+button), `.card-share-btn` (share the active card to Chat with the same
+Lucide MessagesSquare glyph as the Chat rail action), and
+`.scryfall-link` (arrow-out-of-box link to Scryfall). On an identified or
+looked-up card, those actions stay ordered as report, share, then external
+details.
+
+A temporarily disconnected video tile keeps its place in the grid for a
+15-second recovery window. A fixed dark translucent overlay with normal-weight
+“Reconnecting…” copy communicates that the seat is being preserved rather than
+turning it into an empty tile. The Settings panel ends with a full-width
+danger-role **Leave game** button; this is the explicit departure action used
+to distinguish a chosen exit from a connection failure.
 
 Icons in labeled dropdown action rows use the same **16px** visual size, so
 the video options actions (flip, pass turn, shuffle position, and check
@@ -362,6 +376,12 @@ standard 14px operational panel shell. Reports and appeals stay in separate
 responsive columns, with quiet evidence blocks and labeled actions; permanent
 or destructive decisions never use an icon-only control.
 
+Visitor prejoin uses the same 34px, 8px-radius segmented-button treatment as
+other two-choice settings for **Mic on / Join muted**. The selected choice is
+applied to the audio track before WebRTC negotiation begins, avoiding a brief
+live-microphone leak. Visitors retain the normal microphone toggle and device
+picker in Settings after joining.
+
 ## 32px icon buttons
 
 **Any icon-only button larger than 24px and smaller than 40px uses this
@@ -399,6 +419,8 @@ action at the right of every panel header), `.counter-stepper button`
 Life-badge ± buttons use a normal click for a one-point adjustment. Holding
 either button makes repeated five-point adjustments, so common life changes
 stay fast without making a one-point correction awkward.
+Passing the turn keeps the established player order but skips any seat whose
+life total is 0. If no living player remains, the active turn does not move.
 
 The sidebar navigation is a dedicated 48px left rail on the app background;
 the glass panel begins at the scrollable content column without a separator.
@@ -414,12 +436,42 @@ shows no active selection; the selected treatment returns when it is opened.
 
 Rail tooltips use the horizontal `right` anchor so they appear beside the
 icons and expand into the app instead of clipping at the viewport’s left edge.
+Every tooltip has a viewport-aware maximum width and wraps long labels. Triggers
+on the right edge use a right-aligned top/bottom position, bottom-row video
+controls open upward, and top-edge controls open downward; centered defaults
+are reserved for controls with safe space on both sides.
+
+Game creators receive a second rail divider below Settings followed by a
+Lucide Chess Queen action. It opens the **Game management** view, where every
+player and visitor appears in an individual 10px-radius surface tile. Tiles
+show identity and role first, then relevant commander and media-state details;
+visitor tiles omit camera and commander rows that do not apply to them.
+Visitors also receive the Commander damage rail action and can inspect every
+player's commander-damage and poison totals, but all values render as read-only
+text. Dice, life editing, and counter steppers remain player-only.
+
+Card-recognition failures reuse the Cards panel's full dotted placeholder tile
+instead of collapsing to a text error. The miniature outlined card swaps its
+sparkles for a magnifying glass and the message reads **Image lookup failed**;
+when capture evidence exists, a small Help me fix it link opens the wrong-card
+report from inside the placeholder.
+Clicking a card in video always opens the sidebar directly to Cards at the
+start of identification, even when Chat was the previously selected sidebar
+tab or the content panel was collapsed.
+
+The Chat panel header shows a compact 16px people icon and the live room count,
+including players and visitors. Its hover/focus popover is right-aligned to the
+trigger so it expands inward from the panel edge, lists every participant, and
+labels visitors separately without exposing additional controls.
 
 First-use card lookup uses a full-size card tile beneath search: a dashed
 card-outline illustration and a short explanation of where selected or looked-up
 cards will appear. It is replaced as soon as the player has a current or recent
-card result; the Recent section itself is hidden until there is at least one
-recent card.
+card result. While a camera click or text lookup is identifying a card, that
+same full-size dashed placeholder remains in place and changes its message to
+“Identifying…”, so the panel does not collapse to a small status line or retain
+the previous result. The Recent section itself is hidden until there is at
+least one recent card.
 
 The chat composer’s sound-picker trigger uses this exact 32px tier. It opens
 a compact, 360px-wide glass-material picker through a document-level portal
@@ -427,11 +479,14 @@ above the composer so neither the sidebar’s clipped scroll area nor its
 backdrop layer can cut it off or place video above it. The two-option
 Emotes/Creatures segmented control sits above a category-scoped search field,
 with Emotes selected by default.
+The composer sits 8px above the panel’s bottom resting position and uses a
+10px radius, keeping it visually distinct without reading as a pill.
 Picker rows use Lucide Cat/Laugh icons and a single-line effect name rather
 than repeating the selected category as a subtitle. The chosen effect is shown
 as a compact, dismissible chip in the composer; its matching message chip
 remains visible in chat even if browser playback is blocked. Effects play at
-85% of the listener’s normal browser/tab volume, without a separate in-app
+30% of the listener’s normal browser/tab volume because the source clips are
+mastered loudly, without a separate in-app
 mute or volume control. Pressing Enter sends either text or a selected effect,
 so an effect can be sent on its own.
 
@@ -448,10 +503,16 @@ seconds. The dice sidebar keeps the selector and a separate full-width Roll
 dice/Flip coin action together, so changing the selection never triggers a
 roll; the action sits 12px below the selector. Dice rolls, shared cards,
 life-total changes, and ready-check outcomes each appear as compact structured
-objects in Chat; life clicks wait for a two-second pause and report the net
-change. Cards and Chat are separate left-rail actions rather than a segmented
+objects in Chat. The “Rolled” result uses the panel’s normal 400 text weight,
+matching life and ready activity rather than reading like a heading. Life
+clicks wait for a two-second pause and report the net change. Cards and Chat
+are separate left-rail actions rather than a segmented
 control; a new Chat entry adds a small notification dot to the Chat icon until
 it is opened. Opening Chat always returns its message list to the latest entry.
+Full-width card, life, commander-damage, and sound objects align to the same
+left and right edges as the composer; compact dice and ready-state objects
+continue to hug their contents. Chat entries use 24px vertical spacing so
+activity remains distinct without making the timeline feel sparse.
 
 The Dice panel’s counter generator begins 24px below that action. Its staging
 well is headed by the same secondary 14px field label as the Die selector and
@@ -567,7 +628,8 @@ users too.
 ```
 
 Current examples: `.theme-options` (3-up: Appearance; 2-up via the
-`.two-up` modifier: Video fit, Chat notifications, and Turn notifications), `.view-options` (3-up: Game view). These
+`.two-up` modifier: Video fit, Chat notifications, and Turn notifications;
+4-up via `.four-up`: Outgoing video quality), `.view-options` (3-up: Game view). These
 two classes are near-duplicates that predate this doc — don't add a third
 one; extend `.theme-options` with a modifier the way `.two-up` does.
 
@@ -594,13 +656,13 @@ field            } 24px margin-bottom (last in group)
 field            } ...
 ```
 
-`.control-row` and `.device-field` both default to a 24px bottom margin
+`.control-row`, `.device-field`, and `.theme-field` use the normal group-ending
+spacing. `.control-row` and `.device-field` both default to a 24px bottom margin
 (i.e. "assume you're the last field in your group"); a `.device-field-tight`
-modifier (16px) exists for the one case so far where a field is
-mid-group — the camera toggle → camera select pairing, both followed by
-the Video-fit segmented control in the same "Video" section. Reach for
-that modifier (or add an equivalent) rather than a one-off margin value
-when a new field needs to sit mid-group.
+modifier and matching `.theme-field-tight` modifier (16px) exist where a field
+is mid-group — the camera toggle → camera select → outgoing-quality → Video-fit
+sequence in the same "Video" section. Reach for those modifiers rather than a
+one-off margin value when a new field needs to sit mid-group.
 
 Field labels are handled the same way as icon buttons above — a control
 that already has an on-screen state (the "Camera on"/"Mic on" toggle text)
@@ -616,6 +678,10 @@ elevation. Prejoin/create-setup flows reuse the same modal shell with a
 `prejoin-modal` modifier rather than a bespoke layout — new multi-step
 flows in the lobby should follow that pattern (same shell, a modifier
 class, and a `modal` state string per step) instead of a new component.
+The camera preview may place a 34px icon-only control over its top-right
+corner. It uses the compact 8px-radius button treatment, remains inside the
+preview bounds, and carries its selected state into the matching in-game
+video control so the image does not change orientation after joining.
 
 Signed-in account navigation uses the compact account dropdown as a route
 switcher, not as a container for account UI. Its primary destinations are
@@ -660,6 +726,10 @@ the same row. Once selected, the two names share that row and their color
 identities are combined for the pips.
 The commander edit field occupies that same row position, so entering edit
 mode does not shift the name downward.
+Commander search suggestions follow the same edge-aware overlay rule as tile
+menus: on a bottom-row tile they use the `menu-up` modifier and open above the
+field, preventing the viewport edge from clipping the available commander
+choices.
 
 Settings → Video fit controls how each player's camera stream fills its
 tile in the game grid, independent of `.grid`'s own layout mode

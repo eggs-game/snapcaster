@@ -79,7 +79,7 @@ Discord secret belongs only in Supabase.
 ```
 src/
   main.jsx              entry; lazy routes /snaptest and /turntest vs the app
-  App.jsx               Lobby ↔ Game switch, theme
+  App.jsx               Lobby ↔ lazy-loaded Game, theme
   AccountPrompt.jsx     optional post-setup Discord account prompt
   AccountProfile.jsx    shared account content for profile, settings, and friends pages
   SettingsPage.jsx      profile, devices, preferences, and account data
@@ -94,14 +94,16 @@ src/
   account.js            auth session, Discord OAuth, pending-game restoration
   gameRooms.js          capability-backed room and durable-game RPC client
   supabase.js           shared browser Supabase client
-  Lobby.jsx             create/join, device pick, core recognition warm-up/readiness
+  Lobby.jsx             create/join, device pick, idle recognition warm-up
   Game.jsx              video tiles, life, turns, public chat/whispers, dice, capture clicks
   CardSidebar.jsx       results panel + ?debug=1 diagnostics
+  cardNameIndex.js      local card-name search index and query cache
   chatCommands.js       /whisper parsing and @recipient matching
+  roomCode.js           room-code generation/config check without Supabase
   soundEffects.js       vetted local sound catalogue and 3-second playback cap
   TurnTest.jsx          credential-safe production relay health page
   webrtc.js             mesh, data channels, capture request/response
-  signaling.js          Supabase Realtime room join, room codes
+  signaling.js          Supabase Realtime room join and persistence helpers
   captureGeometry.js    crop maths shared by production and the benchmark
   cardSearch.js         Scryfall-backed name and partner suggestions
   commanderRules.js     pure Commander legality rules shared with the API
@@ -154,7 +156,7 @@ instead of accepting Commander names broadcast by another browser.
 
 Built by `scripts/build_index.py`, run by the **Build card index** GitHub
 Action (monthly, or manually), which commits the result to `main`. Version 4,
-currently **110,524 printings / 35,026 names / 256 shards**.
+currently **110,592 printings / 35,052 names / 256 shards**.
 
 | File | Size | Loaded by | Purpose |
 | --- | --- | --- | --- |
@@ -207,9 +209,13 @@ the main thread — an early bug that made the lobby unresponsive.
   are unguessable discovery capabilities; database membership and private
   Realtime policies separately authorize the room transport.
 - **Roles**: up to 6 `player`s (camera + mic) and up to 8 `visitor`s (audio
-  only, cannot be captured, cannot change game state). Visitors receive every
-  player video and audio stream, can use card lookup and Chat (including sound
-  effects), but do not see interactive Dice or combat-counter controls.
+  only, cannot be captured, cannot change game state). A visitor chooses their
+  microphone before entering and can join live or muted, then mute, unmute, or
+  switch microphones from Settings. Visitors hear one another as well as every
+  player's audio, receive every player video stream, and can use card lookup
+  and Chat (including sound effects). They can inspect Commander damage and
+  poison totals in a read-only panel, but do not see Dice or any counter
+  editing controls.
 - **Two transports, one authorisation model.** Supabase broadcast carries game
   state (life, commander, turn, chat) and gates every privileged message on
   sender role. Official clients replace self-published Realtime identity and
@@ -220,7 +226,62 @@ the main thread — an early bug that made the lobby unresponsive.
   modified client cannot stay on the new topic. WebRTC data channels carry
   capture requests and apply the same rule —
   a visitor cannot request a capture, requests are rate limited per peer, and
-  every peer-controlled field is bounds-checked.
+    every peer-controlled field is bounds-checked.
+- **Late-join state is batched.** A presence sync sends one targeted,
+  bounds-checked state snapshot per new protocol-2 peer instead of rebroadcasting
+  every life, commander, counter, color, and camera field to the whole room.
+  Presence advertises the protocol version; older open tabs receive targeted
+  legacy messages during a rolling deploy.
+- **Connection failures are observable.** Supabase Realtime heartbeats run in
+  its worker so a backgrounded tab is less likely to disappear from presence.
+  The client keeps the latest 80 connection events locally at
+  `window.__SNAP_CONNECTION_DIAGNOSTICS` and in
+  `localStorage["snapcast-connection-diagnostics"]`. Signaling errors,
+  presence loss, offline/online transitions, and WebRTC failures/recoveries are
+  also written to the insert-only `connection_events` table. Durable reports
+  exclude names, messages, media/device data, and raw room codes; a one-way
+  room fingerprint groups reports from the same game. A deliberate
+  **Leave game** announces departure first, while an unannounced presence loss
+  enters a 15-second reconnect grace period. During that window the player's
+  tile and seat remain in place with a Reconnecting overlay. Returning with the
+  same room-scoped participant ID cancels removal and negotiates a fresh peer
+  connection; only an expired grace period becomes an unexpected-drop report.
+  Presence can transiently contain duplicate metadata for that stable ID, so
+  roster construction selects the newest non-empty display name and peers
+  rebroadcast their own identity as a fallback. Video banners still render a
+  generic Player/Visitor label if both sources are malformed.
+  The active room, stable participant ID, original seat timestamp, life,
+  commander/partner, color, mute/camera state, poison, commander damage, and
+  video counters live in session storage so a refresh automatically rejoins
+  the same seat and republishes the restored state. Lifecycle heartbeat and
+  navigation evidence classify recovery as a refresh, connectivity loss,
+  likely crash, or generic session resume.
+- **Recognition latency is observable without storing card content.** The
+  latest 50 scans remain available in the scanning browser at
+  `window.__SNAP_RECOGNITION_TIMINGS`. A bounded copy is also submitted
+  asynchronously to the insert-only `recognition_timing_events` table so live
+  capture/network time can be separated from worker stages after the fact.
+  Rows use a one-way room fingerprint and temporary room-scoped participant
+  IDs; they exclude raw room codes, names, card identities/results, images,
+  OCR text, device labels, and raw errors. Anonymous clients cannot select
+  telemetry rows.
+- **Recent-card hints are ephemeral, bounded room state.** A strong lookup by
+  any player or visitor broadcasts the Scryfall printing ID, board owner,
+  approximate normalized click position, and timestamp to the current room.
+  Every participant's browser contributes to and consumes the same shared
+  shortlist. Each browser keeps at most 32 hints for four hours and considers
+  at most 12 nearby hints per scan.
+  The worker never trusts a hint as the result: it compares the named printing
+  with the new capture and accepts only a near-exact visual hash or decisive
+  ORB art match, otherwise it runs the unchanged full-index pipeline. Hints
+  are not chat, are not written to Supabase tables or Storage, and disappear
+  when the room/tab ends.
+- **Card clicks are latest-request-wins.** A second click on the same board
+  spot while recognition is active is coalesced instead of queueing duplicate
+  work. Recognition has one active job and at most one waiting job; a newer
+  click replaces the waiting job. A slow earlier scan cannot replace the card
+  the player most recently requested, and rapid clicking cannot build an
+  unbounded bitmap/OCR queue.
 - **Public chat and private whispers take different routes.** Ordinary chat is
   a Supabase room broadcast. `/whisper @name` resolves the selected roster ID
   and sends only over that participant's encrypted WebRTC data channel. Both
@@ -234,7 +295,7 @@ the main thread — an early bug that made the lobby unresponsive.
   audible offset, and stops after 2–3 seconds. The room never receives
   arbitrary audio URLs or uploads. Private whispers remain text-only. Sender UI and
 recipient playback both enforce a two-minute per-sender sound cooldown. Clips
-use a fixed 85% gain relative to the listener's browser/tab volume; there is
+use a fixed 30% gain relative to the listener's browser/tab volume; there is
 no separate in-app sound setting.
 - **Shared game events live in Chat.** Dice rolls, shared cards, life-total
   changes, and ready-check outcomes are compact structured Chat objects. Consecutive
@@ -257,12 +318,36 @@ no separate in-app sound setting.
   button on a recent card to share it with the room. Every participant receives
   the normal card details and image in Recent and can click it to open locally;
   no camera capture is repeated.
-- **Video quality is per receiver.** Each remote tile can request Auto, 720p or
-  1080p. The camera owner applies that preference only to the sender for that
-  peer, so one viewer can request a sharper feed without forcing every other
-  viewer to spend the same bandwidth. WebRTC may still adapt down when the
-  source camera or network cannot sustain the request; the tile reports the
-  decoded resolution it is actually receiving.
+- **Video quality has sender and receiver ceilings.** Every player chooses an
+  outgoing ceiling of 720p, 1080p, 2K/1440p, or 4K/2160p in Settings; 1080p is
+  the default. That ceiling is persisted locally and retunes every active
+  `RTCRtpSender` without reconnecting. Each remote tile can separately request
+  Auto, 720p, or 1080p. The effective stream uses the lower of the sender's
+  ceiling and that receiver's request, so a viewer can save bandwidth but can
+  never force the camera owner to encode above their chosen limit. The raw
+  local camera track remains at native detail for card-recognition captures;
+  only the encoded WebRTC stream is capped. WebRTC may still adapt down when
+  the source camera or network cannot sustain the target, and the tile reports
+  the decoded resolution it is actually receiving. Hidden tabs and non-primary
+  Follow/Hero tiles request 720p automatically; the visible tile view caps Auto
+  at 1080p. The user's explicit per-player choice returns when that stream is
+  primary again.
+
+## Runtime performance
+
+- The landing bundle excludes the Game, WebRTC/Supabase room code, recognition
+  worker front end, and Tesseract. Game loads only when a session starts;
+  recognition warms during lobby idle time; OCR loads after entry when the
+  browser is idle.
+- Card-name suggestions use the bundled 35k-name index first. In-memory query
+  and Scryfall-response caches deduplicate autocomplete, exact-card, fuzzy-card,
+  and commander-partner requests without persisting browsing data.
+- Camera capture reuses one video element and three canvases per local track.
+  The chosen JPEG travels as bounded 48KB binary data-channel chunks rather
+  than a base64 JSON string; object URLs are bounded and revoked.
+- Video tiles and the card sidebar are memoized away from unrelated game-state
+  renders. Speaking meters sample at roughly 15Hz with a 256-bin analyser, and
+  decoded-resolution polling runs every five seconds.
 
 ## Security posture
 
@@ -274,7 +359,9 @@ no separate in-app sound setting.
   chat broadcast.
 - CSP, HSTS, `Permissions-Policy` (camera/mic scoped to self),
   `X-Frame-Options: DENY`, nosniff and a referrer policy are set in
-  `vercel.json`.
+  `vercel.json`. CSP explicitly permits Google Fonts and Tesseract's pinned
+  jsDelivr runtime/data origins; the early theme initializer is a same-origin
+  external script so the policy does not require inline-script permission.
 - No `dangerouslySetInnerHTML`, `innerHTML` or `eval` anywhere in `src/`.
 - The Cloudflare TURN key is held only in server-side Vercel environment
   variables. Browsers receive expiring credentials, never the key itself.

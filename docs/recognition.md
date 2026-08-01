@@ -1,6 +1,6 @@
 # How Snapcast identifies cards quickly
 
-One click, ~1.6s median, against 110,524 printings — without a server and
+One click, ~1.8s median, against 110,592 printings — without a server and
 without a trained model.
 
 **There is no machine learning here.** No weights, no training, nothing to
@@ -36,11 +36,15 @@ at least one well-framed crop from a click.
 `webrtc.js · captureLocalFrame`
 
 Clicking a card on someone's tile sends a request over the data channel; that
-player's own browser photographs its camera at **native resolution** and
+player’s own browser photographs its camera at **native resolution** and
 returns the crop. The compressed video stream is never used for recognition.
 
 - Camera requested at up to 4K.
 - Takes the sharpest of 3 frames (gradient variance) to dodge motion blur.
+- Reuses the video/canvas capture buffers for that camera track and encodes the
+  chosen frame asynchronously as JPEG.
+- Sends bounded 48KB binary chunks over the reliable data channel. Legacy tabs
+  still receive a data URL during a rolling deploy.
 - The square crop is **clamped inside the frame**. It used to be centred on
   the click and black-padded when it ran off the edge — a card held beside
   someone's head lost 30%+ of the capture to black, which skewed the colour
@@ -105,14 +109,16 @@ uncertain, so it does not tax ordinary exact scans.
 
 Scoring 58 crops against 110k printings would be far too slow, so:
 
-- ~10 **seed** crops get a full scan of all 110,524 printings.
+- ~10 **seed** crops get a full scan of all 110,592 printings.
 - Each seed contributes its ~1,000 closest printings to a shortlist.
 - The remaining crops only refine that shortlist.
 
 Each crop is hashed as 8 variants (raw and contrast-stretched × 4 rotations),
 so 90°/180° rotation is handled by the hash rather than by more crops. Scoring
 combines the grayscale hash, a 13-byte hue histogram, and a 32-byte
-art-region hash.
+art-region hash. Exact ranking evaluates all eight variants in one traversal
+of the full index. This produces the same minimum Hamming distance as eight
+separate passes while avoiding eight reads of the 7MB table for every seed.
 
 > **A crop must be a seed to introduce an answer on the ordinary fast path.**
 > Weak scans now have one deliberate exception: click-local isolation crops
@@ -202,26 +208,71 @@ visual or art match, so the common fast path keeps its existing cost.
 
 ## Cold-start warm-up
 
-The lobby immediately starts the recognition worker and does not label it
-ready until the worker confirms that OpenCV and the full hash/card/color/art
-tables are resident. The worker remains alive when the lobby transitions into
-the game, moving the unavoidable WASM compile and index parsing ahead of the
-first card click. A safe diagnostic is available at
+The lightweight landing screen does not load Game, WebRTC, Supabase,
+recognition, or OCR. Once the create/join lobby is open, an idle callback starts
+the recognition worker and reports ready after OpenCV and the full
+hash/card/color/art tables are resident. The worker remains alive when the
+lobby transitions into the game, moving the unavoidable WASM compile and index
+parsing ahead of the first card click. A safe diagnostic is available at
 `window.__SNAP_RECOGNITION_WARMUP`; it contains status and timings but no card,
-camera, or player data. The first Tesseract worker warms only after the core is
-ready and the browser is idle, so optional OCR cannot compete with the common
-visual fast path.
+camera, or player data. Tesseract is dynamically imported and warms after game
+entry only when the browser is idle, so optional OCR cannot compete with the
+common visual fast path or initial page load.
+
+## Verified recent-card fast path
+
+Players and visitors repeatedly inspect the same permanents during a game.
+After a high-confidence result, the scanning browser keeps a bounded hint
+containing the printing ID, board owner, approximate normalized position, and
+timestamp, and shares it ephemerally with the room. Every participant
+contributes to and consumes this shortlist. A later click within 15% of that
+board position tests at most 12 hinted printings before the full index.
+
+Hints are candidates, never answers. The worker first tests six cheap
+click-local crops, then only OpenCV's card-outline rectifications, against the
+hinted printing. It accepts only at distance 90 or better, or after a decisive
+ORB art verification when the distance is at most 180. Only a stale, moved, or
+incorrect hint pays for the complete crop family and 110,000-printing
+rank/verify/OCR pipeline. The local cache contains at most 32 hints, expires
+them after four hours, and is discarded with the page.
+
+The click scheduler separately coalesces an in-flight duplicate at the same
+spot. There is one active recognition and one newest waiting recognition; a
+new click replaces the waiting job instead of growing a bitmap/OCR backlog.
+Only the latest requested result may update the card panel.
 
 ## Where the time goes
 
-Median ~1.6s, p90 ~5.7s on realistic scenes:
+The deterministic 100-card realistic tableau currently measures a 1.84s
+median and 5.05s p90. The harder edge-targeted set measures a 4.8s median
+because most scans activate click-local isolation:
 
 | Stage | Typical |
 | --- | --- |
-| prep (crops, contours) | ~0.5s |
-| rank (seed scans + refine) | ~1.3s |
-| ORB verification | ~0.6s |
+| prep (crops, contours) | ~0.53s |
+| hintPrep + hint (nearby card, outline tier) | ~0.27s total |
+| rank (seed scans + refine) | ~1.10s |
+| ORB verification | ~0.59s |
 | OCR | usually skipped |
+
+Live gameplay records the last 50 scans locally at
+`window.__SNAP_RECOGNITION_TIMINGS`. Each entry separates capture/network time
+from recognition time and includes worker-stage durations, candidate count,
+and isolation-proposal count; it contains no card, image, player, or room
+content. With `?debug=1`, the current card diagnostics show the same timing
+breakdown. This makes a slow remote capture distinguishable from a slow
+recognition fallback instead of treating the entire click-to-result delay as
+one opaque number.
+
+The same content-free breakdown is submitted asynchronously to the insert-only
+Supabase `recognition_timing_events` table. The upload is not awaited by the
+lookup UI, so telemetry cannot add card-result latency. Rows include the build,
+success/failure category, local-versus-remote flag, capture payload character
+count, outgoing quality setting, bounded timing/count fields, temporary
+room-scoped participant IDs, and a one-way room fingerprint. They explicitly
+exclude the room code, names, card identity/results, images, OCR text, device
+labels, and raw errors. Anonymous clients can insert rows but cannot read them;
+analysis and retention management happen in the Supabase dashboard.
 
 The tail is dominated by scenes with many overlapping cards, which generate
 far more contour quads (60–74 crops tried instead of ~39).
@@ -245,7 +296,7 @@ far more contour quads (60–74 crops tried instead of ~39).
   breaks it, not how much is hidden.
 - **Pixels.** 720p across a 20-card playmat cannot work. 1080p is borderline,
   4K comfortable.
-- **An immediate click during lobby warm-up** can still wait for OpenCV and the
-  index. Once the lobby reports “Recognition ready,” the first click uses the
-  same resident core as later scans.
+- **An immediate click before idle warm-up finishes** can still wait for
+  OpenCV and the index. Once the lobby reports “Recognition ready,” the first
+  click uses the same resident core as later scans.
 - **Brand-new sets** are missing until the monthly index rebuild.

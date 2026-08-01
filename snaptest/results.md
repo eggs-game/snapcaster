@@ -9,6 +9,89 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-07-26 — `performance-pass-1` — bounded recognition and outline-first hints
+
+This performance pass keeps one active recognition and only the newest waiting
+click, transports native camera JPEGs as bounded binary data-channel chunks,
+reuses camera capture buffers, and verifies shared room hints in stages. A
+hint first sees six cheap click-local crops, then only OpenCV card-outline
+rectifications; the complete crop family and 110k-printing rank run only when
+those verified checks fail.
+
+- **Recent-card fast path (20 repeated scans):** **20/20 (100%)**, 0 errors,
+  **20/20 verified hint hits**, and **zero full-crop fallbacks**. Average repeat
+  recognition was **0.274s** versus **2.354s** for the normal first lookup, an
+  **8.59× speedup**. Median was 0.274s and p90 0.299s; hint preparation
+  averaged 0.270s and verification 0.003s. Every rotation and occlusion bucket
+  was 100%, and WASM stayed flat at 134→134MB.
+- **Tableau 10 — EDH staples (100 cards), no hints:** **99/100 (99.0%)**,
+  exceeding the 95% release gate with 0 errors. Clear cards were 94/94,
+  side-by-side 60/60, spaced 30/30, and overlapping 9/10. Upright and
+  upside-down were 55/55 and 14/14; tapped was 30/31. Accepted art matches
+  were **86/86 precise** and visual-exact matches **11/11 precise**. Median was
+  **1.840s**, p90 **5.047s**, and WASM stayed 134→134MB. The one miss was a
+  15.8%-covered tapped token in the deliberately overlapping scene.
+
+The first no-hint verification run exposed an undefined metadata-OCR parameter
+left behind by the new dynamic Tesseract import. That boundary was fixed and
+the complete 100-card run above repeated afterward; OCR metadata completed
+without an error. The recognition decision gates and hashing contract were not
+changed.
+
+## 2026-07-26 — `recent-hints-1` — verified room cache
+
+Repeated lookups now use strong results from the current room as a spatial
+shortlist shared by players and visitors. The worker still verifies each
+hinted printing against the new capture and falls back to the unchanged
+full-index pipeline when verification does not pass. Duplicate in-flight
+clicks at the same spot are coalesced, and only the newest distinct click may
+update the card panel.
+
+- **Recent-card fast path (20 repeated scans):** **20/20 (100%)**, 0 errors,
+  with **20/20 verified hint hits**. Average repeat recognition was **0.482s**
+  versus **1.841s** for the first full lookup, a **3.82× speedup**. The repeat
+  stage means were 0.461s prep and 0.019s hint verification. All four rotation
+  and all four occlusion buckets were 100%; WASM stayed flat at 134→134MB.
+- **Tableau 10 — EDH staples (100 cards), no hints:** **96/100 (96.0%)**,
+  meeting the 95% gate with 0 errors. Side-by-side was 60/60, spaced 29/30,
+  overlapping 7/10, and fully clear cards 90/91. Median was **1.828s**, p90
+  **5.386s**, and WASM stayed 134→134MB. Visual-exact was 9/9 precise;
+  art-match was 85/86, with the single wrong art match on a 15.8%-covered card
+  in the deliberately overlapping scene—the known cursor-isolation failure
+  that also predates this no-hint-equivalent code path.
+
+## 2026-07-25 — `isolation-speed-2` — single-pass exact ranking
+
+Exact full-index ranking now evaluates all eight rotation/contrast variants
+while each printing vector is hot, rather than rereading the 7MB index once
+per variant. The minimum Hamming distance and every candidate remain
+unchanged. Live scans also retain a local 50-entry capture/recognition/stage
+timing ring so future reports of “slow” can distinguish transfer time from the
+worker fallback.
+
+- **Fixed top-edge 64:** **52/64 (81.3%)**, versus 51/64 (79.7%) on
+  `isolation-retrieval-7`; the one-card movement is noise. Accepted art
+  matches were 51/51 precise and the rotation/occlusion breakdown was
+  unchanged. Median improved from **5.609s to 4.8s** (14%), average from
+  **5.032s to 4.6s** (9%), while p90 was effectively flat at 8.5s versus
+  8.626s.
+- **Tableau EDH 100:** **95/100 (95.0%)**, meeting the accuracy gate.
+  Accepted art/visual pathways were **93/93 precise**. Clear cards were 90/94,
+  side-by-side 59/60, spaced 29/30, and overlapping 7/10. Median was **2.0s**,
+  average **2.5s**, and p90 **5.8s**; average rank time was 1.07s.
+- **Magic Con Vegas 200:** **184/200 (92.0%)**, above the 90% gate and up
+  four cards from the previous 180/200 run (within expected sampling
+  movement). Accepted art/visual pathways were **175/175 precise**. Clear
+  cards were 173/187, side-by-side 114/120, spaced 52/60, overlapping 18/20,
+  and all three edge-clipped cards were correct. Median improved from
+  **7.093s to 6.1s** (14%) and p90 from **8.8s to 7.4s** (16%); average rank
+  time was 4.00s.
+
+An earlier candidate also shortened the isolation ANN proposal tail. It was
+faster on the targeted set, but a realistic run fell below the 95% gate. That
+shortcut was discarded: the final implementation keeps the complete proposal
+breadth and takes its speedup only from result-equivalent index traversal.
+
 ## 2026-07-25 — `isolation-retrieval-7` — above-click edge isolation
 
 The production-build candidate was tested from a stable local `vite preview`

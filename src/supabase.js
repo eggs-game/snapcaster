@@ -21,7 +21,12 @@ export function getSupabase() {
         detectSessionInUrl: true,
         flowType: "pkce",
       },
-      realtime: { params: { eventsPerSecond: 20 } },
+      realtime: {
+        params: { eventsPerSecond: 20 },
+        // Keep room heartbeats off the throttled main thread so backgrounded
+        // tabs are less likely to create false presence departures.
+        worker: true,
+      },
     });
   }
   return supabase;

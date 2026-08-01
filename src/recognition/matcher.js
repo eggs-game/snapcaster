@@ -5,7 +5,7 @@
 // and (2) captures crops and relays them to the worker.
 import { VEC_BYTES } from "./hash.js";
 import { evaluateMetadataEvidence, primaryTypes } from "./metadataEvidence.js";
-import { createWorker, PSM } from "tesseract.js";
+import { loadCardNames } from "../cardNameIndex.js";
 
 let cards = null;
 let cardNames = null;
@@ -25,9 +25,7 @@ export function loadIndex() {
       // thread on every load, parsing 8MB of JSON, purely to produce a count
       // and a name list that names.json already holds in 0.67MB.
       if (manifest.version >= 2) {
-        const namesResponse = await fetch("/carddata/names.json");
-        if (!namesResponse.ok) throw new Error("Card name index is missing.");
-        cardNames = await namesResponse.json();
+        cardNames = await loadCardNames();
         return manifest.count;
       }
     }
@@ -50,9 +48,20 @@ let ocrWarmScheduled = false;
 function scheduleOCRWarm() {
   if (ocrWarmScheduled) return;
   ocrWarmScheduled = true;
-  const run = () => getOCRWorker().catch(() => {});
-  if (typeof requestIdleCallback === "function") requestIdleCallback(run, { timeout: 5000 });
+  const run = () => {
+    if (identifyActive || document.visibilityState === "hidden") {
+      ocrWarmScheduled = false;
+      setTimeout(scheduleOCRWarm, 2000);
+      return;
+    }
+    getOCRWorker().catch(() => {});
+  };
+  if (typeof requestIdleCallback === "function") requestIdleCallback(run, { timeout: 15000 });
   else setTimeout(run, 1000);
+}
+
+export function preloadOCR() {
+  scheduleOCRWarm();
 }
 
 // Warm the worker's actual recognition core ahead of the first click. This
@@ -79,7 +88,6 @@ export function preload() {
         count,
       };
       console.log(`[snapcast] recognition core ready in ${durationMs}ms (worker ${core.workerMs}ms)`);
-      scheduleOCRWarm();
       return count;
     })
     .catch((error) => {
@@ -109,7 +117,8 @@ function getWorker() {
       const {
         id, matches, printingMatches, titleCandidates, metadataStrips, titleCount, queryCandidates,
         shardedIndex, cardFound, cvStatus, candidatesTried, cropsDropped, artBest, artChecked,
-        artDecisive, isolationDebug, stageMs, wasmHeapMB, preloaded, indexReady, indexCount, workerMs, error,
+        artDecisive, isolationDebug, isolationCandidates, stageMs, wasmHeapMB,
+        hintHit, preloaded, indexReady, indexCount, workerMs, error,
       } = e.data || {};
       const p = pending.get(id);
       if (!p) return;
@@ -140,6 +149,8 @@ function getWorker() {
         art_checked: artChecked || 0,
         art_decisive: !!artDecisive,
         isolation_debug: isolationDebug || null,
+        isolation_candidates: Number(isolationCandidates) || 0,
+        hint_hit: !!hintHit,
         stage_ms: stageMs || {},
         wasm_heap_mb: typeof wasmHeapMB === "number" ? wasmHeapMB : null,
       });
@@ -156,25 +167,47 @@ function getWorker() {
   return worker;
 }
 
-async function dataUrlToBitmap(dataUrl) {
-  const blob = await (await fetch(dataUrl)).blob();
+async function sourceToBitmap(source) {
+  const blob = source instanceof Blob
+    ? source
+    : source instanceof ArrayBuffer
+      ? new Blob([source], { type: "image/jpeg" })
+      : await (await fetch(source)).blob();
   return await createImageBitmap(blob);
 }
 
 // OCR runs in a small pool of tesseract workers so title reads execute in
 // parallel waves — the sequential 24-attempt loop was the slow tail on cards
-// without a decisive art match. Worker 0 is warmed by preload(); the second
-// spins up on first OCR use.
+// without a decisive art match. Worker 0 is warmed by the idle in-game
+// preload; the rest spin up on first OCR use.
 const OCR_POOL_SIZE = 3;
 const ocrPool = [];
-const TITLE_OCR_PARAMETERS = {
-  tessedit_pageseg_mode: PSM.SINGLE_LINE,
-  tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz '-,",
-};
+let tesseractModulePromise = null;
+let ocrRuntimePromise = null;
 
-function makeOCRWorker() {
+function loadTesseract() {
+  if (!tesseractModulePromise) tesseractModulePromise = import("tesseract.js");
+  return tesseractModulePromise;
+}
+
+function loadOCRRuntime() {
+  if (!ocrRuntimePromise) {
+    ocrRuntimePromise = loadTesseract().then(({ createWorker, PSM }) => ({
+      createWorker,
+      PSM,
+      titleParameters: {
+        tessedit_pageseg_mode: PSM.SINGLE_LINE,
+        tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz '-,",
+      },
+    }));
+  }
+  return ocrRuntimePromise;
+}
+
+async function makeOCRWorker() {
+  const { createWorker, titleParameters } = await loadOCRRuntime();
   return createWorker("eng").then(async (worker) => {
-    await worker.setParameters(TITLE_OCR_PARAMETERS);
+    await worker.setParameters(titleParameters);
     return worker;
   });
 }
@@ -460,6 +493,7 @@ async function readMetadataObservation(result, bestRead, pool) {
   if (!bestRead) return null;
   const strips = await runMetadataStrips(result.scan_id, bestRead.strategy, bestRead.rotation || 0);
   if (!strips) return null;
+  const { PSM, titleParameters } = await loadOCRRuntime();
   const [manaWorker, typeWorker, rulesWorker] = pool;
   try {
     await Promise.all([
@@ -505,7 +539,7 @@ async function readMetadataObservation(result, bestRead, pool) {
       },
     };
   } finally {
-    await Promise.all(pool.map((ocrWorker) => ocrWorker.setParameters(TITLE_OCR_PARAMETERS)));
+    await Promise.all(pool.map((ocrWorker) => ocrWorker.setParameters(titleParameters)));
   }
 }
 
@@ -677,7 +711,7 @@ function applyTitleOCR(result) {
   return withOCRLock(() => applyTitleOCRUnlocked(result));
 }
 
-function runOnWorker(bmp, point = { nx: 0.5, ny: 0.5 }) {
+function runOnWorker(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
   const w = getWorker();
   const id = ++seq;
   return new Promise((resolve, reject) => {
@@ -686,7 +720,7 @@ function runOnWorker(bmp, point = { nx: 0.5, ny: 0.5 }) {
       reject(new Error("Card recognition timed out. Please try again."));
     }, IDENTIFY_TIMEOUT_MS);
     pending.set(id, { resolve, reject, timer });
-    w.postMessage({ type: "identify", id, bmp, point }, [bmp]);
+    w.postMessage({ type: "identify", id, bmp, point, hints: Array.isArray(hints) ? hints.slice(0, 12) : [] }, [bmp]);
   });
 }
 
@@ -780,18 +814,63 @@ async function finishIdentify(result) {
   return out;
 }
 
-export async function identify(imageDataUrl, point) {
+async function performIdentify(source, point, hints) {
   const t0 = performance.now();
-  const bmp = await dataUrlToBitmap(imageDataUrl);
-  const out = await finishIdentify(await runOnWorker(bmp, point));
+  const bmp = await sourceToBitmap(source);
+  const out = await finishIdentify(await runOnWorker(bmp, point, hints));
   out.stage_ms = { ...(out.stage_ms || {}), total: Math.round(performance.now() - t0) };
   return out;
+}
+
+let identifyActive = false;
+let queuedIdentify = null;
+
+function supersededRecognitionError() {
+  const error = new Error("Superseded by a newer card click.");
+  error.code = "RECOGNITION_SUPERSEDED";
+  return error;
+}
+
+function startIdentifyJob(job) {
+  identifyActive = true;
+  globalThis.__SNAP_RECOGNITION_QUEUE = { active: true, waiting: !!queuedIdentify };
+  performIdentify(job.source, job.point, job.hints)
+    .then(job.resolve, job.reject)
+    .finally(() => {
+      identifyActive = false;
+      const next = queuedIdentify;
+      queuedIdentify = null;
+      globalThis.__SNAP_RECOGNITION_QUEUE = { active: false, waiting: !!next };
+      if (next) startIdentifyJob(next);
+    });
+}
+
+// Recognition is intentionally latest-only. The worker cannot interrupt a
+// synchronous scan already in progress, but it should never make the newest
+// click wait behind an arbitrary backlog of obsolete scans.
+export function identify(source, point, { hints = [] } = {}) {
+  return new Promise((resolve, reject) => {
+    const job = {
+      source,
+      point,
+      hints: Array.isArray(hints) ? hints.slice(0, 12) : [],
+      resolve,
+      reject,
+    };
+    if (!identifyActive) {
+      startIdentifyJob(job);
+      return;
+    }
+    if (queuedIdentify) queuedIdentify.reject(supersededRecognitionError());
+    queuedIdentify = job;
+    globalThis.__SNAP_RECOGNITION_QUEUE = { active: true, waiting: true };
+  });
 }
 
 // Console debug hook: `await window.__scIdentifyUrl("<card image url>")`
 // runs a full recognition on a fetched image (no camera needed).
 if (typeof window !== "undefined") {
-  window.__scIdentifyUrl = async (url, point = { nx: 0.5, ny: 0.5 }) => {
+  window.__scIdentifyUrl = async (url, point = { nx: 0.5, ny: 0.5 }, hints = []) => {
     const img = await new Promise((res, rej) => {
       const i = new Image();
       i.crossOrigin = "anonymous";
@@ -800,7 +879,7 @@ if (typeof window !== "undefined") {
       i.src = url;
     });
     const bmp = await createImageBitmap(img);
-    const r = await finishIdentify(await runOnWorker(bmp, point));
+    const r = await finishIdentify(await runOnWorker(bmp, point, hints));
     console.log("[snapcast] __scIdentifyUrl top matches:", r.matches.map((m) => `${m.name} (d=${m.distance}, conf=${m.confidence.toFixed(2)})`));
     return r;
   };

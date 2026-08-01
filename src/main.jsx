@@ -17,7 +17,7 @@ const Community = lazy(() => import("./Community.jsx"));
 const ModerationPage = lazy(() => import("./ModerationPage.jsx"));
 import "./styles.css";
 
-const BUILD = "isolation-retrieval-7 (above-click edge isolation)";
+const BUILD = "performance-pass-1 (early hints + bounded queue + binary capture)";
 window.__SNAP_BUILD = BUILD;
 console.log(`%c[snapcast] build: ${BUILD}`, "color:#0a0;font-weight:bold");
 

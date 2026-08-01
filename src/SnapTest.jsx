@@ -13,6 +13,7 @@ const STAGE_LABEL = {
 const MODES = {
   random200: { label: "Random 200 (new each run)", size: 200 },
   fixed200: { label: "Fixed 200 (regression)", size: 200 },
+  recentHint20: { label: "Recent-card fast path (20 repeated scans)", size: 20, hintProbe: true },
   fixedTopEdge64: { label: "Fixed top-edge 64 (targeted)", size: 64, topEdge: true },
   fixed1000: { label: "Fixed 1000 (regression)", size: 1000 },
   tableau10: { label: "Tableau 10 scenes (100 cards)", size: 100, scenes: 10, perScene: 10 },
@@ -61,6 +62,7 @@ function captureDiagnostics(rec, data, trueName) {
   const top = matches[0];
   rec.top = top && top.name;
   rec.by = top && top.identified_by;
+  rec.strategy = top && top.strategy;
   rec.dist = top && top.distance;
   rec.conf = top && typeof top.confidence === "number" ? +top.confidence.toFixed(2) : null;
   rec.top3 = matches.slice(0, 3).map((m) => `${m.name} (d=${m.distance})`);
@@ -86,6 +88,7 @@ function captureDiagnostics(rec, data, trueName) {
   rec.metadataError = data.metadata_error || null;
   rec.wasmHeapMB = data.wasm_heap_mb;
   rec.isolationDebug = data.isolation_debug || null;
+  rec.hintHit = !!data.hint_hit;
 }
 
 // Accuracy grouped by an arbitrary key, for the summary breakdowns.
@@ -472,13 +475,26 @@ export default function SnapTest() {
         }
         let data;
         try {
+          const identifyStarted = performance.now();
           data = await identifyCard(degradedUrl, rec.click || { nx: 0.5, ny: 0.5 });
+          rec.baselineMs = Math.round(performance.now() - identifyStarted);
+          if (MODES[mode].hintProbe && data.matches?.[0]?.scryfall_id) {
+            const hintStarted = performance.now();
+            data = await identifyCard(
+              degradedUrl,
+              rec.click || { nx: 0.5, ny: 0.5 },
+              { hints: [data.matches[0]] },
+            );
+            rec.hintMs = Math.round(performance.now() - hintStarted);
+          }
         } catch (e) {
           const msg = String((e && e.message) || e);
           rec.errStage = /timed out/i.test(msg) ? "timeout" : "identify-error";
           throw e;
         }
-        rec.ms = Math.round(performance.now() - t0);
+        rec.ms = MODES[mode].hintProbe && rec.hintMs != null
+          ? rec.hintMs
+          : Math.round(performance.now() - t0);
         rec.stages = data.stage_ms || null;
         captureDiagnostics(rec, data, card.name);
         rec.ok = rec.top === card.name;
@@ -523,6 +539,31 @@ export default function SnapTest() {
       sum.wasmHeapEndMB = heaps[heaps.length - 1];
       sum.wasmHeapPeakMB = Math.max(...heaps);
     }
+    const hintRows = okList.filter((r) => r.baselineMs != null && r.hintMs != null);
+    if (hintRows.length) {
+      const average = (key) => Math.round(
+        hintRows.reduce((total, row) => total + row[key], 0) / hintRows.length,
+      );
+      const baselineAvgMs = average("baselineMs");
+      const hintAvgMs = average("hintMs");
+      sum.recentHint = {
+        attempted: hintRows.length,
+        hits: hintRows.filter((row) => row.hintHit).length,
+        baselineAvgMs,
+        hintAvgMs,
+        speedup: hintAvgMs ? +(baselineAvgMs / hintAvgMs).toFixed(2) : null,
+        fullCropFallbacks: hintRows.filter((row) => row.stages?.prep != null).map((row) => ({
+          i: row.i,
+          name: row.name,
+          rotation: row.rotationClass,
+          occlusion: row.occ,
+          placement: row.placementClass,
+          pathway: row.by,
+          strategy: row.strategy,
+          stages: row.stages,
+        })),
+      };
+    }
     // Group errors by stage (image-load / timeout / identify-error / other) so
     // a run-over-run pattern (e.g. "18 timeouts, all >20s") is visible at a
     // glance instead of buried in a flat error count.
@@ -535,7 +576,7 @@ export default function SnapTest() {
     // Mean per-pipeline-stage timing (prep = crops/outline, rank = 110k hash
     // scan, orb = art verification, ocr = tesseract) — points speed work at
     // the actual hotspot rather than guesses.
-    const stageKeys = ["prep", "rank", "orb", "ocr", "total"];
+    const stageKeys = ["hintPrep", "prep", "hint", "rank", "orb", "ocr", "total"];
     const withStages = okList.filter((r) => r.stages);
     sum.stageAvgMs = {};
     for (const k of stageKeys) {

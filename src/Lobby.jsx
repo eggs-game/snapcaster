@@ -5,6 +5,7 @@ import {
   Bell,
   Camera,
   Eye,
+  FlipVertical2,
   Globe2,
   HeartPulse,
   LayoutGrid,
@@ -13,6 +14,7 @@ import {
   Maximize,
   MessagesSquare,
   Mic,
+  MicOff,
   ScanLine,
   Settings,
   Share2,
@@ -22,7 +24,7 @@ import {
   Video,
   X,
 } from "lucide-react";
-import { isConfigured, makeCode, CODE_LENGTH } from "./signaling.js";
+import { isConfigured, makeCode, CODE_LENGTH } from "./roomCode.js";
 import { preload as preloadRecognition } from "./recognition/matcher.js";
 import SiteFooter from "./SiteFooter.jsx";
 import { accountDisplayName } from "./account.js";
@@ -157,6 +159,8 @@ export default function Lobby({
   const [mics, setMics] = useState([]);
   const [videoDeviceId, setVideoDeviceId] = useState("");
   const [audioDeviceId, setAudioDeviceId] = useState("");
+  const [videoFlipped, setVideoFlipped] = useState(false);
+  const [joinMuted, setJoinMuted] = useState(false);
   const [mediaError, setMediaError] = useState("");
   const [micLevel, setMicLevel] = useState(0);
   const [localMockRoom, setLocalMockRoom] = useState(null);
@@ -175,9 +179,28 @@ export default function Lobby({
   }, [account]);
 
   useEffect(() => {
-    preloadRecognition()
-      .then((count) => { setIndexCount(count); setIndexStatus("ok"); })
-      .catch(() => setIndexStatus("missing"));
+    let cancelled = false;
+    const warm = () => {
+      import("./recognition/matcher.js")
+        .then(({ preload }) => preload())
+        .then((count) => {
+          if (!cancelled) {
+            setIndexCount(count);
+            setIndexStatus("ok");
+          }
+        })
+        .catch(() => {
+          if (!cancelled) setIndexStatus("missing");
+        });
+    };
+    const idleId = typeof requestIdleCallback === "function"
+      ? requestIdleCallback(warm, { timeout: 1500 })
+      : setTimeout(warm, 250);
+    return () => {
+      cancelled = true;
+      if (typeof cancelIdleCallback === "function") cancelIdleCallback(idleId);
+      else clearTimeout(idleId);
+    };
   }, []);
 
   useEffect(() => {
@@ -370,6 +393,7 @@ export default function Lobby({
         creator: true,
         videoDeviceId,
         audioDeviceId,
+        videoFlipped,
         ...capability,
       });
     } catch (createError) {
@@ -394,6 +418,8 @@ export default function Lobby({
       go(code, role, "", {
         videoDeviceId,
         audioDeviceId,
+        videoFlipped: role === "visitor" ? false : videoFlipped,
+        startMuted: role === "visitor" && joinMuted,
         ...capability,
       });
     } catch (joinError) {
@@ -650,7 +676,13 @@ export default function Lobby({
                     ) : joiningAsVisitor ? (
                       <div className="preview-placeholder"><Mic size={30} /><span>Voice-only visitor</span></div>
                     ) : (
-                      <video ref={previewRef} autoPlay muted playsInline />
+                      <video
+                        ref={previewRef}
+                        className={videoFlipped ? "is-flipped" : ""}
+                        autoPlay
+                        muted
+                        playsInline
+                      />
                     )}
                     {!joiningLocalMock && !joiningAsVisitor && !previewStream && !mediaError && (
                       <div className="preview-placeholder"><Camera size={30} /><span>Starting camera…</span></div>
@@ -660,6 +692,19 @@ export default function Lobby({
                         {joiningAsVisitor ? <Mic size={30} /> : <Camera size={30} />}
                         <span>{joiningAsVisitor ? "Microphone unavailable" : "Preview unavailable"}</span>
                       </div>
+                    )}
+                    {!visitorMode && (
+                      <button
+                        className={`preview-flip-button${videoFlipped ? " active" : ""}`}
+                        type="button"
+                        aria-label={videoFlipped ? "Unflip video" : "Flip video"}
+                        aria-pressed={videoFlipped}
+                        data-tooltip={videoFlipped ? "Unflip video" : "Flip video"}
+                        data-tooltip-pos="right-bottom"
+                        onClick={() => setVideoFlipped((value) => !value)}
+                      >
+                        <FlipVertical2 size={18} />
+                      </button>
                     )}
                   </div>
 
@@ -678,44 +723,70 @@ export default function Lobby({
                     </div>
 
                     {!joiningLocalMock && (
-                    <div className={`device-options${joiningAsVisitor ? " single" : ""}`}>
-                      {!joiningAsVisitor && (
-                        <label className="modal-field">
-                          <span>Camera</span>
-                          <select
-                            value={videoDeviceId}
-                            onChange={(event) => {
-                              const value = event.target.value;
-                              setVideoDeviceId(value);
-                              acquirePreview(value, audioDeviceId);
-                            }}
-                          >
-                            {cameras.map((device, index) => (
-                              <option key={device.deviceId} value={device.deviceId}>{device.label || `Camera ${index + 1}`}</option>
-                            ))}
-                          </select>
-                        </label>
-                      )}
-                      <label className="modal-field">
-                        <span>Microphone</span>
-                        <select
-                          value={audioDeviceId}
-                          onChange={(event) => {
-                            const value = event.target.value;
-                            setAudioDeviceId(value);
-                            acquirePreview(videoDeviceId, value);
-                          }}
-                        >
-                          {mics.map((device, index) => (
-                            <option key={device.deviceId} value={device.deviceId}>{device.label || `Microphone ${index + 1}`}</option>
-                          ))}
-                        </select>
-                        <div className="mic-test" aria-label="Microphone input level">
-                          <span>Mic level</span>
-                          <div className="mic-meter"><i style={{ width: `${Math.max(3, micLevel * 100)}%` }} /></div>
+                      <>
+                        <div className={`device-options${joiningAsVisitor ? " single" : ""}`}>
+                          {!joiningAsVisitor && (
+                            <label className="modal-field">
+                              <span>Camera</span>
+                              <select
+                                value={videoDeviceId}
+                                onChange={(event) => {
+                                  const value = event.target.value;
+                                  setVideoDeviceId(value);
+                                  acquirePreview(value, audioDeviceId);
+                                }}
+                              >
+                                {cameras.map((device, index) => (
+                                  <option key={device.deviceId} value={device.deviceId}>{device.label || `Camera ${index + 1}`}</option>
+                                ))}
+                              </select>
+                            </label>
+                          )}
+                          <label className="modal-field">
+                            <span>Microphone</span>
+                            <select
+                              value={audioDeviceId}
+                              onChange={(event) => {
+                                const value = event.target.value;
+                                setAudioDeviceId(value);
+                                acquirePreview(videoDeviceId, value);
+                              }}
+                            >
+                              {mics.map((device, index) => (
+                                <option key={device.deviceId} value={device.deviceId}>{device.label || `Microphone ${index + 1}`}</option>
+                              ))}
+                            </select>
+                            <div className="mic-test" aria-label="Microphone input level">
+                              <span>Mic level</span>
+                              <div className="mic-meter"><i style={{ width: `${Math.max(3, micLevel * 100)}%` }} /></div>
+                            </div>
+                          </label>
                         </div>
-                      </label>
-                    </div>
+                        {joiningAsVisitor && (
+                          <fieldset className="visitor-audio-choice">
+                            <legend>Join with microphone</legend>
+                            <div className="visitor-audio-options">
+                              <button
+                                type="button"
+                                aria-pressed={!joinMuted}
+                                onClick={() => setJoinMuted(false)}
+                              >
+                                <Mic size={16} />
+                                Mic on
+                              </button>
+                              <button
+                                type="button"
+                                aria-pressed={joinMuted}
+                                onClick={() => setJoinMuted(true)}
+                              >
+                                <MicOff size={16} />
+                                Join muted
+                              </button>
+                            </div>
+                            <p>You can mute or unmute yourself anytime in Settings.</p>
+                          </fieldset>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>

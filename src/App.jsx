@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { lazy, Suspense, useEffect, useState } from "react";
 import Lobby from "./Lobby.jsx";
-import Game from "./Game.jsx";
 import AccountPrompt from "./AccountPrompt.jsx";
 import { claimGuestGameMembership } from "./gameRooms.js";
 import {
@@ -16,7 +15,10 @@ import {
   updatePresence,
 } from "./account.js";
 
+const Game = lazy(() => import("./Game.jsx"));
+
 const THEME_KEY = "theme-preference";
+const ACTIVE_SESSION_KEY = "snapcast-active-room";
 const THEME_OPTIONS = new Set(["light", "dark", "system"]);
 
 function initialThemePreference() {
@@ -31,8 +33,22 @@ function applyTheme(preference) {
   document.documentElement.dataset.themePreference = preference;
 }
 
+function initialSession() {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(ACTIVE_SESSION_KEY) || "null");
+    if (
+      saved
+      && typeof saved.code === "string"
+      && typeof saved.name === "string"
+      && typeof saved.participantId === "string"
+      && Number.isFinite(saved.joinedAt)
+    ) return saved;
+  } catch { /* start at the lobby when session recovery is unavailable */ }
+  return null;
+}
+
 export default function App() {
-  const [session, setSession] = useState(null); // {code, name, role}
+  const [session, setSession] = useState(initialSession); // {code, name, role, participantId, joinedAt}
   const [account, setAccount] = useState(null);
   const [accountReady, setAccountReady] = useState(false);
   const [accountError, setAccountError] = useState("");
@@ -40,6 +56,21 @@ export default function App() {
   const [savedCommanderDecks, setSavedCommanderDecks] = useState([]);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [themePreference, setThemePreference] = useState(initialThemePreference);
+
+  const startSession = (nextSession) => {
+    const next = {
+      ...nextSession,
+      participantId: nextSession.participantId || crypto.randomUUID(),
+      joinedAt: Number(nextSession.joinedAt) || Date.now(),
+    };
+    try { sessionStorage.setItem(ACTIVE_SESSION_KEY, JSON.stringify(next)); } catch { /* recovery remains unavailable */ }
+    setSession(next);
+  };
+
+  const leaveSession = () => {
+    try { sessionStorage.removeItem(ACTIVE_SESSION_KEY); } catch { /* state still clears in memory */ }
+    setSession(null);
+  };
 
   useEffect(() => {
     let active = true;
@@ -186,7 +217,7 @@ export default function App() {
 
   const leaveGame = () => {
     window.history.replaceState({}, "", "/");
-    setSession(null);
+    leaveSession();
     setAccountPromptDismissed(false);
   };
 
@@ -196,7 +227,7 @@ export default function App() {
         <Lobby
           onStart={(nextSession) => {
             setAccountPromptDismissed(false);
-            setSession({
+            startSession({
               ...nextSession,
               profileId: account?.user?.id || null,
               savedCommanderDecks,
@@ -216,13 +247,15 @@ export default function App() {
 
   return (
     <>
-      <Game
-        session={session}
-        account={account}
-        onLeave={leaveGame}
-        themePreference={themePreference}
-        onThemePreferenceChange={setThemePreference}
-      />
+      <Suspense fallback={<div className="lobby"><p>Preparing game…</p></div>}>
+        <Game
+          session={session}
+          account={account}
+          onLeave={leaveGame}
+          themePreference={themePreference}
+          onThemePreferenceChange={setThemePreference}
+        />
+      </Suspense>
       {accountReady && !account && !accountPromptDismissed && (
         <AccountPrompt
           error={accountError}
