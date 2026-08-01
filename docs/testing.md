@@ -147,6 +147,11 @@ node scripts/test_metadata_evidence.mjs
 python3 scripts/check_hash_duplication.py
 ```
 
+`npm test` runs this fast policy set plus the account/security guards in one
+command. `npm run check` adds a production build and is the normal pre-push
+gate for non-recognition work. Recognition pipeline changes still require the
+full SNAPTEST plan above; a green fast check is not a substitute for pixels.
+
 `test_card_search_cache.mjs` verifies multi-word local autocomplete and that
 concurrent identical Scryfall lookups share one request. Hash-compatibility and
 index-generation Python checks additionally require OpenCV (`cv2`) in the
@@ -262,7 +267,12 @@ CI (`.github/workflows/ci.yml`) runs on every push:
   index silently stops matching.
 - **`check_hash_duplication.py`** — the worker's copy of the hashing functions
   must match `hash.js`.
-- **`npm run build`**.
+- **Fast runtime policies** — recognition hints/queue bounds, cached card
+  search, metadata gates, video quality, account/RLS guards, and bounded
+  recognition evidence for guest and signed-in sessions.
+- **`npm run build`** on Node 22, matching the current Supabase runtime floor;
+  the build also rejects an initial JavaScript entry above the documented
+  80 KiB gzip budget.
 
 ## Console runner (fallback)
 

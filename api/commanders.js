@@ -49,18 +49,18 @@ async function fetchScryfallCard({ id, name }) {
 }
 
 async function validateSelection(body) {
-  const commander = await fetchScryfallCard({
+  const commanderRequest = fetchScryfallCard({
     id: body.commanderScryfallId,
     name: body.commanderName,
   });
+  const hasPartner = body.partnerScryfallId || String(body.partnerName || "").trim();
+  const partnerRequest = hasPartner
+    ? fetchScryfallCard({ id: body.partnerScryfallId, name: body.partnerName })
+    : Promise.resolve(null);
+  const [commander, partner] = await Promise.all([commanderRequest, partnerRequest]);
   if (!isCommanderCard(commander)) throw new Error(`${commander.name} cannot be a Commander`);
 
-  let partner = null;
-  if (body.partnerScryfallId || String(body.partnerName || "").trim()) {
-    partner = await fetchScryfallCard({
-      id: body.partnerScryfallId,
-      name: body.partnerName,
-    });
+  if (partner) {
     if (!isValidCommanderPartner(commander, partner)) {
       throw new Error(`${partner.name} is not a legal partner for ${commander.name}`);
     }

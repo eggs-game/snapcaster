@@ -119,7 +119,11 @@ function PublicProfilePage({ profileId }) {
   const [matchups, setMatchups] = useState({ opponents: [], commanders: [] });
 
   useEffect(() => {
-    getAccountSession().then(setViewer).catch(() => {});
+    let active = true;
+    getAccountSession()
+      .then((nextViewer) => { if (active) setViewer(nextViewer); })
+      .catch(() => {});
+    return () => { active = false; };
   }, []);
 
   useEffect(() => {

@@ -240,6 +240,7 @@ export default function PublicGames() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    let active = true;
     const url = new URL(window.location.href);
     url.pathname = view === "live" ? "/games/live" : "/games/lobbies";
     bracket ? url.searchParams.set("bracket", bracket) : url.searchParams.delete("bracket");
@@ -257,11 +258,16 @@ export default function PublicGames() {
         seatLimit: seatLimit ? Number(seatLimit) : null,
         search,
       })
-        .then(setGames)
-        .catch((loadError) => setError(String(loadError?.message || "Could not load public games.")))
-        .finally(() => setLoading(false));
+        .then((nextGames) => { if (active) setGames(nextGames); })
+        .catch((loadError) => {
+          if (active) setError(String(loadError?.message || "Could not load public games."));
+        })
+        .finally(() => { if (active) setLoading(false); });
     }, 180);
-    return () => clearTimeout(timer);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
   }, [view, bracket, seatLimit, search]);
 
   return (

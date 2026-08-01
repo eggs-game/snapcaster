@@ -139,8 +139,12 @@ room-wide chat broadcast.
 
 ## Local development (optional)
 
+Use Node 22 or newer. The same fast checks run in CI and can be executed before
+shipping any non-recognition change:
+
 ```bash
 npm install
 npm run dev          # needs VITE_SUPABASE_* in a .env.local file
+npm run check        # policy/security checks + production build
 python scripts/build_index.py --query "set:otj"   # small local index
 ```

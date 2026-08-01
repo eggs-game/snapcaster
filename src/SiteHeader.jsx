@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Bell, LogIn, LogOut, Settings, Users, UserRound } from "lucide-react";
-import { accountDisplayName } from "./account.js";
+import { accountDisplayName } from "./accountIdentity.js";
 
 export default function SiteHeader({
   account,

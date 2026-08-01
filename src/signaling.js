@@ -5,6 +5,10 @@ export const isConfigured = isSupabaseConfigured;
 const client = getSupabase;
 
 const REPORT_BUCKET = "recognition-reports";
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const MAX_CAPTURE_BYTES = 8 * 1024 * 1024;
+const MAX_OCR_BYTES = 2 * 1024 * 1024;
+const REPORT_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 async function roomFingerprint(roomCode) {
   const value = new TextEncoder().encode(String(roomCode || "").toUpperCase());
@@ -106,6 +110,12 @@ async function captureBlob(value) {
   return response.blob();
 }
 
+function validateReportImage(blob, label, maxBytes) {
+  if (!(blob instanceof Blob) || !REPORT_IMAGE_TYPES.has(blob.type) || blob.size < 1 || blob.size > maxBytes) {
+    throw new Error(`${label} must be a supported image no larger than ${Math.round(maxBytes / 1024 / 1024)} MB`);
+  }
+}
+
 // Recognition reports are intentionally separate from room signaling. Realtime
 // broadcasts are ephemeral; these captures need to survive long enough to be
 // labeled and curated into future recognition data.
@@ -113,12 +123,13 @@ export async function saveRecognitionReport(report) {
   if (!isConfigured()) throw new Error("Supabase is not configured");
   const id = String(report?.id || "");
   const editToken = String(report?.editToken || "");
-  if (!id || !editToken) throw new Error("Invalid recognition report");
+  if (!UUID.test(id) || !UUID.test(editToken)) throw new Error("Invalid recognition report");
   const db = client();
   const capturePath = `${id}/capture.jpg`;
   let ocrPath = null;
   const capture = await captureBlob(report.captureImage);
   if (!capture) throw new Error("Missing clicked-card capture");
+  validateReportImage(capture, "Clicked-card capture", MAX_CAPTURE_BYTES);
   const { error: captureError } = await db.storage.from(REPORT_BUCKET).upload(capturePath, capture, {
     contentType: capture.type || "image/jpeg",
     upsert: false,
@@ -127,6 +138,7 @@ export async function saveRecognitionReport(report) {
   if (report.ocrImage) {
     const ocr = await captureBlob(report.ocrImage);
     if (ocr) {
+      validateReportImage(ocr, "OCR crop", MAX_OCR_BYTES);
       ocrPath = `${id}/ocr.jpg`;
       const { error: ocrError } = await db.storage.from(REPORT_BUCKET).upload(ocrPath, ocr, {
         contentType: ocr.type || "image/jpeg",

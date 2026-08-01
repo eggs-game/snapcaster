@@ -20,11 +20,9 @@ import {
   X,
 } from "lucide-react";
 import { isConfigured, makeCode, CODE_LENGTH } from "./roomCode.js";
-import { preload as preloadRecognition } from "./recognition/matcher.js";
 import SiteFooter from "./SiteFooter.jsx";
 import SiteHeader from "./SiteHeader.jsx";
-import { accountDisplayName } from "./account.js";
-import { createGameRoom, joinGameRoom } from "./gameRooms.js";
+import { accountDisplayName } from "./accountIdentity.js";
 import { getLocalMockGame } from "./localMock.js";
 import GamePreview from "./GamePreview.jsx";
 
@@ -91,6 +89,8 @@ const HOME_FEATURES = [
   },
 ];
 
+const loadGameRooms = () => import("./gameRooms.js");
+
 function HomeFeatures() {
   return (
     <section className="home-features" aria-labelledby="home-features-title">
@@ -138,7 +138,9 @@ export default function Lobby({
           ? "join-code"
           : null,
   );
-  const [name, setName] = useState(localStorage.getItem("sc-name") || "");
+  const [name, setName] = useState(() => {
+    try { return localStorage.getItem("sc-name") || ""; } catch { return ""; }
+  });
   const [code, setCode] = useState(initialCode);
   const [lobbyName, setLobbyName] = useState("");
   const [bracket, setBracket] = useState("3");
@@ -172,6 +174,10 @@ export default function Lobby({
     setVideoDeviceId(account.preferences?.preferred_camera_id || "");
     setAudioDeviceId(account.preferences?.preferred_microphone_id || "");
   }, [account]);
+
+  useEffect(() => {
+    if (modal) loadGameRooms().catch(() => {});
+  }, [modal]);
 
   useEffect(() => {
     let cancelled = false;
@@ -341,7 +347,7 @@ export default function Lobby({
       setError("Multiplayer is not configured for this deployment.");
       return;
     }
-    localStorage.setItem("sc-name", playerName);
+    try { localStorage.setItem("sc-name", playerName); } catch { /* continue without persistence */ }
     onSaveEntryPreferences?.({
       preferredCameraId: settings.videoDeviceId || "",
       preferredMicrophoneId: settings.audioDeviceId || "",
@@ -372,6 +378,7 @@ export default function Lobby({
     setError("");
     setSubmitting(true);
     try {
+      const { createGameRoom } = await loadGameRooms();
       const capability = await createGameRoom({
         code,
         name: lobbyName,
@@ -408,6 +415,7 @@ export default function Lobby({
     setSubmitting(true);
     try {
       const role = joiningAsVisitor ? "visitor" : "player";
+      const { joinGameRoom } = await loadGameRooms();
       const capability = await joinGameRoom({ code, displayName: name.trim(), role });
       stopPreview();
       go(code, role, "", {

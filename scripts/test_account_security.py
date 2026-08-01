@@ -9,6 +9,7 @@ MIGRATIONS = sorted((ROOT / "supabase" / "migrations").glob("*.sql"))
 SQL = "\n".join(path.read_text() for path in MIGRATIONS)
 SRC = "\n".join(path.read_text() for path in (ROOT / "src").glob("**/*") if path.is_file())
 VALIDATED_COMMANDERS = (ROOT / "supabase" / "migrations" / "20260726190000_validated_commanders.sql").read_text()
+REPORT_HARDENING = (ROOT / "supabase" / "migrations" / "20260801130000_recognition_report_hardening.sql").read_text()
 
 EXPECTED_RLS = {
     "profiles", "account_private", "account_preferences", "game_rooms",
@@ -19,6 +20,7 @@ EXPECTED_RLS = {
     "profile_notifications", "player_reviews", "moderation_reports",
     "account_deletion_requests", "security_rate_events", "moderator_accounts",
     "moderation_actions", "moderation_appeals",
+    "recognition_reports", "connection_events", "recognition_timing_events",
 }
 
 for table in sorted(EXPECTED_RLS):
@@ -51,6 +53,36 @@ assert '.from("saved_commander_decks")\n    .insert' not in SRC, (
     "browser clients must not insert saved Commander decks directly"
 )
 assert 'fetch("/api/commanders"' in SRC, "browser Commander mutations must use the trusted API"
+assert re.search(
+    r'create\s+policy\s+"bounded recognition report insert".*?to\s+anon\s*,\s*authenticated',
+    REPORT_HARDENING,
+    re.I | re.S,
+), "signed-in players must be able to submit bounded recognition reports"
+assert re.search(
+    r'create\s+policy\s+"bounded recognition report upload".*?to\s+anon\s*,\s*authenticated',
+    REPORT_HARDENING,
+    re.I | re.S,
+), "recognition evidence storage must be bounded for guest and signed-in players"
+assert "metadata ->> 'size'" in REPORT_HARDENING and "metadata ->> 'mimetype'" in REPORT_HARDENING, (
+    "recognition evidence uploads must enforce byte and media-type limits"
+)
+assert "file_size_limit = 8388608" in REPORT_HARDENING and "allowed_mime_types" in REPORT_HARDENING, (
+    "the private evidence bucket must enforce upload limits before object storage"
+)
+assert re.search(
+    r"label_recognition_report\(.*?security\s+definer\s+set\s+search_path\s*=\s*''",
+    REPORT_HARDENING,
+    re.I | re.S,
+), "the recognition labeling capability must pin an empty search_path"
+for policy in ("anonymous connection event insert", "anonymous recognition timing insert"):
+    assert re.search(
+        rf'alter\s+policy\s+"{re.escape(policy)}".*?to\s+anon\s*,\s*authenticated',
+        REPORT_HARDENING,
+        re.I | re.S,
+    ), f"{policy} must accept signed-in game sessions"
+assert "MAX_CAPTURE_BYTES" in SRC and "MAX_OCR_BYTES" in SRC, (
+    "the browser must reject oversized recognition evidence before upload"
+)
 assert not re.search(
     r"grant\s+execute\s+on\s+function\s+public\."
     r"(?:prepare_account_deletion|get_due_account_deletions|run_snapcast_retention)"

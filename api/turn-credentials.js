@@ -2,6 +2,7 @@ const TURN_TTL_SECONDS = 12 * 60 * 60;
 const RATE_WINDOW_MS = 60 * 1000;
 const RATE_LIMIT = 8;
 const requests = new Map();
+const PROVIDER_TIMEOUT_MS = 8000;
 
 function header(req, name) {
   const value = req.headers?.[name] ?? req.headers?.[name.toLowerCase()];
@@ -89,17 +90,25 @@ export default async function handler(req, res) {
   }
 
   try {
-    const response = await fetch(
-      `https://rtc.live.cloudflare.com/v1/turn/keys/${encodeURIComponent(keyId)}/credentials/generate-ice-servers`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${keyToken}`,
-          "Content-Type": "application/json",
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), PROVIDER_TIMEOUT_MS);
+    let response;
+    try {
+      response = await fetch(
+        `https://rtc.live.cloudflare.com/v1/turn/keys/${encodeURIComponent(keyId)}/credentials/generate-ice-servers`,
+        {
+          method: "POST",
+          signal: controller.signal,
+          headers: {
+            Authorization: `Bearer ${keyToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ ttl: TURN_TTL_SECONDS }),
         },
-        body: JSON.stringify({ ttl: TURN_TTL_SECONDS }),
-      },
-    );
+      );
+    } finally {
+      clearTimeout(timeout);
+    }
     if (!response.ok) {
       const detail = (await response.text()).slice(0, 300);
       console.error("Cloudflare TURN credential request failed", response.status, detail);

@@ -1,29 +1,22 @@
 import React, { lazy, Suspense, useEffect, useState } from "react";
 import Lobby from "./Lobby.jsx";
 import AccountPrompt from "./AccountPrompt.jsx";
-import { claimGuestGameMembership } from "./gameRooms.js";
-import {
-  getAccountSession,
-  getSocialDashboard,
-  listSavedCommanderDecks,
-  saveEntryDevices,
-  signInWithDiscord,
-  signOutAccount,
-  subscribeToAccount,
-  subscribeToNotifications,
-  takePendingGame,
-  updatePresence,
-} from "./account.js";
 
 const Game = lazy(() => import("./Game.jsx"));
+const loadAccount = () => import("./account.js");
+const loadGameRooms = () => import("./gameRooms.js");
 
 const THEME_KEY = "theme-preference";
 const ACTIVE_SESSION_KEY = "snapcast-active-room";
 const THEME_OPTIONS = new Set(["light", "dark", "system"]);
 
 function initialThemePreference() {
-  const saved = localStorage.getItem(THEME_KEY);
-  return THEME_OPTIONS.has(saved) ? saved : "dark";
+  try {
+    const saved = localStorage.getItem(THEME_KEY);
+    return THEME_OPTIONS.has(saved) ? saved : "dark";
+  } catch {
+    return "dark";
+  }
 }
 
 function applyTheme(preference) {
@@ -74,14 +67,29 @@ export default function App() {
 
   useEffect(() => {
     let active = true;
-    getAccountSession()
-      .then(async (nextAccount) => {
+    let unsubscribe = () => {};
+    loadAccount().then(async (accountApi) => {
+      if (!active) return;
+      unsubscribe = accountApi.subscribeToAccount((nextAccount, error) => {
+        if (!active) return;
+        if (error) {
+          setAccountError(String(error?.message || "Could not load your account."));
+          setAccountReady(true);
+          return;
+        }
+        setAccount(nextAccount);
+        setAccountReady(true);
+        if (nextAccount) setAccountPromptDismissed(true);
+      });
+      try {
+        const nextAccount = await accountApi.getAccountSession();
         if (!active) return;
         setAccount(nextAccount);
         if (nextAccount) {
-          const pending = takePendingGame();
+          const pending = accountApi.takePendingGame();
           if (pending) {
             if (pending.membershipId && pending.participantToken) {
+              const { claimGuestGameMembership } = await loadGameRooms();
               await claimGuestGameMembership({
                 membershipId: pending.membershipId,
                 participantToken: pending.participantToken,
@@ -93,23 +101,16 @@ export default function App() {
             });
           }
         }
-      })
-      .catch((error) => {
+      } catch (error) {
         if (active) setAccountError(String(error?.message || "Could not load your account."));
-      })
-      .finally(() => {
+      } finally {
         if (active) setAccountReady(true);
-      });
-    const unsubscribe = subscribeToAccount((nextAccount, error) => {
-      if (!active) return;
-      if (error) {
+      }
+    }).catch((error) => {
+      if (active) {
         setAccountError(String(error?.message || "Could not load your account."));
         setAccountReady(true);
-        return;
       }
-      setAccount(nextAccount);
-      setAccountReady(true);
-      if (nextAccount) setAccountPromptDismissed(true);
     });
     return () => {
       active = false;
@@ -125,11 +126,14 @@ export default function App() {
   useEffect(() => {
     if (!account) {
       setSavedCommanderDecks([]);
-      return;
+      return undefined;
     }
-    listSavedCommanderDecks(account)
-      .then(setSavedCommanderDecks)
-      .catch(() => setSavedCommanderDecks([]));
+    let active = true;
+    loadAccount()
+      .then(({ listSavedCommanderDecks }) => listSavedCommanderDecks(account))
+      .then((decks) => { if (active) setSavedCommanderDecks(decks); })
+      .catch(() => { if (active) setSavedCommanderDecks([]); });
+    return () => { active = false; };
   }, [account?.user?.id]);
 
   useEffect(() => {
@@ -137,17 +141,27 @@ export default function App() {
       setUnreadNotifications(0);
       return undefined;
     }
-    const refresh = () => getSocialDashboard()
-      .then((dashboard) => setUnreadNotifications(
-        (dashboard.notifications || []).filter((notification) => !notification.read_at).length,
-      ))
+    let active = true;
+    let unsubscribe = () => {};
+    let timer = null;
+    const refresh = () => loadAccount()
+      .then(({ getSocialDashboard }) => getSocialDashboard())
+      .then((dashboard) => {
+        if (active) setUnreadNotifications(
+          (dashboard.notifications || []).filter((notification) => !notification.read_at).length,
+        );
+      })
       .catch(() => {});
     refresh();
-    const unsubscribe = subscribeToNotifications(account, refresh);
-    const timer = window.setInterval(refresh, 60000);
+    loadAccount().then(({ subscribeToNotifications }) => {
+      if (!active) return;
+      unsubscribe = subscribeToNotifications(account, refresh);
+      timer = window.setInterval(refresh, 60000);
+    }).catch(() => {});
     return () => {
+      active = false;
       unsubscribe();
-      window.clearInterval(timer);
+      if (timer) window.clearInterval(timer);
     };
   }, [account?.user?.id]);
 
@@ -162,23 +176,27 @@ export default function App() {
 
   useEffect(() => {
     if (!account || !session?.membershipId || !session?.participantToken) return;
-    claimGuestGameMembership({
-      membershipId: session.membershipId,
-      participantToken: session.participantToken,
-    }).catch(() => {});
+    loadGameRooms()
+      .then(({ claimGuestGameMembership }) => claimGuestGameMembership({
+        membershipId: session.membershipId,
+        participantToken: session.participantToken,
+      }))
+      .catch(() => {});
   }, [account?.user?.id, session?.membershipId, session?.participantToken]);
 
   useEffect(() => {
     if (!account) return undefined;
     const status = session ? "in_game" : "online";
-    const publish = () => updatePresence(status, session?.gameId || null).catch(() => {});
+    const publish = () => loadAccount()
+      .then(({ updatePresence }) => updatePresence(status, session?.gameId || null))
+      .catch(() => {});
     publish();
     const timer = window.setInterval(publish, 60000);
     return () => window.clearInterval(timer);
   }, [account?.user?.id, session?.gameId]);
 
   useEffect(() => {
-    localStorage.setItem(THEME_KEY, themePreference);
+    try { localStorage.setItem(THEME_KEY, themePreference); } catch { /* apply without persistence */ }
     applyTheme(themePreference);
 
     if (themePreference !== "system") return undefined;
@@ -191,6 +209,7 @@ export default function App() {
   const beginDiscordSignIn = async (pendingGame = null) => {
     setAccountError("");
     try {
+      const { signInWithDiscord } = await loadAccount();
       await signInWithDiscord({ pendingGame });
     } catch (error) {
       setAccountError(String(error?.message || "Discord sign-in could not start."));
@@ -200,6 +219,7 @@ export default function App() {
   const signOut = async () => {
     setAccountError("");
     try {
+      const { signOutAccount } = await loadAccount();
       await signOutAccount();
     } catch (error) {
       setAccountError(String(error?.message || "Could not sign out."));
@@ -208,6 +228,7 @@ export default function App() {
 
   const saveDevices = async (values) => {
     try {
+      const { saveEntryDevices } = await loadAccount();
       const nextAccount = await saveEntryDevices(account, values);
       setAccount(nextAccount);
     } catch (error) {

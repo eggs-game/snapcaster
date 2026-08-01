@@ -19,7 +19,7 @@ jobs:
           python-version: "3.11"
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
       - name: Install hashing deps
         run: pip install numpy opencv-python-headless requests pillow
       - name: Verify JS/Python hash compatibility
@@ -43,11 +43,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
       - run: npm ci --no-audit --no-fund
-      # package-lock.json is generated on macOS. npm/cli#4828 can omit the
-      # Linux Rollup native optional package from a clean `npm ci`, even though
-      # Rollup declares it. Install the exact locked Rollup native explicitly
-      # so CI tests the app instead of failing in Rollup's loader.
-      - run: npm install --no-save --no-audit --no-fund @rollup/rollup-linux-x64-gnu@4.62.2
-      - run: npm run build
+      - run: npm run check

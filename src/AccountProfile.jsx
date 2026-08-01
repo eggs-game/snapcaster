@@ -85,7 +85,9 @@ export default function AccountProfile({
   const [sentReviews, setSentReviews] = useState([]);
   const [moderationCases, setModerationCases] = useState([]);
   const [gameHistory, setGameHistory] = useState([]);
-  const [deletionDeadline, setDeletionDeadline] = useState(() => localStorage.getItem("sc-account-deletion-deadline") || "");
+  const [deletionDeadline, setDeletionDeadline] = useState(() => {
+    try { return localStorage.getItem("sc-account-deletion-deadline") || ""; } catch { return ""; }
+  });
 
   useEffect(() => {
     let active = true;
@@ -104,23 +106,31 @@ export default function AccountProfile({
     .catch((loadError) => setError(String(loadError?.message || "Could not load friends and notifications.")));
 
   useEffect(() => {
-    refreshSocial();
-    getMyReceivedReviews().then(setReceivedReviews).catch(() => {});
-    getMySentReviews().then(setSentReviews).catch(() => {});
-    getMyModerationCases().then(setModerationCases).catch(() => {});
-    getMyGameHistory(20).then(setGameHistory).catch(() => {});
+    let active = true;
+    getSocialDashboard()
+      .then((value) => { if (active) setSocial(value); })
+      .catch((loadError) => {
+        if (active) setError(String(loadError?.message || "Could not load friends and notifications."));
+      });
+    getMyReceivedReviews().then((value) => { if (active) setReceivedReviews(value); }).catch(() => {});
+    getMySentReviews().then((value) => { if (active) setSentReviews(value); }).catch(() => {});
+    getMyModerationCases().then((value) => { if (active) setModerationCases(value); }).catch(() => {});
+    getMyGameHistory(20).then((value) => { if (active) setGameHistory(value); }).catch(() => {});
     getAccountDeletionStatus().then((status) => {
+      if (!active) return;
       if (!status?.execute_after || status.canceled_at || status.completed_at) {
-        localStorage.removeItem("sc-account-deletion-deadline");
+        try { localStorage.removeItem("sc-account-deletion-deadline"); } catch { /* state remains authoritative */ }
         setDeletionDeadline("");
         return;
       }
-      localStorage.setItem("sc-account-deletion-deadline", status.execute_after);
+      try { localStorage.setItem("sc-account-deletion-deadline", status.execute_after); } catch { /* state remains authoritative */ }
       setDeletionDeadline(status.execute_after);
     }).catch(() => {});
+    return () => { active = false; };
   }, []);
 
   useEffect(() => {
+    let active = true;
     const query = friendQuery.trim();
     if (query.length < 2) {
       setFriendResults([]);
@@ -129,14 +139,20 @@ export default function AccountProfile({
     const timer = window.setTimeout(() => {
       searchPublicProfiles(query)
         .then((profiles) => {
+          if (!active) return;
           const existingFriendIds = new Set(social.friends.map((friend) => friend.id));
           setFriendResults(profiles.filter((profile) => (
             profile.id !== account.user.id && !existingFriendIds.has(profile.id)
           )));
         })
-        .catch((searchError) => setError(String(searchError?.message || "Could not search profiles.")));
+        .catch((searchError) => {
+          if (active) setError(String(searchError?.message || "Could not search profiles."));
+        });
     }, 350);
-    return () => window.clearTimeout(timer);
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
   }, [account.user.id, friendQuery, social.friends]);
 
   useEffect(() => {

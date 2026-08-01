@@ -1,11 +1,11 @@
 import React, { Suspense, lazy } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.jsx";
-import PublicGames from "./PublicGames.jsx";
 // The benchmark page pulls in SnapTest + the scene generator + the degradation
 // harness (~1300 lines) that no player ever runs. Split it out so it is fetched
 // only when /snaptest is opened.
 const SnapTest = lazy(() => import("./SnapTest.jsx"));
+const PublicGames = lazy(() => import("./PublicGames.jsx"));
 const TurnTest = lazy(() => import("./TurnTest.jsx"));
 const Privacy = lazy(() => import("./Privacy.jsx"));
 const Terms = lazy(() => import("./Terms.jsx"));
@@ -17,7 +17,7 @@ const Community = lazy(() => import("./Community.jsx"));
 const ModerationPage = lazy(() => import("./ModerationPage.jsx"));
 import "./styles.css";
 
-const BUILD = "performance-pass-1 (early hints + bounded queue + binary capture)";
+const BUILD = "hardening-1 (lazy recognition + bounded reports)";
 window.__SNAP_BUILD = BUILD;
 console.log(`%c[snapcast] build: ${BUILD}`, "color:#0a0;font-weight:bold");
 

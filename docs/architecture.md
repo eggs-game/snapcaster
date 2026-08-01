@@ -82,6 +82,7 @@ src/
   App.jsx               Lobby ↔ lazy-loaded Game, theme
   AccountPrompt.jsx     optional post-setup Discord account prompt
   AccountProfile.jsx    shared account content for profile, settings, and friends pages
+  accountIdentity.js    dependency-free display-name/avatar helpers for the landing bundle
   SettingsPage.jsx      profile, devices, preferences, and account data
   FriendsPage.jsx       player search, presence, and friend management
   NotificationsPage.jsx friend requests plus received and sent review activity
@@ -338,7 +339,12 @@ no separate in-app sound setting.
 - The landing bundle excludes the Game, WebRTC/Supabase room code, recognition
   worker front end, and Tesseract. Game loads only when a session starts;
   recognition warms during lobby idle time; OCR loads after entry when the
-  browser is idle.
+  browser is idle. `Lobby.jsx` must not statically import the recognition
+  matcher: doing so collapses the idle `import()` back into the initial bundle.
+  Account hydration starts after first paint from its own chunk, and multiplayer
+  room RPCs load when a create/join flow opens. The production build enforces an
+  80 KiB gzip ceiling on the initial JavaScript entry so these boundaries cannot
+  silently regress.
 - Card-name suggestions use the bundled 35k-name index first. In-memory query
   and Scryfall-response caches deduplicate autocomplete, exact-card, fuzzy-card,
   and commander-partner requests without persisting browsing data.
@@ -363,6 +369,14 @@ no separate in-app sound setting.
   jsDelivr runtime/data origins; the early theme initializer is a same-origin
   external script so the policy does not require inline-script permission.
 - No `dangerouslySetInnerHTML`, `innerHTML` or `eval` anywhere in `src/`.
+- Opt-in recognition evidence accepts both guest and signed-in game sessions,
+  but remains write-only to browsers. Database rows enforce bounded strings
+  and JSON shapes/sizes; Storage accepts only UUID-scoped capture/OCR image
+  paths, allow-listed image MIME types, and fixed byte ceilings. The browser
+  rejects invalid UUIDs, media types, and oversized blobs before upload.
+- External Cloudflare and Scryfall calls have bounded deadlines. Commander and
+  partner validation fetches run concurrently, while the trusted server route
+  remains the only writer for validated Commander state.
 - The Cloudflare TURN key is held only in server-side Vercel environment
   variables. Browsers receive expiring credentials, never the key itself.
 - The Supabase key is publishable. Realtime handles the game; opt-in
@@ -381,3 +395,6 @@ no separate in-app sound setting.
 - UI copy is sentence case; functional values like room codes stay uppercase.
 - Panel forms reuse the Settings field pattern (14px secondary labels, 8px
   label-to-control spacing, 34px controls, 8px radii, shared tokens).
+- Node 22 or newer is required by the current Supabase client. CI and the
+  package engine declaration stay aligned so an unsupported serverless runtime
+  cannot drift in unnoticed.

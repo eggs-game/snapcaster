@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Star, X } from "lucide-react";
 import { getReviewEligibleProfiles, sendFriendRequest, submitPlayerReview } from "./account.js";
 
@@ -10,14 +10,22 @@ export default function ReviewPrompt({ sessionId, onClose }) {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [friendOffer, setFriendOffer] = useState(null);
+  const onCloseRef = useRef(onClose);
 
   useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    let active = true;
     getReviewEligibleProfiles(sessionId)
       .then((eligible) => {
+        if (!active) return;
         setPlayers(eligible);
-        if (!eligible.length) onClose();
+        if (!eligible.length) onCloseRef.current();
       })
-      .catch(() => onClose());
+      .catch(() => { if (active) onCloseRef.current(); });
+    return () => { active = false; };
   }, [sessionId]);
 
   const player = players[index];

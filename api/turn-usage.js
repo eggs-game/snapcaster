@@ -1,5 +1,6 @@
 const FREE_TIER_GB = 1000;
 const GB = 1_000_000_000;
+const PROVIDER_TIMEOUT_MS = 8000;
 
 function header(req, name) {
   const value = req.headers?.[name] ?? req.headers?.[name.toLowerCase()];
@@ -58,14 +59,22 @@ export default async function handler(req, res) {
   }`;
 
   try {
-    const response = await fetch("https://api.cloudflare.com/client/v4/graphql", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ query, variables: { accountId, dateFrom, dateTo } }),
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), PROVIDER_TIMEOUT_MS);
+    let response;
+    try {
+      response = await fetch("https://api.cloudflare.com/client/v4/graphql", {
+        method: "POST",
+        signal: controller.signal,
+        headers: {
+          Authorization: `Bearer ${apiToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ query, variables: { accountId, dateFrom, dateTo } }),
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
     const payload = await response.json();
     if (!response.ok || payload.errors?.length) {
       console.error("Cloudflare TURN analytics request failed", response.status, payload.errors || payload);
