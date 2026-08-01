@@ -30,6 +30,10 @@ duplicated value table that will go stale.
   interactive/brand color. A handful of single-purpose tokens exist outside
   these families — e.g. `--active-turn-glow` (white in dark mode, black in
   light) for the active-player pulse.
+  - The dark material scale carries a restrained warm ink-blue cast: blue is
+    present in canvas and elevated surfaces, while warm off-white text/borders
+    and a faint violet ambient tone keep it from reading as cold navy. The
+    landing page repeats this dark scale even when the saved app theme is light.
   - **Compatibility aliases** (`--bg`, `--panel`, `--dim`, `--text`, etc.)
     map to the semantic names above for older components mid-migration.
     Don't introduce new usages of an alias — use the semantic name it
@@ -39,12 +43,18 @@ duplicated value table that will go stale.
     chromatic, non-themed color is intentional — they identify a specific
     player and must stay stable across light/dark mode.
 - **Typography** — `--text-xs` (12px) through `--text-3xl` (28px), one
-  scale for the whole app. `--font-sans` (Geist/Inter) for UI,
-  `--font-mono` (Geist Mono) for code/diagnostic output.
+  scale for the whole app. `--font-heading` (Geist, with Inter fallback) is
+  reserved for `h1`–`h6`; `--font-sans` (Inter) remains the UI/body face so
+  controls and dense game surfaces do not reflow. `--font-mono` (Geist Mono)
+  is for code/diagnostic output.
 - **Spacing** — `--space-2` (8px) / `--space-5` (20px) cover the common
   cases; most components still use literal px for one-off gaps. If you're
   reaching for a third spacing value repeatedly, consider adding a token
   rather than a new magic number.
+  - Page-level shells use a shared 1280px content grid with a 20px minimum
+    gutter. `--page-max-width` defines the cap and `--page-gutter` expresses
+    the matching header padding, so the wordmark and page content keep the same
+    left/right edges at every width.
 - **Radius** — no token, but a de facto scale by usage: **6px** small
   controls (icon buttons, list rows), **8px** most buttons/inputs/cards,
   **10-12px** panels and modals, **999px** pills (badges, chips). Match the
@@ -125,17 +135,150 @@ wrong-card report’s Submit report action uses this pattern.
 
 ## Account and role controls
 
-The home header is a dark translucent glass navigation bar over the hero:
-Snapcast stays left-aligned and Discord sign-in or the signed-in profile stays
-right-aligned. It uses a restrained blur, a low-contrast bottom edge, and enough
-transparency for the hero to remain visible. The hero image uses matching dark
-fades at its top and bottom so both the header and footer remain readable. The
-bottom fade becomes fully opaque before the artwork ends, while the public-game
-section overlaps that faded region so its heading and table tiles arrive sooner
-without creating a visible seam between the hero and the canvas.
-Account access remains secondary to Create game and Join game. Its Discord
-sign-in and signed-in profile controls are 34px-tall labeled buttons with an 8px
-radius and the shared glass material. The profile menu uses the same dense glass
+The home header is transparent over the hero: Snapcast stays left-aligned and
+Discord sign-in or the signed-in profile stays right-aligned, without a filled
+bar, blur, border, or shadow. The image-free dark hero canvas provides its
+contrast. Hero copy and actions form a centered single-column stack. Its single continuous promise—online
+paper Magic with real table feel—caps at 60px, balances naturally across lines,
+and uses restrained `-0.025em` tracking so Geist stays compact without its
+letterforms colliding. The supporting line names recognition, emotes, sound
+effects, table banter, and a live audience as the reasons that promise is
+credible. It sits directly beneath the centered headline at a 760px maximum,
+with the two actions centered below it in normal reading order at every
+breakpoint. It caps at 20px and uses 84%-opacity warm white—clearer
+than ordinary secondary copy while remaining subordinate to the headline. The
+homepage intentionally uses no decorative hero
+imagery. Public-game discovery lives in the dedicated games directory rather
+than on the homepage, keeping the landing page focused on its two primary
+actions: Make game and View games. Those hero actions are intentionally larger
+than ordinary controls (158px minimum width by 56px high, 18px type): Make game
+opens creation, while View games is a real link to the public lobby directory.
+The hero is deliberately shorter than a full viewport (roughly 70vh, capped at
+680px) so the product surface begins to enter the page sooner. The home header's
+40px controls sit immediately before the account control: Create is opaque warm
+white, Join uses a strong white outline, and the equally sized signed-in profile
+control shows only the display name and notification badge (no avatar). They
+open the same modal and account flows as the primary page actions.
+The join flow presents its six-character game code as six large 82px-high
+verification slots with 30px mono characters. A single transparent input spans
+the slots so typing, pasting, browser one-time-code autofill, validation, and
+screen-reader labeling remain one accessible control; focus advances visually
+through the slots without splitting keyboard interaction across six inputs.
+Below the hero, the homepage includes a non-interactive four-player Commander
+game preview inside a 24px rounded frame. It is coded from the same DOM classes
+as the actual game rather than drawn as a separate marketing mockup: the real
+left icon rail and card panel, video-panel spacing, 2×2 tile grid, Commander
+banners, media controls, mana pips, life-badge corner rules, and
+active-turn treatment all render through the production game styles. The camera
+contents remain coded playmats, with a small shared set of full-frame Scryfall
+card images placed on every battlefield (never art crops). Their static card IDs
+avoid API lookups and let the browser cache repeated cards across all four feeds;
+the example remains live DOM rather than a screenshot.
+Every card slot in the homepage preview—including commanders, battlefield rows,
+the current lookup, and Recents—uses a standard framed printing. Borderless,
+extended-art, art-only, signature, artist-series, and showcase variants are not
+used, so the card name and rules frame always remain visible.
+The playmat artwork is centered with a slight overscan inside each preview
+camera. This crops the rounded or transparent border baked into the source art
+outside the video viewport, while preserving the player tile's own radius and
+the full-surface darkening overlay.
+Each feed presents three readable battlefield rows: creatures at the top,
+artifacts and enchantments in the middle, and four to seven mostly basic lands
+at the bottom. The cards in every row stay within the displayed commander's
+color identity, so the coded board reads like a plausible Commander game rather
+than a decorative card fan. The sample lists follow the commanders' current
+EDHREC recommendations: Sai on blue, Krenko on red, Giada on white, and Ghalta
+on green. Each land row is mostly the matching basic land plus one EDHREC-listed
+utility land. The commander anchors the upper-left of every camera view, with
+the face-down library directly beneath it. The camera is represented as pointing
+straight down: every commander, library sleeve, creature, support, and land uses
+the same card width and the rows have no perspective, skew, or casual-angle
+rotation. Cards begin at 78px on the normal 1280px preview and grow fluidly to
+102px as the showcase expands; row gaps grow with them, while land overlap eases
+from 26px to 18px so the larger battlefield breathes without losing its grouped
+rows. Creatures and lands may still tap with an exact 90-degree turn. A shared tabletop-lighting treatment uses a tight contact
+shadow plus a soft, low-offset falloff from one overhead light direction. It
+avoids bright outlines and large dark halos that make cards look like floating
+cutouts, while restrained contrast and small exposure differences preserve the
+printed-card feel without obscuring rules text.
+Each library is one code-rendered card
+back—not a sleeve image or stacked-card asset—with an inset frame and a simple
+SVG mana mark whose color matches that player's playmat: water for Maya, flame
+for Drew, sun for Sam, and tree for Nora. No offset second-card silhouette is
+rendered. The camera
+uses the corresponding four supplied full-playmat images in the same order. A
+uniform 30% black background layer quiets
+each printed playmat without dimming the cards or controls above it. Playmat
+art slightly overscans the complete camera frame so only the rounded border
+baked into the source is cropped; the white Giada feed uses a warm yellow player accent for a distinct
+life badge and border. At narrow
+breakpoints the desktop game surface scales as one unit, preserving its exact
+layout instead of inventing a different preview-only responsive composition.
+The preview's main surface uses one 4px inset on every outer edge, while the
+video grid adds no one-sided padding. Including the preview border, the visible
+sidebar and last video tile therefore land at matching 5px left/right insets.
+The player tiles use a compact 10px outer radius with concentric 8px camera,
+banner, and life-badge corners, so their square backgrounds never
+visually flatten the player-screen corners;
+the top gutter is intentionally zero so the sidebar and first video row share
+one exact top edge. Because this is a scaled product view, its player banners
+compress the production 52px treatment to 42px, with 11px player names, 12px
+commander names, 9px mana pips, and 14px media icons. As the showcase expands,
+those values rise smoothly to 48px, 13px, 14px, 10px, and 16px respectively;
+chat copy, timestamps, life totals, and its room count follow the same restrained
+scale. The real game still keeps its full-size controls and type.
+The preview section has no eyebrow; its headline is centered over the coded app
+and caps at 42px so it introduces the product surface without competing with the
+hero promise. Its compact 36px top inset keeps that headline visually attached
+to the rounded showcase edge instead of floating in excess empty space.
+On supporting browsers, the section itself uses a view-timeline animation to
+grow from the shared 1280px page-content width and 32px radius to an edge-to-edge
+surface over a shorter entry range: expansion starts at roughly 25% entry and
+finishes around 68%, so a normal downward scroll reaches the full-width product
+view quickly. The headline and coded app surface grow with the rounded section
+without the site's usual 1280px content cap. At full expansion, the app keeps a
+40px gutter on each side of the viewport; scrolling upward reverses the width
+change. The coded app has a 690px minimum height and a 1.6:1 responsive frame,
+so it becomes taller in proportion to its expanding width instead of flattening
+into a wide strip. The centered headline keeps a constant type size and moves
+into position without visually scaling. The
+short initial delay keeps the section's edges aligned with the header and hero
+before expansion. Its
+32px radius stays constant while the width grows, then snaps square only at the
+very end of the view-timeline so the transition reads as zoom rather than a
+progressively sharpening card. The narrow-screen fallback stays inset and
+rounded rather than sacrificing usable page gutters. Legal navigation and the
+project attribution live in a separate full-width footer below this surface;
+they never overlay or visually belong to the coded game preview.
+While the showcase is visible, its real sidebar classes run a quiet looping
+product story: it begins with Ghalta already displayed from the previous lookup
+and populated Recent-card rows below it. Rhystic Study then animates into the
+current result and moves Ghalta into Recents, using the same card rows and share
+icon as the real sidebar. That share action confirms, then the rail switches to the real chat view with
+the shared Rhystic Study and short table conversation. One player responds with
+the real in-app sound-effect message object for “Boo!”, including its local-play
+control, so the demo also shows how table reactions appear in chat. The preview
+composer keeps the real app's drum-shaped sound-picker control beside the
+message field. Chat body,
+card, sound, and composer copy uses compact 12px type, with 11px names and 9px
+timestamps, to match the scaled player banners without changing real-game chat.
+The chat header also carries a
+quiet people icon and the total room count so viewers can see that the four-seat
+table has a live audience. The preview sidebar is a compact
+320px variant and the main game gap contracts to 6px so recognition remains
+useful without taking space from the four camera feeds. The loop pauses offscreen and
+reduced-motion visitors see the complete chat state without timed transitions.
+The product preview is followed by a twelve-card feature grid on the shared
+1280px content width. It uses four columns on wide screens, three and then two
+at intermediate widths, and one on phones. Each non-interactive feature card
+uses the standard 12px panel radius, a quiet raised-surface fill, and one Lucide
+icon inside a 42px informational well; those icon wells are not buttons and do
+not inherit the interactive icon-button tiers. The section names only shipped
+product behavior, with short descriptions that stay readable at a glance
+rather than reproducing settings documentation.
+Account access remains secondary to those hero actions. Outside the landing
+header, Discord sign-in and signed-in profile controls remain 34px-tall labeled
+buttons with an 8px radius and the shared glass material. The profile menu uses the same dense glass
 overlay as other floating menus. Authentication failures appear directly below
 that control rather than disappearing into a game-creation modal.
 
@@ -153,9 +296,20 @@ the privacy checkbox makes the whole row hoverable and clickable.
 
 Public-game cards use the normal raised panel hierarchy: 12px outer radius,
 8px actions, compact status pills, and commander names as quiet surface chips.
-Signed-in player names sit below those chips as subdued profile links.
+When verified playable-card Scryfall IDs are available, a 146px commander-card
+stack sits at the top of the panel; it uses full card-frame images from Scryfall's static CDN and
+never adds per-card API lookups to discovery. Discovery cards intentionally
+omit player names so the commander lineup stays the only public table detail.
 The directory reuses the segmented-control selected state for Lobby/Live and
-keeps bracket visible beside search rather than hiding primary filters.
+keeps its intentionally small filter set on the bare page canvas: a compact
+search field, an “All brackets” selector, and a table-size selector that
+defaults to four players. Field titles and the old filter-panel shell are
+omitted so selected values do the labeling. Lobby results always require an
+open player seat; that invariant is no longer presented as an optional
+checkbox. Directory cards omit the redundant Lobby badge and place bracket
+beside player/watcher counts, while Live retains its status badge. Create game
+and Join game are distinct header actions on the right and deep-link to their
+matching homepage flows.
 
 The owner-only Game Management trigger is a labeled glass control over the
 video panel, paired with a compact lifecycle badge. Its modal separates players

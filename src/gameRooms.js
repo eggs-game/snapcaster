@@ -163,13 +163,17 @@ export async function listPublicGameRooms({
     (playerCount != null && Number.isInteger(Number(playerCount)))
     || (seatLimit != null && Number.isInteger(Number(seatLimit)))
   );
-  const { data, error } = await getSupabase().rpc("list_public_game_rooms", {
+  const params = {
     requested_status: status,
     requested_bracket: bracket,
     open_seats_only: openSeatsOnly,
     search_text: search || null,
     result_limit: needsClientCountFilter ? 50 : limit,
-  });
+  };
+  let { data, error } = await getSupabase().rpc("list_public_game_rooms_with_cards", params);
+  if (error?.code === "PGRST202" || error?.message?.includes("list_public_game_rooms_with_cards")) {
+    ({ data, error } = await getSupabase().rpc("list_public_game_rooms", params));
+  }
   if (error) throw error;
   return (data || [])
     .filter((game) => playerCount == null || Number(game.player_count) === Number(playerCount))

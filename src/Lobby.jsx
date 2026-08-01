@@ -1,38 +1,117 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ArrowRight, Camera, LogIn, LogOut, Mic, Settings, UserRound, X } from "lucide-react";
+import {
+  ArrowRight,
+  AudioLines,
+  Camera,
+  Eye,
+  Globe2,
+  HeartPulse,
+  LayoutGrid,
+  LogIn,
+  LogOut,
+  Maximize,
+  MessagesSquare,
+  Mic,
+  ScanLine,
+  Settings,
+  Share2,
+  Smile,
+  Users,
+  Video,
+  X,
+} from "lucide-react";
 import { isConfigured, makeCode, CODE_LENGTH } from "./signaling.js";
 import { preload as preloadRecognition } from "./recognition/matcher.js";
 import SiteFooter from "./SiteFooter.jsx";
-import { accountAvatarUrl, accountDisplayName } from "./account.js";
+import { accountDisplayName } from "./account.js";
 import { createGameRoom, joinGameRoom } from "./gameRooms.js";
 import { getLocalMockGame } from "./localMock.js";
-import { PublicGameCards } from "./PublicGames.jsx";
+import GamePreview from "./GamePreview.jsx";
 
-function HeroBackdrop() {
-  const [file, setFile] = useState(null);
+const HOME_FEATURES = [
+  {
+    icon: ScanLine,
+    title: "Instant card recognition",
+    description: "Click a card to identify its exact printing without stopping the game.",
+  },
+  {
+    icon: Video,
+    title: "Up to 4K capture",
+    description: "Use supported 4K cameras for sharper tables and more reliable card clicks.",
+  },
+  {
+    icon: Eye,
+    title: "Visitor mode",
+    description: "Watch, listen, and join chat without taking a seat or sharing a camera.",
+  },
+  {
+    icon: LayoutGrid,
+    title: "Three table views",
+    description: "Switch between Tiles, Follow, and Hero layouts as the game changes.",
+  },
+  {
+    icon: Maximize,
+    title: "Cover or fit video",
+    description: "Fill each tile or show the complete camera frame with one setting.",
+  },
+  {
+    icon: MessagesSquare,
+    title: "Live table chat",
+    description: "Keep the conversation and game updates together beside the table.",
+  },
+  {
+    icon: Smile,
+    title: "Emotes and reactions",
+    description: "Drop visual reactions onto the table without interrupting the turn.",
+  },
+  {
+    icon: AudioLines,
+    title: "Shared sound effects",
+    description: "Send applause, boos, creature sounds, and more to everyone in the room.",
+  },
+  {
+    icon: Users,
+    title: "Live audience",
+    description: "Let friends watch the table and join the conversation as visitors.",
+  },
+  {
+    icon: HeartPulse,
+    title: "Commander game tools",
+    description: "Track life, commander damage, turns, counters, dice, and ready checks.",
+  },
+  {
+    icon: Globe2,
+    title: "Public or private rooms",
+    description: "Open a table for discovery or keep game night to people with the code.",
+  },
+  {
+    icon: Share2,
+    title: "Shared card results",
+    description: "Share a recognized card once so everyone gets the result in Recents.",
+  },
+];
 
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/hero/commanders/manifest.json")
-      .then((r) => r.json())
-      .then((list) => {
-        if (cancelled || !Array.isArray(list) || list.length === 0) return;
-        setFile(list[Math.floor(Math.random() * list.length)]);
-      })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, []);
-
-  if (!file) return null;
-
+function HomeFeatures() {
   return (
-    <>
-      <div
-        className="lobby-hero-bg-layer"
-        style={{ backgroundImage: `url(/hero/commanders/${file})`, opacity: 1 }}
-      />
-      <div className="lobby-hero-bg-overlay" />
-    </>
+    <section className="home-features" aria-labelledby="home-features-title">
+      <div className="home-features-inner">
+        <header className="home-features-head">
+          <h2 id="home-features-title">Everything game night needs.</h2>
+          <p>Clearer cards, flexible video, and more ways for everyone at the table to join the fun.</p>
+        </header>
+        <div className="home-features-grid">
+          {HOME_FEATURES.map(({ icon: Icon, title, description }) => (
+            <article className="home-feature-card" key={title}>
+              <span className="home-feature-icon" aria-hidden="true">
+                <Icon size={22} strokeWidth={1.8} />
+              </span>
+              <h3>{title}</h3>
+              <p>{description}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -49,8 +128,17 @@ export default function Lobby({
 }) {
   const params = new URLSearchParams(window.location.search);
   const visitorMode = params.get("visitor") === "1";
+  const initialAction = params.get("action");
   const initialCode = (params.get("code") || "").toUpperCase().slice(0, CODE_LENGTH);
-  const [modal, setModal] = useState(initialCode || visitorMode ? "join" : null);
+  const [modal, setModal] = useState(
+    initialCode || visitorMode
+      ? "join"
+      : initialAction === "create"
+        ? "create"
+        : initialAction === "join"
+          ? "join-code"
+          : null,
+  );
   const [name, setName] = useState(localStorage.getItem("sc-name") || "");
   const [code, setCode] = useState(initialCode);
   const [lobbyName, setLobbyName] = useState("");
@@ -328,6 +416,10 @@ export default function Lobby({
     <main className="lobby-home">
       <header className="site-header">
         <a className="site-brand" href="/">Snapcast</a>
+        <nav className="home-header-actions" aria-label="Game actions">
+          <button className="home-header-create" type="button" onClick={() => openModal("create")}>Create</button>
+          <button className="home-header-join" type="button" onClick={() => openModal("join-code")}>Join</button>
+        </nav>
         <div className="site-account">
           {account ? (
             <>
@@ -337,11 +429,6 @@ export default function Lobby({
                 onClick={() => setAccountMenuOpen((open) => !open)}
                 aria-expanded={accountMenuOpen}
               >
-                {accountAvatarUrl(account) ? (
-                  <img src={accountAvatarUrl(account)} alt="" />
-                ) : (
-                  <UserRound size={17} />
-                )}
                 <span>{accountDisplayName(account)}</span>
                 {notificationCount > 0 && (
                   <span className="site-notification-badge" aria-label={`${notificationCount} unread notifications`}>
@@ -379,32 +466,23 @@ export default function Lobby({
         </div>
       </header>
       <section className="lobby-hero lobby-hero-landing" aria-labelledby="snapcast-title">
-        <HeroBackdrop />
-        <div className="lobby-hero-copy">
-          <p className="lobby-hero-eyebrow">In early alpha</p>
-          <h1 id="snapcast-title">Paper Magic, anywhere</h1>
+        <div className="lobby-hero-content">
+          <h1 id="snapcast-title">Online paper Magic with real table feel.</h1>
           <p className="lobby-hero-desc">
-            Come together for a real game night — even when you’re not in the same room.
+            Instant card recognition keeps play moving. Emotes, sound effects, table banter, and a live audience bring game night to life.
           </p>
           <div className="home-actions">
-            <button className="primary" onClick={() => openModal("create")}>Create game</button>
-            <button onClick={() => openModal("join-code")}>Join game</button>
+            <button className="primary" onClick={() => openModal("create")}>Make game</button>
+            <a href="/games/lobbies">View games</a>
           </div>
         </div>
       </section>
 
-      <section className="home-public-games" aria-labelledby="home-public-games-title">
-        <div className="home-section-heading">
-          <div>
-            <p>Open tables</p>
-            <h2 id="home-public-games-title">Join a public game</h2>
-          </div>
-          <a href="/games/lobbies">View all games <ArrowRight size={16} /></a>
-        </div>
-        <PublicGameCards status="lobby" limit={3} compact />
-      </section>
+      <GamePreview />
 
-      <SiteFooter compact />
+      <HomeFeatures />
+
+      <SiteFooter />
 
       {modal && (
         <div
@@ -494,17 +572,33 @@ export default function Lobby({
                 <div className="modal-fields">
                   <label className="modal-field">
                     <span>Game code <em>Required</em></span>
-                    <input
-                      className="code-input"
-                      value={code}
-                      onChange={(event) => {
-                        setCode(event.target.value.replace(/[^a-z0-9]/gi, "").toUpperCase().slice(0, CODE_LENGTH));
-                        setError("");
-                      }}
-                      placeholder="ABCD"
-                      maxLength={CODE_LENGTH}
-                      autoFocus
-                    />
+                    <div className="code-input-shell">
+                      <input
+                        className="code-input"
+                        value={code}
+                        onChange={(event) => {
+                          setCode(event.target.value.replace(/[^a-z0-9]/gi, "").toUpperCase().slice(0, CODE_LENGTH));
+                          setError("");
+                        }}
+                        maxLength={CODE_LENGTH}
+                        autoComplete="one-time-code"
+                        inputMode="text"
+                        enterKeyHint="next"
+                        spellCheck={false}
+                        aria-label="Six-character game code"
+                        autoFocus
+                      />
+                      <span className="code-input-slots" aria-hidden="true">
+                        {Array.from({ length: CODE_LENGTH }, (_, index) => (
+                          <span
+                            className={`code-input-slot${code[index] ? " filled" : ""}${code.length === index ? " current" : ""}`}
+                            key={index}
+                          >
+                            {code[index] || "ABC123"[index]}
+                          </span>
+                        ))}
+                      </span>
+                    </div>
                   </label>
                   {!visitorMode && (
                     <fieldset className="join-role-field">
