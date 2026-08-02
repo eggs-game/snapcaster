@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { UsersRound } from "lucide-react";
 import AccountProfile from "./AccountProfile.jsx";
 import SiteFooter from "./SiteFooter.jsx";
-import { getAccountSession, signInWithDiscord } from "./account.js";
+import SiteHeader from "./SiteHeader.jsx";
+import { getAccountSession, signInWithDiscord, signOutAccount } from "./account.js";
 
 export default function FriendsPage() {
   const [account, setAccount] = useState(null);
@@ -20,15 +21,19 @@ export default function FriendsPage() {
 
   return (
     <main className="profile-page account-profile-page">
-      <header className="site-header">
-        <a className="site-brand" href="/">Snapcast</a>
-        <nav className="site-header-actions" aria-label="Account navigation">
-          <a className="site-header-link" href="/profile">Profile</a>
-          <a className="site-header-link" href="/notifications">Notifications</a>
-          <a className="site-header-link" href="/settings">Settings</a>
-        </nav>
-      </header>
-      <section className="account-profile-page-shell">
+      <SiteHeader
+        account={account}
+        accountReady={!loading}
+        accountError={error}
+        onCreate={() => { window.location.href = "/?action=create"; }}
+        onJoin={() => { window.location.href = "/?action=join"; }}
+        onSignIn={() => signInWithDiscord({ redirectPath: "/friends" })}
+        onSignOut={async () => {
+          await signOutAccount();
+          window.location.href = "/";
+        }}
+      />
+      <section className="account-profile-page-shell focused-account-page-shell">
         {loading ? (
           <p className="public-games-state">Loading friends…</p>
         ) : error && !account ? (

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, Check, ChevronDown, Search } from "lucide-react";
+import RoutedSiteHeader from "./RoutedSiteHeader.jsx";
 import SiteFooter from "./SiteFooter.jsx";
 import { listPublicGameRooms } from "./gameRooms.js";
 
@@ -272,13 +273,7 @@ export default function PublicGames() {
 
   return (
     <main className="games-directory">
-      <header className="site-header">
-        <a className="site-brand" href="/">Snapcast</a>
-        <nav className="site-header-actions" aria-label="Game actions">
-          <a className="site-header-link primary" href="/?action=create">Create game</a>
-          <a className="site-header-link" href="/?action=join">Join game</a>
-        </nav>
-      </header>
+      <RoutedSiteHeader />
       <section className="games-directory-shell">
         <div className="games-directory-heading">
           <h1>Find a commander table</h1>

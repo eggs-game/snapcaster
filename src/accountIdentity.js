@@ -9,3 +9,15 @@ export function accountAvatarUrl(account) {
   const metadata = account?.user?.user_metadata || {};
   return metadata.avatar_url || metadata.picture || "";
 }
+
+export function accountDiscordName(account) {
+  const metadata = account?.user?.user_metadata || {};
+  return account?.privateAccount?.discord_username
+    || metadata.global_name
+    || metadata.custom_claims?.global_name
+    || metadata.preferred_username
+    || metadata.user_name
+    || metadata.full_name
+    || metadata.name
+    || accountDisplayName(account);
+}

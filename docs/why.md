@@ -107,5 +107,8 @@ another card, which is uncommon in real play.
 
 - Not a digital Magic client. No rules enforcement, no game state, no stack.
   The cards are real and the players run the game.
-- Not a deck tracker or collection manager.
+- Not a collection manager or digital rules engine. Saved Commander decks can
+  be imported, sorted, edited, and split into main deck, sideboard, and
+  considering sections, but Snapcast does not track card ownership, prices,
+  legality changes, or in-game zones.
 - Not a replacement for Scryfall — it links out for full card details.

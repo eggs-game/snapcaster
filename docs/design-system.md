@@ -177,20 +177,127 @@ The notifications page reuses this shared header component rather than a
 page-specific navigation variant: Create and Join keep the same sizing and
 roles, and the signed-in display name opens the same Profile, Friends,
 Settings, Notifications, and Sign out menu. Directly below its page heading,
-the page uses the shared segmented-control treatment for three accessible
-tabs—Friend requests, Reviews received, and Reviews sent—so only one full-width
-activity panel is visible at a time while its actions remain in context.
-Settings follows the same account-page header and 1120px content grid. Its
-primary Save changes action sits at the right edge of the heading on desktop
-and becomes full-width below the heading on small screens. Editable profile,
-device, preference, and account-data groups stack in one vertical column, with
-individual controls limited to a readable 720px measure instead of spreading
-into a dashboard grid.
+the page uses the shared text-tab treatment for three accessible tabs—Friend
+requests, Reviews received, and Reviews sent—so only one full-width activity
+panel is visible at a time while its actions remain in context. The selected
+tab uses the accent underline; the tab row is not enclosed in an input-like
+track.
+This shared `SiteHeader` is the only production page-header implementation.
+Friends, public profiles, the game directory, legal pages, and moderation all
+reuse it rather than maintaining page-specific link groups. Pages that do not
+otherwise need account state use the lightweight account-aware routed wrapper,
+so Create, Join, sign-in, notification/account menu, and sign-out behavior stay
+consistent as new routes are added.
+Settings follows the same account-page header in a focused 640px content
+column. Its primary Save changes action sits at the right edge of the heading
+on desktop and becomes full-width below the heading on small screens. Editable
+profile, device, preference, and account-data groups stack without enclosing
+section cards; spacing establishes their hierarchy while inputs and device rows
+retain their local boundaries. Every section uses the same `--text-2xl` Geist
+heading treatment as the content headings beneath profile tabs.
+Friends reuses that focused account-page shell rather than maintaining a
+separate dashboard layout: its “Your circle” page hero and Friends section are
+unboxed, the section heading uses the same `--text-2xl` Geist treatment, and
+only the search input and interactive friend rows retain local boundaries.
 The signed-in profile also uses this unboxed account-page heading, with the
-player's display name as the primary heading. Decks, Game history, and Stats use
-the same three-part segmented control as Notifications; Decks opens first,
-existing match records live under Game history, and Stats intentionally remains
-an empty reserved view until that product area is defined.
+player's display name as the primary heading. A compact Discord identity row
+uses the `--discord-brand` mark and the provider username from the private
+account identity. The same row appears on a public profile only for the owner
+and accepted Snapcast friends; it is absent for anonymous viewers and
+non-friends. Private account email is never used as profile-page identity copy. Decks, Game
+history, and Stats use
+the same underlined text tabs as Notifications; Decks opens first, existing
+match records live under Game history, and Stats summarizes those records in a
+responsive analytics grid. Its six 16px-radius tiles show win rate, total games,
+average game time, top commander, commander-damage loss rate, and average turn
+length. Tiles use no iconography: the large primary value leads, the metric name
+sits immediately below it, and supporting context anchors the bottom, all
+left-aligned. Metric labels use regular-weight `--text-lg` secondary text so
+they remain readable beneath the dominant value. The grid moves from four
+columns to two and then one as space narrows.
+Profile tab panels are
+unboxed so their content sits directly under the tab divider; smaller content
+objects such as saved-deck cards and forms keep their own local boundaries.
+Game history uses one full-width row per game, preserving a clear chronological
+scan order and leaving room for player names and primary match metadata without
+compressing adjacent records into columns. Timing drilldowns and per-game
+public-visibility controls are intentionally omitted from this surface for now.
+Above the rows, a locally bounded filter surface uses the shared 36px input and
+8px control radius. Result, bracket, the player's commander, opposing
+commander, player, and inclusive from/to dates compose without navigation or a
+server round trip. A quiet result count and conditional Clear filters action
+make the current scope explicit. The grid moves from four columns to two and
+then one at the account-page breakpoints.
+Each record is a rounded, locally bounded card with a square commander-art
+thumbnail. Results
+use circular Lucide icons rather than text pills: a trophy in the success role
+for wins, a skull in the danger role for losses, and a neutral minus for draws.
+The date and recorded-turn count use `--text-sm` so the primary metadata remains
+readable without competing with the commander name.
+Each profile panel starts with the same `--text-2xl` Geist heading row: “My
+decks,” “Recent game history,” or “Stats.” The row begins one `--space-5` step
+inside the panel so it remains clearly separated from the tab divider. A compact
+Import deck and Add deck actions sit at the Decks heading's right edge. Import
+deck accepts plaintext deck files with a Commander section or `*CMDR*` tags;
+Add deck opens the shared modal shell. Deck creation fields do not remain permanently visible below the saved
+cards. A second toolbar sits below the heading actions: search and sort controls
+occupy the left side while the grid/list segmented control anchors to the right.
+Search matches deck, commander, partner, and color-identity text. Sort options
+cover name, canonical color identity, and the quantity-weighted average mana
+value of nonland commander/mainboard cards. The average is provided by a compact
+security-invoker Supabase view so the collection page does not download every
+card merely to sort deck tiles. List view keeps its artwork rail narrow (124px on desktop), uses regular-weight
+deck titles, and shows one square commander art-crop thumbnail per deck so
+metadata receives most of the row width. The
+profile shell begins 90px below the desktop site header (48px on
+compact layouts), giving the identity block comfortable separation from the
+global navigation before the tabs and deck content. Saved decks use three-column
+gallery tiles with a 16px outer radius and oversized card art with a 14px radius
+inside a 320px-high image window. Single commanders anchor from the top and crop
+at the bottom; partner stacks use the same intentional lower-edge crop so the artwork
+reads larger without lengthening the tile. Saved decks form a three-column grid
+with a 24px gap and as many rows as needed, collapsing to two columns and then one as the
+viewport narrows; the gallery never requires horizontal scrolling. Commander
+and partner names stay on one line and truncate with an ellipsis so long names
+cannot increase a tile footer's height. A compact segmented control at the right
+edge of the filter toolbar uses Lucide grid and list icons to switch between the default gallery and
+full-width 116px list rows; the non-sensitive preference persists per account
+on the device. Card art has no
+letter-placeholder layer behind it, avoiding a redundant box when both
+commander images are already present.
+The tiles have no inline destructive control, keeping this browsing surface
+focused on deck recognition rather than deletion.
+Each tile is a real link to a focused saved-deck editor rather than an inline
+management surface. The editor keeps the shared site header and a 1120px
+content column. Its information hierarchy borrows the useful parts of a mature
+deck builder without copying marketplace UI: deck identity and total first, a
+single bounded control bar second, summary metrics third, then the editing
+workspace. The control bar combines search, an icon-only text/card segmented
+control, Group and Sort selects, and explicit Import and Add card actions.
+Import and add forms expand below that bar only while in use. Import leads with
+the manual Moxfield workflow. A validated Moxfield URL produces an “Open deck
+in Moxfield” link that opens in a separate tab; the user then chooses More →
+Export → Copy for Moxfield, returns to Snapcast, and pastes the list. The URL is
+stored only as attribution and is never requested by Snapcast. Direct URL
+import is disclosed separately for public Archidekt decks.
+
+On desktop the workspace uses a 280px sticky selected-card inspector and a
+three-column grouped text list. Text rows are 36px high with quantity at the
+left and mana value at the right, making a 100-card deck scannable without
+turning each card into a separate panel. The alternate card view uses compact
+image tiles. Selecting a card exposes quantity, deck section, swap, and remove
+controls in the inspector; sideboard and considering are first-class sections.
+The workspace collapses to two list columns and then one as the viewport
+narrows, and the inspector stops being sticky on compact screens. The page
+always shows main-deck count, sideboard count, average mana value, and unique
+card count. Import is a full-list replacement; individual adds accumulate
+quantity in their chosen section, while moves and swaps merge duplicates.
+Successful deck mutations use the shared temporary toast pattern rather than
+occupying document flow. The toast is fixed to the safe-area-aware lower-right
+corner, announces through a polite atomic live region, offers an explicit close
+button, and dismisses after four seconds. Its entrance animation respects
+reduced-motion preferences. Action errors remain persistent inline alerts so
+recovery guidance cannot disappear before the player reads it.
 The join flow presents its six-character game code as six large 82px-high
 verification slots with 30px mono characters. A single transparent input spans
 the slots so typing, pasting, browser one-time-code autofill, validation, and
@@ -330,13 +437,12 @@ shell and action hierarchy; both choices have equal width so creating an account
 remains optional rather than visually mandatory.
 
 **My Profile** is a full `/profile` page, not an overlay. It uses the shared
-site header and a 1280px content shell so account editing, friends, saved
-commanders, reviews, and match history remain navigable even when the page is
-long. Its 52px account avatar anchors a raised identity header. Settings are
-grouped into responsive 12px-radius panels; saved-device rows use the raised
-surface and 8px control radius, while privacy checkboxes make the whole row
-hoverable and clickable. Public profiles keep the query-string form
-`/profile?id=…` and retain their read-only layout.
+site header and an 1120px content shell, an unboxed identity heading, and
+underlined tabs for decks, game history, and stats. Settings and Friends use
+the shared focused 640px account-page shell with unboxed sections; saved-device
+rows use the raised surface and 8px control radius, while privacy checkboxes
+make the whole row hoverable and clickable. Public profiles keep the
+query-string form `/profile?id=…` and retain their read-only layout.
 
 Public-game cards use the normal raised panel hierarchy: 12px outer radius,
 8px actions, compact status pills, and commander names as quiet surface chips.
@@ -620,7 +726,23 @@ Keep tooltip copy short and imperative ("Mute", not "Mute microphone";
 "Add commander damage", not "Open commander damage") — it's a hover label,
 not a description.
 
-## Segmented controls
+## Tabs and segmented controls
+
+Tabs navigate between peer content views. They are plain text on a single
+bottom divider, with the selected tab indicated by a 2px
+`--accent-primary` underline and primary text. Hover changes text color only;
+it does not add a filled button background. Account/Profile and Notifications
+use this pattern through `.account-page-tabs`. On small screens each tab shares
+the available row width so labels remain easy to target.
+
+Segmented controls are input-like choice groups rather than content
+navigation. The screenshot-style pattern is the canonical segmented control:
+a bordered, rounded track containing equal-width options with a raised selected
+segment. Keep this treatment for compact mutually exclusive controls such as
+Settings choices, game-directory view filters, visitor role selection, and the
+sound picker. Do not use it for page or panel tabs.
+
+### Segmented-control construction
 
 The pill-shaped multi-option toggle (Settings' Game view / Video fit /
 Appearance rows): a bordered track (`--border-default`, 8px radius,

@@ -1,5 +1,14 @@
 import { getSupabase, isSupabaseConfigured } from "./supabase.js";
 import { getLocalMockData, isMockAccount, updateLocalMock } from "./localMock.js";
+import {
+  aggregateDeckCards,
+  normalizeDeckBoard,
+  parseArchidektDeck,
+  parseDeckAttributionUrl,
+  parseDeckSourceUrl,
+  parseDeckText,
+} from "./deckImport.js";
+import { ANT_MAN_DECK_TEXT } from "./mockDeckFixtures.js";
 export { accountAvatarUrl, accountDisplayName } from "./accountIdentity.js";
 
 const PENDING_GAME_KEY = "sc-pending-game";
@@ -11,7 +20,7 @@ async function hydrateAccount(session) {
   const [profileResult, preferencesResult, privateResult] = await Promise.all([
     supabase.from("profiles").select("id, display_name, avatar_url, created_at, updated_at").eq("id", session.user.id).single(),
     supabase.from("account_preferences").select("preferred_camera_id, preferred_microphone_id, theme, appear_offline, show_recent_games").eq("user_id", session.user.id).single(),
-    supabase.from("account_private").select("email, email_verified").eq("user_id", session.user.id).single(),
+    supabase.from("account_private").select("email, email_verified, discord_username").eq("user_id", session.user.id).single(),
   ]);
   const firstError = profileResult.error || preferencesResult.error || privateResult.error;
   if (firstError) throw firstError;
@@ -181,14 +190,253 @@ export async function listSavedCommanderDecks(account) {
   if (isMockAccount(account)) {
     return structuredClone((await getLocalMockData())?.saved_decks || []);
   }
-  const { data, error } = await getSupabase()
-    .from("saved_commander_decks")
-    .select("id, label, commander_name, commander_scryfall_id, partner_name, partner_scryfall_id, color_identity, sort_order")
-    .eq("owner_id", account.user.id)
-    .order("sort_order")
-    .order("created_at");
-  if (error) throw error;
-  return data || [];
+  const supabase = getSupabase();
+  const [deckResult, metadataResult] = await Promise.all([
+    supabase
+      .from("saved_commander_decks")
+      .select("id, label, commander_name, commander_scryfall_id, partner_name, partner_scryfall_id, color_identity, sort_order")
+      .eq("owner_id", account.user.id)
+      .order("sort_order")
+      .order("created_at"),
+    supabase
+      .from("saved_deck_profile_sort_metadata")
+      .select("deck_id, average_cmc")
+      .eq("owner_id", account.user.id),
+  ]);
+  if (deckResult.error) throw deckResult.error;
+  if (metadataResult.error) throw metadataResult.error;
+  const metadataByDeck = new Map((metadataResult.data || []).map((row) => [row.deck_id, row]));
+  return (deckResult.data || []).map((deck) => ({
+    ...deck,
+    average_cmc: metadataByDeck.get(deck.id)?.average_cmc ?? null,
+  }));
+}
+
+export async function getSavedCommanderDeck(account, deckId) {
+  if (!account?.user?.id || !deckId) return null;
+  if (isMockAccount(account)) {
+    await materializeMockDeckFixture(deckId);
+    const deck = (await getLocalMockData())?.saved_decks?.find((item) => item.id === deckId);
+    return deck ? { ...structuredClone(deck), cards: structuredClone(deck.cards || []) } : null;
+  }
+  const [deckResult, cardsResult] = await Promise.all([
+    getSupabase().from("saved_commander_decks")
+      .select("id, label, commander_name, commander_scryfall_id, partner_name, partner_scryfall_id, color_identity, sort_order, source_provider, source_url, imported_at")
+      .eq("owner_id", account.user.id).eq("id", deckId).single(),
+    getSupabase().from("saved_deck_cards")
+      .select("id, name, quantity, board, scryfall_id, oracle_id, set_code, collector_number, mana_value, type_line, colors")
+      .eq("owner_id", account.user.id).eq("deck_id", deckId).order("board").order("name"),
+  ]);
+  if (deckResult.error?.code === "PGRST116") return null;
+  if (deckResult.error) throw deckResult.error;
+  if (cardsResult.error) throw cardsResult.error;
+  return { ...deckResult.data, cards: cardsResult.data || [] };
+}
+
+function mockScryfallMetadata(card) {
+  return {
+    name: card.name,
+    scryfall_id: card.id || null,
+    oracle_id: card.oracle_id || null,
+    set_code: card.set || null,
+    collector_number: card.collector_number || null,
+    mana_value: Number.isFinite(Number(card.cmc)) ? Number(card.cmc) : null,
+    type_line: card.type_line || null,
+    colors: Array.isArray(card.colors) ? card.colors : [],
+  };
+}
+
+async function fetchMockScryfallCard(name) {
+  const response = await fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(String(name || "").trim())}`);
+  if (!response.ok) throw new Error(`Could not find “${String(name || "").trim()}”.`);
+  return response.json();
+}
+
+async function enrichMockCards(cards) {
+  const found = new Map();
+  try {
+    for (let offset = 0; offset < cards.length; offset += 75) {
+      const slice = cards.slice(offset, offset + 75);
+      const response = await fetch("https://api.scryfall.com/cards/collection", {
+        method: "POST",
+        headers: { Accept: "application/json", "Content-Type": "application/json" },
+        body: JSON.stringify({ identifiers: slice.map((card) => ({ name: card.name.split(/\s+\/{2}\s+/)[0] })) }),
+      });
+      if (!response.ok) throw new Error("Card metadata unavailable");
+      const payload = await response.json();
+      for (const card of payload.data || []) found.set(card.name.toLocaleLowerCase("en-US"), card);
+      if (offset + 75 < cards.length) await new Promise((resolve) => setTimeout(resolve, 75));
+    }
+  } catch {
+    return cards;
+  }
+  return cards.map((card) => {
+    const match = found.get(card.name.toLocaleLowerCase("en-US"));
+    return match ? { ...card, ...mockScryfallMetadata(match), quantity: card.quantity, board: card.board } : card;
+  });
+}
+
+async function materializeMockDeckFixture(deckId) {
+  const mock = await getLocalMockData();
+  const deck = mock?.saved_decks?.find((item) => item.id === deckId);
+  if (!deck || deck.fixture_loaded || deck.source_fixture !== "ant-man") return;
+  const cards = await enrichMockCards(parseDeckText(ANT_MAN_DECK_TEXT));
+  await updateLocalMock((data) => {
+    const target = data.saved_decks.find((item) => item.id === deckId);
+    if (!target || target.fixture_loaded) return;
+    target.cards = cards.map((card) => ({ id: crypto.randomUUID(), ...card }));
+    target.fixture_loaded = true;
+  });
+}
+
+async function postDeckAction(account, body) {
+  if (!account?.access_token) throw new Error("Sign in to update this deck.");
+  const response = await fetch("/api/decks", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${account.access_token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload.error || "Deck update failed.");
+  return payload;
+}
+
+async function fetchMockProviderDeck(source) {
+  const endpoint = `/__deck-provider?provider=${encodeURIComponent(source.provider)}&id=${encodeURIComponent(source.id)}`;
+  const response = await fetch(endpoint, { headers: { Accept: "application/json" } });
+  if (!response.ok) throw new Error(`Provider request failed (${response.status})`);
+  return parseArchidektDeck(await response.json());
+}
+
+async function replaceMockDeckCards(deckId, cards, source = {}) {
+  const normalized = aggregateDeckCards(await enrichMockCards(cards));
+  if (!normalized.length) throw new Error("No cards were found in that deck.");
+  if (normalized.reduce((total, card) => total + card.quantity, 0) > 5000) {
+    throw new Error("That deck contains too many cards.");
+  }
+  let storedCards = [];
+  await updateLocalMock((data) => {
+    const deck = data.saved_decks.find((item) => item.id === deckId);
+    if (!deck) throw new Error("Deck not found.");
+    deck.cards = normalized.map((card) => ({ id: crypto.randomUUID(), ...card }));
+    storedCards = deck.cards;
+    deck.source_provider = source.provider || "text";
+    deck.source_url = source.url || null;
+    deck.imported_at = new Date().toISOString();
+  });
+  return structuredClone(storedCards);
+}
+
+export async function importSavedDeckFromUrl(account, deckId, value) {
+  if (isMockAccount(account)) {
+    const source = parseDeckSourceUrl(value);
+    const imported = await fetchMockProviderDeck(source);
+    const cards = await replaceMockDeckCards(deckId, imported.cards, source);
+    return { cards, sourceProvider: source.provider, sourceUrl: source.url, importedName: imported.name || null };
+  }
+  return postDeckAction(account, { action: "import_url", deckId, url: value });
+}
+
+export async function importSavedDeckFromText(account, deckId, text, attributionUrl = "") {
+  const attribution = attributionUrl ? parseDeckAttributionUrl(attributionUrl) : null;
+  if (isMockAccount(account)) {
+    const source = attribution || { provider: "text", url: null };
+    const cards = await replaceMockDeckCards(deckId, parseDeckText(text), source);
+    return { cards, sourceProvider: source.provider, sourceUrl: source.url, importedName: null };
+  }
+  return postDeckAction(account, { action: "import_text", deckId, text, sourceUrl: attribution?.url || null });
+}
+
+export async function addCardToSavedDeck(account, deckId, input) {
+  if (isMockAccount(account)) {
+    const card = await fetchMockScryfallCard(input.name);
+    const board = normalizeDeckBoard(input.board);
+    const quantity = Math.max(1, Math.min(99, Math.trunc(Number(input.quantity) || 1)));
+    let saved;
+    await updateLocalMock((data) => {
+      const deck = data.saved_decks.find((item) => item.id === deckId);
+      if (!deck) throw new Error("Deck not found.");
+      deck.cards ||= [];
+      const current = deck.cards.find((item) => item.board === board && item.name === card.name);
+      if (current) {
+        current.quantity = Math.min(999, current.quantity + quantity);
+        saved = current;
+      } else {
+        saved = {
+          id: crypto.randomUUID(),
+          ...mockScryfallMetadata(card),
+          quantity,
+          board,
+        };
+        deck.cards.push(saved);
+      }
+    });
+    return { card: structuredClone(saved) };
+  }
+  return postDeckAction(account, { action: "add_card", deckId, ...input });
+}
+
+function mergeMockCard(deck, source, { board, quantity, metadata }) {
+  const nextName = metadata?.name || source.name;
+  const destination = deck.cards.find((card) => card.id !== source.id && card.board === board && card.name === nextName);
+  if (destination) {
+    destination.quantity = Math.min(999, Number(destination.quantity) + quantity);
+    deck.cards = deck.cards.filter((card) => card.id !== source.id);
+    return { card: destination, removedId: source.id };
+  }
+  Object.assign(source, metadata || {}, { board, quantity });
+  return { card: source, removedId: null };
+}
+
+export async function updateCardInSavedDeck(account, deckId, cardId, input) {
+  if (isMockAccount(account)) {
+    let result;
+    await updateLocalMock((data) => {
+      const deck = data.saved_decks.find((item) => item.id === deckId);
+      const source = deck?.cards?.find((card) => card.id === cardId);
+      if (!source) throw new Error("Card not found.");
+      result = mergeMockCard(deck, source, {
+        board: normalizeDeckBoard(input.board || source.board),
+        quantity: Math.max(1, Math.min(999, Math.trunc(Number(input.quantity) || 1))),
+      });
+    });
+    return structuredClone(result);
+  }
+  return postDeckAction(account, { action: "update_card", deckId, cardId, ...input });
+}
+
+export async function replaceCardInSavedDeck(account, deckId, cardId, name) {
+  if (isMockAccount(account)) {
+    const replacement = await fetchMockScryfallCard(name);
+    let result;
+    await updateLocalMock((data) => {
+      const deck = data.saved_decks.find((item) => item.id === deckId);
+      const source = deck?.cards?.find((card) => card.id === cardId);
+      if (!source) throw new Error("Card not found.");
+      result = mergeMockCard(deck, source, {
+        board: source.board,
+        quantity: source.quantity,
+        metadata: mockScryfallMetadata(replacement),
+      });
+    });
+    return structuredClone(result);
+  }
+  return postDeckAction(account, { action: "replace_card", deckId, cardId, name });
+}
+
+export async function deleteCardFromSavedDeck(account, deckId, cardId) {
+  if (isMockAccount(account)) {
+    await updateLocalMock((data) => {
+      const deck = data.saved_decks.find((item) => item.id === deckId);
+      if (!deck?.cards?.some((card) => card.id === cardId)) throw new Error("Card not found.");
+      deck.cards = deck.cards.filter((card) => card.id !== cardId);
+    });
+    return { removedId: cardId };
+  }
+  return postDeckAction(account, { action: "delete_card", deckId, cardId });
 }
 
 export async function createSavedCommanderDeck(account, deck) {
@@ -250,11 +498,16 @@ export async function getPublicProfile(profileId) {
   if (mock) {
     const data = mock.profiles?.[profileId]?.data;
     if (!data) return null;
-    return {
-      ...structuredClone(data),
-      relationship: mock.social?.friends?.some((friend) => friend.id === profileId)
+    const relationship = profileId === mock.account?.user?.id
+      ? "self"
+      : mock.social?.friends?.some((friend) => friend.id === profileId)
         ? "friend"
-        : "none",
+        : "none";
+    const publicProfile = structuredClone(data);
+    if (relationship === "none") delete publicProfile.profile?.discord_username;
+    return {
+      ...publicProfile,
+      relationship,
     };
   }
   if (!isSupabaseConfigured()) return null;

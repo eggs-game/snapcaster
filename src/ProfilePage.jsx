@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { BarChart3, Clock3, Trophy, UserRound } from "lucide-react";
 import AccountProfile from "./AccountProfile.jsx";
+import DiscordMark from "./DiscordMark.jsx";
 import SiteFooter from "./SiteFooter.jsx";
 import SiteHeader from "./SiteHeader.jsx";
 import {
@@ -115,6 +116,7 @@ function PublicProfilePage({ profileId }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [viewer, setViewer] = useState(null);
+  const [viewerReady, setViewerReady] = useState(false);
   const [socialStatus, setSocialStatus] = useState("");
   const [matchups, setMatchups] = useState({ opponents: [], commanders: [] });
 
@@ -122,7 +124,8 @@ function PublicProfilePage({ profileId }) {
     let active = true;
     getAccountSession()
       .then((nextViewer) => { if (active) setViewer(nextViewer); })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => { if (active) setViewerReady(true); });
     return () => { active = false; };
   }, []);
 
@@ -148,10 +151,17 @@ function PublicProfilePage({ profileId }) {
 
   return (
     <main className="profile-page">
-      <header className="site-header">
-        <a className="site-brand" href="/">Snapcast</a>
-        <a className="site-header-link" href="/games/lobbies">Find a game</a>
-      </header>
+      <SiteHeader
+        account={viewer}
+        accountReady={viewerReady}
+        onCreate={() => { window.location.href = "/?action=create"; }}
+        onJoin={() => { window.location.href = "/?action=join"; }}
+        onSignIn={() => signInWithDiscord({ redirectPath: window.location.pathname + window.location.search })}
+        onSignOut={async () => {
+          await signOutAccount();
+          window.location.href = "/";
+        }}
+      />
       <section className="profile-page-shell">
         {loading ? (
           <p className="public-games-state">Loading profile…</p>
@@ -166,6 +176,12 @@ function PublicProfilePage({ profileId }) {
               <div>
                 <p>Snapcast player</p>
                 <h1>{data.profile.display_name}</h1>
+                {data.profile.discord_username && (
+                  <span className="account-discord-identity">
+                    <DiscordMark />
+                    {data.profile.discord_username}
+                  </span>
+                )}
                 <span>Playing since {new Date(data.profile.created_at).toLocaleDateString(undefined, { month: "long", year: "numeric" })}</span>
               </div>
               {viewer?.user?.id && viewer.user.id !== data.profile.id && (

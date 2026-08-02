@@ -9,6 +9,88 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-08-02 — `platform-1` — React 19 migration; Vite 8 and Tesseract 7 rejected
+
+The platform migration evaluated each major independently. React upgraded from
+18.3.1 to 19.2.8 and passed the production build, policy checks, and a final
+Tableau 100-card regression. Vite 8/Rolldown and Tesseract 7 were both restored
+to their prior major versions after application-specific recognition gates
+showed that their generic performance claims did not hold for Snapcast.
+
+- **Retained React 19 configuration:** Tableau EDH finished **98/100 (98%)**
+  with 0 errors. Side-by-side and spaced cards were 60/60 and 30/30;
+  overlapping was 8/10. Accepted art-match and visual-exact pathways were
+  **97/97 precise**. Rotation was 54/55 upright, 30/31 tapped, and 14/14
+  upside-down; WASM stayed 134→134MB. The run used the restored Vite 6.4.3,
+  plugin-react 4.7.0, and Tesseract 6.0.1 production artifact.
+- **Rejected Tesseract 7.0.0 candidate:** Tableau passed at 98/100, but the
+  required Vegas suite finished 184/200 (92%) with p90 latency **21.432s**
+  versus **8.0s** on the pre-migration baseline. Average OCR time increased
+  from 4.88s to **8.876s**, and upside-down accuracy fell to 25/33 (75.8%),
+  below the 85% rotation gate. Tesseract returned to 6.0.1.
+- **Rejected Vite 8.2.0 candidate:** the Rolldown build itself improved from
+  roughly 1.7–2.1s to 0.5–0.7s, but the final Tesseract-6 Vegas regression
+  finished **177/200 (88.5%)**, below the 90% overall gate. Clear cards were
+  168/187, side-by-side 113/120, and upside-down 24/33. Accepted pathways
+  remained 166/166 precise and perfect-crop control recovered 22/23 misses,
+  pointing to a bundled retrieval/isolation regression rather than bad source
+  pixels. Vite returned to 6.4.3 and plugin-react to 4.7.0.
+
+The retained dependency change is therefore React 19 only. The BUILD marker
+was updated to `platform-1 (React 19)`; recognition decisions, hashing, Vite,
+and OCR runtime remain on their previously verified implementations.
+
+## 2026-08-02 — `hardening-1` — full recognition health check
+
+The complete five-suite release matrix ran locally in fresh browser sessions
+after the profile and deck-management work. No recognition decision, crop,
+hash, or retrieval code changed in this pass: every headline release gate
+passed, accepted visual pathways remained perfectly precise, and the only
+movement against the most recent comparable baseline stayed inside the
+documented two-card noise band.
+
+- **Tableau 10 — EDH staples (100): 96/100 (96.0%)**, 0 errors. Clear cards
+  were 93/94, side-by-side 60/60, spaced 29/30, and overlapping 3/6.
+  Rotation was 53/55 upright, 30/31 tapped, and 13/14 inverted. Accepted
+  art-match and visual-exact pathways were **95/95 precise**. Median was
+  **2.628s**, p90 **7.088s**, and WASM stayed 134→134MB. The four misses
+  were one low-ranked clear card and three deliberately overlapped cards that
+  were absent from the shortlist.
+- **Magic Con Vegas playmat — EDH staples (200): 186/200 (93.0%)**, 0 errors.
+  Clear cards were 174/187, side-by-side 113/120, spaced 56/60, overlapping
+  17/20, and all three edge-clipped cards were correct. Rotation was 106/114
+  upright, 49/53 tapped, and 31/33 inverted, so every rotation gate passed.
+  Accepted art-match and visual-exact pathways were **179/179 precise**. The
+  first/second halves were 89%/97%; median was **6.6s**, p90 **8.0s**, and
+  WASM stayed 134→134MB. Side-by-side missed its strict sub-gate by one card,
+  matching the historical noise band; all 14 misses were absent from the
+  shortlist rather than accepted false matches.
+- **Tableau 10 EDH dice (100): 94/100 (94.0%)**, 0 errors. Clear cards were
+  92/94. White dice were 18/20; black, blue, red, and pink were each 19/20.
+  Accepted art-match and visual-exact pathways were **89/89 precise**. The
+  first/second halves were 96%/92%; median was **2.961s**, p90 **7.311s**, and
+  WASM stayed 134→134MB. Two misses were low-ranked clear cards and four
+  were overlapped cards absent from the shortlist.
+- **Random 200: 190/200 (95.0%)**, 0 errors, meeting the release gate.
+  Ordinary placement blocks were 55/56, 47/48, and 48/48; top-edge/clipped
+  was **40/48**, two cards below the previous 42/47 completed-card run and
+  therefore inside normal sampling noise. Accepted art matches were
+  **187/187 precise**. The first/second halves were 97%/93%; median was
+  **3.103s**, p90 **6.098s**, and WASM stayed 134→134MB. All ten misses were
+  absent from the shortlist.
+- **EDH staples 200: 193/200 (96.5%)**, 0 errors. The first three placement
+  blocks were a perfect **152/152** and top-edge/clipped was **41/48**, within
+  the historical 41–43/48 range. Accepted art-match and visual-exact pathways
+  were **189/189 precise**. The first/second halves were 97%/96%; median was
+  **3.067s**, p90 **6.149s**, and WASM stayed 134→134MB. All seven misses were
+  top-edge cards absent from the shortlist.
+
+The remaining weakness is unchanged: heavily overlapped tableau cards and
+single-card top-edge crops sometimes fail to introduce the true printing into
+the shortlist. Expanding global crop or proposal budgets has regressed other
+rotations in earlier controlled experiments. This run therefore records the
+health check without a speculative recognition change or BUILD-marker bump.
+
 ## 2026-07-26 — `performance-pass-1` — bounded recognition and outline-first hints
 
 This performance pass keeps one active recognition and only the newest waiting

@@ -49,7 +49,7 @@ export default function SettingsPage() {
           window.location.href = "/";
         }}
       />
-      <section className="account-profile-page-shell settings-page-shell">
+      <section className="account-profile-page-shell focused-account-page-shell">
         {loading ? (
           <p className="public-games-state">Loading settings…</p>
         ) : error ? (

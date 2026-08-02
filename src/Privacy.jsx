@@ -3,7 +3,7 @@ import LegalPage from "./LegalPage.jsx";
 
 export default function Privacy() {
   return (
-    <LegalPage title="Privacy policy" updated="July 27, 2026">
+    <LegalPage title="Privacy policy" updated="August 2, 2026">
       <p>
         Snapcast is a remote paper Magic: The Gathering table. This policy explains what
         information is handled when you use <a href="https://snapcast.app">snapcast.app</a>,
@@ -32,8 +32,9 @@ export default function Privacy() {
         If you choose “Sign in with Discord,” Discord and our authentication provider,
         Supabase, process the sign-in. We request basic identity and email access. We store
         your Discord account identifier, display name, avatar URL, and email when Discord
-        provides one. Your email and account preferences are private to your account; your
-        display name and avatar may be visible to other Snapcast users.
+        provides one. Your email and account preferences are private to your account. Your
+        Snapcast display name and avatar may be visible to other Snapcast users, while your
+        Discord name is shown only to you and people who are accepted Snapcast friends.
       </p>
       <p>
         Creating an account is optional. An account supports your profile,

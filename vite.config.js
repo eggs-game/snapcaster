@@ -34,6 +34,44 @@ function excludeLocalMockData() {
   };
 }
 
+function localDeckProviderProxy() {
+  return {
+    name: "local-deck-provider-proxy",
+    apply: "serve",
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        if (!req.url?.startsWith("/__deck-provider")) return next();
+        try {
+          const requestUrl = new URL(req.url, "http://localhost");
+          const provider = requestUrl.searchParams.get("provider");
+          const id = requestUrl.searchParams.get("id") || "";
+          const endpoint = provider === "archidekt" && /^\d{1,12}$/.test(id)
+            ? `https://archidekt.com/api/decks/${encodeURIComponent(id)}/`
+            : null;
+          if (!endpoint) {
+            res.statusCode = 400;
+            res.setHeader("Content-Type", "application/json");
+            res.end(JSON.stringify({ error: "Invalid provider request" }));
+            return;
+          }
+          const response = await fetch(endpoint, {
+            headers: { Accept: "application/json", "User-Agent": "Snapcast local development" },
+          });
+          const body = await response.text();
+          res.statusCode = response.status;
+          res.setHeader("Content-Type", "application/json");
+          res.setHeader("Cache-Control", "no-store");
+          res.end(body.slice(0, 3_000_000));
+        } catch (error) {
+          res.statusCode = 502;
+          res.setHeader("Content-Type", "application/json");
+          res.end(JSON.stringify({ error: String(error?.message || "Provider request failed") }));
+        }
+      });
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react(), enforceInitialBundleBudget(), excludeLocalMockData()],
+  plugins: [react(), localDeckProviderProxy(), enforceInitialBundleBudget(), excludeLocalMockData()],
 });

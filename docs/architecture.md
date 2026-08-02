@@ -25,7 +25,7 @@ data layer. Recognition remains in the browser.
 | Layer | Choice | Why |
 | --- | --- | --- |
 | Build | Vite | Fast, and bundles the Web Worker without extra config |
-| UI | React 18 | Lightweight pathname dispatch for lobby/game, discovery, profiles, policy, moderation, benchmark, and TURN-health pages |
+| UI | React 19 | Lightweight pathname dispatch for lobby/game, discovery, profiles, policy, moderation, benchmark, and TURN-health pages |
 | Accounts | Supabase Auth + Postgres | Optional Discord identity, profiles, private contact data, and preferences |
 | Transport | WebRTC mesh (2–6 players) + Cloudflare TURN | Direct first; encrypted relay fallback for strict VPN/NAT/firewall paths |
 | Signaling | Supabase Realtime | Presence + broadcast, free tier, no server code |
@@ -60,13 +60,17 @@ realistic without putting fake people or game records in Git or a deployment.
 separate account surfaces:
 
 - `profiles` contains public display name and avatar data.
-- `account_private` contains the Discord provider ID and email, readable only
-  by that account.
+- `account_private` contains the Discord provider ID, Discord username, and
+  email, readable directly only by that account. The public-profile RPC may
+  return the Discord username to the profile owner or an accepted Snapcast
+  friend; it omits that key for anonymous viewers and non-friends.
 - `account_preferences` contains owner-only game-entry preferences.
 
 Row-level security keeps private contact and preference rows owner-only. Public
-profiles deliberately do not include email. The auth trigger creates all three
-rows and safely backfills accounts that predate the migration.
+profiles deliberately do not include email or Discord identity. The auth
+trigger creates all three rows and safely backfills accounts that predate the
+migration. Friend-only identity disclosure happens in one hardened
+`get_public_profile` boundary so UI code cannot broaden it accidentally.
 
 Browser-facing `SECURITY DEFINER` functions are also deny-by-default. The
 function privilege hardening migration removes Supabase's inherited API-role
@@ -74,6 +78,13 @@ grants, then explicitly exposes only the public directory, authenticated user,
 or server-only RPCs each caller needs. Tables used only behind those RPCs keep
 RLS enabled with no direct row policies, which intentionally denies table API
 access.
+
+The participant-only game-history RPC returns the room bracket and a structured
+list of opposing Commander/partner identities alongside the existing result,
+players, and timing data. My Profile can therefore filter a player's locally
+loaded history without parsing display strings or making opponent history
+public. The function remains authenticated-only and scopes rows to
+`auth.uid()`.
 
 Foreign-key columns used by the durable account/game schema have covering
 indexes, and owner RLS policies cache `auth.uid()` through scalar subqueries.
@@ -100,6 +111,7 @@ src/
   localMock.js          loopback-only loader for ignored local fixture data
   PublicGames.jsx       public Lobby and Live Game directories
   ProfilePage.jsx       public finished-game statistics and matchups
+  DeckPage.jsx          owner-only saved-deck import and card-list editor
   GameManagement.jsx    owner lifecycle and participant moderation controls
   ReviewPrompt.jsx      private post-game review flow
   ModerationPage.jsx    least-privilege report and appeal queue
@@ -163,6 +175,27 @@ legality rules. It is the only writer for saved decks and live membership
 Commander fields. Presence heartbeats ignore their legacy Commander
 parameters, and peers refresh the database-authorized membership snapshot
 instead of accepting Commander names broadcast by another browser.
+
+`api/decks.js` is the only writer for full saved-deck card lists. It
+revalidates the signed-in account, verifies deck ownership, rate-limits imports
+and card edits, constructs a fixed Archidekt API URL from a validated numeric
+identifier, and bounds both response size and card counts. Snapcast never
+requests Moxfield automatically: users paste Moxfield's plain-text export and
+may retain the validated Moxfield URL strictly as attribution. Full-list
+replacement runs inside a service-only
+Postgres function, so old-row deletion and the new insert commit atomically.
+Imports enrich cards through Scryfall's collection API
+in bounded batches so the editor can group and sort by type and mana value
+without making one request per card. Quantity, section, add, swap, and remove
+mutations all reload an owner-scoped row before writing; moves and swaps merge
+with an existing matching destination instead of violating the deck/section/name
+uniqueness contract. Card-list rows are owner-scoped with RLS and an
+owner-matching composite foreign key to their saved deck. Browser roles have
+read-only table access; service-role writes stay behind the same-origin API.
+The profile collection reads one additional security-invoker aggregate view
+that returns only deck ID, owner ID, and nonland average mana value. Its query
+still supplies the owner ID explicitly, and underlying saved-card RLS remains
+authoritative; this avoids transferring complete card lists just to sort tiles.
 
 ## The card index
 

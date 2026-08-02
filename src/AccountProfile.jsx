@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from "react";
-import { Download, Plus, Trash2, UserRound, X } from "lucide-react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Download, LayoutGrid, List, Minus, Plus, Skull, Trophy, UserRound, X } from "lucide-react";
 import {
   accountAvatarUrl,
   accountDisplayName,
   cancelAccountDeletion,
   createSavedCommanderDeck,
-  deleteSavedCommanderDeck,
   exportMyAccountData,
   finalizeAccountDeletion,
   getAccountDeletionStatus,
@@ -20,11 +19,12 @@ import {
   reportPlayerReview,
   searchPublicProfiles,
   sendFriendRequest,
-  setMyGameVisibility,
   submitModerationAppeal,
   updateMyPlayerReview,
 } from "./account.js";
 import { isCommanderCard, isValidCommanderPartner } from "./cardSearch.js";
+import DiscordMark from "./DiscordMark.jsx";
+import { accountDiscordName } from "./accountIdentity.js";
 import { roomCapability, submitGameCorrection } from "./gameRooms.js";
 
 function savedDeviceLabel(value) {
@@ -32,15 +32,34 @@ function savedDeviceLabel(value) {
   return `Saved device · ${value.slice(0, 8)}…`;
 }
 
-function timingLabel(milliseconds) {
-  const seconds = Math.max(0, Math.round((Number(milliseconds) || 0) / 1000));
-  if (!seconds) return "0s";
-  const minutes = Math.floor(seconds / 60);
-  return minutes ? `${minutes}m ${seconds % 60}s` : `${seconds}s`;
+function compactDuration(seconds) {
+  if (!(Number(seconds) > 0)) return "—";
+  const minutes = Math.max(1, Math.round(Number(seconds) / 60));
+  if (minutes < 60) return `${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return remainder ? `${hours}h ${remainder}m` : `${hours}h`;
+}
+
+function compactTurnDuration(milliseconds) {
+  if (!(Number(milliseconds) > 0)) return "—";
+  const seconds = Math.max(1, Math.round(Number(milliseconds) / 1000));
+  if (seconds < 60) return `${seconds}s`;
+  return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
 }
 
 function scryfallCardImage(scryfallId, cardName) {
   const params = new URLSearchParams({ format: "image", version: "normal" });
+  if (scryfallId) return `https://api.scryfall.com/cards/${encodeURIComponent(scryfallId)}?${params}`;
+  params.set("exact", cardName || "");
+  return `https://api.scryfall.com/cards/named?${params}`;
+}
+
+function scryfallCardArt(scryfallId, cardName) {
+  const params = new URLSearchParams({
+    format: "image",
+    version: "art_crop",
+  });
   if (scryfallId) return `https://api.scryfall.com/cards/${encodeURIComponent(scryfallId)}?${params}`;
   params.set("exact", cardName || "");
   return `https://api.scryfall.com/cards/named?${params}`;
@@ -54,6 +73,79 @@ function useNamedCardFallback(event, cardName) {
   }
   image.dataset.namedFallback = "true";
   image.src = scryfallCardImage(null, cardName);
+}
+
+function useNamedCardArtFallback(event, cardName) {
+  const image = event.currentTarget;
+  if (image.dataset.namedFallback) {
+    image.remove();
+    return;
+  }
+  image.dataset.namedFallback = "true";
+  image.src = scryfallCardArt(null, cardName);
+}
+
+const EMPTY_HISTORY_FILTERS = Object.freeze({
+  bracket: "",
+  commander: "",
+  opponentCommander: "",
+  player: "",
+  result: "",
+  dateFrom: "",
+  dateTo: "",
+});
+
+const COLOR_SORT_ORDER = ["W", "U", "B", "R", "G"];
+
+function deckColorSignature(deck) {
+  const colors = new Set(Array.isArray(deck.color_identity) ? deck.color_identity : []);
+  return COLOR_SORT_ORDER.filter((color) => colors.has(color)).join("") || "Colorless";
+}
+
+function deckAverageCmc(deck) {
+  const value = Number(deck.average_cmc);
+  return Number.isFinite(value) ? value : Number.POSITIVE_INFINITY;
+}
+
+function uniqueHistoryValues(values) {
+  return [...new Set(values.map((value) => String(value || "").trim()).filter(Boolean))]
+    .sort((left, right) => left.localeCompare(right));
+}
+
+function opponentCommanderNames(game, ownerName) {
+  const recorded = (game.opponent_commanders || [])
+    .flatMap((entry) => [entry.commander, entry.partner]);
+  if (recorded.some(Boolean)) return uniqueHistoryValues(recorded);
+
+  // Older local fixtures predate the structured opponent list. A turn
+  // timeline can still provide the same names without parsing UI copy.
+  return uniqueHistoryValues((game.turn_timeline || [])
+    .filter((turn) => turn.display_name !== ownerName)
+    .flatMap((turn) => [turn.commander, turn.partner]));
+}
+
+function importedCommanderNames(deckText) {
+  const lines = String(deckText || "").split(/\r?\n/).map((line) => line.trim());
+  const tagPattern = /(?:\*CMDR\*|\[commander\]|#commander\b|\/\/\s*commander\b)/i;
+  const cleanCardName = (line) => line
+    .replace(tagPattern, "")
+    .replace(/^\s*(?:\d+\s*x?|x\d+)\s+/i, "")
+    .replace(/\s+\([A-Z0-9]{3,6}\)(?:\s+\S+)?$/i, "")
+    .trim();
+  const tagged = lines.filter((line) => tagPattern.test(line)).map(cleanCardName).filter(Boolean);
+  if (tagged.length) return tagged.slice(0, 2);
+
+  const commanderHeading = lines.findIndex((line) => /^commanders?:?$/i.test(line));
+  if (commanderHeading < 0) return [];
+  const sectionEndPattern = /^(?:deck|mainboard|sideboard|companion|maybeboard|creatures?|instants?|sorceries|artifacts?|enchantments?|lands?):?$/i;
+  const commanders = [];
+  for (const line of lines.slice(commanderHeading + 1)) {
+    if (!line || sectionEndPattern.test(line)) break;
+    const cardName = cleanCardName(line);
+    if (cardName) commanders.push(cardName);
+    if (commanders.length === 2) break;
+  }
+  return commanders;
 }
 
 export default function AccountProfile({
@@ -73,11 +165,25 @@ export default function AccountProfile({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [activeProfileTab, setActiveProfileTab] = useState("decks");
+  const [deckView, setDeckView] = useState(() => {
+    try {
+      return localStorage.getItem(`sc-profile-deck-view:${account?.user?.id || "local"}`) === "list" ? "list" : "grid";
+    } catch {
+      return "grid";
+    }
+  });
+  const [deckSearch, setDeckSearch] = useState("");
+  const [deckSort, setDeckSort] = useState("name");
   const [decks, setDecks] = useState([]);
   const [deckLabel, setDeckLabel] = useState("");
   const [commanderName, setCommanderName] = useState("");
   const [partnerName, setPartnerName] = useState("");
   const [deckSaving, setDeckSaving] = useState(false);
+  const [deckImporting, setDeckImporting] = useState(false);
+  const [showDeckForm, setShowDeckForm] = useState(false);
+  const addDeckButtonRef = useRef(null);
+  const deckLabelInputRef = useRef(null);
+  const importDeckInputRef = useRef(null);
   const [social, setSocial] = useState({ friends: [], notifications: [] });
   const [friendQuery, setFriendQuery] = useState("");
   const [friendResults, setFriendResults] = useState([]);
@@ -85,21 +191,136 @@ export default function AccountProfile({
   const [sentReviews, setSentReviews] = useState([]);
   const [moderationCases, setModerationCases] = useState([]);
   const [gameHistory, setGameHistory] = useState([]);
+  const [historyFilters, setHistoryFilters] = useState(EMPTY_HISTORY_FILTERS);
   const [deletionDeadline, setDeletionDeadline] = useState(() => {
     try { return localStorage.getItem("sc-account-deletion-deadline") || ""; } catch { return ""; }
   });
+
+  const profileStats = useMemo(() => {
+    const games = gameHistory.filter((game) => game.state !== "canceled");
+    const wins = games.filter((game) => game.result === "win").length;
+    const draws = games.filter((game) => game.result === "draw").length;
+    const losses = games.filter((game) => ["loss", "conceded"].includes(game.result));
+    const commanderDamageLosses = losses.filter((game) => game.loss_reason === "commander_damage").length;
+    const recordedDurations = games.map((game) => Number(game.duration_seconds)).filter((value) => value > 0);
+    const recordedTurns = games.map((game) => Number(game.average_turn_ms)).filter((value) => value > 0);
+    const commanderCounts = new Map();
+    games.forEach((game) => {
+      const commander = String(game.commander || "").trim();
+      if (commander) commanderCounts.set(commander, (commanderCounts.get(commander) || 0) + 1);
+    });
+    const [topCommander = "—", topCommanderGames = 0] = [...commanderCounts.entries()]
+      .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))[0] || [];
+    const average = (values) => values.length
+      ? values.reduce((total, value) => total + value, 0) / values.length
+      : 0;
+
+    return {
+      totalGames: games.length,
+      wins,
+      draws,
+      losses: losses.length,
+      winRate: games.length ? Math.round((wins / games.length) * 100) : 0,
+      averageGameSeconds: average(recordedDurations),
+      averageTurnMs: average(recordedTurns),
+      topCommander,
+      topCommanderGames,
+      commanderDamageLosses,
+      commanderDamageRate: losses.length ? Math.round((commanderDamageLosses / losses.length) * 100) : 0,
+    };
+  }, [gameHistory]);
+
+  const historyFilterOptions = useMemo(() => {
+    const ownerName = accountDisplayName(account);
+    return {
+      brackets: [...new Set(gameHistory.map((game) => Number(game.bracket)).filter((value) => value >= 1 && value <= 5))]
+        .sort((left, right) => left - right),
+      commanders: uniqueHistoryValues(gameHistory.flatMap((game) => [game.commander, game.partner])),
+      opponentCommanders: uniqueHistoryValues(gameHistory.flatMap((game) => opponentCommanderNames(game, ownerName))),
+      players: uniqueHistoryValues(gameHistory.flatMap((game) => (game.players || []).map((player) => player.display_name))),
+    };
+  }, [account, gameHistory]);
+
+  const filteredGameHistory = useMemo(() => {
+    const ownerName = accountDisplayName(account);
+    const fromTime = historyFilters.dateFrom
+      ? new Date(`${historyFilters.dateFrom}T00:00:00`).getTime()
+      : Number.NEGATIVE_INFINITY;
+    const toTime = historyFilters.dateTo
+      ? new Date(`${historyFilters.dateTo}T23:59:59.999`).getTime()
+      : Number.POSITIVE_INFINITY;
+
+    return gameHistory.filter((game) => {
+      const startedAt = new Date(game.started_at).getTime();
+      const resultMatches = !historyFilters.result
+        || (historyFilters.result === "loss"
+          ? ["loss", "conceded"].includes(game.result)
+          : game.result === historyFilters.result);
+      return resultMatches
+        && (!historyFilters.bracket || String(game.bracket || "") === historyFilters.bracket)
+        && (!historyFilters.commander || [game.commander, game.partner].includes(historyFilters.commander))
+        && (!historyFilters.opponentCommander
+          || opponentCommanderNames(game, ownerName).includes(historyFilters.opponentCommander))
+        && (!historyFilters.player
+          || (game.players || []).some((player) => player.display_name === historyFilters.player))
+        && startedAt >= fromTime
+        && startedAt <= toTime;
+    });
+  }, [account, gameHistory, historyFilters]);
+
+  const historyFiltersActive = Object.values(historyFilters).some(Boolean);
+  const updateHistoryFilter = (key, value) => {
+    setHistoryFilters((current) => ({ ...current, [key]: value }));
+  };
+
+  const visibleDecks = useMemo(() => {
+    const query = deckSearch.trim().toLocaleLowerCase();
+    const matches = query
+      ? decks.filter((deck) => [
+        deck.label,
+        deck.commander_name,
+        deck.partner_name,
+        deckColorSignature(deck),
+      ].some((value) => String(value || "").toLocaleLowerCase().includes(query)))
+      : [...decks];
+
+    return matches.sort((left, right) => {
+      const nameOrder = String(left.label || left.commander_name || "")
+        .localeCompare(String(right.label || right.commander_name || ""), undefined, { sensitivity: "base" });
+      if (deckSort === "colors") {
+        return deckColorSignature(left).localeCompare(deckColorSignature(right)) || nameOrder;
+      }
+      if (deckSort === "cmc") {
+        return deckAverageCmc(left) - deckAverageCmc(right) || nameOrder;
+      }
+      return nameOrder;
+    });
+  }, [deckSearch, deckSort, decks]);
+
+  const closeDeckForm = useCallback(() => {
+    setShowDeckForm(false);
+    window.requestAnimationFrame(() => addDeckButtonRef.current?.focus());
+  }, []);
 
   useEffect(() => {
     let active = true;
     listSavedCommanderDecks(account)
       .then((saved) => {
-        if (active) setDecks(saved);
+        if (!active) return;
+        setDecks(saved);
       })
       .catch((loadError) => {
         if (active) setError(String(loadError?.message || "Could not load saved commanders."));
       });
     return () => { active = false; };
   }, [account]);
+
+  const selectDeckView = (viewMode) => {
+    setDeckView(viewMode);
+    try {
+      localStorage.setItem(`sc-profile-deck-view:${account?.user?.id || "local"}`, viewMode);
+    } catch { /* the view still changes for this visit */ }
+  };
 
   const refreshSocial = () => getSocialDashboard()
     .then(setSocial)
@@ -115,7 +336,7 @@ export default function AccountProfile({
     getMyReceivedReviews().then((value) => { if (active) setReceivedReviews(value); }).catch(() => {});
     getMySentReviews().then((value) => { if (active) setSentReviews(value); }).catch(() => {});
     getMyModerationCases().then((value) => { if (active) setModerationCases(value); }).catch(() => {});
-    getMyGameHistory(20).then((value) => { if (active) setGameHistory(value); }).catch(() => {});
+    getMyGameHistory(100).then((value) => { if (active) setGameHistory(value); }).catch(() => {});
     getAccountDeletionStatus().then((status) => {
       if (!active) return;
       if (!status?.execute_after || status.canceled_at || status.completed_at) {
@@ -163,6 +384,16 @@ export default function AccountProfile({
     window.addEventListener("keydown", closeOnEscape);
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [onClose, page]);
+
+  useEffect(() => {
+    if (!showDeckForm) return undefined;
+    deckLabelInputRef.current?.focus();
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") closeDeckForm();
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [closeDeckForm, showDeckForm]);
 
   const submit = async (event) => {
     event.preventDefault();
@@ -224,6 +455,7 @@ export default function AccountProfile({
       setDeckLabel("");
       setCommanderName("");
       setPartnerName("");
+      closeDeckForm();
     } catch (saveError) {
       setError(String(saveError?.message || "Could not save this Commander deck."));
     } finally {
@@ -231,15 +463,43 @@ export default function AccountProfile({
     }
   };
 
-  const removeDeck = async (deck) => {
-    if (!window.confirm(`Remove ${deck.label} from your saved commanders?`)) return;
+  const importDeck = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    setError("");
+    setDeckImporting(true);
     try {
-      await deleteSavedCommanderDeck(account, deck.id);
-      const next = decks.filter((item) => item.id !== deck.id);
+      const names = importedCommanderNames(await file.text());
+      if (!names.length) {
+        throw new Error("The deck file needs a Commander section or a card marked *CMDR*.");
+      }
+      const commander = await fetchCard(names[0]);
+      if (!isCommanderCard(commander)) throw new Error(`${commander.name} cannot be a Commander.`);
+      let partner = null;
+      if (names[1]) {
+        partner = await fetchCard(names[1]);
+        if (!isValidCommanderPartner(commander, partner)) {
+          throw new Error(`${partner.name} is not a legal partner for ${commander.name}.`);
+        }
+      }
+      const fallbackLabel = file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim();
+      const saved = await createSavedCommanderDeck(account, {
+        label: fallbackLabel || commander.name,
+        commanderName: commander.name,
+        commanderScryfallId: commander.id,
+        partnerName: partner?.name,
+        partnerScryfallId: partner?.id,
+        colorIdentity: [...new Set([...(commander.color_identity || []), ...(partner?.color_identity || [])])],
+        sortOrder: decks.length,
+      });
+      const next = [...decks, saved];
       setDecks(next);
       onDecksChange?.(next);
-    } catch (deleteError) {
-      setError(String(deleteError?.message || "Could not remove this Commander deck."));
+    } catch (importError) {
+      setError(String(importError?.message || "Could not import this deck."));
+    } finally {
+      setDeckImporting(false);
     }
   };
 
@@ -271,6 +531,8 @@ export default function AccountProfile({
         aria-modal={page ? undefined : "true"}
         aria-labelledby={page && view === "settings"
           ? "account-settings-title"
+          : page && view === "friends"
+            ? "account-friends-title"
           : page && view === "profile"
             ? "my-profile-title"
             : "account-profile-title"}
@@ -296,11 +558,16 @@ export default function AccountProfile({
               {saving ? "Saving…" : "Save changes"}
             </button>
           </header>
+        ) : page && view === "friends" ? (
+          <header className="account-page-hero account-friends-hero">
+            <p>Your circle</p>
+            <h1 id="account-friends-title">Friends</h1>
+            <span className="account-discord-identity"><DiscordMark />{accountDiscordName(account)}</span>
+          </header>
         ) : page && view === "profile" ? (
           <header className="account-page-hero my-profile-hero">
-            <p>My profile</p>
             <h1 id="my-profile-title">{accountDisplayName(account)}</h1>
-            {account?.privateAccount?.email && <span>{account.privateAccount.email}</span>}
+            <span className="account-discord-identity"><DiscordMark />{accountDiscordName(account)}</span>
           </header>
         ) : (
           <header className="account-profile-header">
@@ -314,7 +581,7 @@ export default function AccountProfile({
             <div>
               <p>{view === "settings" ? "Account settings" : view === "friends" ? "Your circle" : "My profile"}</p>
               <h2 id="account-profile-title">{view === "friends" ? "Friends" : accountDisplayName(account)}</h2>
-              {account?.privateAccount?.email && <span>{account.privateAccount.email}</span>}
+              <span className="account-discord-identity"><DiscordMark />{accountDiscordName(account)}</span>
             </div>
           </header>
         )}
@@ -356,7 +623,7 @@ export default function AccountProfile({
 
         <form id={page && view === "settings" ? "account-settings-form" : undefined} onSubmit={submit}>
           {view === "settings" && <div className="account-profile-section">
-            <h3>Public profile</h3>
+            <h3 className="profile-tab-heading">Public profile</h3>
             <label className="modal-field">
               <span>Display name</span>
               <input
@@ -373,7 +640,7 @@ export default function AccountProfile({
           </div>}
 
           {view === "settings" && <div className="account-profile-section">
-            <h3>Game entry</h3>
+            <h3 className="profile-tab-heading">Game entry</h3>
             <div className="account-device-row">
               <div>
                 <strong>Camera</strong>
@@ -398,7 +665,7 @@ export default function AccountProfile({
           </div>}
 
           {view === "settings" && <div className="account-profile-section">
-            <h3>Preferences</h3>
+            <h3 className="profile-tab-heading">Preferences</h3>
             <label className="modal-field">
               <span>Appearance</span>
               <select value={theme} onChange={(event) => setTheme(event.target.value)}>
@@ -437,48 +704,130 @@ export default function AccountProfile({
             role={page ? "tabpanel" : undefined}
             aria-labelledby={page ? "profile-tab-decks" : undefined}
           >
-            <h3>Saved commanders</h3>
+            <div className="profile-tab-heading-row">
+              <h3 className="profile-tab-heading">My decks</h3>
+              {page && (
+                <div className="profile-tab-heading-actions">
+                  <input
+                    ref={importDeckInputRef}
+                    type="file"
+                    accept=".txt,.dec,.dek,text/plain"
+                    hidden
+                    onChange={importDeck}
+                  />
+                  <button
+                    className="profile-import-deck"
+                    type="button"
+                    disabled={deckImporting}
+                    onClick={() => importDeckInputRef.current?.click()}
+                  >
+                    <Download size={16} /> {deckImporting ? "Importing…" : "Import deck"}
+                  </button>
+                  <button
+                    ref={addDeckButtonRef}
+                    className="profile-add-deck"
+                    type="button"
+                    onClick={() => {
+                      setError("");
+                      setShowDeckForm(true);
+                    }}
+                  >
+                    <Plus size={16} /> Add deck
+                  </button>
+                </div>
+              )}
+            </div>
+            {page && decks.length > 0 && (
+              <div className="profile-deck-toolbar" aria-label="Filter and sort decks">
+                <div className="profile-deck-filter-controls">
+                  <label className="profile-deck-search">
+                    <span>Search</span>
+                    <input
+                      type="search"
+                      value={deckSearch}
+                      onChange={(event) => setDeckSearch(event.target.value)}
+                      placeholder="Search decks or commanders"
+                    />
+                  </label>
+                  <label className="profile-deck-sort">
+                    <span>Sort by</span>
+                    <select value={deckSort} onChange={(event) => setDeckSort(event.target.value)}>
+                      <option value="name">Name</option>
+                      <option value="colors">Colors</option>
+                      <option value="cmc">Average CMC</option>
+                    </select>
+                  </label>
+                </div>
+                <div className="deck-view-toggle" role="group" aria-label="Deck view">
+                  <button
+                    type="button"
+                    aria-label="Grid view"
+                    aria-pressed={deckView === "grid"}
+                    title="Grid view"
+                    onClick={() => selectDeckView("grid")}
+                  >
+                    <LayoutGrid size={17} aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="List view"
+                    aria-pressed={deckView === "list"}
+                    title="List view"
+                    onClick={() => selectDeckView("list")}
+                  >
+                    <List size={18} aria-hidden="true" />
+                  </button>
+                </div>
+              </div>
+            )}
             {decks.length > 0 && (
-              <div className="saved-deck-list" aria-label="Saved commander decks">
-                {decks.map((deck) => (
-                  <article className="saved-deck-row" key={deck.id}>
-                    <div className={`saved-deck-card-stack${deck.partner_name ? " is-partner" : ""}`}>
-                      <div className="saved-deck-card-placeholder" aria-hidden="true">
-                        {(deck.commander_name || "?").slice(0, 1)}
-                      </div>
-                      <img
-                        src={scryfallCardImage(deck.commander_scryfall_id, deck.commander_name)}
-                        alt={`${deck.commander_name} card`}
-                        loading="lazy"
-                        onError={(event) => useNamedCardFallback(event, deck.commander_name)}
-                      />
-                      {deck.partner_name && (
+              <div className={`saved-deck-list is-${deckView}`} aria-label="Saved commander decks">
+                {visibleDecks.map((deck) => (
+                  <a
+                    className="saved-deck-row"
+                    href={`/profile/decks/${encodeURIComponent(deck.id)}`}
+                    aria-label={`Open ${deck.label} deck`}
+                    key={deck.id}
+                  >
+                    {deckView === "list" ? (
+                      <div className="saved-deck-card-stack is-thumbnail" key="list-thumbnail">
                         <img
-                          src={scryfallCardImage(deck.partner_scryfall_id, deck.partner_name)}
-                          alt={`${deck.partner_name} card`}
+                          src={scryfallCardArt(deck.commander_scryfall_id, deck.commander_name)}
+                          alt={`${deck.commander_name} art`}
                           loading="lazy"
-                          onError={(event) => useNamedCardFallback(event, deck.partner_name)}
+                          onError={(event) => useNamedCardArtFallback(event, deck.commander_name)}
                         />
-                      )}
-                    </div>
+                      </div>
+                    ) : (
+                      <div className={`saved-deck-card-stack${deck.partner_name ? " is-partner" : ""}`} key="grid-cards">
+                        <img
+                          src={scryfallCardImage(deck.commander_scryfall_id, deck.commander_name)}
+                          alt={`${deck.commander_name} card`}
+                          loading="lazy"
+                          onError={(event) => useNamedCardFallback(event, deck.commander_name)}
+                        />
+                        {deck.partner_name && (
+                          <img
+                            src={scryfallCardImage(deck.partner_scryfall_id, deck.partner_name)}
+                            alt={`${deck.partner_name} card`}
+                            loading="lazy"
+                            onError={(event) => useNamedCardFallback(event, deck.partner_name)}
+                          />
+                        )}
+                      </div>
+                    )}
                     <div className="saved-deck-copy">
                       <strong>{deck.label}</strong>
                       <span>{deck.commander_name}{deck.partner_name ? ` + ${deck.partner_name}` : ""}</span>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => removeDeck(deck)}
-                      aria-label={`Remove ${deck.label}`}
-                      data-tooltip="Remove saved deck"
-                      data-tooltip-pos="right-top"
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </article>
+                  </a>
                 ))}
               </div>
             )}
-            <div className="saved-deck-form">
+            {decks.length > 0 && visibleDecks.length === 0 && (
+              <p className="profile-deck-empty">No decks match your search.</p>
+            )}
+            {!page && <div className="saved-deck-form">
               <label className="modal-field">
                 <span>Deck label</span>
                 <input value={deckLabel} onChange={(event) => setDeckLabel(event.target.value)} maxLength={48} placeholder="Atraxa counters" />
@@ -494,11 +843,77 @@ export default function AccountProfile({
               <button className="saved-deck-add" type="button" disabled={deckSaving} onClick={addDeck}>
                 <Plus size={16} /> {deckSaving ? "Saving…" : "Save commander deck"}
               </button>
-            </div>
+            </div>}
+
+            {page && showDeckForm && (
+              <div
+                className="lobby-modal-backdrop deck-form-backdrop"
+                onMouseDown={(event) => {
+                  if (event.target === event.currentTarget && !deckSaving) closeDeckForm();
+                }}
+              >
+                <section
+                  className="lobby-modal deck-form-modal"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="add-deck-title"
+                >
+                  <button
+                    className="modal-close"
+                    type="button"
+                    onClick={closeDeckForm}
+                    disabled={deckSaving}
+                    aria-label="Close add deck"
+                  >
+                    <X size={20} />
+                  </button>
+                  <header className="modal-head compact">
+                    <h2 id="add-deck-title">Add deck</h2>
+                  </header>
+                  <div className="modal-fields">
+                    <label className="modal-field">
+                      <span>Deck label</span>
+                      <input
+                        ref={deckLabelInputRef}
+                        value={deckLabel}
+                        onChange={(event) => setDeckLabel(event.target.value)}
+                        maxLength={48}
+                        placeholder="Atraxa counters"
+                      />
+                    </label>
+                    <label className="modal-field">
+                      <span>Commander</span>
+                      <input
+                        value={commanderName}
+                        onChange={(event) => setCommanderName(event.target.value)}
+                        maxLength={120}
+                        placeholder="Commander name"
+                      />
+                    </label>
+                    <label className="modal-field">
+                      <span>Partner <em>Optional</em></span>
+                      <input
+                        value={partnerName}
+                        onChange={(event) => setPartnerName(event.target.value)}
+                        maxLength={120}
+                        placeholder="Partner or Background"
+                      />
+                    </label>
+                  </div>
+                  {error && <p className="modal-error" role="alert">{error}</p>}
+                  <footer className="modal-actions">
+                    <button type="button" onClick={closeDeckForm} disabled={deckSaving}>Cancel</button>
+                    <button className="primary" type="button" disabled={deckSaving} onClick={addDeck}>
+                      {deckSaving ? "Saving…" : "Save deck"}
+                    </button>
+                  </footer>
+                </section>
+              </div>
+            )}
           </div>}
 
           {view === "friends" && <div className="account-profile-section">
-            <h3>Friends</h3>
+            <h3 className="profile-tab-heading">Friends</h3>
             <label className="modal-field profile-friend-search">
               <span>Find a player</span>
               <input
@@ -547,15 +962,115 @@ export default function AccountProfile({
             role={page ? "tabpanel" : undefined}
             aria-labelledby={page ? "profile-tab-game-history" : undefined}
           >
-            <h3>Recent game history</h3>
+            <div className="profile-tab-heading-row">
+              <h3 className="profile-tab-heading">Recent game history</h3>
+            </div>
+            {gameHistory.length > 0 && (
+              <div className="account-history-filters" aria-label="Filter game history">
+                <div className="account-history-filter-grid">
+                  <label>
+                    <span>Result</span>
+                    <select value={historyFilters.result} onChange={(event) => updateHistoryFilter("result", event.target.value)}>
+                      <option value="">All results</option>
+                      <option value="win">Wins</option>
+                      <option value="loss">Losses</option>
+                      <option value="draw">Draws</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span>Bracket</span>
+                    <select value={historyFilters.bracket} onChange={(event) => updateHistoryFilter("bracket", event.target.value)}>
+                      <option value="">All brackets</option>
+                      {historyFilterOptions.brackets.map((bracket) => (
+                        <option value={bracket} key={bracket}>Bracket {bracket}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    <span>My commander</span>
+                    <select value={historyFilters.commander} onChange={(event) => updateHistoryFilter("commander", event.target.value)}>
+                      <option value="">All commanders</option>
+                      {historyFilterOptions.commanders.map((commander) => (
+                        <option value={commander} key={commander}>{commander}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    <span>Versus commander</span>
+                    <select
+                      value={historyFilters.opponentCommander}
+                      onChange={(event) => updateHistoryFilter("opponentCommander", event.target.value)}
+                    >
+                      <option value="">All opposing commanders</option>
+                      {historyFilterOptions.opponentCommanders.map((commander) => (
+                        <option value={commander} key={commander}>{commander}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    <span>Player</span>
+                    <select value={historyFilters.player} onChange={(event) => updateHistoryFilter("player", event.target.value)}>
+                      <option value="">All players</option>
+                      {historyFilterOptions.players.map((player) => (
+                        <option value={player} key={player}>{player}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    <span>From</span>
+                    <input
+                      type="date"
+                      value={historyFilters.dateFrom}
+                      max={historyFilters.dateTo || undefined}
+                      onChange={(event) => updateHistoryFilter("dateFrom", event.target.value)}
+                    />
+                  </label>
+                  <label>
+                    <span>To</span>
+                    <input
+                      type="date"
+                      value={historyFilters.dateTo}
+                      min={historyFilters.dateFrom || undefined}
+                      onChange={(event) => updateHistoryFilter("dateTo", event.target.value)}
+                    />
+                  </label>
+                </div>
+                <div className="account-history-filter-summary">
+                  <span>{filteredGameHistory.length} of {gameHistory.length} games</span>
+                  {historyFiltersActive && (
+                    <button type="button" onClick={() => setHistoryFilters(EMPTY_HISTORY_FILTERS)}>Clear filters</button>
+                  )}
+                </div>
+              </div>
+            )}
             {gameHistory.length ? (
-              <div className="account-history-list">
-                {gameHistory.map((game) => (
+              filteredGameHistory.length ? <div className="account-history-list">
+                {filteredGameHistory.map((game) => (
                   <article key={game.session_id}>
-                    <span className={`profile-result ${game.result}`}>{game.result}</span>
+                    <span
+                      className={`account-history-result ${game.result}`}
+                      aria-label={`Result: ${game.result}`}
+                      title={game.result === "win" ? "Win" : game.result === "draw" ? "Draw" : "Loss"}
+                    >
+                      {game.result === "win"
+                        ? <Trophy size={20} aria-hidden="true" />
+                        : game.result === "draw"
+                          ? <Minus size={21} aria-hidden="true" />
+                          : <Skull size={20} aria-hidden="true" />}
+                    </span>
+                    <img
+                      className="account-history-commander-art"
+                      src={scryfallCardArt(null, game.commander)}
+                      alt=""
+                      loading="lazy"
+                      onError={(event) => { event.currentTarget.hidden = true; }}
+                    />
                     <div>
                       <strong>{game.commander || "Commander not recorded"}{game.partner ? ` + ${game.partner}` : ""}</strong>
-                      <small>{new Date(game.started_at).toLocaleDateString()} · {game.turn_count || 0} turns recorded</small>
+                      <small className="account-history-meta">
+                        {new Date(game.started_at).toLocaleDateString()} · {game.turn_count || 0} turns recorded
+                        {game.bracket ? ` · Bracket ${game.bracket}` : ""}
+                      </small>
                       {game.players?.length > 0 && (
                         <span className="account-history-players">
                           {game.players.map((player, index) => (
@@ -567,38 +1082,6 @@ export default function AccountProfile({
                             </React.Fragment>
                           ))}
                         </span>
-                      )}
-                      {(game.player_timing?.length > 0 || game.turn_timeline?.length > 0) && (
-                        <details className="account-history-timing">
-                          <summary>Game timing details</summary>
-                          {game.player_timing?.length > 0 && (
-                            <div className="account-history-timing-grid">
-                              {game.player_timing.map((player) => (
-                                <span key={player.participant_id}>
-                                  <strong>{player.display_name}</strong>
-                                  <small>
-                                    {player.turn_count} turns · {timingLabel(player.total_turn_ms)} total · {timingLabel(player.average_turn_ms)} average
-                                  </small>
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                          {game.turn_timeline?.length > 0 && (
-                            <ol className="account-turn-timeline">
-                              {game.turn_timeline.map((turn) => (
-                                <li key={`${turn.turn_number}-${turn.participant_id}`}>
-                                  <span>Turn {turn.turn_number}</span>
-                                  <strong>{turn.display_name}</strong>
-                                  <small>
-                                    {turn.commander || "Commander not recorded"}
-                                    {turn.partner ? ` + ${turn.partner}` : ""}
-                                    {" · "}{turn.ended_at ? timingLabel(turn.elapsed_ms) : "unfinished"}
-                                  </small>
-                                </li>
-                              ))}
-                            </ol>
-                          )}
-                        </details>
                       )}
                     </div>
                     {game.state === "proposed" && roomCapability(game.room_code) && (
@@ -641,26 +1124,14 @@ export default function AccountProfile({
                         }
                       }}>Request correction</button>
                     )}
-                    {game.state === "final" && (
-                      <button type="button" onClick={async () => {
-                        try {
-                          await setMyGameVisibility(game.session_id, !game.hidden_by_player);
-                          setGameHistory((games) => games.map((item) => item.session_id === game.session_id
-                            ? { ...item, hidden_by_player: !item.hidden_by_player }
-                            : item));
-                        } catch (visibilityError) {
-                          setError(String(visibilityError?.message || "Could not update game visibility."));
-                        }
-                      }}>{game.hidden_by_player ? "Show publicly" : "Hide publicly"}</button>
-                    )}
                   </article>
                 ))}
-              </div>
+              </div> : <p className="account-history-empty">No games match these filters.</p>
             ) : <p className="account-profile-help">Completed games will appear here after results are recorded.</p>}
           </div>}
 
           {view === "settings" && <div className="account-profile-section">
-            <h3>Account data</h3>
+            <h3 className="profile-tab-heading">Account data</h3>
             <div className="account-data-actions">
               <button type="button" onClick={downloadExport}><Download size={16} /> Export my data</button>
               {!deletionDeadline ? (
@@ -803,13 +1274,49 @@ export default function AccountProfile({
           {page && view === "profile" && activeProfileTab === "stats" && (
             <div
               id="profile-panel-stats"
-              className="profile-stats-blank"
+              className="profile-stats-panel"
               role="tabpanel"
               aria-labelledby="profile-tab-stats"
-            />
+            >
+              <div className="profile-tab-heading-row">
+                <h3 className="profile-tab-heading">Stats</h3>
+              </div>
+              <div className="profile-stats-grid" aria-label="Game statistics">
+                <article className="profile-stat-card">
+                  <strong>{profileStats.winRate}%</strong>
+                  <small>Win rate</small>
+                  <p>{profileStats.wins} wins · {profileStats.draws} draws</p>
+                </article>
+                <article className="profile-stat-card">
+                  <strong>{profileStats.totalGames}</strong>
+                  <small>Total games</small>
+                  <p>{profileStats.losses} losses recorded</p>
+                </article>
+                <article className="profile-stat-card">
+                  <strong>{compactDuration(profileStats.averageGameSeconds)}</strong>
+                  <small>Average game time</small>
+                  <p>Across completed games</p>
+                </article>
+                <article className="profile-stat-card is-commander">
+                  <strong>{profileStats.topCommander}</strong>
+                  <small>Top commander</small>
+                  <p>{profileStats.topCommanderGames} {profileStats.topCommanderGames === 1 ? "game" : "games"} played</p>
+                </article>
+                <article className="profile-stat-card">
+                  <strong>{profileStats.commanderDamageRate}%</strong>
+                  <small>Commander damage losses</small>
+                  <p>{profileStats.commanderDamageLosses} of {profileStats.losses} losses</p>
+                </article>
+                <article className="profile-stat-card">
+                  <strong>{compactTurnDuration(profileStats.averageTurnMs)}</strong>
+                  <small>Average turn length</small>
+                  <p>From recorded player turns</p>
+                </article>
+              </div>
+            </div>
           )}
 
-          {error && <p className="modal-error" role="alert">{error}</p>}
+          {error && !showDeckForm && <p className="modal-error" role="alert">{error}</p>}
           {view === "settings" && !page && <footer className="modal-actions">
             {!page && <button type="button" onClick={onClose}>Cancel</button>}
             <button className="primary" type="submit" disabled={saving}>

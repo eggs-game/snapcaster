@@ -8,16 +8,25 @@ ROOT = Path(__file__).resolve().parents[1]
 MIGRATIONS = sorted((ROOT / "supabase" / "migrations").glob("*.sql"))
 SQL = "\n".join(path.read_text() for path in MIGRATIONS)
 SRC = "\n".join(path.read_text() for path in (ROOT / "src").glob("**/*") if path.is_file())
+DECK_API = (ROOT / "api" / "decks.js").read_text()
+DECK_IMPORT_SURFACE = "\n".join((
+    DECK_API,
+    (ROOT / "src" / "account.js").read_text(),
+    (ROOT / "vite.config.js").read_text(),
+))
 VALIDATED_COMMANDERS = (ROOT / "supabase" / "migrations" / "20260726190000_validated_commanders.sql").read_text()
 REPORT_HARDENING = (ROOT / "supabase" / "migrations" / "20260801130000_recognition_report_hardening.sql").read_text()
 FUNCTION_HARDENING = (ROOT / "supabase" / "migrations" / "20260802002000_function_privilege_hardening.sql").read_text()
 QUERY_HARDENING = (ROOT / "supabase" / "migrations" / "20260802003000_query_performance_hardening.sql").read_text()
+DISCORD_PRIVACY = (ROOT / "supabase" / "migrations" / "20260802153709_friend_only_discord_identity.sql").read_text()
+HISTORY_FILTER_FIELDS = (ROOT / "supabase" / "migrations" / "20260802154629_game_history_filter_fields.sql").read_text()
+DECK_SORT_METADATA = (ROOT / "supabase" / "migrations" / "20260802160005_saved_deck_profile_sort_metadata.sql").read_text()
 
 EXPECTED_RLS = {
     "profiles", "account_private", "account_preferences", "game_rooms",
     "game_memberships", "game_sessions", "game_session_participants",
     "game_session_commanders", "game_turns", "game_result_corrections",
-    "game_audit_log", "saved_commander_decks", "player_blocks",
+    "game_audit_log", "saved_commander_decks", "saved_deck_cards", "player_blocks",
     "friend_requests", "friendships", "player_presence", "game_invitations",
     "profile_notifications", "player_reviews", "moderation_reports",
     "account_deletion_requests", "security_rate_events", "moderator_accounts",
@@ -33,6 +42,49 @@ for table in sorted(EXPECTED_RLS):
 assert not re.search(r"grant\s+[^;]*update[^;]*on\s+public\.account_private", SQL, re.I), (
     "browser clients must not update linked Discord/email identity"
 )
+assert "add column if not exists discord_username" in DISCORD_PRIVACY, (
+    "Discord usernames must remain on the owner-only private account row"
+)
+assert re.search(
+    r"from\s+public\.friendships.*?player_one_id\s*=\s*least\(auth\.uid\(\),\s*target_profile_id\).*?"
+    r"player_two_id\s*=\s*greatest\(auth\.uid\(\),\s*target_profile_id\)",
+    DISCORD_PRIVACY,
+    re.I | re.S,
+), "friend-only Discord disclosure must verify the canonical accepted friendship"
+assert re.search(
+    r"when\s+viewer\.relationship\s+in\s*\('self',\s*'friend'\).*?"
+    r"jsonb_build_object\('discord_username',\s*target\.discord_username\).*?"
+    r"else\s+'\{\}'::jsonb",
+    DISCORD_PRIVACY,
+    re.I | re.S,
+), "public profiles must omit Discord usernames for non-friends instead of relying on UI hiding"
+profiles_ddl = re.search(
+    r"create\s+table\s+if\s+not\s+exists\s+public\.profiles\s*\((.*?)\);",
+    SQL,
+    re.I | re.S,
+)
+assert profiles_ddl and "discord_username" not in profiles_ddl.group(1), (
+    "Discord usernames must never move onto the publicly readable profiles table"
+)
+assert "'bracket', rooms.bracket" in HISTORY_FILTER_FIELDS
+assert "'opponent_commanders'" in HISTORY_FILTER_FIELDS
+assert "where mine.profile_id = auth.uid()" in HISTORY_FILTER_FIELDS, (
+    "filter metadata must remain scoped to the requesting history participant"
+)
+assert re.search(
+    r"revoke\s+all\s+on\s+function\s+public\.get_my_game_history\(integer\)\s+from\s+public\s*,\s*anon",
+    HISTORY_FILTER_FIELDS,
+    re.I,
+), "participant history must not be callable anonymously"
+assert "with (security_invoker = true)" in DECK_SORT_METADATA, (
+    "deck sort metadata must preserve saved-card RLS"
+)
+assert "where cards.board in ('commander', 'mainboard')" in DECK_SORT_METADATA
+assert re.search(
+    r"revoke\s+all\s+on\s+public\.saved_deck_profile_sort_metadata\s+from\s+public\s*,\s*anon",
+    DECK_SORT_METADATA,
+    re.I,
+), "deck sort metadata must not be anonymously readable"
 assert not re.search(r"grant\s+[^;]*update[^;]*on\s+public\.profile_notifications", SQL, re.I), (
     "browser clients must not rewrite notification action references"
 )
@@ -55,6 +107,30 @@ assert '.from("saved_commander_decks")\n    .insert' not in SRC, (
     "browser clients must not insert saved Commander decks directly"
 )
 assert 'fetch("/api/commanders"' in SRC, "browser Commander mutations must use the trusted API"
+assert 'fetch("/api/decks"' in SRC, "browser deck-list mutations must use the trusted API"
+for action in ("import_url", "import_text", "add_card", "update_card", "replace_card", "delete_card"):
+    assert f'body.action === "{action}"' in DECK_API, f"trusted deck API is missing {action}"
+assert '.eq("owner_id", userData.user.id)' in DECK_API, (
+    "trusted deck mutations must verify the authenticated user owns the deck"
+)
+assert '.rpc("replace_saved_deck_cards"' in DECK_API, (
+    "full-list deck imports must use the atomic service-only replacement function"
+)
+for forbidden_moxfield_endpoint in ("api2.moxfield.com", "api.moxfield.com", "parseMoxfieldDeck"):
+    assert forbidden_moxfield_endpoint not in DECK_IMPORT_SURFACE, (
+        "Snapcast must not automatically request or parse Moxfield's private deck API"
+    )
+assert "Moxfield links are attribution only" in SRC, (
+    "Moxfield URLs must be rejected by the automated import path with export guidance"
+)
+assert re.search(
+    r"revoke\s+all\s+on\s+function\s+public\.replace_saved_deck_cards.*?from\s+public\s*,\s*anon\s*,\s*authenticated",
+    SQL,
+    re.I | re.S,
+), "the atomic deck replacement function must not be browser executable"
+assert not re.search(r'\.from\("saved_deck_cards"\).*?\.(?:insert|upsert|update)\(', SRC, re.S), (
+    "browser clients must not write saved deck cards directly"
+)
 assert re.search(
     r'create\s+policy\s+"bounded recognition report insert".*?to\s+anon\s*,\s*authenticated',
     REPORT_HARDENING,

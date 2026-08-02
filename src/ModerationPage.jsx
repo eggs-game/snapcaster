@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import SiteFooter from "./SiteFooter.jsx";
+import SiteHeader from "./SiteHeader.jsx";
 import {
   getAccountSession,
   getModerationQueue,
@@ -8,6 +9,7 @@ import {
   resolveModerationReport,
   resolveGameCorrection,
   signInWithDiscord,
+  signOutAccount,
 } from "./account.js";
 
 export default function ModerationPage() {
@@ -88,10 +90,18 @@ export default function ModerationPage() {
 
   return (
     <main className="moderation-page">
-      <header className="site-header">
-        <a className="site-brand" href="/">Snapcast</a>
-        <a className="site-header-link" href="/community">Community guidelines</a>
-      </header>
+      <SiteHeader
+        account={account}
+        accountReady={!loading}
+        accountError={error}
+        onCreate={() => { window.location.href = "/?action=create"; }}
+        onJoin={() => { window.location.href = "/?action=join"; }}
+        onSignIn={() => signInWithDiscord({ redirectPath: "/moderation" })}
+        onSignOut={async () => {
+          await signOutAccount();
+          window.location.href = "/";
+        }}
+      />
       <section className="moderation-shell">
         <header className="moderation-heading">
           <p>Restricted operations</p>
