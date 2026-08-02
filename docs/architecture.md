@@ -75,6 +75,10 @@ or server-only RPCs each caller needs. Tables used only behind those RPCs keep
 RLS enabled with no direct row policies, which intentionally denies table API
 access.
 
+Foreign-key columns used by the durable account/game schema have covering
+indexes, and owner RLS policies cache `auth.uid()` through scalar subqueries.
+This keeps relationship cleanup and policy evaluation stable as history grows.
+
 To enable Discord sign-in, enable the Discord provider in Supabase, add the
 Supabase callback URL to the Discord application, and allow both the production
 origin and local development origin as Supabase redirect URLs. Existing

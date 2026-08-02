@@ -11,6 +11,7 @@ SRC = "\n".join(path.read_text() for path in (ROOT / "src").glob("**/*") if path
 VALIDATED_COMMANDERS = (ROOT / "supabase" / "migrations" / "20260726190000_validated_commanders.sql").read_text()
 REPORT_HARDENING = (ROOT / "supabase" / "migrations" / "20260801130000_recognition_report_hardening.sql").read_text()
 FUNCTION_HARDENING = (ROOT / "supabase" / "migrations" / "20260802002000_function_privilege_hardening.sql").read_text()
+QUERY_HARDENING = (ROOT / "supabase" / "migrations" / "20260802003000_query_performance_hardening.sql").read_text()
 
 EXPECTED_RLS = {
     "profiles", "account_private", "account_preferences", "game_rooms",
@@ -98,6 +99,12 @@ assert "revoke execute on functions from public, anon, authenticated" in FUNCTIO
 assert "and procedures.prosecdef" in FUNCTION_HARDENING
 assert "revoke all on function %s from public, anon, authenticated" in FUNCTION_HARDENING, (
     "existing SECURITY DEFINER functions must have inherited API grants removed"
+)
+assert QUERY_HARDENING.count("create index if not exists") == 30, (
+    "all uncovered foreign-key relationships must keep a supporting index"
+)
+assert QUERY_HARDENING.count("(select auth.uid())") >= 7, (
+    "owner RLS policies must cache auth.uid() once per statement"
 )
 
 security_definers = re.findall(
