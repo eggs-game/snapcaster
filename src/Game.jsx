@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import {
   Check, Crown, Dices, FlipVertical2, LogOut, Mic, MicOff, Minus, MoreVertical, PanelLeft, Plus, Shuffle, SkipForward,
-  Swords, Video, VideoOff, X,
+  Swords, UserRound, Video, VideoOff, X,
 } from "lucide-react";
 import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
 import LocalMockGameConnection from "./LocalMockGameConnection.js";
@@ -54,6 +54,7 @@ import {
   getGameMembershipStates,
   leaveGameRoom,
   manageGameMember,
+  recordGameElimination,
   recordGameTurn,
   restartDurableGame,
   startDurableGame,
@@ -1229,7 +1230,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
     for (let offset = 1; offset <= playerIds.length; offset++) {
       const candidateId = playerIds[(currentIndex + offset) % playerIds.length];
       const candidateLife = livesRef.current[candidateId] ?? 40;
-      if (candidateLife > 0) {
+      if (candidateLife > 0 && !eliminationsRef.current[candidateId]) {
         nextId = candidateId;
         break;
       }
@@ -1242,7 +1243,9 @@ export default function Game({ session, account, onLeave, themePreference, onThe
         membershipId: session.membershipId,
         participantToken: session.participantToken,
         nextMembershipId,
-      }).catch(() => {});
+      }).catch((turnError) => {
+        setError(String(turnError?.message || "This turn timing could not be recorded."));
+      });
     }
     activePlayerIdRef.current = nextId;
     setActivePlayerId(nextId);
@@ -1631,6 +1634,28 @@ export default function Game({ session, account, onLeave, themePreference, onThe
     gameStatusRef.current = "live";
   };
 
+  const durableCommanderDamage = (victimId) => Object.fromEntries(
+    Object.entries(commanderDamage[victimId] || {}).flatMap(([attackerId, value]) => {
+      const attackerMembershipId = roster.find((member) => member.id === attackerId)?.membershipId;
+      return attackerMembershipId ? [[attackerMembershipId, value]] : [];
+    }),
+  );
+
+  const persistMyElimination = (reason) => {
+    if (isLocalMock || !durableSessionId || !session.membershipId || !myId) return;
+    recordGameElimination({
+      sessionId: durableSessionId,
+      membershipId: session.membershipId,
+      participantToken: session.participantToken,
+      reason,
+      finalLife: lives[myId] ?? 40,
+      finalPoison: poisonCounters[myId] ?? 0,
+      finalCommanderDamage: durableCommanderDamage(myId),
+    }).catch((eliminationError) => {
+      setError(String(eliminationError?.message || "Your elimination details could not be recorded."));
+    });
+  };
+
   const manageMember = async (participant, action) => {
     if (!participant.membershipId) throw new Error("That participant is still connecting.");
     if (isLocalMock) {
@@ -1680,7 +1705,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
         loss_reason: eliminations[member.id] || null,
         life: lives[member.id] ?? 40,
         poison: poisonCounters[member.id] ?? 0,
-        commander_damage: commanderDamage[member.id] || {},
+        commander_damage: durableCommanderDamage(member.id),
       }));
     if (!isLocalMock) {
       await endDurableGame({
@@ -1988,6 +2013,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
                   eliminationsRef.current = next;
                   setEliminations(next);
                   connRef.current?.setElimination("");
+                  persistMyElimination(null);
                   setChatMessages((messages) => [...messages.slice(-99), {
                     id: `elimination-${myId}-${Date.now()}-${++chatIdRef.current}`,
                     kind: "elimination",
@@ -2011,6 +2037,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
                 eliminationsRef.current = next;
                 setEliminations(next);
                 connRef.current?.setElimination(safeReason);
+                persistMyElimination(safeReason);
                 setChatMessages((messages) => [...messages.slice(-99), {
                   id: `elimination-${myId}-${Date.now()}-${++chatIdRef.current}`,
                   kind: "elimination",
@@ -2590,9 +2617,9 @@ function CommanderColorPips({ colors }) {
   );
 }
 
-// Three-dot video-options menu on the banner's first row. On your own tile
+// Three-dot player-options menu on the banner's first row. On your own tile
 // it also carries quick mic/camera toggles right next to the menu button.
-function TileMenu({ flipped, onToggleFlip, canPassTurn, onPassTurn, canRandomizeGrid, onRandomizeGrid, canStartReadyCheck, onStartReadyCheck, showMediaControls, camOn, micOn, onToggleCam, onToggleMic, videoQuality, videoResolution, onVideoQualityChange, menuUp = false }) {
+function TileMenu({ profileId, flipped, onToggleFlip, canPassTurn, onPassTurn, canRandomizeGrid, onRandomizeGrid, canStartReadyCheck, onStartReadyCheck, showMediaControls, camOn, micOn, onToggleCam, onToggleMic, videoQuality, videoResolution, onVideoQualityChange, menuUp = false }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="banner-menu" onClick={(e) => e.stopPropagation()}>
@@ -2644,12 +2671,23 @@ function TileMenu({ flipped, onToggleFlip, canPassTurn, onPassTurn, canRandomize
       <button
         className="menu-btn"
         onClick={() => setOpen((o) => !o)}
-        aria-label="Video options"
+        aria-label="Player options"
       >
         <MoreVertical size={16} />
       </button>
       {open && (
         <div className={menuUp ? "tile-menu menu-up" : "tile-menu"}>
+          {profileId && (
+            <a
+              href={`/profile?id=${encodeURIComponent(profileId)}`}
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => setOpen(false)}
+            >
+              <UserRound size={16} />
+              <span>View profile</span>
+            </a>
+          )}
           {onVideoQualityChange && (
             <label className="tile-quality-control">
               <span>Video quality</span>
@@ -2822,7 +2860,7 @@ function CommanderBanner({ tile, onChoose, onChoosePartner, savedCommanderDecks 
   if (!tile.isMe) {
     return (
       <div className={atBottom ? "commander-banner banner-at-bottom" : "commander-banner"}>
-        <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} camOn={camOn} micOn={micOn} videoQuality={videoQuality} videoResolution={videoResolution} onVideoQualityChange={onVideoQualityChange} menuUp={atBottom} />
+        <TileMenu profileId={tile.profileId} flipped={flipped} onToggleFlip={onToggleFlip} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} camOn={camOn} micOn={micOn} videoQuality={videoQuality} videoResolution={videoResolution} onVideoQualityChange={onVideoQualityChange} menuUp={atBottom} />
         {nameRow}
         <div className="banner-row commander-detail">
           {tile.commander ? (
@@ -2875,7 +2913,7 @@ function CommanderBanner({ tile, onChoose, onChoosePartner, savedCommanderDecks 
     };
     return (
       <form className={atBottom ? "commander-banner commander-picker commander-partner-picker banner-at-bottom" : "commander-banner commander-picker commander-partner-picker"} onSubmit={submitPartner}>
-        <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canPassTurn={tile.activeTurn} onPassTurn={onPassTurn} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} canStartReadyCheck={canRandomizeGrid} onStartReadyCheck={onStartReadyCheck} showMediaControls camOn={camOn} micOn={micOn} onToggleCam={onToggleCam} onToggleMic={onToggleMic} videoResolution={videoResolution} menuUp={atBottom} />
+        <TileMenu profileId={tile.profileId} flipped={flipped} onToggleFlip={onToggleFlip} canPassTurn={tile.activeTurn} onPassTurn={onPassTurn} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} canStartReadyCheck={canRandomizeGrid} onStartReadyCheck={onStartReadyCheck} showMediaControls camOn={camOn} micOn={micOn} onToggleCam={onToggleCam} onToggleMic={onToggleMic} videoResolution={videoResolution} menuUp={atBottom} />
         {nameRow}
         <div className="commander-search commander-partner-search">
           <span className="commander-name">{tile.commander}</span>
@@ -2933,7 +2971,7 @@ function CommanderBanner({ tile, onChoose, onChoosePartner, savedCommanderDecks 
         className={atBottom ? "commander-banner commander-set banner-at-bottom" : "commander-banner commander-set"}
         onClick={() => setEditing(true)}
       >
-        <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canPassTurn={tile.activeTurn} onPassTurn={onPassTurn} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} canStartReadyCheck={canRandomizeGrid} onStartReadyCheck={onStartReadyCheck} showMediaControls camOn={camOn} micOn={micOn} onToggleCam={onToggleCam} onToggleMic={onToggleMic} videoResolution={videoResolution} menuUp={atBottom} />
+        <TileMenu profileId={tile.profileId} flipped={flipped} onToggleFlip={onToggleFlip} canPassTurn={tile.activeTurn} onPassTurn={onPassTurn} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} canStartReadyCheck={canRandomizeGrid} onStartReadyCheck={onStartReadyCheck} showMediaControls camOn={camOn} micOn={micOn} onToggleCam={onToggleCam} onToggleMic={onToggleMic} videoResolution={videoResolution} menuUp={atBottom} />
         {nameRow}
         <div className="banner-row commander-detail">
           <span className={tile.commander ? "commander-pair" : "commander-name unset"}>
@@ -2985,7 +3023,7 @@ function CommanderBanner({ tile, onChoose, onChoosePartner, savedCommanderDecks 
   };
   return (
     <form className={atBottom ? "commander-banner commander-picker banner-at-bottom" : "commander-banner commander-picker"} onSubmit={submit}>
-      <TileMenu flipped={flipped} onToggleFlip={onToggleFlip} canPassTurn={tile.activeTurn} onPassTurn={onPassTurn} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} canStartReadyCheck={canRandomizeGrid} onStartReadyCheck={onStartReadyCheck} showMediaControls camOn={camOn} micOn={micOn} onToggleCam={onToggleCam} onToggleMic={onToggleMic} videoResolution={videoResolution} menuUp={atBottom} />
+      <TileMenu profileId={tile.profileId} flipped={flipped} onToggleFlip={onToggleFlip} canPassTurn={tile.activeTurn} onPassTurn={onPassTurn} canRandomizeGrid={canRandomizeGrid} onRandomizeGrid={onRandomizeGrid} canStartReadyCheck={canRandomizeGrid} onStartReadyCheck={onStartReadyCheck} showMediaControls camOn={camOn} micOn={micOn} onToggleCam={onToggleCam} onToggleMic={onToggleMic} videoResolution={videoResolution} menuUp={atBottom} />
       {nameRow}
       <div className="commander-search">
         <input

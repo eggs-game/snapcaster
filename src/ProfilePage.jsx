@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { BarChart3, Clock3, Trophy, UserRound } from "lucide-react";
+import { BarChart3, Check, Clock3, Library, Trophy, UserPlus, UserRound } from "lucide-react";
 import AccountProfile from "./AccountProfile.jsx";
 import DiscordMark from "./DiscordMark.jsx";
 import SiteFooter from "./SiteFooter.jsx";
@@ -31,6 +31,15 @@ function turnDuration(milliseconds) {
   const seconds = Math.round((Number(milliseconds) || 0) / 1000);
   if (!seconds) return "—";
   return seconds >= 60 ? `${Math.floor(seconds / 60)}m ${seconds % 60}s` : `${seconds}s`;
+}
+
+function deckArtUrl(deck) {
+  const params = new URLSearchParams({ format: "image", version: "art_crop" });
+  if (deck?.commander_scryfall_id) {
+    return `https://api.scryfall.com/cards/${encodeURIComponent(deck.commander_scryfall_id)}?${params}`;
+  }
+  params.set("exact", deck?.commander_name || "Magic card");
+  return `https://api.scryfall.com/cards/named?${params}`;
 }
 
 export default function ProfilePage() {
@@ -118,6 +127,7 @@ function PublicProfilePage({ profileId }) {
   const [viewer, setViewer] = useState(null);
   const [viewerReady, setViewerReady] = useState(false);
   const [socialStatus, setSocialStatus] = useState("");
+  const [socialWorking, setSocialWorking] = useState(false);
   const [matchups, setMatchups] = useState({ opponents: [], commanders: [] });
 
   useEffect(() => {
@@ -131,13 +141,17 @@ function PublicProfilePage({ profileId }) {
 
   useEffect(() => {
     let active = true;
-    Promise.all([getPublicProfile(profileId), getProfileMatchups(profileId)])
-      .then(([profile, profileMatchups]) => {
+    getPublicProfile(profileId)
+      .then(async (profile) => {
         if (!active) return;
         if (!profile) setError("This profile could not be found.");
         else {
           setData(profile);
-          setMatchups(profileMatchups);
+          const statsVisible = profile.stats_visible ?? ["self", "friend"].includes(profile.relationship);
+          const profileMatchups = statsVisible
+            ? await getProfileMatchups(profileId)
+            : { opponents: [], commanders: [] };
+          if (active) setMatchups(profileMatchups);
         }
       })
       .catch((loadError) => {
@@ -148,6 +162,22 @@ function PublicProfilePage({ profileId }) {
       });
     return () => { active = false; };
   }, [profileId]);
+
+  const requestFriendship = async () => {
+    setSocialStatus("");
+    setSocialWorking(true);
+    try {
+      await sendFriendRequest(data.profile.id);
+      setData((current) => ({ ...current, relationship: "outgoing_pending" }));
+      setSocialStatus("Friend request sent — they’ll see it in Notifications.");
+    } catch (requestError) {
+      setSocialStatus(String(requestError?.message || "Could not send friend request."));
+    } finally {
+      setSocialWorking(false);
+    }
+  };
+
+  const statsVisible = data && (data.stats_visible ?? ["self", "friend"].includes(data.relationship));
 
   return (
     <main className="profile-page">
@@ -184,41 +214,70 @@ function PublicProfilePage({ profileId }) {
                 )}
                 <span>Playing since {new Date(data.profile.created_at).toLocaleDateString(undefined, { month: "long", year: "numeric" })}</span>
               </div>
-              {viewer?.user?.id && viewer.user.id !== data.profile.id && (
+              {viewer?.user?.id !== data.profile.id && (
                 <div className="profile-social-actions">
-                  {data.relationship === "friend" ? (
-                    <button type="button" disabled>Friends</button>
+                  {!viewer?.user?.id ? (
+                    <button className="primary" type="button" onClick={() => signInWithDiscord({ redirectPath: window.location.pathname + window.location.search })}>
+                      <UserPlus size={16} /> Sign in to add friend
+                    </button>
+                  ) : data.relationship === "friend" ? (
+                    <button type="button" disabled><Check size={16} /> Friends</button>
+                  ) : data.relationship === "outgoing_pending" ? (
+                    <button type="button" disabled><Check size={16} /> Request sent</button>
+                  ) : data.relationship === "incoming_pending" ? (
+                    <a className="primary" href="/notifications"><UserPlus size={16} /> Respond to request</a>
+                  ) : data.relationship === "blocked" ? (
+                    <button type="button" disabled>Player blocked</button>
                   ) : (
-                    <button type="button" onClick={async () => {
-                      try {
-                        await sendFriendRequest(data.profile.id);
-                        setSocialStatus("Friend request sent");
-                      } catch (requestError) {
-                        setSocialStatus(String(requestError?.message || "Could not send friend request."));
-                      }
-                    }}>Add friend</button>
+                    <button className="primary" type="button" disabled={socialWorking} onClick={requestFriendship}>
+                      <UserPlus size={16} /> {socialWorking ? "Sending…" : "Add friend"}
+                    </button>
                   )}
-                  <button className="danger" type="button" onClick={async () => {
+                  {viewer?.user?.id && data.relationship !== "blocked" && <button className="danger" type="button" onClick={async () => {
                     if (!window.confirm(`Block ${data.profile.display_name}? This removes friendships, invitations, and future contact.`)) return;
                     try {
                       await blockPlayer(data.profile.id);
+                      setData((current) => ({ ...current, relationship: "blocked", stats_visible: false }));
+                      setMatchups({ opponents: [], commanders: [] });
                       setSocialStatus("Player blocked");
                     } catch (blockError) {
                       setSocialStatus(String(blockError?.message || "Could not block this player."));
                     }
-                  }}>Block</button>
+                  }}>Block</button>}
                   {socialStatus && <span role="status">{socialStatus}</span>}
                 </div>
               )}
             </header>
 
-            <section className="profile-stat-grid" aria-label="Overall record">
+            {statsVisible && <section className="profile-stat-grid" aria-label="Overall record">
               <StatCard icon={<BarChart3 size={18} />} label="Games" value={data.overall.games} />
               <StatCard icon={<Trophy size={18} />} label="Record" value={`${data.overall.wins}–${data.overall.losses}–${data.overall.draws}`} />
               <StatCard icon={<Trophy size={18} />} label="Win rate" value={percent(data.overall.win_rate)} />
               <StatCard icon={<Clock3 size={18} />} label="Average game" value={duration(data.overall.average_game_seconds)} />
+            </section>}
+
+            <section className="profile-panel profile-public-decks" aria-labelledby="public-decks-title">
+              <header>
+                <div><Library size={18} /><h2 id="public-decks-title">Decks</h2></div>
+                <span>{data.decks?.length || 0} saved</span>
+              </header>
+              {data.decks?.length ? (
+                <div className="profile-public-deck-grid">
+                  {data.decks.map((deck) => (
+                    <a href={`/profile/decks/${encodeURIComponent(deck.id)}`} key={deck.id}>
+                      <img src={deckArtUrl(deck)} alt="" loading="lazy" />
+                      <span>
+                        <strong>{deck.label}</strong>
+                        <small>{deck.commander_name}{deck.partner_name ? ` + ${deck.partner_name}` : ""}</small>
+                        {Number(deck.card_count) > 0 && <em>{deck.card_count} cards</em>}
+                      </span>
+                    </a>
+                  ))}
+                </div>
+              ) : <p className="profile-empty">No saved decks to show yet.</p>}
             </section>
 
+            {statsVisible && <>
             <div className="profile-content-grid">
               <section className="profile-panel">
                 <header><h2>Commander record</h2></header>
@@ -293,6 +352,7 @@ function PublicProfilePage({ profileId }) {
                 </section>
               </div>
             )}
+            </>}
           </>
         )}
       </section>

@@ -21,6 +21,9 @@ QUERY_HARDENING = (ROOT / "supabase" / "migrations" / "20260802003000_query_perf
 DISCORD_PRIVACY = (ROOT / "supabase" / "migrations" / "20260802153709_friend_only_discord_identity.sql").read_text()
 HISTORY_FILTER_FIELDS = (ROOT / "supabase" / "migrations" / "20260802154629_game_history_filter_fields.sql").read_text()
 DECK_SORT_METADATA = (ROOT / "supabase" / "migrations" / "20260802160005_saved_deck_profile_sort_metadata.sql").read_text()
+DECK_TAGS = (ROOT / "supabase" / "migrations" / "20260802203315_add_saved_deck_card_tags.sql").read_text()
+PUBLIC_DECKS = (ROOT / "supabase" / "migrations" / "20260802205957_add_public_deck_views.sql").read_text()
+GAME_METRICS = (ROOT / "supabase" / "migrations" / "20260802212305_durable_game_metrics.sql").read_text()
 
 EXPECTED_RLS = {
     "profiles", "account_private", "account_preferences", "game_rooms",
@@ -76,6 +79,30 @@ assert re.search(
     HISTORY_FILTER_FIELDS,
     re.I,
 ), "participant history must not be callable anonymously"
+assert "add column if not exists eliminated_at timestamptz" in GAME_METRICS
+assert re.search(
+    r"record_game_elimination\(.*?security\s+definer\s+set\s+search_path\s*=\s*''.*?"
+    r"participants\.membership_id\s*=\s*acting_membership_id.*?"
+    r"memberships\.token_hash\s*=\s*public\.snapcast_token_hash\(participant_token\)",
+    GAME_METRICS,
+    re.I | re.S,
+), "elimination writes must be scoped to the caller's participant capability"
+assert re.search(
+    r"revoke\s+all\s+on\s+function\s+public\.record_game_elimination\(.*?\)\s+from\s+public\s*,\s*anon",
+    GAME_METRICS,
+    re.I | re.S,
+), "elimination writes must not be anonymously executable"
+assert re.search(
+    r"'turn_count'\s*,\s*\(\s*select\s+count\(\*\).*?"
+    r"turns\.session_id\s*=\s*sessions\.id",
+    GAME_METRICS,
+    re.I | re.S,
+), "history turn_count must count the whole game instead of only the viewer's turns"
+assert "'my_turn_count'" in GAME_METRICS
+assert '.rpc("record_game_elimination"' in SRC
+assert "attackerMembershipId" in SRC, (
+    "durable Commander-damage snapshots must use membership IDs instead of ephemeral peer IDs"
+)
 assert "with (security_invoker = true)" in DECK_SORT_METADATA, (
     "deck sort metadata must preserve saved-card RLS"
 )
@@ -88,6 +115,14 @@ assert re.search(
 assert not re.search(r"grant\s+[^;]*update[^;]*on\s+public\.profile_notifications", SQL, re.I), (
     "browser clients must not rewrite notification action references"
 )
+assert re.search(
+    r"create\s+or\s+replace\s+function\s+public\.send_friend_request.*?"
+    r"insert\s+into\s+public\.friend_requests.*?"
+    r"insert\s+into\s+public\.profile_notifications\s*\(recipient_id,\s*actor_id,\s*kind,\s*reference_id\).*?"
+    r"'friend_request'",
+    SQL,
+    re.I | re.S,
+), "friend requests must create their recipient notification in the same function"
 assert "service_role" not in SRC.lower(), "service-role credentials must never appear in browser source"
 assert "VITE_DISCORD" not in SRC, "Discord provider secrets must never use a VITE_ variable"
 assert 'scopes: "identify email"' in SRC, "Discord OAuth scopes drifted"
@@ -108,7 +143,7 @@ assert '.from("saved_commander_decks")\n    .insert' not in SRC, (
 )
 assert 'fetch("/api/commanders"' in SRC, "browser Commander mutations must use the trusted API"
 assert 'fetch("/api/decks"' in SRC, "browser deck-list mutations must use the trusted API"
-for action in ("import_url", "import_text", "add_card", "update_card", "replace_card", "delete_card"):
+for action in ("preview_url", "import_url", "import_text", "add_card", "update_card", "replace_card", "set_card_printing", "delete_card"):
     assert f'body.action === "{action}"' in DECK_API, f"trusted deck API is missing {action}"
 assert '.eq("owner_id", userData.user.id)' in DECK_API, (
     "trusted deck mutations must verify the authenticated user owns the deck"
@@ -128,9 +163,59 @@ assert re.search(
     SQL,
     re.I | re.S,
 ), "the atomic deck replacement function must not be browser executable"
+assert "add column if not exists tags text[] not null default '{}'" in DECK_TAGS
+assert "cardinality(tags) <= 8" in DECK_TAGS
+assert "security invoker" in DECK_TAGS
+assert re.search(
+    r"revoke\s+all\s+on\s+function\s+public\.replace_saved_deck_cards.*?from\s+public\s*,\s*anon\s*,\s*authenticated",
+    DECK_TAGS,
+    re.I | re.S,
+), "tag-aware replacement must remain service-only"
+assert "printing.oracle_id === source.oracle_id" in DECK_API, (
+    "card-art changes must stay on the same Oracle card"
+)
 assert not re.search(r'\.from\("saved_deck_cards"\).*?\.(?:insert|upsert|update)\(', SRC, re.S), (
     "browser clients must not write saved deck cards directly"
 )
+for function_name in (
+    "get_public_profile_relationship",
+    "get_public_profile_decks",
+    "get_public_saved_deck",
+):
+    assert f"create or replace function public.{function_name}" in PUBLIC_DECKS
+    assert re.search(
+        rf"revoke\s+all\s+on\s+function\s+public\.{function_name}\(uuid\)\s+from\s+public",
+        PUBLIC_DECKS,
+        re.I,
+    ), f"{function_name} must not inherit PUBLIC execute"
+    assert re.search(
+        rf"grant\s+execute\s+on\s+function\s+public\.{function_name}\(uuid\)\s+to\s+anon\s*,\s*authenticated",
+        PUBLIC_DECKS,
+        re.I,
+    ), f"{function_name} must be an explicit read-only profile API"
+assert "update public.saved_commander_decks" not in PUBLIC_DECKS.lower()
+assert "insert into public.saved_commander_decks" not in PUBLIC_DECKS.lower()
+assert "delete from public.saved_commander_decks" not in PUBLIC_DECKS.lower()
+assert "limit 100" in PUBLIC_DECKS, "public profile deck discovery must stay bounded"
+assert "limit 500" in PUBLIC_DECKS, "public shared-deck card reads must stay bounded"
+assert "rename to get_friend_profile_stats_internal" in PUBLIC_DECKS
+assert "rename to get_friend_profile_matchups_internal" in PUBLIC_DECKS
+for internal_function in (
+    "get_friend_profile_stats_internal",
+    "get_friend_profile_matchups_internal",
+):
+    assert re.search(
+        rf"revoke\s+all\s+on\s+function\s+public\.{internal_function}\(uuid\)\s+from\s+public\s*,\s*anon\s*,\s*authenticated",
+        PUBLIC_DECKS,
+        re.I,
+    ), f"{internal_function} must never be directly browser-callable"
+assert "'stats_visible', false" in PUBLIC_DECKS
+assert re.search(
+    r"get_public_profile_relationship\(target_profile_id\)\s+in\s*\('self',\s*'friend'\).*?"
+    r"get_friend_profile_matchups_internal",
+    PUBLIC_DECKS,
+    re.I | re.S,
+), "matchup analytics must require self or accepted-friend access"
 assert re.search(
     r'create\s+policy\s+"bounded recognition report insert".*?to\s+anon\s*,\s*authenticated',
     REPORT_HARDENING,

@@ -1,17 +1,22 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
+  BarChart3,
+  Copy,
   Download,
   ExternalLink,
   LayoutGrid,
   Link2,
   List,
   Minus,
+  Palette,
   Plus,
   RefreshCw,
   Search,
+  Shuffle,
+  Tag,
   Trash2,
-  UserRound,
+  X,
 } from "lucide-react";
 import SiteFooter from "./SiteFooter.jsx";
 import SiteHeader from "./SiteHeader.jsx";
@@ -20,6 +25,7 @@ import {
   addCardToSavedDeck,
   deleteCardFromSavedDeck,
   getAccountSession,
+  getPublicSavedDeck,
   getSavedCommanderDeck,
   importSavedDeckFromText,
   importSavedDeckFromUrl,
@@ -27,8 +33,17 @@ import {
   signInWithDiscord,
   signOutAccount,
   updateCardInSavedDeck,
+  updateCardPrintingInSavedDeck,
 } from "./account.js";
 import { parseDeckAttributionUrl, primaryCardType } from "./deckImport.js";
+import { fetchCardPrintings } from "./cardSearch.js";
+import {
+  buildColorBreakdown,
+  buildManaCurve,
+  buildTypeBreakdown,
+  formatDeckText,
+  shuffleMainDeck,
+} from "./deckAnalysis.js";
 
 const BOARD_LABELS = {
   commander: "Commander",
@@ -49,6 +64,7 @@ const TYPE_LABELS = {
   Land: "Lands",
   Other: "Other cards",
 };
+const EMPTY_CARDS = [];
 
 function cardImageUrl(card, version = "normal") {
   const params = new URLSearchParams({ format: "image", version });
@@ -77,15 +93,27 @@ function groupSort(left, right, groupBy) {
     const b = Number(right.label.replace(/\D/g, ""));
     return (Number.isFinite(a) ? a : 999) - (Number.isFinite(b) ? b : 999);
   }
+  if (groupBy === "tag") {
+    if (left.label === "Commander") return -1;
+    if (right.label === "Commander") return 1;
+    if (left.label.startsWith("Untagged")) return 1;
+    if (right.label.startsWith("Untagged")) return -1;
+    return left.label.localeCompare(right.label);
+  }
   const leftType = Object.keys(TYPE_LABELS).find((type) => TYPE_LABELS[type] === left.label) || left.label;
   const rightType = Object.keys(TYPE_LABELS).find((type) => TYPE_LABELS[type] === right.label) || right.label;
   return TYPE_ORDER.indexOf(leftType) - TYPE_ORDER.indexOf(rightType);
+}
+
+function printingImageUrl(printing) {
+  return printing?.image_uris?.normal || printing?.card_faces?.[0]?.image_uris?.normal || "";
 }
 
 export default function DeckPage({ deckId }) {
   const [account, setAccount] = useState(null);
   const [accountReady, setAccountReady] = useState(false);
   const [deck, setDeck] = useState(null);
+  const [canEdit, setCanEdit] = useState(false);
   const [loading, setLoading] = useState(true);
   const [panel, setPanel] = useState(null);
   const [sourceUrl, setSourceUrl] = useState("");
@@ -96,10 +124,17 @@ export default function DeckPage({ deckId }) {
   const [board, setBoard] = useState("mainboard");
   const [query, setQuery] = useState("");
   const [view, setView] = useState("text");
+  const [pageView, setPageView] = useState("deck");
   const [groupBy, setGroupBy] = useState("type");
   const [sortBy, setSortBy] = useState("name");
   const [selectedCardId, setSelectedCardId] = useState(null);
   const [replacementName, setReplacementName] = useState("");
+  const [tagInput, setTagInput] = useState("");
+  const [printings, setPrintings] = useState([]);
+  const [artPickerOpen, setArtPickerOpen] = useState(false);
+  const [artLoading, setArtLoading] = useState(false);
+  const [sampleHand, setSampleHand] = useState([]);
+  const [sampleLibrary, setSampleLibrary] = useState([]);
   const [working, setWorking] = useState(false);
   const [busyCardId, setBusyCardId] = useState(null);
   const [error, setError] = useState("");
@@ -112,14 +147,14 @@ export default function DeckPage({ deckId }) {
       .then(async (nextAccount) => {
         if (!active) return;
         setAccount(nextAccount);
-        if (nextAccount) {
-          const nextDeck = await getSavedCommanderDeck(nextAccount, deckId);
-          if (!active) return;
-          setDeck(nextDeck);
-          setSourceAttribution(nextDeck?.source_url || "");
-          setSourceUrl(nextDeck?.source_provider === "archidekt" ? nextDeck.source_url || "" : "");
-          setSelectedCardId(nextDeck?.cards?.[0]?.id || null);
-        }
+        const ownedDeck = nextAccount ? await getSavedCommanderDeck(nextAccount, deckId) : null;
+        const nextDeck = ownedDeck || await getPublicSavedDeck(deckId);
+        if (!active) return;
+        setCanEdit(Boolean(ownedDeck));
+        setDeck(nextDeck);
+        setSourceAttribution(nextDeck?.source_url || "");
+        setSourceUrl(nextDeck?.source_provider === "archidekt" ? nextDeck.source_url || "" : "");
+        setSelectedCardId(nextDeck?.cards?.[0]?.id || null);
       })
       .catch((loadError) => { if (active) setError(String(loadError?.message || "Could not load this deck.")); })
       .finally(() => {
@@ -130,7 +165,7 @@ export default function DeckPage({ deckId }) {
     return () => { active = false; };
   }, [deckId]);
 
-  const cards = deck?.cards || [];
+  const cards = deck?.cards || EMPTY_CARDS;
   const selectedCard = cards.find((card) => card.id === selectedCardId) || cards[0] || null;
   const totalCards = cards.reduce((sum, card) => sum + Number(card.quantity || 0), 0);
   const mainDeckCards = cards.filter((card) => card.board === "commander" || card.board === "mainboard")
@@ -144,6 +179,10 @@ export default function DeckPage({ deckId }) {
     const total = castable.reduce((sum, card) => sum + Number(card.quantity || 0) * Number(card.mana_value), 0);
     return (total / count).toFixed(2).replace(/\.00$/, "");
   }, [cards]);
+  const manaCurve = useMemo(() => buildManaCurve(cards), [cards]);
+  const typeBreakdown = useMemo(() => buildTypeBreakdown(cards), [cards]);
+  const colorBreakdown = useMemo(() => buildColorBreakdown(cards), [cards]);
+  const knownTags = useMemo(() => [...new Set(cards.flatMap((card) => card.tags || []))].sort((left, right) => left.localeCompare(right)), [cards]);
   const moxfieldDeckUrl = useMemo(() => {
     if (!sourceAttribution.trim()) return "";
     try {
@@ -155,12 +194,24 @@ export default function DeckPage({ deckId }) {
   }, [sourceAttribution]);
 
   const groups = useMemo(() => {
-    const filtered = cards.filter((card) => card.name.toLocaleLowerCase("en-US").includes(query.trim().toLocaleLowerCase("en-US")));
+    const normalizedQuery = query.trim().toLocaleLowerCase("en-US");
+    const filtered = cards.filter((card) => !normalizedQuery
+      || card.name.toLocaleLowerCase("en-US").includes(normalizedQuery)
+      || (card.tags || []).some((tag) => tag.toLocaleLowerCase("en-US").includes(normalizedQuery)));
     const grouped = new Map();
     for (const card of filtered) {
-      const key = groupBy === "board" ? card.board : groupLabel(card, groupBy);
-      if (!grouped.has(key)) grouped.set(key, { key, label: groupLabel(card, groupBy), cards: [] });
-      grouped.get(key).cards.push(card);
+      const labels = groupBy === "tag"
+        ? card.board === "commander"
+          ? ["Commander"]
+          : (card.tags || []).length
+            ? card.tags
+            : [primaryCardType(card.type_line) === "Land" ? "Untagged lands" : "Untagged"]
+        : [groupLabel(card, groupBy)];
+      for (const label of labels) {
+        const key = groupBy === "board" ? card.board : label;
+        if (!grouped.has(key)) grouped.set(key, { key, label, cards: [] });
+        grouped.get(key).cards.push(card);
+      }
     }
     for (const group of grouped.values()) {
       group.cards.sort((left, right) => sortBy === "cmc"
@@ -169,6 +220,26 @@ export default function DeckPage({ deckId }) {
     }
     return [...grouped.values()].sort((left, right) => groupSort(left, right, groupBy));
   }, [cards, groupBy, query, sortBy]);
+
+  const dealHand = useCallback(() => {
+    const library = shuffleMainDeck(cards);
+    setSampleHand(library.slice(0, 7));
+    setSampleLibrary(library.slice(7));
+  }, [cards]);
+
+  useEffect(() => {
+    if (cards.length) dealHand();
+    else {
+      setSampleHand([]);
+      setSampleLibrary([]);
+    }
+  }, [cards, dealHand]);
+
+  useEffect(() => {
+    setArtPickerOpen(false);
+    setPrintings([]);
+    setTagInput("");
+  }, [selectedCardId]);
 
   const applyCardResult = (result) => {
     if (!result?.card && !result?.removedId) return;
@@ -244,6 +315,58 @@ export default function DeckPage({ deckId }) {
     }
   };
 
+  const copyDeckList = async () => {
+    try {
+      await navigator.clipboard.writeText(formatDeckText(cards));
+      setStatus("Deck list copied.");
+    } catch {
+      setError("The deck list could not be copied.");
+    }
+  };
+
+  const saveTags = (card, tags, message = "Tags updated.") => runCardAction(
+    card,
+    () => updateCardInSavedDeck(account, deck.id, card.id, { quantity: card.quantity, board: card.board, tags }),
+    () => message,
+  );
+
+  const addSelectedTag = (event) => {
+    event.preventDefault();
+    const tag = tagInput.trim().replace(/\s+/g, " ").slice(0, 32);
+    if (!selectedCard || !tag) return;
+    const tags = [...new Set([...(selectedCard.tags || []), tag])].slice(0, 8);
+    setTagInput("");
+    saveTags(selectedCard, tags, `${tag} added.`);
+  };
+
+  const toggleArtPicker = async () => {
+    if (!selectedCard) return;
+    if (artPickerOpen) {
+      setArtPickerOpen(false);
+      return;
+    }
+    setArtPickerOpen(true);
+    setArtLoading(true);
+    setError("");
+    try {
+      setPrintings(await fetchCardPrintings(selectedCard));
+    } catch {
+      setError("Card artwork could not be loaded.");
+      setPrintings([]);
+    } finally {
+      setArtLoading(false);
+    }
+  };
+
+  const choosePrinting = (printing) => runCardAction(
+    selectedCard,
+    () => updateCardPrintingInSavedDeck(account, deck.id, selectedCard.id, printing.id),
+    () => {
+      setArtPickerOpen(false);
+      return `Artwork changed to ${printing.set_name || String(printing.set || "").toUpperCase()}.`;
+    },
+  );
+
   return (
     <main className="profile-page account-profile-page deck-editor-page">
       <SiteHeader
@@ -258,21 +381,18 @@ export default function DeckPage({ deckId }) {
       <section className="account-profile-page-shell deck-editor-shell">
         {loading ? (
           <p className="public-games-state">Loading deck…</p>
-        ) : !account ? (
-          <div className="games-empty account-profile-sign-in">
-            <UserRound size={30} />
-            <h1>Sign in to manage this deck</h1>
-            <button type="button" onClick={() => signInWithDiscord({ redirectPath: window.location.pathname })}>Sign in with Discord</button>
-          </div>
         ) : !deck ? (
           <div className="games-empty"><h1>Deck not found</h1><p>This deck may have been removed or belongs to another player.</p><a href="/profile">Back to profile</a></div>
         ) : (
           <>
-            <a className="deck-editor-back" href="/profile"><ArrowLeft size={16} /> My decks</a>
+            <a className="deck-editor-back" href={canEdit ? "/profile" : `/profile?id=${encodeURIComponent(deck.owner?.id || "")}`}>
+              <ArrowLeft size={16} /> {canEdit ? "My decks" : `${deck.owner?.display_name || "Player"}'s profile`}
+            </a>
             <header className="deck-editor-hero">
               <div>
                 <h1>{deck.label}</h1>
                 <p>{deck.commander_name}{deck.partner_name ? ` + ${deck.partner_name}` : ""}</p>
+                {!canEdit && deck.owner && <a className="deck-editor-owner" href={`/profile?id=${encodeURIComponent(deck.owner.id)}`}>Deck by {deck.owner.display_name}</a>}
                 {deck.source_url && <a className="deck-editor-source" href={deck.source_url} target="_blank" rel="noreferrer"><Link2 size={13} /> Imported from {deck.source_provider}</a>}
               </div>
               <div className="deck-editor-summary" aria-label={`${totalCards} cards`}>
@@ -281,16 +401,27 @@ export default function DeckPage({ deckId }) {
               </div>
             </header>
 
+            <div className="account-page-tabs deck-editor-tabs" role="tablist" aria-label="Deck views">
+              <button type="button" role="tab" aria-selected={pageView === "deck"} onClick={() => setPageView("deck")}>Deck list</button>
+              <button type="button" role="tab" aria-selected={pageView === "analysis"} onClick={() => setPageView("analysis")}>Analysis &amp; hand</button>
+            </div>
+
+            {error && <p className="modal-error deck-editor-message" role="alert">{error}</p>}
+            <AppToast message={status} onDismiss={dismissStatus} />
+
+            {pageView === "deck" ? (
+              <>
             <section className="deck-builder-toolbar" aria-label="Deck controls">
               <label className="deck-builder-search"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find cards in this deck" /></label>
               <div className="deck-view-control" role="group" aria-label="Card view">
                 <button type="button" className={view === "text" ? "selected" : ""} onClick={() => setView("text")} aria-label="Text view" title="Text view"><List size={17} /></button>
                 <button type="button" className={view === "cards" ? "selected" : ""} onClick={() => setView("cards")} aria-label="Card view" title="Card view"><LayoutGrid size={17} /></button>
               </div>
-              <label className="deck-builder-select"><span>Group</span><select value={groupBy} onChange={(event) => setGroupBy(event.target.value)}><option value="type">Type</option><option value="cmc">Mana value</option><option value="board">Section</option></select></label>
+              <label className="deck-builder-select"><span>Group</span><select value={groupBy} onChange={(event) => setGroupBy(event.target.value)}><option value="tag">Tag</option><option value="type">Type</option><option value="cmc">Mana value</option><option value="board">Section</option></select></label>
               <label className="deck-builder-select"><span>Sort</span><select value={sortBy} onChange={(event) => setSortBy(event.target.value)}><option value="name">Name</option><option value="cmc">Mana value</option></select></label>
-              <button type="button" className="deck-builder-action" onClick={() => setPanel(panel === "import" ? null : "import")}><Download size={16} /> Import</button>
-              <button type="button" className="deck-builder-action primary" onClick={() => setPanel(panel === "add" ? null : "add")}><Plus size={16} /> Add card</button>
+              <button type="button" className="deck-builder-action" onClick={copyDeckList}><Copy size={16} /> Copy list</button>
+              {canEdit && <button type="button" className="deck-builder-action" onClick={() => setPanel(panel === "import" ? null : "import")}><Download size={16} /> Import</button>}
+              {canEdit && <button type="button" className="deck-builder-action primary" onClick={() => setPanel(panel === "add" ? null : "add")}><Plus size={16} /> Add card</button>}
             </section>
 
             {panel === "import" && (
@@ -300,7 +431,7 @@ export default function DeckPage({ deckId }) {
                   <label className="modal-field"><span>Original deck link <small>Optional attribution only</small></span><input type="url" value={sourceAttribution} onChange={(event) => setSourceAttribution(event.target.value)} placeholder="https://moxfield.com/decks/…" autoComplete="url" /></label>
                   {moxfieldDeckUrl && <a className="deck-open-provider" href={moxfieldDeckUrl} target="_blank" rel="noreferrer"><ExternalLink size={16} /> Open deck in Moxfield</a>}
                   <p className="deck-provider-note">In the Moxfield tab, choose <strong>More → Export → Copy for Moxfield</strong>. Then return to Snapcast and paste the copied list below.</p>
-                  <label className="modal-field"><span>Moxfield deck list</span><textarea value={deckText} onChange={(event) => setDeckText(event.target.value)} placeholder={"Commander\n1 The Astonishing Ant-Man\n\nMainboard\n1 Sol Ring"} rows={9} /></label>
+                  <label className="modal-field"><span>Moxfield deck list</span><textarea value={deckText} onChange={(event) => setDeckText(event.target.value)} placeholder={"Commander\n1 The Astonishing Ant-Man\n\nMainboard\n1 Sol Ring #!Ramp"} rows={9} /></label>
                   <button className="primary" type="button" disabled={working || !deckText.trim()} onClick={() => applyImport("text")}><Download size={16} /> {working ? "Importing…" : "Import pasted list"}</button>
                 </div>
                 <details className="deck-text-fallback">
@@ -325,9 +456,6 @@ export default function DeckPage({ deckId }) {
               </section>
             )}
 
-            {error && <p className="modal-error deck-editor-message" role="alert">{error}</p>}
-            <AppToast message={status} onDismiss={dismissStatus} />
-
             <div className="deck-builder-metrics" aria-label="Deck summary">
               <div><strong>{mainDeckCards}</strong><span>Main deck</span></div>
               <div><strong>{sideboardCards}</strong><span>Sideboard</span></div>
@@ -336,7 +464,7 @@ export default function DeckPage({ deckId }) {
             </div>
 
             {totalCards === 0 ? (
-              <div className="deck-cards-empty"><h3>This deck list is empty</h3><p>Import a public deck link or add cards one at a time.</p></div>
+              <div className="deck-cards-empty"><h3>This deck list is empty</h3><p>{canEdit ? "Import a public deck link or add cards one at a time." : "This player has not added cards to this deck yet."}</p></div>
             ) : (
               <section className="deck-builder-workspace">
                 <aside className="deck-card-inspector" aria-label="Selected card">
@@ -346,12 +474,47 @@ export default function DeckPage({ deckId }) {
                       <div className="deck-card-inspector-copy">
                         <h2>{selectedCard.name}</h2>
                         <p>{selectedCard.type_line || "Card details"}{selectedCard.mana_value != null ? ` · MV ${Number(selectedCard.mana_value)}` : ""}</p>
+                        {canEdit && <button type="button" className="deck-change-art" disabled={artLoading || busyCardId === selectedCard.id} onClick={toggleArtPicker}><Palette size={15} /> {artLoading ? "Loading art…" : "Change art"}</button>}
                       </div>
-                      <div className="deck-card-inspector-fields">
-                        <label><span>Quantity</span><div className="deck-quantity-control"><button type="button" aria-label={`Decrease ${selectedCard.name} quantity`} disabled={busyCardId === selectedCard.id || selectedCard.quantity <= 1} onClick={() => runCardAction(selectedCard, () => updateCardInSavedDeck(account, deck.id, selectedCard.id, { quantity: selectedCard.quantity - 1, board: selectedCard.board }), () => "Quantity updated.")}><Minus size={15} /></button><strong>{selectedCard.quantity}</strong><button type="button" aria-label={`Increase ${selectedCard.name} quantity`} disabled={busyCardId === selectedCard.id} onClick={() => runCardAction(selectedCard, () => updateCardInSavedDeck(account, deck.id, selectedCard.id, { quantity: selectedCard.quantity + 1, board: selectedCard.board }), () => "Quantity updated.")}><Plus size={15} /></button></div></label>
-                        <label><span>Section</span><select value={selectedCard.board} disabled={busyCardId === selectedCard.id} onChange={(event) => runCardAction(selectedCard, () => updateCardInSavedDeck(account, deck.id, selectedCard.id, { quantity: selectedCard.quantity, board: event.target.value }), () => "Card moved.")}>{BOARD_ORDER.map((key) => <option value={key} key={key}>{BOARD_LABELS[key]}</option>)}</select></label>
+                      {canEdit && artPickerOpen && (
+                        <div className="deck-art-picker" aria-label={`Artwork for ${selectedCard.name}`}>
+                          <div className="deck-art-picker-heading"><strong>Choose artwork</strong><button type="button" onClick={() => setArtPickerOpen(false)} aria-label="Close artwork picker"><X size={15} /></button></div>
+                          {artLoading ? <p>Loading printings…</p> : printings.length ? (
+                            <div className="deck-art-grid">
+                              {printings.map((printing) => (
+                                <button type="button" key={printing.id} className={printing.id === selectedCard.scryfall_id ? "selected" : ""} onClick={() => choosePrinting(printing)} disabled={busyCardId === selectedCard.id}>
+                                  <img src={printingImageUrl(printing)} alt={`${printing.name}, ${printing.set_name}`} loading="lazy" />
+                                  <span>{String(printing.set || "").toUpperCase()} · {printing.collector_number}</span>
+                                </button>
+                              ))}
+                            </div>
+                          ) : <p>No alternate artwork found.</p>}
+                        </div>
+                      )}
+                      {canEdit ? (
+                        <div className="deck-card-inspector-fields">
+                          <label><span>Quantity</span><div className="deck-quantity-control"><button type="button" aria-label={`Decrease ${selectedCard.name} quantity`} disabled={busyCardId === selectedCard.id || selectedCard.quantity <= 1} onClick={() => runCardAction(selectedCard, () => updateCardInSavedDeck(account, deck.id, selectedCard.id, { quantity: selectedCard.quantity - 1, board: selectedCard.board }), () => "Quantity updated.")}><Minus size={15} /></button><strong>{selectedCard.quantity}</strong><button type="button" aria-label={`Increase ${selectedCard.name} quantity`} disabled={busyCardId === selectedCard.id} onClick={() => runCardAction(selectedCard, () => updateCardInSavedDeck(account, deck.id, selectedCard.id, { quantity: selectedCard.quantity + 1, board: selectedCard.board }), () => "Quantity updated.")}><Plus size={15} /></button></div></label>
+                          <label><span>Section</span><select value={selectedCard.board} disabled={busyCardId === selectedCard.id} onChange={(event) => runCardAction(selectedCard, () => updateCardInSavedDeck(account, deck.id, selectedCard.id, { quantity: selectedCard.quantity, board: event.target.value }), () => "Card moved.")}>{BOARD_ORDER.map((key) => <option value={key} key={key}>{BOARD_LABELS[key]}</option>)}</select></label>
+                        </div>
+                      ) : (
+                        <dl className="deck-card-readonly-facts">
+                          <div><dt>Quantity</dt><dd>{selectedCard.quantity}</dd></div>
+                          <div><dt>Section</dt><dd>{BOARD_LABELS[selectedCard.board] || BOARD_LABELS.mainboard}</dd></div>
+                        </dl>
+                      )}
+                      <div className="deck-card-tags">
+                        <div className="deck-card-tags-heading"><span>Tags</span><Tag size={14} /></div>
+                        <div className="deck-tag-list">
+                          {(selectedCard.tags || []).map((tag) => <span className="deck-tag" key={tag}>{tag}{canEdit && <button type="button" aria-label={`Remove ${tag} tag`} onClick={() => saveTags(selectedCard, selectedCard.tags.filter((item) => item !== tag), `${tag} removed.`)} disabled={busyCardId === selectedCard.id}><X size={12} /></button>}</span>)}
+                          {!(selectedCard.tags || []).length && <small>No tags yet</small>}
+                        </div>
+                        {canEdit && <form className="deck-tag-form" onSubmit={addSelectedTag}>
+                          <input value={tagInput} onChange={(event) => setTagInput(event.target.value)} list="deck-known-tags" maxLength={32} placeholder="Ramp, removal…" aria-label="Add a tag" />
+                          <datalist id="deck-known-tags">{knownTags.map((tag) => <option value={tag} key={tag} />)}</datalist>
+                          <button type="submit" disabled={!tagInput.trim() || busyCardId === selectedCard.id}>Add</button>
+                        </form>}
                       </div>
-                      <form className="deck-replace-card" onSubmit={(event) => {
+                      {canEdit && <form className="deck-replace-card" onSubmit={(event) => {
                         event.preventDefault();
                         if (!replacementName.trim()) return;
                         runCardAction(selectedCard, () => replaceCardInSavedDeck(account, deck.id, selectedCard.id, replacementName), (result) => `${result.card.name} swapped in.`);
@@ -359,11 +522,11 @@ export default function DeckPage({ deckId }) {
                       }}>
                         <label><span>Swap this card</span><input value={replacementName} onChange={(event) => setReplacementName(event.target.value)} placeholder="Replacement card name" /></label>
                         <button type="submit" disabled={busyCardId === selectedCard.id || !replacementName.trim()}><RefreshCw size={15} /> Swap card</button>
-                      </form>
-                      <button className="deck-remove-card" type="button" disabled={busyCardId === selectedCard.id} onClick={() => {
+                      </form>}
+                      {canEdit && <button className="deck-remove-card" type="button" disabled={busyCardId === selectedCard.id} onClick={() => {
                         if (!window.confirm(`Remove ${selectedCard.name} from this deck?`)) return;
                         runCardAction(selectedCard, () => deleteCardFromSavedDeck(account, deck.id, selectedCard.id), () => `${selectedCard.name} removed.`);
-                      }}><Trash2 size={15} /> Remove card</button>
+                      }}><Trash2 size={15} /> Remove card</button>}
                     </>
                   )}
                 </aside>
@@ -377,17 +540,58 @@ export default function DeckPage({ deckId }) {
                           <button type="button" className={`deck-visual-card${card.id === selectedCard?.id ? " selected" : ""}`} key={card.id} onClick={() => setSelectedCardId(card.id)}>
                             <img src={cardImageUrl(card)} alt="" loading="lazy" />
                             <span>{card.quantity > 1 ? `${card.quantity}× ` : ""}{card.name}</span>
+                            {!!(card.tags || []).length && <small>{card.tags.join(" · ")}</small>}
                           </button>
                         ) : (
                           <button type="button" className={`deck-card-row${card.id === selectedCard?.id ? " selected" : ""}`} key={card.id} onClick={() => setSelectedCardId(card.id)}>
                             <span className="deck-card-quantity">{card.quantity}</span>
-                            <strong>{card.name}</strong>
+                            <span className="deck-card-row-copy"><strong>{card.name}</strong>{!!(card.tags || []).length && <small>{card.tags.join(" · ")}</small>}</span>
                             <span className="deck-card-mana">{card.mana_value == null ? "—" : Number(card.mana_value)}</span>
                           </button>
                         ))}
                       </div>
                     </section>
                   ))}
+                </div>
+              </section>
+            )}
+              </>
+            ) : (
+              <section className="deck-analysis-dashboard" aria-label="Deck analysis">
+                <div className="deck-builder-metrics" aria-label="Deck summary">
+                  <div><strong>{mainDeckCards}</strong><span>Main deck</span></div>
+                  <div><strong>{sideboardCards}</strong><span>Sideboard</span></div>
+                  <div><strong>{averageManaValue}</strong><span>Average mana value</span></div>
+                  <div><strong>{cards.length}</strong><span>Unique cards</span></div>
+                </div>
+                <div className="deck-analysis-grid">
+                  <article className="deck-analysis-panel deck-mana-curve">
+                    <header><div><h2>Mana value</h2><p>Nonland cards in the main deck and command zone.</p></div><BarChart3 size={19} /></header>
+                    <div className="deck-mana-bars">
+                      {manaCurve.map((entry) => {
+                        const maximum = Math.max(1, ...manaCurve.map((item) => item.count));
+                        return <div className="deck-mana-column" key={entry.label}><strong>{entry.count}</strong><span className="deck-mana-track"><i style={{ height: `${Math.round((entry.count / maximum) * 100)}%` }} /></span><small>{entry.label}</small></div>;
+                      })}
+                    </div>
+                  </article>
+                  <article className="deck-analysis-panel">
+                    <header><div><h2>Card types</h2><p>Quantity across the main deck and command zone.</p></div></header>
+                    <div className="deck-breakdown-list">
+                      {typeBreakdown.map((entry) => <div key={entry.key}><span>{entry.label}</span><i><b style={{ width: `${Math.round((entry.count / Math.max(1, mainDeckCards)) * 100)}%` }} /></i><strong>{entry.count}</strong></div>)}
+                    </div>
+                  </article>
+                  <article className="deck-analysis-panel deck-color-analysis">
+                    <header><div><h2>Card colors</h2><p>Nonland cards can contribute to more than one color.</p></div></header>
+                    <div className="deck-color-grid">
+                      {colorBreakdown.map((entry) => <div key={entry.key}><span className={`deck-color-symbol is-${entry.key}`}>{entry.key}</span><span><strong>{entry.percentage}%</strong><small>{entry.label} · {entry.count}</small></span></div>)}
+                    </div>
+                  </article>
+                  <article className="deck-analysis-panel deck-sample-hand">
+                    <header><div><h2>Sample hand</h2><p>{sampleLibrary.length} cards remain in the shuffled library.</p></div><div className="deck-sample-actions"><button type="button" onClick={dealHand}><Shuffle size={15} /> Deal again</button><button type="button" disabled={!sampleLibrary.length} onClick={() => { setSampleHand((hand) => [...hand, sampleLibrary[0]]); setSampleLibrary((library) => library.slice(1)); }}>Draw one</button></div></header>
+                    <div className="deck-sample-cards">
+                      {sampleHand.map((card) => <figure key={card.drawKey}><img src={cardImageUrl(card)} alt={card.name} /><figcaption>{card.name}</figcaption></figure>)}
+                    </div>
+                  </article>
                 </div>
               </section>
             )}

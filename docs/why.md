@@ -108,7 +108,22 @@ another card, which is uncommon in real play.
 - Not a digital Magic client. No rules enforcement, no game state, no stack.
   The cards are real and the players run the game.
 - Not a collection manager or digital rules engine. Saved Commander decks can
-  be imported, sorted, edited, and split into main deck, sideboard, and
-  considering sections, but Snapcast does not track card ownership, prices,
-  legality changes, or in-game zones.
+  be imported, sorted, tagged, edited, split into main deck, sideboard, and
+  considering sections, analyzed, and sampled with opening hands. Players may
+  also choose the printing whose art represents a card. Snapcast does not track
+  card ownership, prices, legality changes, or in-game zones, and dealing a hand
+  is not a full battlefield simulator.
 - Not a replacement for Scryfall — it links out for full card details.
+
+Existing deck lists are the shortest path from signing in to getting value.
+The profile therefore accepts a public Archidekt link directly and guides a
+Moxfield export through paste or file upload, previews the detected Commander
+and card count, then opens the fully populated Snapcast deck. Importing should
+feel like bringing an existing deck over, not rebuilding it twice.
+
+Profiles connect the table to the community around it. A player can move from
+an in-game nameplate to another player's public decks, inspect those builds,
+and send a friend request that lands in Notifications without interrupting the
+game or exposing any deck-edit permission. Decks are the public contribution;
+records, timing, commander performance, matchups, and game history stay between
+accepted friends (and remain visible to the profile owner).

@@ -232,7 +232,8 @@ Each record is a rounded, locally bounded card with a square commander-art
 thumbnail. Results
 use circular Lucide icons rather than text pills: a trophy in the success role
 for wins, a skull in the danger role for losses, and a neutral minus for draws.
-The date and recorded-turn count use `--text-sm` so the primary metadata remains
+The date, game duration, whole-game turn count, the player's turn count, and a
+recorded elimination cause use `--text-sm` so primary match metadata remains
 readable without competing with the commander name.
 Each profile panel starts with the same `--text-2xl` Geist heading row: “My
 decks,” “Recent game history,” or “Stats.” The row begins one `--space-5` step
@@ -273,7 +274,9 @@ content column. Its information hierarchy borrows the useful parts of a mature
 deck builder without copying marketplace UI: deck identity and total first, a
 single bounded control bar second, summary metrics third, then the editing
 workspace. The control bar combines search, an icon-only text/card segmented
-control, Group and Sort selects, and explicit Import and Add card actions.
+control, Group and Sort selects, and explicit Copy list, Import, and Add card
+actions. Grouping includes functional deck-local tags as well as card type,
+mana value, and deck section. Tag search matches both names and tags.
 Import and add forms expand below that bar only while in use. Import leads with
 the manual Moxfield workflow. A validated Moxfield URL produces an “Open deck
 in Moxfield” link that opens in a separate tab; the user then chooses More →
@@ -281,12 +284,29 @@ Export → Copy for Moxfield, returns to Snapcast, and pastes the list. The URL 
 stored only as attribution and is never requested by Snapcast. Direct URL
 import is disclosed separately for public Archidekt decks.
 
+The profile's “Import deck” action applies those rules in one wider modal. One
+large input accepts a provider link or exported list and identifies it in
+place; adjacent clipboard and file actions feed that same input instead of
+creating separate flows. A public Archidekt link needs one final import action.
+A Moxfield link becomes a connected source card followed by the exact More →
+Export → Copy for Moxfield instruction and a return-path clipboard button.
+Parsed text shows a compact three-cell preview (Commander, card count,
+sections) before saving. The optional deck-name field appears only after the
+input is actionable, and progressive status copy describes provider reading,
+Commander validation, deck creation, and card enrichment. On completion the
+player lands directly in the populated deck editor. Provider marks are neutral
+text badges rather than copied service logos or brand treatments.
+
 On desktop the workspace uses a 280px sticky selected-card inspector and a
 three-column grouped text list. Text rows are 36px high with quantity at the
 left and mana value at the right, making a 100-card deck scannable without
 turning each card into a separate panel. The alternate card view uses compact
-image tiles. Selecting a card exposes quantity, deck section, swap, and remove
-controls in the inspector; sideboard and considering are first-class sections.
+image tiles. Selecting a card exposes quantity, deck section, art, tag, swap,
+and remove controls in the inspector; sideboard and considering are first-class
+sections. Tags use compact rounded chips inside the inspector, with their
+remove action contained in the chip. The alternate-art picker is a bounded
+three-column image grid inside that same inspector rather than a full-page
+printing browser; its server mutation is constrained to the same Oracle card.
 The workspace collapses to two list columns and then one as the viewport
 narrows, and the inspector stops being sticky on compact screens. The page
 always shows main-deck count, sideboard count, average mana value, and unique
@@ -298,6 +318,17 @@ corner, announces through a polite atomic live region, offers an explicit close
 button, and dismisses after four seconds. Its entrance animation respects
 reduced-motion preferences. Action errors remain persistent inline alerts so
 recovery guidance cannot disappear before the player reads it.
+
+Deck list and Analysis & hand are peer views, so they use the shared underlined
+text-tab treatment. Analysis keeps the same four summary metrics, then uses
+two-column 14px surface panels for a mana-value histogram, type quantities,
+and color shares. The color circles are a narrow Magic-semantic exception to
+the normal theme-token rule: muted W/U/B/R/G/C hues match the commander color
+pips and always include letter labels, so color is never the only signal. The
+sample-hand panel spans both columns and shows seven real card images with Deal
+again and Draw one controls; it deliberately stops short of battlefield,
+graveyard, turn, or rules-engine behavior. Analysis panels collapse to one
+column on tablets, and sample-card images move from seven to four to two columns.
 The join flow presents its six-character game code as six large 82px-high
 verification slots with 30px mono characters. A single transparent input spans
 the slots so typing, pasting, browser one-time-code autofill, validation, and
@@ -476,8 +507,9 @@ During a live game, the player-owned **I’m out** control mirrors the same
 34px dense-glass treatment on the opposite edge; its active state uses the
 existing danger border/text role and remains explicitly reversible.
 
-Public profiles use a 76px identity avatar, a four-card summary grid, and the
-same 12px panel shell used by discovery cards. Saved Commander decks live
+Public profiles use a 76px identity avatar and the same 12px panel shell used by
+discovery cards. The four-card summary grid and all game-history panels render
+only for the profile owner or an accepted friend. Saved Commander decks live
 inside My Profile as a horizontally scrolling, snap-aligned rail of 208px
 tiles. Each tile leads with the framed Scryfall printing; partner cards overlap
 without perspective. The rail uses the shared 8px inset scrollbar, the remove
@@ -490,6 +522,24 @@ compact raised result list. Notifications use raised 52px action rows on the
 separate Notifications page.
 Public-profile social actions are labeled 34px buttons, with block and deletion
 using the existing danger color role rather than introducing a new red.
+The hero keeps the primary relationship action visible: Add friend becomes
+Request sent, an accepted relationship reads Friends, an incoming request links
+to Notifications, and signed-out visitors see a sign-in action. Confirmation
+copy explicitly says that a sent request appears in the recipient's
+Notifications. Public saved decks sit below the hero for non-friends and below
+record metrics for friends as compact three-column art-and-copy links,
+collapsing to two and then one column. Their
+shared read-only deck page retains browsing, grouping, list copying, analysis,
+and sample hands, while edit-only import, add, tag, art, quantity, section,
+swap, and remove controls are omitted.
+
+Notifications, Settings, Profiles, and Decks share 12px page panels and 8px
+controls. Their primary actions use the filled text/inverse treatment—Save
+changes, Accept, Import deck, Add card, and Add friend—while secondary and
+danger actions remain outlined. Those actions use the shared focus outline;
+deck search and select containers use the same focus ring as account inputs.
+Review stars use the semantic warning color so their contrast follows the
+active theme instead of relying on a fixed gold.
 
 The post-game review prompt reuses the modal shell, centered 42px star buttons,
 and shared form styling. The persistent Leave game control matches the owner
@@ -544,7 +594,8 @@ Life-badge ± buttons use a normal click for a one-point adjustment. Holding
 either button makes repeated five-point adjustments, so common life changes
 stay fast without making a one-point correction awkward.
 Passing the turn keeps the established player order but skips any seat whose
-life total is 0. If no living player remains, the active turn does not move.
+life total is 0 or whose player has marked themselves eliminated. If no active
+player remains, the turn does not move.
 
 The sidebar navigation is a dedicated 48px left rail on the app background;
 the glass panel begins at the scrollable content column without a separator.
@@ -687,6 +738,12 @@ nothing. **Never put a native `title` on an element that contains a
 The `[data-tooltip]` CSS component in `styles.css` renders instead: same
 glass material as `.tile-menu` (`--overlay-bg`, blur, `--overlay-shadow`),
 fading in after a short delay via `--duration-fast` / `--ease-standard`.
+
+The player nameplate's three-dot trigger is labeled “Player options.” Its
+menu uses the same row treatment for buttons and links. Signed-in seats expose
+a “View profile” row first; it is omitted when the verified membership has no
+profile ID and opens the public profile in a new tab so the game remains
+uninterrupted.
 
 ```jsx
 <button aria-label="Mute" data-tooltip="Mute">

@@ -291,6 +291,30 @@ export async function recordGameTurn({
   return data;
 }
 
+export async function recordGameElimination({
+  sessionId,
+  membershipId,
+  participantToken,
+  reason,
+  finalLife,
+  finalPoison,
+  finalCommanderDamage,
+}) {
+  if (!sessionId || !membershipId || !participantToken) return null;
+  const { data, error } = await requireConfigured().rpc("record_game_elimination", {
+    target_session_id: sessionId,
+    acting_membership_id: membershipId,
+    participant_token: participantToken,
+    p_reason: reason || null,
+    p_final_life: finalLife ?? null,
+    p_final_poison: finalPoison ?? null,
+    p_final_commander_damage: finalCommanderDamage || {},
+    idempotency_key: idempotencyKey(),
+  });
+  if (error) throw error;
+  return data;
+}
+
 export async function endDurableGame({
   gameId,
   ownerToken,

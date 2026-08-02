@@ -11,6 +11,7 @@ const checks = [
   [node, "scripts/test_video_quality.mjs"],
   [node, "scripts/test_card_search_cache.mjs"],
   [node, "scripts/test_deck_import.mjs"],
+  [node, "scripts/test_deck_analysis.mjs"],
   [node, "scripts/test_recognition_hints.mjs"],
   [node, "scripts/test_recognition_queue.mjs"],
   [python, "scripts/check_hash_duplication.py"],

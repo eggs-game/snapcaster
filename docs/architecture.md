@@ -79,12 +79,14 @@ or server-only RPCs each caller needs. Tables used only behind those RPCs keep
 RLS enabled with no direct row policies, which intentionally denies table API
 access.
 
-The participant-only game-history RPC returns the room bracket and a structured
-list of opposing Commander/partner identities alongside the existing result,
-players, and timing data. My Profile can therefore filter a player's locally
-loaded history without parsing display strings or making opponent history
-public. The function remains authenticated-only and scopes rows to
-`auth.uid()`.
+The participant-only game-history RPC returns the room bracket, a structured
+list of opposing Commander/partner identities, whole-game and per-player turn
+counts, server-derived duration, final counters, and elimination reason/time.
+Eliminations are persisted by an authenticated, capability-checked RPC as they
+happen, then reconciled with the host's final snapshot. My Profile can
+therefore filter and summarize locally loaded history without parsing display
+strings or making opponent history public. The function remains
+authenticated-only and scopes rows to `auth.uid()`.
 
 Foreign-key columns used by the durable account/game schema have covering
 indexes, and owner RLS policies cache `auth.uid()` through scalar subqueries.
@@ -111,7 +113,7 @@ src/
   localMock.js          loopback-only loader for ignored local fixture data
   PublicGames.jsx       public Lobby and Live Game directories
   ProfilePage.jsx       public finished-game statistics and matchups
-  DeckPage.jsx          owner-only saved-deck import and card-list editor
+  DeckPage.jsx          owner editor and read-only public saved-deck browser
   GameManagement.jsx    owner lifecycle and participant moderation controls
   ReviewPrompt.jsx      private post-game review flow
   ModerationPage.jsx    least-privilege report and appeal queue
@@ -130,6 +132,8 @@ src/
   signaling.js          Supabase Realtime room join and persistence helpers
   captureGeometry.js    crop maths shared by production and the benchmark
   cardSearch.js         Scryfall-backed name and partner suggestions
+  deckImport.js         saved-deck parsing, tag normalization, and imports
+  deckAnalysis.js       saved-deck export, summaries, and hand dealing
   commanderRules.js     pure Commander legality rules shared with the API
   recognition/
     recognizer.js       ★ Web Worker: OpenCV, crops, hashing, ORB
@@ -179,7 +183,13 @@ instead of accepting Commander names broadcast by another browser.
 `api/decks.js` is the only writer for full saved-deck card lists. It
 revalidates the signed-in account, verifies deck ownership, rate-limits imports
 and card edits, constructs a fixed Archidekt API URL from a validated numeric
-identifier, and bounds both response size and card counts. Snapcast never
+identifier, and bounds both response size and card counts. An authenticated,
+rate-limited preview action returns only the public Archidekt deck name,
+Commander names, and bounded card counts before a saved-deck row exists; the
+normal owner-checked import action refetches the source before writing. This
+lets the profile create a validated Commander shell and populate it as one
+user operation without relaxing the list-writer boundary. If list population
+fails, the browser removes the newly created empty shell. Snapcast never
 requests Moxfield automatically: users paste Moxfield's plain-text export and
 may retain the validated Moxfield URL strictly as attribution. Full-list
 replacement runs inside a service-only
@@ -192,10 +202,32 @@ with an existing matching destination instead of violating the deck/section/name
 uniqueness contract. Card-list rows are owner-scoped with RLS and an
 owner-matching composite foreign key to their saved deck. Browser roles have
 read-only table access; service-role writes stay behind the same-origin API.
+Moxfield `#!Tag` suffixes are normalized into at most eight short deck-local
+tags per card. The same owner-checked mutation path edits those tags. Artwork
+changes send only a Scryfall printing ID; the server reloads that printing and
+requires its Oracle identity (or exact name for legacy rows) to match the saved
+card before changing art and set metadata. Mana, type, color, and sample-hand
+views are derived entirely from the already owner-scoped card rows in the
+browser and create no additional durable game state.
 The profile collection reads one additional security-invoker aggregate view
 that returns only deck ID, owner ID, and nonland average mana value. Its query
 still supplies the owner ID explicitly, and underlying saved-card RLS remains
 authoritative; this avoids transferring complete card lists just to sort tiles.
+Public profile deck discovery stays outside that owner RLS path. Three explicit
+read-only functions expose relationship state, bounded deck-tile metadata, and
+one selected deck with its cards. They are `SECURITY DEFINER` only because the
+underlying deck tables remain owner-only; each pins an empty search path,
+returns constructed rows without owner IDs on card records, inherits no
+`PUBLIC` execute privilege, and is granted only as an intentional anonymous and
+authenticated read API. Imports and card mutations still use owner-checked
+paths. Friend requests use the existing rate-limited `send_friend_request`
+function, which creates the request and recipient notification together.
+Profile analytics use a separate accepted-friend boundary. The previous stats
+and matchup implementations are renamed to internal functions with execute
+revoked from every browser role. Public wrappers call them only for the profile
+owner or a canonical row in `friendships`; anonymous visitors, pending requests,
+blocked players, and other signed-in accounts receive identity and public decks
+without record, timing, commander, recent-game, or matchup data.
 
 ## The card index
 

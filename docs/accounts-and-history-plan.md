@@ -130,6 +130,9 @@ One completed game record should include:
 - Total game duration, derived from the official start and end timestamps.
 - An ordered turn timeline with the active player, commander selection,
   turn number, start time, end time, and elapsed active duration.
+- Elimination time and cause, persisted when the player marks themselves out
+  and reconciled with the host's final life, poison, and Commander-damage
+  snapshot when the game ends.
 - Optional notes in a later release.
 
 Game events can remain useful for live play, but profile records should be

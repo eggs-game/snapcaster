@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Download, LayoutGrid, List, Minus, Plus, Skull, Trophy, UserRound, X } from "lucide-react";
+import { ClipboardPaste, Download, ExternalLink, FileUp, LayoutGrid, Link2, List, Minus, Plus, Skull, Trophy, UserRound, X } from "lucide-react";
 import {
   accountAvatarUrl,
   accountDisplayName,
   cancelAccountDeletion,
   createSavedCommanderDeck,
+  deleteSavedCommanderDeck,
   exportMyAccountData,
   finalizeAccountDeletion,
   getAccountDeletionStatus,
@@ -13,7 +14,10 @@ import {
   getMyReceivedReviews,
   getMySentReviews,
   getMyGameHistory,
+  importSavedDeckFromText,
+  importSavedDeckFromUrl,
   listSavedCommanderDecks,
+  previewSavedDeckFromUrl,
   requestAccountDeletion,
   removeFriend,
   reportPlayerReview,
@@ -23,6 +27,7 @@ import {
   updateMyPlayerReview,
 } from "./account.js";
 import { isCommanderCard, isValidCommanderPartner } from "./cardSearch.js";
+import { detectDeckImportInput, summarizeDeckCards } from "./deckImport.js";
 import DiscordMark from "./DiscordMark.jsx";
 import { accountDiscordName } from "./accountIdentity.js";
 import { roomCapability, submitGameCorrection } from "./gameRooms.js";
@@ -46,6 +51,17 @@ function compactTurnDuration(milliseconds) {
   const seconds = Math.max(1, Math.round(Number(milliseconds) / 1000));
   if (seconds < 60) return `${seconds}s`;
   return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+}
+
+function eliminationReasonLabel(reason) {
+  return {
+    life: "life total",
+    commander_damage: "commander damage",
+    poison: "poison counters",
+    concede: "concession",
+    other: "another cause",
+    unknown: "an unknown cause",
+  }[reason] || "";
 }
 
 function scryfallCardImage(scryfallId, cardName) {
@@ -124,30 +140,6 @@ function opponentCommanderNames(game, ownerName) {
     .flatMap((turn) => [turn.commander, turn.partner]));
 }
 
-function importedCommanderNames(deckText) {
-  const lines = String(deckText || "").split(/\r?\n/).map((line) => line.trim());
-  const tagPattern = /(?:\*CMDR\*|\[commander\]|#commander\b|\/\/\s*commander\b)/i;
-  const cleanCardName = (line) => line
-    .replace(tagPattern, "")
-    .replace(/^\s*(?:\d+\s*x?|x\d+)\s+/i, "")
-    .replace(/\s+\([A-Z0-9]{3,6}\)(?:\s+\S+)?$/i, "")
-    .trim();
-  const tagged = lines.filter((line) => tagPattern.test(line)).map(cleanCardName).filter(Boolean);
-  if (tagged.length) return tagged.slice(0, 2);
-
-  const commanderHeading = lines.findIndex((line) => /^commanders?:?$/i.test(line));
-  if (commanderHeading < 0) return [];
-  const sectionEndPattern = /^(?:deck|mainboard|sideboard|companion|maybeboard|creatures?|instants?|sorceries|artifacts?|enchantments?|lands?):?$/i;
-  const commanders = [];
-  for (const line of lines.slice(commanderHeading + 1)) {
-    if (!line || sectionEndPattern.test(line)) break;
-    const cardName = cleanCardName(line);
-    if (cardName) commanders.push(cardName);
-    if (commanders.length === 2) break;
-  }
-  return commanders;
-}
-
 export default function AccountProfile({
   account,
   onClose,
@@ -180,10 +172,17 @@ export default function AccountProfile({
   const [partnerName, setPartnerName] = useState("");
   const [deckSaving, setDeckSaving] = useState(false);
   const [deckImporting, setDeckImporting] = useState(false);
+  const [deckImportProgress, setDeckImportProgress] = useState("");
+  const [deckImportValue, setDeckImportValue] = useState("");
+  const [deckImportSourceUrl, setDeckImportSourceUrl] = useState("");
+  const [deckImportFileName, setDeckImportFileName] = useState("");
   const [showDeckForm, setShowDeckForm] = useState(false);
+  const [showDeckImport, setShowDeckImport] = useState(false);
   const addDeckButtonRef = useRef(null);
   const deckLabelInputRef = useRef(null);
   const importDeckInputRef = useRef(null);
+  const importDeckButtonRef = useRef(null);
+  const importDeckTextareaRef = useRef(null);
   const [social, setSocial] = useState({ friends: [], notifications: [] });
   const [friendQuery, setFriendQuery] = useState("");
   const [friendResults, setFriendResults] = useState([]);
@@ -297,9 +296,25 @@ export default function AccountProfile({
     });
   }, [deckSearch, deckSort, decks]);
 
+  const deckImportInput = useMemo(() => detectDeckImportInput(deckImportValue), [deckImportValue]);
+  const deckImportSummary = useMemo(() => (
+    deckImportInput.kind === "deck_text" ? summarizeDeckCards(deckImportInput.cards) : null
+  ), [deckImportInput]);
+
   const closeDeckForm = useCallback(() => {
     setShowDeckForm(false);
     window.requestAnimationFrame(() => addDeckButtonRef.current?.focus());
+  }, []);
+
+  const closeDeckImport = useCallback(() => {
+    setShowDeckImport(false);
+    setError("");
+    setDeckImportValue("");
+    setDeckImportSourceUrl("");
+    setDeckImportFileName("");
+    setDeckImportProgress("");
+    setDeckLabel("");
+    window.requestAnimationFrame(() => importDeckButtonRef.current?.focus());
   }, []);
 
   useEffect(() => {
@@ -395,6 +410,16 @@ export default function AccountProfile({
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [closeDeckForm, showDeckForm]);
 
+  useEffect(() => {
+    if (!showDeckImport) return undefined;
+    importDeckTextareaRef.current?.focus();
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape" && !deckImporting) closeDeckImport();
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [closeDeckImport, deckImporting, showDeckImport]);
+
   const submit = async (event) => {
     event.preventDefault();
     if (view !== "settings") return;
@@ -463,17 +488,74 @@ export default function AccountProfile({
     }
   };
 
-  const importDeck = async (event) => {
+  const chooseDeckImportFile = async (event) => {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file) return;
     setError("");
-    setDeckImporting(true);
     try {
-      const names = importedCommanderNames(await file.text());
-      if (!names.length) {
-        throw new Error("The deck file needs a Commander section or a card marked *CMDR*.");
+      setDeckImportValue(await file.text());
+      setDeckImportSourceUrl("");
+      setDeckImportFileName(file.name);
+      const fallbackLabel = file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim();
+      if (!deckLabel.trim()) setDeckLabel(fallbackLabel);
+    } catch (importError) {
+      setError(String(importError?.message || "Could not read this deck file."));
+    }
+  };
+
+  const pasteDeckImport = async () => {
+    setError("");
+    try {
+      if (!navigator.clipboard?.readText) throw new Error("Clipboard access is not available in this browser.");
+      const text = await navigator.clipboard.readText();
+      if (!text.trim()) throw new Error("Your clipboard is empty.");
+      setDeckImportValue(text);
+      setDeckImportFileName("");
+    } catch (clipboardError) {
+      setError(String(clipboardError?.message || "Could not read the clipboard. Paste into the box instead."));
+    }
+  };
+
+  const beginMoxfieldExport = () => {
+    if (deckImportInput.kind !== "moxfield_url") return;
+    setDeckImportSourceUrl(deckImportInput.source.url);
+    setDeckImportValue("");
+    setDeckImportFileName("");
+    setError("");
+    window.requestAnimationFrame(() => importDeckTextareaRef.current?.focus());
+  };
+
+  const importCompleteDeck = async () => {
+    setError("");
+    let saved = null;
+    try {
+      setDeckImporting(true);
+      let names = deckImportSummary?.commanders || [];
+      let label = deckLabel.trim();
+      let importMode = "text";
+      let importUrl = deckImportSourceUrl;
+      let archidektPreview = null;
+
+      if (deckImportInput.kind === "moxfield_url") {
+        beginMoxfieldExport();
+        return;
       }
+      if (deckImportInput.kind === "archidekt_url") {
+        setDeckImportProgress("Reading the public Archidekt deck…");
+        archidektPreview = await previewSavedDeckFromUrl(account, deckImportInput.source.url);
+        names = archidektPreview.commanders || [];
+        label ||= archidektPreview.name || names[0] || "Imported deck";
+        importMode = "url";
+        importUrl = archidektPreview.sourceUrl;
+      } else if (deckImportInput.kind !== "deck_text") {
+        throw new Error(deckImportInput.kind === "invalid_url"
+          ? "Paste a public Moxfield or Archidekt deck link."
+          : "Paste a deck link, exported deck list, or choose a text file.");
+      }
+      if (!names.length) throw new Error("The deck list needs a Commander section or a card marked *CMDR*.");
+
+      setDeckImportProgress("Checking the Commander…");
       const commander = await fetchCard(names[0]);
       if (!isCommanderCard(commander)) throw new Error(`${commander.name} cannot be a Commander.`);
       let partner = null;
@@ -483,9 +565,11 @@ export default function AccountProfile({
           throw new Error(`${partner.name} is not a legal partner for ${commander.name}.`);
         }
       }
-      const fallbackLabel = file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim();
-      const saved = await createSavedCommanderDeck(account, {
-        label: fallbackLabel || commander.name,
+      label ||= deckImportFileName.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim() || commander.name;
+
+      setDeckImportProgress("Creating your deck…");
+      saved = await createSavedCommanderDeck(account, {
+        label,
         commanderName: commander.name,
         commanderScryfallId: commander.id,
         partnerName: partner?.name,
@@ -493,13 +577,35 @@ export default function AccountProfile({
         colorIdentity: [...new Set([...(commander.color_identity || []), ...(partner?.color_identity || [])])],
         sortOrder: decks.length,
       });
-      const next = [...decks, saved];
+
+      setDeckImportProgress("Adding cards and artwork…");
+      const imported = importMode === "url"
+        ? await importSavedDeckFromUrl(account, saved.id, importUrl)
+        : await importSavedDeckFromText(account, saved.id, deckImportValue, deckImportSourceUrl);
+      const complete = {
+        ...saved,
+        source_provider: imported.sourceProvider,
+        source_url: imported.sourceUrl,
+        imported_at: new Date().toISOString(),
+      };
+      const next = [...decks, complete];
       setDecks(next);
       onDecksChange?.(next);
+      closeDeckImport();
+      window.location.assign(`/profile/decks/${encodeURIComponent(saved.id)}`);
     } catch (importError) {
+      if (saved?.id) {
+        try {
+          await deleteSavedCommanderDeck(account, saved.id);
+        } catch {
+          setError(`${String(importError?.message || "Could not import this deck.")} The empty deck could not be removed automatically.`);
+          return;
+        }
+      }
       setError(String(importError?.message || "Could not import this deck."));
     } finally {
       setDeckImporting(false);
+      setDeckImportProgress("");
     }
   };
 
@@ -708,20 +814,16 @@ export default function AccountProfile({
               <h3 className="profile-tab-heading">My decks</h3>
               {page && (
                 <div className="profile-tab-heading-actions">
-                  <input
-                    ref={importDeckInputRef}
-                    type="file"
-                    accept=".txt,.dec,.dek,text/plain"
-                    hidden
-                    onChange={importDeck}
-                  />
                   <button
+                    ref={importDeckButtonRef}
                     className="profile-import-deck"
                     type="button"
-                    disabled={deckImporting}
-                    onClick={() => importDeckInputRef.current?.click()}
+                    onClick={() => {
+                      setError("");
+                      setShowDeckImport(true);
+                    }}
                   >
-                    <Download size={16} /> {deckImporting ? "Importing…" : "Import deck"}
+                    <Download size={16} /> Import deck
                   </button>
                   <button
                     ref={addDeckButtonRef}
@@ -910,6 +1012,150 @@ export default function AccountProfile({
                 </section>
               </div>
             )}
+
+            {page && showDeckImport && (
+              <div
+                className="lobby-modal-backdrop deck-form-backdrop"
+                onMouseDown={(event) => {
+                  if (event.target === event.currentTarget && !deckImporting) closeDeckImport();
+                }}
+              >
+                <section
+                  className="lobby-modal deck-form-modal deck-import-modal"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="import-deck-title"
+                >
+                  <button
+                    className="modal-close"
+                    type="button"
+                    onClick={closeDeckImport}
+                    disabled={deckImporting}
+                    aria-label="Close deck import"
+                  >
+                    <X size={20} />
+                  </button>
+                  <header className="modal-head compact deck-import-modal-head">
+                    <span className="deck-import-kicker">Bring your collection with you</span>
+                    <h2 id="import-deck-title">Import a deck</h2>
+                    <p>Paste one link or list. Snapcast detects the source and sets up the whole deck.</p>
+                  </header>
+
+                  <div className="deck-import-provider-strip" aria-label="Supported deck sources">
+                    <span><strong>M</strong> Moxfield export</span>
+                    <span><strong>A</strong> Public Archidekt link</span>
+                    <span><FileUp size={15} /> Text file</span>
+                  </div>
+
+                  {deckImportSourceUrl && (
+                    <div className="deck-import-source-card">
+                      <div>
+                        <strong>Moxfield deck connected</strong>
+                        <span>Now paste the exported list below.</span>
+                      </div>
+                      <a href={deckImportSourceUrl} target="_blank" rel="noreferrer">
+                        Open deck <ExternalLink size={14} />
+                      </a>
+                    </div>
+                  )}
+
+                  <label className="modal-field deck-import-input-field">
+                    <span>{deckImportSourceUrl ? "Paste the Moxfield export" : "Deck link or exported list"}</span>
+                    <textarea
+                      ref={importDeckTextareaRef}
+                      value={deckImportValue}
+                      onChange={(event) => {
+                        setDeckImportValue(event.target.value);
+                        setDeckImportFileName("");
+                        setError("");
+                      }}
+                      rows={6}
+                      spellCheck="false"
+                      placeholder={deckImportSourceUrl
+                        ? "Commander\n1 Atraxa, Praetors' Voice *CMDR*\n\nMainboard\n1 Sol Ring #!Ramp"
+                        : "https://archidekt.com/decks/…\n\nor paste a Moxfield export"}
+                    />
+                  </label>
+
+                  <div className="deck-import-input-actions">
+                    <button type="button" onClick={pasteDeckImport} disabled={deckImporting}>
+                      <ClipboardPaste size={16} /> Paste from clipboard
+                    </button>
+                    <button type="button" onClick={() => importDeckInputRef.current?.click()} disabled={deckImporting}>
+                      <FileUp size={16} /> Choose file
+                    </button>
+                    <input
+                      ref={importDeckInputRef}
+                      type="file"
+                      accept=".txt,.dec,.dek,text/plain"
+                      hidden
+                      onChange={chooseDeckImportFile}
+                    />
+                  </div>
+
+                  {deckImportInput.kind === "moxfield_url" && (
+                    <div className="deck-import-detected is-moxfield">
+                      <div><strong>Moxfield link detected</strong><span>Moxfield requires its copied export rather than an automatic request.</span></div>
+                      <button type="button" onClick={beginMoxfieldExport} disabled={deckImporting}>
+                        Continue <ExternalLink size={14} />
+                      </button>
+                    </div>
+                  )}
+                  {deckImportSourceUrl && !deckImportValue.trim() && (
+                    <p className="deck-import-help">In Moxfield choose <strong>More → Export → Copy for Moxfield</strong>, then return here and use “Paste from clipboard.”</p>
+                  )}
+                  {deckImportInput.kind === "archidekt_url" && (
+                    <div className="deck-import-detected is-archidekt">
+                      <Link2 size={18} />
+                      <div><strong>Public Archidekt deck detected</strong><span>Its title, Commander, cards, sections, and printings will be imported.</span></div>
+                    </div>
+                  )}
+                  {deckImportSummary && (
+                    <div className="deck-import-preview">
+                      <div><span>Commander</span><strong>{deckImportSummary.commanders.join(" + ") || "Not identified"}</strong></div>
+                      <div><span>Cards</span><strong>{deckImportSummary.totalCards}</strong></div>
+                      <div><span>Sections</span><strong>{[deckImportSummary.totals.mainboard && "Main", deckImportSummary.totals.sideboard && "Side", deckImportSummary.totals.maybeboard && "Considering"].filter(Boolean).join(" · ") || "Commander only"}</strong></div>
+                    </div>
+                  )}
+
+                  {(deckImportInput.kind === "deck_text" || deckImportInput.kind === "archidekt_url") && (
+                    <label className="modal-field deck-import-label-field">
+                      <span>Deck name <em>Optional</em></span>
+                      <input
+                        value={deckLabel}
+                        onChange={(event) => setDeckLabel(event.target.value)}
+                        maxLength={48}
+                        placeholder={deckImportFileName.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim()
+                          || deckImportSummary?.commanders[0]
+                          || "Use the Archidekt deck name"}
+                      />
+                    </label>
+                  )}
+
+                  {deckImportProgress && <div className="deck-import-progress" role="status"><span aria-hidden="true" /> {deckImportProgress}</div>}
+                  {error && <p className="modal-error" role="alert">{error}</p>}
+                  <footer className="modal-actions">
+                    <button type="button" onClick={closeDeckImport} disabled={deckImporting}>Cancel</button>
+                    <button
+                      className="primary"
+                      type="button"
+                      disabled={deckImporting || deckImportInput.kind === "empty"}
+                      onClick={importCompleteDeck}
+                    >
+                      {deckImporting
+                        ? "Importing…"
+                        : deckImportInput.kind === "moxfield_url"
+                          ? "Continue to export"
+                          : deckImportInput.kind === "archidekt_url"
+                            ? "Import from Archidekt"
+                            : deckImportSummary
+                              ? `Import ${deckImportSummary.totalCards} cards`
+                              : "Import deck"}
+                    </button>
+                  </footer>
+                </section>
+              </div>
+            )}
           </div>}
 
           {view === "friends" && <div className="account-profile-section">
@@ -1068,8 +1314,10 @@ export default function AccountProfile({
                     <div>
                       <strong>{game.commander || "Commander not recorded"}{game.partner ? ` + ${game.partner}` : ""}</strong>
                       <small className="account-history-meta">
-                        {new Date(game.started_at).toLocaleDateString()} · {game.turn_count || 0} turns recorded
+                        {new Date(game.started_at).toLocaleDateString()} · {compactDuration(game.duration_seconds)} · {game.turn_count || 0} game turns
+                        {game.my_turn_count != null ? ` · ${game.my_turn_count} yours` : ""}
                         {game.bracket ? ` · Bracket ${game.bracket}` : ""}
+                        {eliminationReasonLabel(game.loss_reason) ? ` · Out by ${eliminationReasonLabel(game.loss_reason)}` : ""}
                       </small>
                       {game.players?.length > 0 && (
                         <span className="account-history-players">
@@ -1316,7 +1564,7 @@ export default function AccountProfile({
             </div>
           )}
 
-          {error && !showDeckForm && <p className="modal-error" role="alert">{error}</p>}
+          {error && !showDeckForm && !showDeckImport && <p className="modal-error" role="alert">{error}</p>}
           {view === "settings" && !page && <footer className="modal-actions">
             {!page && <button type="button" onClick={onClose}>Cancel</button>}
             <button className="primary" type="submit" disabled={saving}>

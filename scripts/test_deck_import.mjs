@@ -1,11 +1,13 @@
 import assert from "node:assert/strict";
 import {
   aggregateDeckCards,
+  detectDeckImportInput,
   parseArchidektDeck,
   parseDeckAttributionUrl,
   parseDeckSourceUrl,
   parseDeckText,
   primaryCardType,
+  summarizeDeckCards,
 } from "../src/deckImport.js";
 import { ANT_MAN_DECK_TEXT } from "../src/mockDeckFixtures.js";
 
@@ -23,6 +25,9 @@ assert.deepEqual(parseDeckSourceUrl("https://archidekt.com/decks/12345/example")
   id: "12345",
   url: "https://archidekt.com/decks/12345",
 });
+assert.equal(detectDeckImportInput("https://moxfield.com/decks/abc_DEF-123").kind, "moxfield_url");
+assert.equal(detectDeckImportInput("https://archidekt.com/decks/12345/example").kind, "archidekt_url");
+assert.equal(detectDeckImportInput("https://example.com/decks/123").kind, "invalid_url");
 for (const unsafe of [
   "http://moxfield.com/decks/abc_DEF-123",
   "https://moxfield.com.evil.test/decks/abc_DEF-123",
@@ -48,6 +53,13 @@ assert.deepEqual(textCards.map(({ name, quantity, board }) => ({ name, quantity,
   { name: "Forest", quantity: 2, board: "mainboard" },
   { name: "Swords to Plowshares", quantity: 1, board: "sideboard" },
 ]);
+assert.equal(detectDeckImportInput("Commander\n1 Sol Ring").kind, "deck_text");
+assert.deepEqual(summarizeDeckCards(textCards), {
+  commanders: ["Atraxa, Praetors' Voice"],
+  totalCards: 6,
+  uniqueCards: 4,
+  totals: { commander: 1, mainboard: 4, sideboard: 1, maybeboard: 0 },
+});
 assert.deepEqual(parseDeckText("1 Atraxa, Praetors' Voice (2X2) 188 *CMDR*")[0], {
   name: "Atraxa, Praetors' Voice",
   quantity: 1,
@@ -59,7 +71,16 @@ assert.deepEqual(parseDeckText("1 Atraxa, Praetors' Voice (2X2) 188 *CMDR*")[0],
   mana_value: null,
   type_line: null,
   colors: [],
+  tags: [],
 });
+
+const taggedMoxfieldCard = parseDeckText("1 Aetherize (PLST) DDO-36 #!Mass disruption #!Interaction")[0];
+assert.equal(taggedMoxfieldCard.name, "Aetherize");
+assert.deepEqual(taggedMoxfieldCard.tags, [
+  "Mass disruption",
+  "Interaction",
+]);
+assert.equal(parseDeckText("1 Fire / Ice (MH2) 290 #!Interaction")[0].name, "Fire // Ice");
 
 const archidekt = parseArchidektDeck({
   name: "Sample",
@@ -80,11 +101,17 @@ assert.equal(archidekt.cards[0].set_code, "2x2");
 assert.equal(archidekt.cards[0].mana_value, 4);
 assert.equal(primaryCardType(archidekt.cards[0].type_line), "Creature");
 assert.equal(primaryCardType("Legendary Land"), "Land");
+assert.equal(primaryCardType("Enchantment Land — Saga"), "Land");
+assert.equal(primaryCardType("Instant // Land"), "Instant");
 
 assert.equal(aggregateDeckCards([
-  { name: "Sol Ring", quantity: 1, board: "mainboard" },
-  { name: "sol ring", quantity: 2, board: "mainboard" },
+  { name: "Sol Ring", quantity: 1, board: "mainboard", tags: ["Ramp"] },
+  { name: "sol ring", quantity: 2, board: "mainboard", tags: ["Mana", "Ramp"] },
 ])[0].quantity, 3);
+assert.deepEqual(aggregateDeckCards([
+  { name: "Sol Ring", quantity: 1, board: "mainboard", tags: ["Ramp"] },
+  { name: "sol ring", quantity: 2, board: "mainboard", tags: ["Mana", "Ramp"] },
+])[0].tags, ["Ramp", "Mana"]);
 
 const antManCards = parseDeckText(ANT_MAN_DECK_TEXT);
 assert.equal(antManCards.reduce((sum, card) => sum + card.quantity, 0), 107);

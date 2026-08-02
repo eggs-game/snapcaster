@@ -10,7 +10,7 @@ import {
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MAX_RESPONSE_BYTES = 3_000_000;
-const CARD_COLUMNS = "id, name, quantity, board, scryfall_id, oracle_id, set_code, collector_number, mana_value, type_line, colors";
+const CARD_COLUMNS = "id, name, quantity, board, scryfall_id, oracle_id, set_code, collector_number, mana_value, type_line, colors, tags";
 
 function sameOrigin(req) {
   const origin = String(req.headers.origin || "");
@@ -88,6 +88,19 @@ async function fetchScryfallCard(name) {
   return payload;
 }
 
+async function fetchScryfallPrinting(id) {
+  if (!UUID.test(String(id || ""))) throw new Error("Choose a valid card printing");
+  const payload = await fetchJson(`https://api.scryfall.com/cards/${encodeURIComponent(id)}`);
+  if (!payload?.name || !UUID.test(String(payload.id || ""))) throw new Error("That printing was not found");
+  return payload;
+}
+
+function cleanTags(value) {
+  return [...new Set((Array.isArray(value) ? value : [])
+    .map((tag) => String(tag).trim().replace(/\s+/g, " ").slice(0, 32))
+    .filter(Boolean))].slice(0, 8);
+}
+
 function scryfallMetadata(card) {
   return {
     name: String(card?.name || "").slice(0, 200),
@@ -158,13 +171,17 @@ async function loadOwnedCard(admin, deck, cardId) {
 
 async function mergeCardAtDestination(admin, deck, source, { board, quantity, metadata }) {
   const nextName = metadata?.name || source.name;
+  const nextTags = cleanTags(metadata?.tags ?? source.tags);
   const { data: destination } = await admin.from("saved_deck_cards")
     .select(CARD_COLUMNS)
     .eq("deck_id", deck.id).eq("owner_id", deck.owner_id).eq("board", board).eq("name", nextName)
     .neq("id", source.id).maybeSingle();
   if (destination) {
     const { data: saved, error: saveError } = await admin.from("saved_deck_cards")
-      .update({ quantity: Math.min(999, Number(destination.quantity) + quantity) })
+      .update({
+        quantity: Math.min(999, Number(destination.quantity) + quantity),
+        tags: cleanTags([...(destination.tags || []), ...nextTags]),
+      })
       .eq("id", destination.id).eq("deck_id", deck.id).eq("owner_id", deck.owner_id)
       .select(CARD_COLUMNS).single();
     if (saveError) throw new Error("Card could not be merged");
@@ -174,7 +191,7 @@ async function mergeCardAtDestination(admin, deck, source, { board, quantity, me
     return { card: saved, removedId: source.id };
   }
   const { data: saved, error } = await admin.from("saved_deck_cards")
-    .update({ ...(metadata || {}), board, quantity })
+    .update({ ...(metadata || {}), tags: nextTags, board, quantity })
     .eq("id", source.id).eq("deck_id", deck.id).eq("owner_id", deck.owner_id)
     .select(CARD_COLUMNS).single();
   if (error) throw new Error("Card could not be updated");
@@ -199,14 +216,33 @@ export default async function handler(req, res) {
 
   try {
     const body = cleanBody(req);
-    const deckId = String(body.deckId || "");
-    if (!UUID.test(deckId)) return res.status(400).json({ error: "Invalid deck" });
-
     const authClient = createClient(supabaseUrl, anonKey, { auth: { persistSession: false } });
     const { data: userData, error: userError } = await authClient.auth.getUser(token);
     if (userError || !userData.user || userData.user.is_anonymous) return res.status(401).json({ error: "Invalid session" });
 
     const admin = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
+    const ip = requestIp(req);
+    if (body.action === "preview_url") {
+      await checkRateLimit(admin, userData.user.id, ip, "saved_deck_preview", 60, 86400);
+      const source = parseDeckSourceUrl(body.url);
+      const imported = await fetchProviderDeck(source);
+      const commanders = imported.cards
+        .filter((card) => card.board === "commander")
+        .map((card) => card.name)
+        .slice(0, 2);
+      if (!commanders.length) throw new Error("That deck does not identify a Commander");
+      return res.status(200).json({
+        name: imported.name || null,
+        commanders,
+        totalCards: imported.cards.reduce((total, card) => total + card.quantity, 0),
+        uniqueCards: imported.cards.length,
+        sourceProvider: source.provider,
+        sourceUrl: source.url,
+      });
+    }
+
+    const deckId = String(body.deckId || "");
+    if (!UUID.test(deckId)) return res.status(400).json({ error: "Invalid deck" });
     const { data: deck, error: deckError } = await admin
       .from("saved_commander_decks")
       .select("id, owner_id")
@@ -215,7 +251,6 @@ export default async function handler(req, res) {
       .single();
     if (deckError || !deck) return res.status(404).json({ error: "Deck not found" });
 
-    const ip = requestIp(req);
     if (body.action === "import_url" || body.action === "import_text") {
       await checkRateLimit(admin, userData.user.id, ip, "saved_deck_import", 30, 86400);
       let imported;
@@ -250,7 +285,7 @@ export default async function handler(req, res) {
       const board = normalizeDeckBoard(body.board);
       const quantity = Math.max(1, Math.min(99, Math.trunc(Number(body.quantity) || 1)));
       const { data: current } = await admin.from("saved_deck_cards")
-        .select("quantity")
+        .select("quantity, tags")
         .eq("deck_id", deck.id).eq("owner_id", deck.owner_id).eq("board", board).eq("name", card.name)
         .maybeSingle();
       const row = {
@@ -263,6 +298,7 @@ export default async function handler(req, res) {
         oracle_id: UUID.test(String(card.oracle_id || "")) ? card.oracle_id : null,
         set_code: String(card.set || "").slice(0, 12) || null,
         ...scryfallMetadata(card),
+        tags: cleanTags(current?.tags),
       };
       const { data: saved, error } = await admin.from("saved_deck_cards")
         .upsert(row, { onConflict: "deck_id,board,name" })
@@ -277,7 +313,11 @@ export default async function handler(req, res) {
       const source = await loadOwnedCard(admin, deck, body.cardId);
       const quantity = Math.max(1, Math.min(999, Math.trunc(Number(body.quantity) || 1)));
       const board = normalizeDeckBoard(body.board || source.board);
-      return res.status(200).json(await mergeCardAtDestination(admin, deck, source, { board, quantity }));
+      return res.status(200).json(await mergeCardAtDestination(admin, deck, source, {
+        board,
+        quantity,
+        metadata: { tags: cleanTags(body.tags ?? source.tags) },
+      }));
     }
 
     if (body.action === "replace_card") {
@@ -289,6 +329,21 @@ export default async function handler(req, res) {
         quantity: source.quantity,
         metadata: scryfallMetadata(replacement),
       }));
+    }
+
+    if (body.action === "set_card_printing") {
+      await checkRateLimit(admin, userData.user.id, ip, "saved_deck_card", 300, 86400);
+      const source = await loadOwnedCard(admin, deck, body.cardId);
+      const printing = await fetchScryfallPrinting(body.scryfallId);
+      const sameOracle = source.oracle_id && printing.oracle_id === source.oracle_id;
+      const sameName = printing.name.toLocaleLowerCase("en-US") === source.name.toLocaleLowerCase("en-US");
+      if (!sameOracle && !sameName) throw new Error("Choose artwork for the same card");
+      const { data: saved, error } = await admin.from("saved_deck_cards")
+        .update(scryfallMetadata(printing))
+        .eq("id", source.id).eq("deck_id", deck.id).eq("owner_id", deck.owner_id)
+        .select(CARD_COLUMNS).single();
+      if (error) throw new Error("Card art could not be updated");
+      return res.status(200).json({ card: saved });
     }
 
     if (body.action === "delete_card") {

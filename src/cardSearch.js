@@ -72,6 +72,19 @@ export async function fetchCardByName(name, { exact = false, signal } = {}) {
   return result.ok ? result.data : null;
 }
 
+export async function fetchCardPrintings(card, { signal } = {}) {
+  const oracleId = String(card?.oracle_id || "").trim();
+  const name = String(card?.name || "").trim().replace(/"/g, "");
+  if (!oracleId && !name) return [];
+  const query = oracleId ? `oracleid:${oracleId}` : `!"${name}"`;
+  const result = await withAbort(
+    cachedScryfall(`https://api.scryfall.com/cards/search?q=${encodeURIComponent(query)}&unique=art&order=released&dir=desc&include_extras=true`),
+    signal,
+  );
+  if (!result.ok) return [];
+  return (result.data?.data || []).filter((printing) => printing?.image_uris?.normal || printing?.card_faces?.[0]?.image_uris?.normal);
+}
+
 export async function suggestCardNames(query, signal) {
   const q = query.trim();
   if (q.length < 2) return [];
