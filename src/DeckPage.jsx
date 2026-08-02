@@ -8,13 +8,11 @@ import {
   LayoutGrid,
   Link2,
   List,
-  Minus,
+  MoreHorizontal,
   Palette,
   Plus,
-  RefreshCw,
   Search,
   Shuffle,
-  Tag,
   Trash2,
   X,
 } from "lucide-react";
@@ -29,10 +27,8 @@ import {
   getSavedCommanderDeck,
   importSavedDeckFromText,
   importSavedDeckFromUrl,
-  replaceCardInSavedDeck,
   signInWithDiscord,
   signOutAccount,
-  updateCardInSavedDeck,
   updateCardPrintingInSavedDeck,
 } from "./account.js";
 import { parseDeckAttributionUrl, primaryCardType } from "./deckImport.js";
@@ -128,8 +124,6 @@ export default function DeckPage({ deckId }) {
   const [groupBy, setGroupBy] = useState("type");
   const [sortBy, setSortBy] = useState("name");
   const [selectedCardId, setSelectedCardId] = useState(null);
-  const [replacementName, setReplacementName] = useState("");
-  const [tagInput, setTagInput] = useState("");
   const [printings, setPrintings] = useState([]);
   const [artPickerOpen, setArtPickerOpen] = useState(false);
   const [artLoading, setArtLoading] = useState(false);
@@ -182,7 +176,6 @@ export default function DeckPage({ deckId }) {
   const manaCurve = useMemo(() => buildManaCurve(cards), [cards]);
   const typeBreakdown = useMemo(() => buildTypeBreakdown(cards), [cards]);
   const colorBreakdown = useMemo(() => buildColorBreakdown(cards), [cards]);
-  const knownTags = useMemo(() => [...new Set(cards.flatMap((card) => card.tags || []))].sort((left, right) => left.localeCompare(right)), [cards]);
   const moxfieldDeckUrl = useMemo(() => {
     if (!sourceAttribution.trim()) return "";
     try {
@@ -221,6 +214,18 @@ export default function DeckPage({ deckId }) {
     return [...grouped.values()].sort((left, right) => groupSort(left, right, groupBy));
   }, [cards, groupBy, query, sortBy]);
 
+  const textGroupColumns = useMemo(() => {
+    const columns = Array.from({ length: 3 }, () => ({ groups: [], weight: 0 }));
+    for (const group of groups) {
+      const column = columns.reduce((lightest, candidate) => (
+        candidate.weight < lightest.weight ? candidate : lightest
+      ));
+      column.groups.push(group);
+      column.weight += group.cards.length + 1;
+    }
+    return columns.map((column) => column.groups);
+  }, [groups]);
+
   const dealHand = useCallback(() => {
     const library = shuffleMainDeck(cards);
     setSampleHand(library.slice(0, 7));
@@ -238,7 +243,6 @@ export default function DeckPage({ deckId }) {
   useEffect(() => {
     setArtPickerOpen(false);
     setPrintings([]);
-    setTagInput("");
   }, [selectedCardId]);
 
   const applyCardResult = (result) => {
@@ -277,7 +281,7 @@ export default function DeckPage({ deckId }) {
     try {
       const result = kind === "url"
         ? await importSavedDeckFromUrl(account, deck.id, sourceUrl)
-        : await importSavedDeckFromText(account, deck.id, deckText, sourceAttribution);
+        : await importSavedDeckFromText(account, deck.id, deckText, sourceAttribution, "moxfield");
       setDeck((current) => ({
         ...current,
         cards: result.cards,
@@ -322,21 +326,6 @@ export default function DeckPage({ deckId }) {
     } catch {
       setError("The deck list could not be copied.");
     }
-  };
-
-  const saveTags = (card, tags, message = "Tags updated.") => runCardAction(
-    card,
-    () => updateCardInSavedDeck(account, deck.id, card.id, { quantity: card.quantity, board: card.board, tags }),
-    () => message,
-  );
-
-  const addSelectedTag = (event) => {
-    event.preventDefault();
-    const tag = tagInput.trim().replace(/\s+/g, " ").slice(0, 32);
-    if (!selectedCard || !tag) return;
-    const tags = [...new Set([...(selectedCard.tags || []), tag])].slice(0, 8);
-    setTagInput("");
-    saveTags(selectedCard, tags, `${tag} added.`);
   };
 
   const toggleArtPicker = async () => {
@@ -413,15 +402,15 @@ export default function DeckPage({ deckId }) {
               <>
             <section className="deck-builder-toolbar" aria-label="Deck controls">
               <label className="deck-builder-search"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find cards in this deck" /></label>
-              <div className="deck-view-control" role="group" aria-label="Card view">
-                <button type="button" className={view === "text" ? "selected" : ""} onClick={() => setView("text")} aria-label="Text view" title="Text view"><List size={17} /></button>
-                <button type="button" className={view === "cards" ? "selected" : ""} onClick={() => setView("cards")} aria-label="Card view" title="Card view"><LayoutGrid size={17} /></button>
-              </div>
               <label className="deck-builder-select"><span>Group</span><select value={groupBy} onChange={(event) => setGroupBy(event.target.value)}><option value="tag">Tag</option><option value="type">Type</option><option value="cmc">Mana value</option><option value="board">Section</option></select></label>
               <label className="deck-builder-select"><span>Sort</span><select value={sortBy} onChange={(event) => setSortBy(event.target.value)}><option value="name">Name</option><option value="cmc">Mana value</option></select></label>
               <button type="button" className="deck-builder-action" onClick={copyDeckList}><Copy size={16} /> Copy list</button>
               {canEdit && <button type="button" className="deck-builder-action" onClick={() => setPanel(panel === "import" ? null : "import")}><Download size={16} /> Import</button>}
               {canEdit && <button type="button" className="deck-builder-action primary" onClick={() => setPanel(panel === "add" ? null : "add")}><Plus size={16} /> Add card</button>}
+              <div className="deck-view-control" role="group" aria-label="Card view">
+                <button type="button" className={view === "text" ? "selected" : ""} onClick={() => setView("text")} aria-label="Text view" title="Text view"><List size={17} /></button>
+                <button type="button" className={view === "cards" ? "selected" : ""} onClick={() => setView("cards")} aria-label="Card view" title="Card view"><LayoutGrid size={17} /></button>
+              </div>
             </section>
 
             {panel === "import" && (
@@ -456,13 +445,6 @@ export default function DeckPage({ deckId }) {
               </section>
             )}
 
-            <div className="deck-builder-metrics" aria-label="Deck summary">
-              <div><strong>{mainDeckCards}</strong><span>Main deck</span></div>
-              <div><strong>{sideboardCards}</strong><span>Sideboard</span></div>
-              <div><strong>{averageManaValue}</strong><span>Average mana value</span></div>
-              <div><strong>{cards.length}</strong><span>Unique cards</span></div>
-            </div>
-
             {totalCards === 0 ? (
               <div className="deck-cards-empty"><h3>This deck list is empty</h3><p>{canEdit ? "Import a public deck link or add cards one at a time." : "This player has not added cards to this deck yet."}</p></div>
             ) : (
@@ -473,8 +455,18 @@ export default function DeckPage({ deckId }) {
                       <img src={cardImageUrl(selectedCard)} alt={selectedCard.name} />
                       <div className="deck-card-inspector-copy">
                         <h2>{selectedCard.name}</h2>
-                        <p>{selectedCard.type_line || "Card details"}{selectedCard.mana_value != null ? ` · MV ${Number(selectedCard.mana_value)}` : ""}</p>
-                        {canEdit && <button type="button" className="deck-change-art" disabled={artLoading || busyCardId === selectedCard.id} onClick={toggleArtPicker}><Palette size={15} /> {artLoading ? "Loading art…" : "Change art"}</button>}
+                        {canEdit && (
+                          <details className="deck-card-actions">
+                            <summary aria-label="Card options" title="Card options"><MoreHorizontal size={16} aria-hidden="true" /></summary>
+                            <div>
+                              <button type="button" disabled={artLoading || busyCardId === selectedCard.id} onClick={toggleArtPicker}><Palette size={15} /> {artLoading ? "Loading art…" : "Change artwork"}</button>
+                              <button className="danger" type="button" disabled={busyCardId === selectedCard.id} onClick={() => {
+                                if (!window.confirm(`Remove ${selectedCard.name} from this deck?`)) return;
+                                runCardAction(selectedCard, () => deleteCardFromSavedDeck(account, deck.id, selectedCard.id), () => `${selectedCard.name} removed.`);
+                              }}><Trash2 size={15} /> Remove card</button>
+                            </div>
+                          </details>
+                        )}
                       </div>
                       {canEdit && artPickerOpen && (
                         <div className="deck-art-picker" aria-label={`Artwork for ${selectedCard.name}`}>
@@ -491,62 +483,45 @@ export default function DeckPage({ deckId }) {
                           ) : <p>No alternate artwork found.</p>}
                         </div>
                       )}
-                      {canEdit ? (
-                        <div className="deck-card-inspector-fields">
-                          <label><span>Quantity</span><div className="deck-quantity-control"><button type="button" aria-label={`Decrease ${selectedCard.name} quantity`} disabled={busyCardId === selectedCard.id || selectedCard.quantity <= 1} onClick={() => runCardAction(selectedCard, () => updateCardInSavedDeck(account, deck.id, selectedCard.id, { quantity: selectedCard.quantity - 1, board: selectedCard.board }), () => "Quantity updated.")}><Minus size={15} /></button><strong>{selectedCard.quantity}</strong><button type="button" aria-label={`Increase ${selectedCard.name} quantity`} disabled={busyCardId === selectedCard.id} onClick={() => runCardAction(selectedCard, () => updateCardInSavedDeck(account, deck.id, selectedCard.id, { quantity: selectedCard.quantity + 1, board: selectedCard.board }), () => "Quantity updated.")}><Plus size={15} /></button></div></label>
-                          <label><span>Section</span><select value={selectedCard.board} disabled={busyCardId === selectedCard.id} onChange={(event) => runCardAction(selectedCard, () => updateCardInSavedDeck(account, deck.id, selectedCard.id, { quantity: selectedCard.quantity, board: event.target.value }), () => "Card moved.")}>{BOARD_ORDER.map((key) => <option value={key} key={key}>{BOARD_LABELS[key]}</option>)}</select></label>
-                        </div>
-                      ) : (
+                      {!canEdit && (
                         <dl className="deck-card-readonly-facts">
                           <div><dt>Quantity</dt><dd>{selectedCard.quantity}</dd></div>
                           <div><dt>Section</dt><dd>{BOARD_LABELS[selectedCard.board] || BOARD_LABELS.mainboard}</dd></div>
                         </dl>
                       )}
-                      <div className="deck-card-tags">
-                        <div className="deck-card-tags-heading"><span>Tags</span><Tag size={14} /></div>
-                        <div className="deck-tag-list">
-                          {(selectedCard.tags || []).map((tag) => <span className="deck-tag" key={tag}>{tag}{canEdit && <button type="button" aria-label={`Remove ${tag} tag`} onClick={() => saveTags(selectedCard, selectedCard.tags.filter((item) => item !== tag), `${tag} removed.`)} disabled={busyCardId === selectedCard.id}><X size={12} /></button>}</span>)}
-                          {!(selectedCard.tags || []).length && <small>No tags yet</small>}
-                        </div>
-                        {canEdit && <form className="deck-tag-form" onSubmit={addSelectedTag}>
-                          <input value={tagInput} onChange={(event) => setTagInput(event.target.value)} list="deck-known-tags" maxLength={32} placeholder="Ramp, removal…" aria-label="Add a tag" />
-                          <datalist id="deck-known-tags">{knownTags.map((tag) => <option value={tag} key={tag} />)}</datalist>
-                          <button type="submit" disabled={!tagInput.trim() || busyCardId === selectedCard.id}>Add</button>
-                        </form>}
-                      </div>
-                      {canEdit && <form className="deck-replace-card" onSubmit={(event) => {
-                        event.preventDefault();
-                        if (!replacementName.trim()) return;
-                        runCardAction(selectedCard, () => replaceCardInSavedDeck(account, deck.id, selectedCard.id, replacementName), (result) => `${result.card.name} swapped in.`);
-                        setReplacementName("");
-                      }}>
-                        <label><span>Swap this card</span><input value={replacementName} onChange={(event) => setReplacementName(event.target.value)} placeholder="Replacement card name" /></label>
-                        <button type="submit" disabled={busyCardId === selectedCard.id || !replacementName.trim()}><RefreshCw size={15} /> Swap card</button>
-                      </form>}
-                      {canEdit && <button className="deck-remove-card" type="button" disabled={busyCardId === selectedCard.id} onClick={() => {
-                        if (!window.confirm(`Remove ${selectedCard.name} from this deck?`)) return;
-                        runCardAction(selectedCard, () => deleteCardFromSavedDeck(account, deck.id, selectedCard.id), () => `${selectedCard.name} removed.`);
-                      }}><Trash2 size={15} /> Remove card</button>}
                     </>
                   )}
                 </aside>
 
                 <div className={`deck-card-library is-${view}`} aria-label="Deck cards">
-                  {groups.length === 0 ? <div className="deck-cards-empty"><h3>No matching cards</h3><p>Try a different search.</p></div> : groups.map((group) => (
+                  {groups.length === 0 ? (
+                    <div className="deck-cards-empty"><h3>No matching cards</h3><p>Try a different search.</p></div>
+                  ) : view === "text" ? textGroupColumns.map((column, columnIndex) => (
+                    <div className="deck-card-column" key={columnIndex}>
+                      {column.map((group) => (
+                        <section className="deck-card-section" key={group.key}>
+                          <header><h3>{group.label}</h3><span>{group.cards.reduce((sum, card) => sum + Number(card.quantity || 0), 0)}</span></header>
+                          <div className="deck-card-list">
+                            {group.cards.map((card) => (
+                              <button type="button" className={`deck-card-row${card.id === selectedCard?.id ? " selected" : ""}`} key={card.id} onClick={() => setSelectedCardId(card.id)}>
+                                <span className="deck-card-quantity">{card.quantity}</span>
+                                <span className="deck-card-row-copy"><strong>{card.name}</strong>{!!(card.tags || []).length && <small>{card.tags.join(" · ")}</small>}</span>
+                                <span className="deck-card-mana">{card.mana_value == null ? "—" : Number(card.mana_value)}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </section>
+                      ))}
+                    </div>
+                  )) : groups.map((group) => (
                     <section className="deck-card-section" key={group.key}>
                       <header><h3>{group.label}</h3><span>{group.cards.reduce((sum, card) => sum + Number(card.quantity || 0), 0)}</span></header>
-                      <div className={view === "cards" ? "deck-visual-grid" : "deck-card-list"}>
-                        {group.cards.map((card) => view === "cards" ? (
+                      <div className="deck-visual-grid">
+                        {group.cards.map((card) => (
                           <button type="button" className={`deck-visual-card${card.id === selectedCard?.id ? " selected" : ""}`} key={card.id} onClick={() => setSelectedCardId(card.id)}>
                             <img src={cardImageUrl(card)} alt="" loading="lazy" />
                             <span>{card.quantity > 1 ? `${card.quantity}× ` : ""}{card.name}</span>
                             {!!(card.tags || []).length && <small>{card.tags.join(" · ")}</small>}
-                          </button>
-                        ) : (
-                          <button type="button" className={`deck-card-row${card.id === selectedCard?.id ? " selected" : ""}`} key={card.id} onClick={() => setSelectedCardId(card.id)}>
-                            <span className="deck-card-quantity">{card.quantity}</span>
-                            <span className="deck-card-row-copy"><strong>{card.name}</strong>{!!(card.tags || []).length && <small>{card.tags.join(" · ")}</small>}</span>
-                            <span className="deck-card-mana">{card.mana_value == null ? "—" : Number(card.mana_value)}</span>
                           </button>
                         ))}
                       </div>

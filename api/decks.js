@@ -6,6 +6,7 @@ import {
   parseDeckAttributionUrl,
   parseDeckSourceUrl,
   parseDeckText,
+  parseMoxfieldExport,
 } from "../src/deckImport.js";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -262,12 +263,22 @@ export default async function handler(req, res) {
         sourceProvider = source.provider;
         sourceUrl = source.url;
       } else {
-        imported = { name: "", cards: parseDeckText(String(body.text || "").slice(0, 250_000)) };
+        let attribution = null;
         if (body.sourceUrl) {
-          const attribution = parseDeckAttributionUrl(body.sourceUrl);
+          attribution = parseDeckAttributionUrl(body.sourceUrl);
           sourceProvider = attribution.provider;
           sourceUrl = attribution.url;
         }
+        const isMoxfieldExport = body.importFormat === "moxfield" || attribution?.provider === "moxfield";
+        if (body.importFormat && !["text", "moxfield"].includes(body.importFormat)) {
+          return res.status(400).json({ error: "Invalid deck import format" });
+        }
+        const deckText = String(body.text || "").slice(0, 250_000);
+        imported = {
+          name: "",
+          cards: isMoxfieldExport ? parseMoxfieldExport(deckText) : parseDeckText(deckText),
+        };
+        if (isMoxfieldExport && !attribution) sourceProvider = "moxfield";
       }
       const cards = await replaceDeckCards(admin, deck, imported.cards);
       const { error: updateError } = await admin.from("saved_commander_decks").update({

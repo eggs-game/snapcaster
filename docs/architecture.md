@@ -55,6 +55,9 @@ ignored `public/mock-data.local.json` working-copy file. `localMock.js` refuses
 to load them away from loopback hosts, and the Vite production build removes
 that filename from `dist` as a second boundary. This keeps local feature tours
 realistic without putting fake people or game records in Git or a deployment.
+Mutations are copied into session storage for the current local browser tab so
+newly imported decks and other fixture edits survive full-page route changes;
+closing the tab ends that mutable test session.
 
 `supabase/migrations/20260726090000_accounts_phase_one.sql` creates three
 separate account surfaces:

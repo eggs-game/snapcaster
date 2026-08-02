@@ -6,6 +6,7 @@ import {
   parseDeckAttributionUrl,
   parseDeckSourceUrl,
   parseDeckText,
+  parseMoxfieldExport,
   primaryCardType,
   summarizeDeckCards,
 } from "../src/deckImport.js";
@@ -81,6 +82,21 @@ assert.deepEqual(taggedMoxfieldCard.tags, [
   "Interaction",
 ]);
 assert.equal(parseDeckText("1 Fire / Ice (MH2) 290 #!Interaction")[0].name, "Fire // Ice");
+
+const moxfieldWithoutCommanderMarker = parseMoxfieldExport(`
+1 Niko, Light of Hope (DSK) 224
+1 Sol Ring (CMM) 396
+`);
+assert.equal(moxfieldWithoutCommanderMarker[0].name, "Niko, Light of Hope");
+assert.equal(moxfieldWithoutCommanderMarker[0].board, "commander");
+assert.equal(moxfieldWithoutCommanderMarker[1].board, "mainboard");
+
+const moxfieldWithCommanderMarker = parseMoxfieldExport(`
+1 Sol Ring (CMM) 396
+1 Niko, Light of Hope (DSK) 224 *CMDR*
+`);
+assert.equal(moxfieldWithCommanderMarker[0].board, "mainboard");
+assert.equal(moxfieldWithCommanderMarker[1].board, "commander");
 
 const archidekt = parseArchidektDeck({
   name: "Sample",

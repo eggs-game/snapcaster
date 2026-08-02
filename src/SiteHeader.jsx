@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Bell, LogIn, LogOut, Settings, Users, UserRound } from "lucide-react";
+import { Bell, LogOut, Settings, Users, UserRound } from "lucide-react";
 import { accountDisplayName } from "./accountIdentity.js";
+import DiscordMark from "./DiscordMark.jsx";
 
 export default function SiteHeader({
   account,
@@ -56,9 +57,9 @@ export default function SiteHeader({
           </>
         ) : accountReady ? (
           <>
-            <button className="site-discord-button" type="button" onClick={onSignIn}>
-              <LogIn size={17} />
-              Sign in with Discord
+            <button className="site-discord-button" type="button" onClick={onSignIn} aria-label="Sign in with Discord">
+              <DiscordMark size={18} />
+              <span>Sign in with Discord</span>
             </button>
             {accountError && (
               <p className="site-account-error" role="alert">{accountError}</p>

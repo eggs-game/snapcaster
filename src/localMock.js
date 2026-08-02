@@ -1,6 +1,23 @@
 const MOCK_DATA_URL = "/mock-data.local.json";
+const MOCK_SESSION_KEY = "snapcast-local-mock-state";
 let mockPromise;
 let mutableData;
+
+function validMockData(data) {
+  return Boolean(data?.enabled && data.account?.user?.id && Array.isArray(data.games));
+}
+
+function restoreSessionMock(fixture) {
+  try {
+    const stored = JSON.parse(sessionStorage.getItem(MOCK_SESSION_KEY) || "null");
+    if (validMockData(stored) && stored.account.user.id === fixture.account.user.id) return stored;
+  } catch { /* use the working-copy fixture */ }
+  return fixture;
+}
+
+function persistSessionMock(data) {
+  try { sessionStorage.setItem(MOCK_SESSION_KEY, JSON.stringify(data)); } catch { /* memory state still works */ }
+}
 
 export function isLoopbackHost() {
   return ["127.0.0.1", "localhost", "::1"].includes(window.location.hostname);
@@ -12,8 +29,8 @@ export async function getLocalMockData() {
     mockPromise = fetch(MOCK_DATA_URL, { cache: "no-store" })
       .then((response) => response.ok ? response.json() : null)
       .then((data) => {
-        if (!data?.enabled || !data.account || !Array.isArray(data.games)) return null;
-        mutableData = structuredClone(data);
+        if (!validMockData(data)) return null;
+        mutableData = structuredClone(restoreSessionMock(data));
         return mutableData;
       })
       .catch(() => null);
@@ -29,6 +46,7 @@ export async function updateLocalMock(mutator) {
   const data = await getLocalMockData();
   if (!data) return null;
   mutator(data);
+  persistSessionMock(data);
   return data;
 }
 

@@ -151,6 +151,14 @@ export function parseDeckText(value) {
   return aggregateDeckCards(cards);
 }
 
+export function parseMoxfieldExport(value) {
+  const cards = parseDeckText(value);
+  if (!cards.length || cards.some((card) => card.board === "commander")) return cards;
+  return cards.map((card, index) => (
+    index === 0 ? { ...card, board: "commander" } : card
+  ));
+}
+
 function cardIdentity(card) {
   const oracle = card?.oracleCard || card?.oracle_card || {};
   return {

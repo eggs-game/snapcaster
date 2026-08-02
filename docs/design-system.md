@@ -170,9 +170,12 @@ opens creation, while View games is a real link to the public lobby directory.
 The hero is deliberately shorter than a full viewport (roughly 70vh, capped at
 680px) so the product surface begins to enter the page sooner. The home header's
 40px controls sit immediately before the account control: Create is opaque warm
-white, Join uses a strong white outline, and the equally sized signed-in profile
-control shows only the display name and notification badge (no avatar). They
-open the same modal and account flows as the primary page actions.
+white, Join uses a strong white outline, and signed-out visitors get an equally
+tall Discord-blurple sign-in control with the official Discord mark. The
+signed-in profile control shows only the display name and notification badge
+(no avatar). On narrow phone layouts the Discord control becomes a 40px
+icon-only target with the full accessible label intact. They open the same modal
+and account flows as the primary page actions.
 The notifications page reuses this shared header component rather than a
 page-specific navigation variant: Create and Join keep the same sizing and
 roles, and the signed-in display name opens the same Profile, Friends,
@@ -239,8 +242,9 @@ Each profile panel starts with the same `--text-2xl` Geist heading row: “My
 decks,” “Recent game history,” or “Stats.” The row begins one `--space-5` step
 inside the panel so it remains clearly separated from the tab divider. A compact
 Import deck and Add deck actions sit at the Decks heading's right edge. Import
-deck accepts plaintext deck files with a Commander section or `*CMDR*` tags;
-Add deck opens the shared modal shell. Deck creation fields do not remain permanently visible below the saved
+deck accepts a public Archidekt link or pasted Moxfield export; when the export
+has no Commander section or `*CMDR*` tag, its first parsed card is the Commander
+by default. Add deck opens the shared modal shell. Deck creation fields do not remain permanently visible below the saved
 cards. A second toolbar sits below the heading actions: search and sort controls
 occupy the left side while the grid/list segmented control anchors to the right.
 Search matches deck, commander, partner, and color-identity text. Sort options
@@ -272,41 +276,52 @@ Each tile is a real link to a focused saved-deck editor rather than an inline
 management surface. The editor keeps the shared site header and a 1120px
 content column. Its information hierarchy borrows the useful parts of a mature
 deck builder without copying marketplace UI: deck identity and total first, a
-single bounded control bar second, summary metrics third, then the editing
-workspace. The control bar combines search, an icon-only text/card segmented
-control, Group and Sort selects, and explicit Copy list, Import, and Add card
-actions. Grouping includes functional deck-local tags as well as card type,
-mana value, and deck section. Tag search matches both names and tags.
+flat control row second, then the editing workspace. The control row has no
+surrounding surface or border: search, Group and Sort selects, and explicit
+Copy list, Import, and Add card actions read directly on the page, while the
+icon-only text/card segmented control anchors at the far right. A 28px gap
+below the row separates these filters and actions from the card workspace; an
+expanded Import or Add card panel occupies that same gap instead of adding a
+second margin. Grouping
+includes functional deck-local tags as well as card type, mana value, and deck
+section. Tag search matches both names and tags. The four summary metrics live
+only on the Analysis & hand tab rather than interrupting the deck list.
 Import and add forms expand below that bar only while in use. Import leads with
 the manual Moxfield workflow. A validated Moxfield URL produces an “Open deck
 in Moxfield” link that opens in a separate tab; the user then chooses More →
 Export → Copy for Moxfield, returns to Snapcast, and pastes the list. The URL is
 stored only as attribution and is never requested by Snapcast. Direct URL
-import is disclosed separately for public Archidekt decks.
+import is disclosed separately for public Archidekt decks. The dedicated
+Moxfield textarea always applies the Moxfield parser, including the first-card
+Commander fallback, whether it appears during initial creation or inside the
+deck editor.
 
-The profile's “Import deck” action applies those rules in one wider modal. One
-large input accepts a provider link or exported list and identifies it in
-place; adjacent clipboard and file actions feed that same input instead of
-creating separate flows. A public Archidekt link needs one final import action.
-A Moxfield link becomes a connected source card followed by the exact More →
-Export → Copy for Moxfield instruction and a return-path clipboard button.
-Parsed text shows a compact three-cell preview (Commander, card count,
-sections) before saving. The optional deck-name field appears only after the
-input is actionable, and progressive status copy describes provider reading,
-Commander validation, deck creation, and card enrichment. On completion the
-player lands directly in the populated deck editor. Provider marks are neutral
-text badges rather than copied service logos or brand treatments.
+The profile's “Import deck” action uses one wider modal with two explicit
+paths: a single-line public Archidekt deck-link field and a separate Moxfield
+export textarea. The paths are divided with a quiet “or” rule so their expected
+input is immediately clear; the modal does not add provider badges, clipboard
+controls, file-upload actions, or summary cards around them. Parsed Moxfield
+data remains internal for Commander detection, default naming, validation, and
+the import action's card count. The optional deck-name field appears only after
+one input is actionable, and progressive status copy describes provider
+reading, Commander validation, deck creation, and card enrichment. On
+completion the player lands directly in the populated deck editor. The footer
+keeps its spacing but uses no top divider, preserving the modal's quiet vertical
+flow.
 
-On desktop the workspace uses a 280px sticky selected-card inspector and a
-three-column grouped text list. Text rows are 36px high with quantity at the
-left and mana value at the right, making a 100-card deck scannable without
+On desktop the workspace uses a compact sticky selected-card inspector and a
+three-column grouped text list. Sections are assigned to the currently
+lightest independent column, so the next section begins directly below the
+preceding one instead of inheriting the tallest section's grid-row gap. Text rows are 36px high with quantity at
+the left and mana value at the right, making a 100-card deck scannable without
 turning each card into a separate panel. The alternate card view uses compact
-image tiles. Selecting a card exposes quantity, deck section, art, tag, swap,
-and remove controls in the inspector; sideboard and considering are first-class
-sections. Tags use compact rounded chips inside the inspector, with their
-remove action contained in the chip. The alternate-art picker is a bounded
-three-column image grid inside that same inspector rather than a full-page
-printing browser; its server mutation is constrained to the same Oracle card.
+image tiles. The selected-card inspector contains only artwork, the card name,
+and one icon-only Card options disclosure for changing artwork or removing the
+card; type/mana metadata, quantity,
+section, tag, and swap forms do not crowd this browsing surface. The
+alternate-art picker remains a bounded three-column image grid inside that same
+inspector rather than a full-page printing browser; its server mutation is
+constrained to the same Oracle card.
 The workspace collapses to two list columns and then one as the viewport
 narrows, and the inspector stops being sticky on compact screens. The page
 always shows main-deck count, sideboard count, average mana value, and unique

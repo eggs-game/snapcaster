@@ -7,6 +7,7 @@ import {
   parseDeckAttributionUrl,
   parseDeckSourceUrl,
   parseDeckText,
+  parseMoxfieldExport,
 } from "./deckImport.js";
 import { ANT_MAN_DECK_TEXT } from "./mockDeckFixtures.js";
 export { accountAvatarUrl, accountDisplayName } from "./accountIdentity.js";
@@ -372,14 +373,22 @@ export async function previewSavedDeckFromUrl(account, value) {
   return postDeckAction(account, { action: "preview_url", url: source.url });
 }
 
-export async function importSavedDeckFromText(account, deckId, text, attributionUrl = "") {
+export async function importSavedDeckFromText(account, deckId, text, attributionUrl = "", importFormat = "text") {
   const attribution = attributionUrl ? parseDeckAttributionUrl(attributionUrl) : null;
+  const isMoxfieldExport = importFormat === "moxfield" || attribution?.provider === "moxfield";
   if (isMockAccount(account)) {
-    const source = attribution || { provider: "text", url: null };
-    const cards = await replaceMockDeckCards(deckId, parseDeckText(text), source);
+    const source = attribution || { provider: isMoxfieldExport ? "moxfield" : "text", url: null };
+    const parsed = isMoxfieldExport ? parseMoxfieldExport(text) : parseDeckText(text);
+    const cards = await replaceMockDeckCards(deckId, parsed, source);
     return { cards, sourceProvider: source.provider, sourceUrl: source.url, importedName: null };
   }
-  return postDeckAction(account, { action: "import_text", deckId, text, sourceUrl: attribution?.url || null });
+  return postDeckAction(account, {
+    action: "import_text",
+    deckId,
+    text,
+    sourceUrl: attribution?.url || null,
+    importFormat: isMoxfieldExport ? "moxfield" : "text",
+  });
 }
 
 export async function addCardToSavedDeck(account, deckId, input) {

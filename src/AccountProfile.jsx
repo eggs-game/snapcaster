@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ClipboardPaste, Download, ExternalLink, FileUp, LayoutGrid, Link2, List, Minus, Plus, Skull, Trophy, UserRound, X } from "lucide-react";
+import { Download, LayoutGrid, List, Minus, Plus, Skull, Trophy, UserRound, X } from "lucide-react";
 import {
   accountAvatarUrl,
   accountDisplayName,
@@ -27,7 +27,7 @@ import {
   updateMyPlayerReview,
 } from "./account.js";
 import { isCommanderCard, isValidCommanderPartner } from "./cardSearch.js";
-import { detectDeckImportInput, summarizeDeckCards } from "./deckImport.js";
+import { detectDeckImportInput, parseMoxfieldExport, summarizeDeckCards } from "./deckImport.js";
 import DiscordMark from "./DiscordMark.jsx";
 import { accountDiscordName } from "./accountIdentity.js";
 import { roomCapability, submitGameCorrection } from "./gameRooms.js";
@@ -173,15 +173,14 @@ export default function AccountProfile({
   const [deckSaving, setDeckSaving] = useState(false);
   const [deckImporting, setDeckImporting] = useState(false);
   const [deckImportProgress, setDeckImportProgress] = useState("");
-  const [deckImportValue, setDeckImportValue] = useState("");
-  const [deckImportSourceUrl, setDeckImportSourceUrl] = useState("");
-  const [deckImportFileName, setDeckImportFileName] = useState("");
+  const [deckImportArchidektUrl, setDeckImportArchidektUrl] = useState("");
+  const [deckImportMoxfieldText, setDeckImportMoxfieldText] = useState("");
   const [showDeckForm, setShowDeckForm] = useState(false);
   const [showDeckImport, setShowDeckImport] = useState(false);
   const addDeckButtonRef = useRef(null);
   const deckLabelInputRef = useRef(null);
-  const importDeckInputRef = useRef(null);
   const importDeckButtonRef = useRef(null);
+  const importDeckArchidektRef = useRef(null);
   const importDeckTextareaRef = useRef(null);
   const [social, setSocial] = useState({ friends: [], notifications: [] });
   const [friendQuery, setFriendQuery] = useState("");
@@ -296,10 +295,22 @@ export default function AccountProfile({
     });
   }, [deckSearch, deckSort, decks]);
 
-  const deckImportInput = useMemo(() => detectDeckImportInput(deckImportValue), [deckImportValue]);
+  const deckImportArchidektInput = useMemo(
+    () => detectDeckImportInput(deckImportArchidektUrl),
+    [deckImportArchidektUrl],
+  );
+  const deckImportMoxfieldInput = useMemo(
+    () => detectDeckImportInput(deckImportMoxfieldText),
+    [deckImportMoxfieldText],
+  );
+  const deckImportMoxfieldCards = useMemo(
+    () => parseMoxfieldExport(deckImportMoxfieldText),
+    [deckImportMoxfieldText],
+  );
   const deckImportSummary = useMemo(() => (
-    deckImportInput.kind === "deck_text" ? summarizeDeckCards(deckImportInput.cards) : null
-  ), [deckImportInput]);
+    deckImportMoxfieldInput.kind === "deck_text" ? summarizeDeckCards(deckImportMoxfieldCards) : null
+  ), [deckImportMoxfieldCards, deckImportMoxfieldInput.kind]);
+  const hasDeckImport = Boolean(deckImportArchidektUrl.trim() || deckImportMoxfieldText.trim());
 
   const closeDeckForm = useCallback(() => {
     setShowDeckForm(false);
@@ -309,9 +320,8 @@ export default function AccountProfile({
   const closeDeckImport = useCallback(() => {
     setShowDeckImport(false);
     setError("");
-    setDeckImportValue("");
-    setDeckImportSourceUrl("");
-    setDeckImportFileName("");
+    setDeckImportArchidektUrl("");
+    setDeckImportMoxfieldText("");
     setDeckImportProgress("");
     setDeckLabel("");
     window.requestAnimationFrame(() => importDeckButtonRef.current?.focus());
@@ -412,13 +422,19 @@ export default function AccountProfile({
 
   useEffect(() => {
     if (!showDeckImport) return undefined;
-    importDeckTextareaRef.current?.focus();
+    importDeckArchidektRef.current?.focus();
     const closeOnEscape = (event) => {
       if (event.key === "Escape" && !deckImporting) closeDeckImport();
     };
     window.addEventListener("keydown", closeOnEscape);
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [closeDeckImport, deckImporting, showDeckImport]);
+
+  useEffect(() => {
+    const commanderName = deckImportSummary?.commanders?.[0];
+    if (!commanderName) return;
+    setDeckLabel((current) => current.trim() ? current : commanderName);
+  }, [deckImportSummary]);
 
   const submit = async (event) => {
     event.preventDefault();
@@ -488,70 +504,43 @@ export default function AccountProfile({
     }
   };
 
-  const chooseDeckImportFile = async (event) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) return;
-    setError("");
-    try {
-      setDeckImportValue(await file.text());
-      setDeckImportSourceUrl("");
-      setDeckImportFileName(file.name);
-      const fallbackLabel = file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim();
-      if (!deckLabel.trim()) setDeckLabel(fallbackLabel);
-    } catch (importError) {
-      setError(String(importError?.message || "Could not read this deck file."));
-    }
-  };
-
-  const pasteDeckImport = async () => {
-    setError("");
-    try {
-      if (!navigator.clipboard?.readText) throw new Error("Clipboard access is not available in this browser.");
-      const text = await navigator.clipboard.readText();
-      if (!text.trim()) throw new Error("Your clipboard is empty.");
-      setDeckImportValue(text);
-      setDeckImportFileName("");
-    } catch (clipboardError) {
-      setError(String(clipboardError?.message || "Could not read the clipboard. Paste into the box instead."));
-    }
-  };
-
-  const beginMoxfieldExport = () => {
-    if (deckImportInput.kind !== "moxfield_url") return;
-    setDeckImportSourceUrl(deckImportInput.source.url);
-    setDeckImportValue("");
-    setDeckImportFileName("");
-    setError("");
-    window.requestAnimationFrame(() => importDeckTextareaRef.current?.focus());
-  };
-
   const importCompleteDeck = async () => {
     setError("");
     let saved = null;
     try {
       setDeckImporting(true);
+      const hasArchidektUrl = Boolean(deckImportArchidektUrl.trim());
+      const hasMoxfieldText = Boolean(deckImportMoxfieldText.trim());
+      if (hasArchidektUrl && hasMoxfieldText) {
+        throw new Error("Use one import method at a time.");
+      }
+
       let names = deckImportSummary?.commanders || [];
       let label = deckLabel.trim();
       let importMode = "text";
-      let importUrl = deckImportSourceUrl;
+      let importUrl = "";
       let archidektPreview = null;
 
-      if (deckImportInput.kind === "moxfield_url") {
-        beginMoxfieldExport();
-        return;
-      }
-      if (deckImportInput.kind === "archidekt_url") {
+      if (hasArchidektUrl) {
+        if (deckImportArchidektInput.kind !== "archidekt_url") {
+          throw new Error(deckImportArchidektInput.kind === "moxfield_url"
+            ? "Add an Archidekt deck link here. Paste a Moxfield export in the field below."
+            : "Add a valid public Archidekt deck link.");
+        }
         setDeckImportProgress("Reading the public Archidekt deck…");
-        archidektPreview = await previewSavedDeckFromUrl(account, deckImportInput.source.url);
+        archidektPreview = await previewSavedDeckFromUrl(account, deckImportArchidektInput.source.url);
         names = archidektPreview.commanders || [];
         label ||= archidektPreview.name || names[0] || "Imported deck";
         importMode = "url";
         importUrl = archidektPreview.sourceUrl;
-      } else if (deckImportInput.kind !== "deck_text") {
-        throw new Error(deckImportInput.kind === "invalid_url"
-          ? "Paste a public Moxfield or Archidekt deck link."
-          : "Paste a deck link, exported deck list, or choose a text file.");
+      } else if (hasMoxfieldText) {
+        if (deckImportMoxfieldInput.kind !== "deck_text") {
+          throw new Error(deckImportMoxfieldInput.kind === "moxfield_url"
+            ? "Paste the Moxfield export, not the deck link."
+            : "Paste a valid Moxfield exported deck list.");
+        }
+      } else {
+        throw new Error("Add an Archidekt deck link or paste a Moxfield export.");
       }
       if (!names.length) throw new Error("The deck list needs a Commander section or a card marked *CMDR*.");
 
@@ -565,7 +554,7 @@ export default function AccountProfile({
           throw new Error(`${partner.name} is not a legal partner for ${commander.name}.`);
         }
       }
-      label ||= deckImportFileName.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim() || commander.name;
+      label ||= commander.name;
 
       setDeckImportProgress("Creating your deck…");
       saved = await createSavedCommanderDeck(account, {
@@ -581,7 +570,7 @@ export default function AccountProfile({
       setDeckImportProgress("Adding cards and artwork…");
       const imported = importMode === "url"
         ? await importSavedDeckFromUrl(account, saved.id, importUrl)
-        : await importSavedDeckFromText(account, saved.id, deckImportValue, deckImportSourceUrl);
+        : await importSavedDeckFromText(account, saved.id, deckImportMoxfieldText, "", "moxfield");
       const complete = {
         ...saved,
         source_provider: imported.sourceProvider,
@@ -1036,97 +1025,59 @@ export default function AccountProfile({
                     <X size={20} />
                   </button>
                   <header className="modal-head compact deck-import-modal-head">
-                    <span className="deck-import-kicker">Bring your collection with you</span>
                     <h2 id="import-deck-title">Import a deck</h2>
-                    <p>Paste one link or list. Snapcast detects the source and sets up the whole deck.</p>
                   </header>
 
-                  <div className="deck-import-provider-strip" aria-label="Supported deck sources">
-                    <span><strong>M</strong> Moxfield export</span>
-                    <span><strong>A</strong> Public Archidekt link</span>
-                    <span><FileUp size={15} /> Text file</span>
+                  <div className="deck-import-methods">
+                    <label className="modal-field deck-import-method">
+                      <span>Archidekt</span>
+                      <input
+                        ref={importDeckArchidektRef}
+                        type="url"
+                        inputMode="url"
+                        value={deckImportArchidektUrl}
+                        onChange={(event) => {
+                          setDeckImportArchidektUrl(event.target.value);
+                          setError("");
+                        }}
+                        placeholder="Add your deck link"
+                        spellCheck="false"
+                      />
+                    </label>
+
+                    <div className="deck-import-divider" aria-hidden="true"><span>or</span></div>
+
+                    <label className="modal-field deck-import-method deck-import-input-field">
+                      <span>Moxfield export</span>
+                      <textarea
+                        ref={importDeckTextareaRef}
+                        value={deckImportMoxfieldText}
+                        onChange={(event) => {
+                          setDeckImportMoxfieldText(event.target.value);
+                          setError("");
+                        }}
+                        onPaste={(event) => {
+                          const textarea = event.currentTarget;
+                          window.requestAnimationFrame(() => {
+                            textarea.scrollTop = 0;
+                          });
+                        }}
+                        rows={6}
+                        spellCheck="false"
+                        placeholder={"Paste your Moxfield export\n\nCommander\n1 Atraxa, Praetors' Voice *CMDR*\n\nMainboard\n1 Sol Ring"}
+                      />
+                    </label>
                   </div>
 
-                  {deckImportSourceUrl && (
-                    <div className="deck-import-source-card">
-                      <div>
-                        <strong>Moxfield deck connected</strong>
-                        <span>Now paste the exported list below.</span>
-                      </div>
-                      <a href={deckImportSourceUrl} target="_blank" rel="noreferrer">
-                        Open deck <ExternalLink size={14} />
-                      </a>
-                    </div>
-                  )}
-
-                  <label className="modal-field deck-import-input-field">
-                    <span>{deckImportSourceUrl ? "Paste the Moxfield export" : "Deck link or exported list"}</span>
-                    <textarea
-                      ref={importDeckTextareaRef}
-                      value={deckImportValue}
-                      onChange={(event) => {
-                        setDeckImportValue(event.target.value);
-                        setDeckImportFileName("");
-                        setError("");
-                      }}
-                      rows={6}
-                      spellCheck="false"
-                      placeholder={deckImportSourceUrl
-                        ? "Commander\n1 Atraxa, Praetors' Voice *CMDR*\n\nMainboard\n1 Sol Ring #!Ramp"
-                        : "https://archidekt.com/decks/…\n\nor paste a Moxfield export"}
-                    />
-                  </label>
-
-                  <div className="deck-import-input-actions">
-                    <button type="button" onClick={pasteDeckImport} disabled={deckImporting}>
-                      <ClipboardPaste size={16} /> Paste from clipboard
-                    </button>
-                    <button type="button" onClick={() => importDeckInputRef.current?.click()} disabled={deckImporting}>
-                      <FileUp size={16} /> Choose file
-                    </button>
-                    <input
-                      ref={importDeckInputRef}
-                      type="file"
-                      accept=".txt,.dec,.dek,text/plain"
-                      hidden
-                      onChange={chooseDeckImportFile}
-                    />
-                  </div>
-
-                  {deckImportInput.kind === "moxfield_url" && (
-                    <div className="deck-import-detected is-moxfield">
-                      <div><strong>Moxfield link detected</strong><span>Moxfield requires its copied export rather than an automatic request.</span></div>
-                      <button type="button" onClick={beginMoxfieldExport} disabled={deckImporting}>
-                        Continue <ExternalLink size={14} />
-                      </button>
-                    </div>
-                  )}
-                  {deckImportSourceUrl && !deckImportValue.trim() && (
-                    <p className="deck-import-help">In Moxfield choose <strong>More → Export → Copy for Moxfield</strong>, then return here and use “Paste from clipboard.”</p>
-                  )}
-                  {deckImportInput.kind === "archidekt_url" && (
-                    <div className="deck-import-detected is-archidekt">
-                      <Link2 size={18} />
-                      <div><strong>Public Archidekt deck detected</strong><span>Its title, Commander, cards, sections, and printings will be imported.</span></div>
-                    </div>
-                  )}
-                  {deckImportSummary && (
-                    <div className="deck-import-preview">
-                      <div><span>Commander</span><strong>{deckImportSummary.commanders.join(" + ") || "Not identified"}</strong></div>
-                      <div><span>Cards</span><strong>{deckImportSummary.totalCards}</strong></div>
-                      <div><span>Sections</span><strong>{[deckImportSummary.totals.mainboard && "Main", deckImportSummary.totals.sideboard && "Side", deckImportSummary.totals.maybeboard && "Considering"].filter(Boolean).join(" · ") || "Commander only"}</strong></div>
-                    </div>
-                  )}
-
-                  {(deckImportInput.kind === "deck_text" || deckImportInput.kind === "archidekt_url") && (
+                  {((deckImportArchidektInput.kind === "archidekt_url" && !deckImportMoxfieldText.trim())
+                    || (deckImportMoxfieldInput.kind === "deck_text" && !deckImportArchidektUrl.trim())) && (
                     <label className="modal-field deck-import-label-field">
                       <span>Deck name <em>Optional</em></span>
                       <input
                         value={deckLabel}
                         onChange={(event) => setDeckLabel(event.target.value)}
                         maxLength={48}
-                        placeholder={deckImportFileName.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim()
-                          || deckImportSummary?.commanders[0]
+                        placeholder={deckImportSummary?.commanders[0]
                           || "Use the Archidekt deck name"}
                       />
                     </label>
@@ -1139,18 +1090,16 @@ export default function AccountProfile({
                     <button
                       className="primary"
                       type="button"
-                      disabled={deckImporting || deckImportInput.kind === "empty"}
+                      disabled={deckImporting || !hasDeckImport}
                       onClick={importCompleteDeck}
                     >
                       {deckImporting
                         ? "Importing…"
-                        : deckImportInput.kind === "moxfield_url"
-                          ? "Continue to export"
-                          : deckImportInput.kind === "archidekt_url"
-                            ? "Import from Archidekt"
-                            : deckImportSummary
-                              ? `Import ${deckImportSummary.totalCards} cards`
-                              : "Import deck"}
+                        : deckImportArchidektUrl.trim() && !deckImportMoxfieldText.trim()
+                          ? "Import from Archidekt"
+                          : deckImportSummary && !deckImportArchidektUrl.trim()
+                            ? `Import ${deckImportSummary.totalCards} cards`
+                            : "Import deck"}
                     </button>
                   </footer>
                 </section>
