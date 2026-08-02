@@ -4136,33 +4136,6 @@ h3.profile-tab-heading {
   border-color: var(--border-strong);
   background: var(--bg-surface-overlay);
 }
-.game-leave-trigger {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 14;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  min-height: 34px;
-  padding: 0 10px;
-  border: 1px solid var(--glass-border-strong);
-  border-radius: 8px;
-  background: var(--glass-bg-dense);
-  color: var(--text-secondary);
-  -webkit-backdrop-filter: blur(12px) saturate(var(--glass-saturation));
-  backdrop-filter: blur(12px) saturate(var(--glass-saturation));
-  font: inherit;
-  font-size: var(--text-sm);
-  cursor: pointer;
-}
-.game-leave-trigger.owner-offset {
-  left: 166px;
-}
-.game-leave-trigger:hover {
-  border-color: var(--danger-border);
-  color: var(--danger-text);
-}
 .game-out-trigger {
   position: absolute;
   top: 10px;

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import {
-  Check, Crown, Dices, FlipVertical2, LogOut, Mic, MicOff, Minus, MoreVertical, PanelLeft, Plus, Shuffle, SkipForward,
+  Check, Crown, Dices, FlipVertical2, Mic, MicOff, Minus, MoreVertical, PanelLeft, Plus, Shuffle, SkipForward,
   Swords, UserRound, Video, VideoOff, X,
 } from "lucide-react";
 import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
@@ -1993,14 +1993,6 @@ export default function Game({ session, account, onLeave, themePreference, onThe
               <span className={`game-status-badge ${gameStatus}`}>{gameStatus === "live" ? "Live" : gameStatus === "lobby" ? "Lobby" : "Finished"}</span>
             </button>
           )}
-          <button
-            className={`game-leave-trigger${isGameOwner && activeOwnerToken ? " owner-offset" : ""}`}
-            type="button"
-            onClick={leaveExplicitly}
-          >
-            <LogOut size={16} />
-            Leave game
-          </button>
           {!isVisitor && myId && gameStatus === "live" && (
             <button
               className={`game-out-trigger${eliminations[myId] ? " active" : ""}`}

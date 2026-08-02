@@ -557,8 +557,8 @@ Review stars use the semantic warning color so their contrast follows the
 active theme instead of relying on a fixed gold.
 
 The post-game review prompt reuses the modal shell, centered 42px star buttons,
-and shared form styling. The persistent Leave game control matches the owner
-trigger's glass material and shifts beside it when both are visible.
+and shared form styling. Leave game remains inside Settings rather than
+occupying the play surface beside the owner controls.
 
 The restricted moderation page uses the public-profile page width and the
 standard 14px operational panel shell. Reports and appeals stay in separate
