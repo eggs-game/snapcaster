@@ -78,7 +78,8 @@ returns uuid language sql stable security definer set search_path = '' as $$
     and memberships.removed_at is null;
 $$;
 
-alter table realtime.messages enable row level security;
+-- Supabase owns realtime.messages and enables RLS on it. Managed projects
+-- intentionally reject ALTER TABLE here, while still allowing app policies.
 
 drop policy if exists "active game members receive realtime room messages" on realtime.messages;
 create policy "active game members receive realtime room messages"

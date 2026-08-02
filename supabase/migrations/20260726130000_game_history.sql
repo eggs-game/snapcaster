@@ -5,15 +5,14 @@ alter table public.game_rooms
   add column if not exists owner_membership_id uuid references public.game_memberships(id) on delete set null;
 
 update public.game_rooms rooms
-set owner_membership_id = owners.id
-from lateral (
+set owner_membership_id = (
   select memberships.id
   from public.game_memberships memberships
   where memberships.game_id = rooms.id
     and memberships.role = 'player'
   order by memberships.joined_at, memberships.id
   limit 1
-) owners
+)
 where rooms.owner_membership_id is null;
 
 create table if not exists public.game_sessions (

@@ -10,6 +10,7 @@ SQL = "\n".join(path.read_text() for path in MIGRATIONS)
 SRC = "\n".join(path.read_text() for path in (ROOT / "src").glob("**/*") if path.is_file())
 VALIDATED_COMMANDERS = (ROOT / "supabase" / "migrations" / "20260726190000_validated_commanders.sql").read_text()
 REPORT_HARDENING = (ROOT / "supabase" / "migrations" / "20260801130000_recognition_report_hardening.sql").read_text()
+FUNCTION_HARDENING = (ROOT / "supabase" / "migrations" / "20260802002000_function_privilege_hardening.sql").read_text()
 
 EXPECTED_RLS = {
     "profiles", "account_private", "account_preferences", "game_rooms",
@@ -90,6 +91,14 @@ assert not re.search(
     SQL,
     re.I,
 ), "service maintenance functions must not be browser executable"
+assert "alter default privileges for role postgres in schema public" in FUNCTION_HARDENING
+assert "revoke execute on functions from public, anon, authenticated" in FUNCTION_HARDENING, (
+    "SECURITY DEFINER functions must be deny-by-default for API roles"
+)
+assert "and procedures.prosecdef" in FUNCTION_HARDENING
+assert "revoke all on function %s from public, anon, authenticated" in FUNCTION_HARDENING, (
+    "existing SECURITY DEFINER functions must have inherited API grants removed"
+)
 
 security_definers = re.findall(
     r"create\s+or\s+replace\s+function\s+([\w.]+)\s*\([^;]*?\)\s*"

@@ -68,6 +68,13 @@ Row-level security keeps private contact and preference rows owner-only. Public
 profiles deliberately do not include email. The auth trigger creates all three
 rows and safely backfills accounts that predate the migration.
 
+Browser-facing `SECURITY DEFINER` functions are also deny-by-default. The
+function privilege hardening migration removes Supabase's inherited API-role
+grants, then explicitly exposes only the public directory, authenticated user,
+or server-only RPCs each caller needs. Tables used only behind those RPCs keep
+RLS enabled with no direct row policies, which intentionally denies table API
+access.
+
 To enable Discord sign-in, enable the Discord provider in Supabase, add the
 Supabase callback URL to the Discord application, and allow both the production
 origin and local development origin as Supabase redirect URLs. Existing

@@ -354,6 +354,7 @@ declare
   invitation public.game_invitations;
   target_room public.game_rooms;
   active_count integer;
+  capacity_limit integer;
 begin
   if auth.uid() is null then raise exception 'authentication required'; end if;
   select * into invitation from public.game_invitations
@@ -374,7 +375,8 @@ begin
   where members.game_id = target_room.id
     and members.role = case when target_room.status = 'live' then 'visitor' else 'player' end
     and members.left_at is null and members.removed_at is null;
-  if accept_invitation and active_count >= case when target_room.status = 'live' then 8 else target_room.seat_limit end then
+  capacity_limit := case when target_room.status = 'live' then 8 else target_room.seat_limit end;
+  if accept_invitation and active_count >= capacity_limit then
     update public.game_invitations set status = 'expired', responded_at = now() where id = invitation.id;
     update public.profile_notifications set dismissed_at = now(), read_at = coalesce(read_at, now())
     where recipient_id = auth.uid() and kind = 'game_invitation' and reference_id = invitation.id;
