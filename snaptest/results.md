@@ -9,6 +9,51 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-08-03 — two-stage prefix retrieval — **REJECTED**; but the scan is ~5x slower than it needs to be
+
+`rank` is 70% of Real life's wall clock. The obvious saving is a coarse-to-fine
+scan: rank every printing on a short PREFIX of its hash, keep the best K, and
+score only those in full. Measured against the **real 110,592-row index**, using
+the same 200 perfect crops from the production baseline's own scenes.
+
+**True-card recall — does stage 1's top-K still contain the correct card?**
+
+| prefix | K=500 | K=1000 | K=2000 | K=4000 | K=8000 | K=16000 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 8B | 22.5% | 31.5% | 37.0% | 45.0% | 53.0% | 64.5% |
+| 16B | 50.0% | 54.0% | 58.0% | 65.0% | 71.0% | 78.0% |
+| 24B | 64.0% | 67.5% | 70.0% | 73.5% | 78.5% | 86.0% |
+| 32B | 69.0% | 72.0% | 74.5% | 79.0% | 85.0% | 89.0% |
+
+Result equivalence — whether stage 1 even preserves the answer the *full* scan
+would have given — is no better: 78.5% at 16B/K=4000, and still only 95.0% at
+32B/K=16000.
+
+The configuration worth having (16B prefix, K=4000, a 3.5x saving) would drop
+**35% of correct cards**. Even scanning half the hash and keeping 14% of the
+index loses 11%. **There is no usable prefix: the hash's information is spread
+across all 512 bits**, which is the same property that makes it barely separate
+a correct degraded card from a wrong one. Cheap approximations of this
+descriptor do not preserve its answers, and two-stage retrieval is dead.
+
+### The useful result is a measurement of the scan itself
+
+numpy completes one seed's work — 8 variants x 110,592 printings x 64 bytes —
+in **72ms**. Production JS takes **~387ms** for the identical computation
+(4257ms across 10-11 seeds). That is a **~5.4x implementation gap on the stage
+that owns 70% of the clock**, and closing it changes no result at all: the
+distances are bit-identical.
+
+numpy gets there with SIMD — vectorised XOR and horizontal adds — where
+`hammingSearchVariants` walks one byte at a time through a 256-entry popcount
+table. WebAssembly SIMD exposes the same primitives (`i8x16.popcnt` handles 16
+bytes per instruction), and OpenCV already proves WASM loads in this worker.
+
+Projected: `rank` 4257ms -> ~800ms, median **6098ms -> ~2600ms**. Short of the
+2000ms goal on its own, but it is the only speed lever measured so far that
+carries no accuracy risk, because it changes the cost of the computation and not
+its output. It should be attempted before anything that trades recall for time.
+
 ## 2026-08-03 — pretrained embeddings vs the hash — **REJECTED, hypothesis falsified**
 
 The claim under test was mine: that the accuracy ceiling and the 4.3s ranking
