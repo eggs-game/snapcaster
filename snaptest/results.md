@@ -9,6 +9,66 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-08-03 — VLAD local-feature retrieval — **REJECTED**; nothing beats the hash
+
+The reasoning was that ORB art verification is the pipeline's most precise
+pathway (97.4%) yet only ever re-ranks the hash's top 24, so when the hash fails
+to surface a card — 30 of 45 misses — the best descriptor never votes. Letting
+local features do the surfacing is the classical instance-retrieval stack:
+RootSIFT, k-means vocabulary, VLAD aggregation, power+L2 norm, PCA-whitening.
+
+Same controlled setup as the embedding probe: the production baseline's own 200
+perfect crops against the same 2,000-card pool. **Hash on these inputs: 74.0%.**
+
+| configuration | raw top-1 | PCA-whitened to 256-dim |
+| --- | --- | --- |
+| k=64 vocabulary | 30.0% | 12.0% |
+| **k=256 vocabulary** | **59.0%** | 29.5% |
+| k=256, art region only | 42.0% | 22.5% |
+
+Vocabulary size matters a great deal and the trend is still rising at k=256, so
+a much larger vocabulary might eventually approach the hash. It would not help:
+**the raw vector is 32,768 dimensions and the compression that makes it
+shippable destroys it** — 59.0% to 29.5%. At 110,592 printings the raw form is
+out of the question, and the PCA form is half as good as what already ships.
+(The PCA here is fit on only 2,000 samples for 32,768 dimensions, which is
+underdetermined and unfair to it; but a gap that size will not close.)
+
+Restricting to the art region made it **worse** (42% vs 59%), which falsifies
+the intuition behind trying it — that shared card furniture (frame, mana row,
+type line, text box) would dominate the visual words and drown out the
+distinguishing art. The furniture apparently helps.
+
+**Why local features verify well but retrieve badly.** `art-match` succeeds
+because ORB is followed by RANSAC: it checks that matched keypoints form a
+geometrically consistent constellation. VLAD aggregates descriptors into one
+vector and throws that geometry away — which is precisely the information doing
+the work. Local features belong in verification, where they already are.
+
+### Standing conclusion after three descriptor experiments
+
+| descriptor | top-1 on identical inputs |
+| --- | --- |
+| **pHash+dHash (production)** | **74.0%** |
+| VLAD-SIFT, k=256 raw (unshippable) | 59.0% |
+| DINOv2 ViT-S/14 | 23.5% |
+| VLAD-SIFT, PCA-256 (shippable) | 29.5% |
+| CLIP ViT-B/32 | 17.5% |
+
+**Nothing tried beats the hash.** That is worth stating plainly, because this
+log has twice described the hash as the ceiling. It is not obviously a weak
+descriptor; it is a strong one for this task, and the ~74% it reaches on
+*perfectly cropped* degraded cards may be closer to a property of the degraded
+images than of the descriptor.
+
+That raises a calibration question about the suite itself, which should be
+settled before more effort goes into beating 74%: the sharpness measurement
+taken when scene v2.1 was built put the rendered scenes at a Laplacian variance
+median of **233** against **382** for the real webcam frames. The scenes are
+about 40% *less* sharp than the reference material. If the suite is harsher than
+reality, 77.5% understates production and effort is being aimed at a target that
+is unfairly hard. Worth re-measuring before optimising against it.
+
 ## 2026-08-03 — where `rank` actually goes — **the blind isolation sweep is 44% of the clock**
 
 `rank` was one span covering seed scoring, refinement and the whole isolation
