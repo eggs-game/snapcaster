@@ -9,6 +9,267 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-08-03 — scene v2.1 — calibrated against real frames — NO RUN YET
+
+Twenty-five real webcam frames of actual games were measured, and the scenes
+meant to imitate them were measured the same way. Four gaps, one of them a
+plain bug:
+
+- **Dice were rendering as circles.** `roundedRect(x, left, top, size, radius)`
+  was called with `size` passed twice, so the corner radius became the die's
+  full side length and rounded the square away entirely; the intended
+  `size * 0.18` was silently dropped as a sixth argument. Every die in every
+  dice suite — including `tableauEdhDice10`, a documented release gate — has
+  been a circular blob, a rounder and smaller occluder than the square face a
+  real die shows from above.
+- **Glare never actually blew out.** Across 20 rendered scenes the worst
+  hotspot saturated 0.1% of pixels; the real frames reach 11%, and four of the
+  25 are above 5%. The hotspots were too small and stopped short of white, so
+  they tinted art rather than destroying it — and a highlight that does not clip
+  is not the case that defeats art verification.
+- **Every sleeve was dark.** In the real frames bright sleeves are about as
+  common as matte black: saturated blue, green, purple, and a pale cream that is
+  the worst case of all, because it blows out under glare and takes the card's
+  own border with it. A dark sleeve hides the card edge against a dark mat and a
+  bright one against a bright mat; only the first was being tested.
+- **Blur was per-card random**, which put a sharp card beside a soft one at the
+  same distance from the lens. A webcam holds one plane sharp and lets the rest
+  go soft, so blur now follows distance from a focal band and a scan's
+  difficulty depends on where on the table the card sits.
+
+Also: `PLAYMAT_IMAGES` only registered `magic-con-vegas`, while `REAL_MATS`
+cycles nine mats. `loadPlaymat` swallows a failed load and returns null, so four
+of every ten Real life scenes were silently rendering on bare cloth instead of
+the illustrated mat the suite exists to stress. All nine are now registered.
+
+> **Scene v2.1 (2026-08-03):** dice shape, glare strength, sleeve palette, blur
+> distribution and playmat coverage all changed, so accuracy recorded before this
+> entry is **not comparable** to numbers after it — the same discontinuity the
+> scene v2 and degrade v2 notes mark. **Re-baseline Real life before reading any
+> change against it.** The 86.0% below is the last figure for v2 scenes.
+
+No recognition code was touched, so this is a harness change and the BUILD
+marker is unchanged. `{realism:false}` still reproduces v1. The next run is a
+fresh Real life baseline.
+
+## 2026-08-03 — `Real life` — new realistic suite — **86.0%** (172/200, 0 errors)
+
+A new mode built from real game footage rather than from a clean render. Twenty
+tableaux of ten EDHREC top-2000 cards, sampled with the usual token and basic
+mix, cycling all nine playmats plus bare cloth, with every condition a webcam
+over a real table actually shows applied at once:
+
+| | |
+| --- | --- |
+| sleeved | 78% of cards, dark border ~4.5% wider than the card |
+| stacked | 28% sit on 1–3 cards, offset so only sleeve edges show |
+| perspective | each card drawn onto a trapezoid via `drawImageOnQuad` |
+| glare | blown-out hotspots across the frame, not clipped per card |
+| blur | 1.1–3.3px, up from 0.7–2.3 |
+| tapped / inverted | 25% turned 90°, every 4th scene at 180° |
+| dice | on cards, all five colours |
+
+**86.0%**, median 5.97s, p90 9.22s, first/second half 87%/85%, 0 errors.
+
+| Breakdown | |
+| --- | --- |
+| upright | 107/119 (89.9%) |
+| tapped | 36/42 (85.7%) |
+| **upside-down** | **29/39 (74.4%)** |
+| clear | 165/187 (88.2%) |
+| **overlapped** | **5/11 (45.5%)** |
+| misses by pool | token 12, card 14, basic 2 — tokens are 25% of the pool and 43% of the misses |
+
+### The two findings that matter
+
+**The framing ceiling collapsed.** Perfect crops recovered only **8 of 28**
+misses (29%), against **89%** on every earlier suite. Twenty misses fail even
+when perfectly cropped, at a median perfect-crop distance of 178. Under sleeves,
+heavy blur, glare and perspective the *pixels* are degraded, not merely badly
+framed. **Localization is worth about +8 points here, not +30**, so the ceiling
+on this suite is ~94% rather than 99%. Any plan resting on "framing is the whole
+problem" was calibrated on scenes that were too clean.
+
+**`art-match` lost precision for the first time.** 84/85 rather than 100%:
+`Bane of Progress` → `Blank Card` at **41 ORB inliers**, far past the ≥16
+decisive gate. Degraded pixels can manufacture enough spurious keypoint
+agreement to fool geometric verification. That pathway is presented to players
+as certain, so the gate needs revisiting before real-quality input reaches it.
+
+### The encouraging half
+
+Confidence is well calibrated. `art-match` 84/85 and `visual-exact` 3/3 mean
+**a confident answer is right ~99% of the time even under this degradation**.
+The problem is coverage, not correctness: only **44%** of scans reach a
+confident pathway at all, and the other 56% fall through to ranked guesses that
+are right about three times in four.
+
+So the route to 99% is to make the pipeline *confident more often*, not to stop
+it being wrong. `missTrueRank` supports that — 19 absent but 9 present and
+merely mis-ranked, where earlier suites were almost entirely absent.
+
+> **Scene v2 (2026-08-03):** sleeves, stacks, glare, perspective and heavier
+> blur are now on by default for every tableau suite (`{realism:false}` restores
+> v1). Accuracy numbers recorded before this entry were measured on cleaner
+> scenes and are **not comparable** to ones after it — the same discontinuity
+> the degrade-v2 note marks above.
+
+## 2026-08-02 — ceiling probe — how much accuracy is reachable by framing alone
+
+`diagnosePerfect` was enabled on the primary tableau gate and the forced-overlap
+suite, so every miss is re-identified from a counter-rotated exact crop of the
+same scene pixels. A miss the perfect crop recovers is a **framing** failure and
+is reachable by better card localization; one it does not recover is a **pixel**
+failure and is not.
+
+| Suite | Accuracy | Misses recovered | Ceiling |
+| --- | --- | --- | --- |
+| Tableau EDH 10 (primary gate) | 97.0% | 2 / 3 | **99.0%** |
+| Fixed tableau overlap dice | 64.0% | **32 / 36** | **96.0%** |
+| Vegas playmat (recorded 2026-07) | — | 22 / 23 | — |
+
+**Roughly 89% of all misses are framing failures.** Three independent
+measurements agree, so the pipeline's remaining loss is overwhelmingly a
+localization problem, not a recognition or retrieval one.
+
+- On the overlap suite the pipeline's misses sat at a median distance of **181**;
+  the same cards perfectly cropped read at **132**, and 27 of the 32 recoveries
+  came through the 100%-precise `art-match` pathway.
+- **21 of the 32 recovered cards had over 20% coverage.** Overlapping cards are
+  documented as a physical limit, but exact bounds identify them. The limit is
+  framing *under* overlap, not overlap itself.
+- The four unrecovered cards are a mixed residual, and two of them are *clear*
+  cards with ~0–6% coverage that fail even when perfectly cropped — genuine
+  pixel failures that no localization work can reach.
+- **This is an upper bound, not a forecast.** `perfectCrop` uses the scene's own
+  ground-truth geometry, which no real detector will match.
+- It buys accuracy, not speed: perfect-crop identification still measured a
+  5518ms median. Latency needs a separate lever.
+
+Consequence for planning: tuning the heuristic proposal scorer is zero-sum (see
+the two rejected experiments below), while correct localization is worth +2
+points on the primary gate and +32 on the hardest suite. `scene.js` already
+records ground-truth geometry per card (`truthGeometry`: centre, size, angle),
+so it is also a labelled-data generator for a learned quad detector.
+
+## 2026-08-02 — `occlusion-edges` — occlusion-tolerant isolation — REVERTED (a wash)
+
+`cardBoundaryScore` pools all 68 edge samples and takes one median, so an
+occluder that corrupts roughly a quarter of them drags the true rectangle below
+decorative edges. Scoring the four edges independently and keeping the best
+three was measured on two deterministic suites that pull in opposite
+directions, and traded almost exactly evenly:
+
+| Suite | Baseline | Best-3 | Outlier-gated (0.6) |
+| --- | --- | --- | --- |
+| Fixed top-edge 64 | 81.3% (52/64) | **85.9% (55/64)** | — |
+| Fixed 200 | 96.0% (192/200) | 95.0% (190/200) | 95.0% (190/200) |
+
+- Both suites ran 0 errors with **nested miss sets** — the patched arm missed
+  every baseline miss plus a specific extra pair — so both deltas are real
+  effects, not sampling noise. Net **+1 card**, which does not clear the
+  two-card bar.
+- **Precision never degraded.** `art-match` was 54/54 on top-edge and 187/187
+  on Fixed 200. The failure mode was never a false match; the two lost cards
+  went to `absent`.
+- **The trade is structural, not a threshold.** Requiring the weak edge to be
+  an outlier left Fixed 200 at exactly 95.0% with an identical miss set.
+  Averaging a variable number of per-edge scores makes the result's scale
+  depend on how many edges are valid, so a rectangle whose top edge runs off
+  the capture boundary is judged on a different basis than one with four
+  measurable edges. Both regressed cards (`The One Ring`, `Mischievous Pup`)
+  are `top-edge-clipped`, and `The One Ring` carries **no occlusion at all** —
+  baseline reads it at d=105.
+- Worth another attempt with a **scale-preserving** statistic: a pooled median
+  over the samples of the best three edges, rather than a mean of per-edge
+  medians.
+
+**The diagnosis behind it still holds and is the most useful output here.**
+Every miss on `Fixed top-edge 64` carries a finger or dice occlusion while
+unoccluded cards score **16/16**, and a control experiment showed a *perfect
+crop* of an occluded card still identifies — d=81 with dice, d=120 with dice
+and fingers, d=92 upside-down with both. The pixels survive occlusion; only the
+framing fails. Losses concentrate in occlusion and upside-down (11/16), not in
+the clipping the suite is named for.
+
+## 2026-08-02 — `ocr-legibility-1` — stop escalating OCR on illegible strips
+
+Both OCR retry tiers fire when the best title score is under 0.82, which is
+exactly what a hopeless scan produces — so the worse the capture, the more OCR
+it buys: up to 24 reads, then 12 bottom-strip reads, then 3 flattened retries.
+Escalation now requires the first wave to have found something legible
+(tesseract confidence ≥ 30).
+
+- Across all 64 cards of `Fixed top-edge 64`, OCR produced **zero** correct
+  identifications — `byPathway` carries no title entry at all — while every
+  miss read at confidence 13 or below (`"Ise em"`, `"NOTIN"`, `"foo ee"`) and
+  still paid for all three tiers.
+- Accuracy unchanged at 55/64 with an **identical miss set**, confirming the
+  skipped work never contributed.
+- On five matched hard scans replayed against the previous build, scans that
+  reach OCR measured **8500ms → 7826ms (−7.9%)**, with the two illegible-read
+  cases dropping 13–18%. A sixth scan that never reaches OCR measured 4451ms
+  vs 4360ms across the two runs — a built-in control confirming the machine was
+  stable and the gain is the change rather than drift.
+
+## 2026-08-02 — `lsh-recall-1` — LSH recall net for non-seed crops — REJECTED
+
+An attempt to attack the `absent`-from-shortlist miss signature by letting every
+non-seed crop introduce candidates through the existing multi-table LSH index,
+rather than only refining the shortlist the ten full-scan seeds built. The
+change was measured against its own baseline on `Fixed top-edge 64` and **not
+shipped**: it recovered one card out of sixty-four and produced no speed
+change at all.
+
+**Runs (all `fixedTopEdge64`, local build, same machine):**
+
+| | Baseline-1 | `lsh-recall-1` | Baseline-2 (control) |
+| --- | --- | --- | --- |
+| Accuracy | 81.3% (52/64) | 82.8% (53/64) | 81.3% (52/64) |
+| median / p90 / max ms | 5058 / 16254 / 32363 | 4455 / 7439 / 9481 | 4419 / 7403 / 9407 |
+| prep / rank / orb / ocr | 702 / 4139 / 843 / 7097 | 471 / 2738 / 427 / 3365 | 473 / 2761 / 340 / 3461 |
+| `missTrueRank` absent | 11 | 10 | 11 |
+| art-match precision | 51/51 | 52/52 | 51/51 |
+| WASM heap | 134→134 | 134→134 | 134→134 |
+
+- **The apparent 54% p90 win was environmental, not the change.** Baseline-1
+  ran while another agent was building on the same machine. The tell was
+  `prep` dropping 33% — `prep` is crop generation and the change cannot touch
+  it. Baseline-2 re-ran the *unmodified* build under current conditions and
+  matched the patched arm on every stage (median 4419 vs 4455, p90 7403 vs
+  7439, prep 473 vs 471). **Always re-run the baseline in the same session
+  before believing a latency delta.**
+- **The accuracy gain was real but tiny.** Both baseline runs missed the
+  identical twelve cards; the patched run missed eleven, recovering `Muzzle`
+  from `absent`. On a fixed deterministic suite that is a genuine effect
+  rather than sampling noise, but one card does not clear the two-card bar.
+- **Precision was preserved.** The recall net admitted no false art matches
+  (52/52). The `bestCandidateDistance > 90` gate means a scan that is already
+  going well pays nothing, which the matched timings confirm.
+
+**The useful result is the negative one.** The premise was that retrieval
+breadth was the binding constraint — that the true printing was `absent`
+because only seeds could introduce it. Given that ability, non-seed crops
+recovered 1 of 11 absent misses. Retrieval breadth is *not* the constraint.
+This is consistent with the perfect-crop control recovering 22/23 Vegas
+misses: when a crop frames the card, retrieval already works, so a wider net
+over badly-framed crops catches nothing. **Framing remains the whole problem.**
+
+This run also localizes where the losses are on the edge-clipped set, and it
+is not the clipping:
+
+| `byOcclusion` | | `byRotation` | |
+| --- | --- | --- | --- |
+| none | **16/16** | sideways | 15/16 |
+| dice | 13/16 | tilt | 14/16 |
+| fingers | 12/16 | upright | 13/16 |
+| fingers-dice | 11/16 | **upsidedown** | **10/16** |
+
+Unoccluded top-edge cards are perfect. The remaining misses are concentrated in
+**physical occlusion (fingers/dice on the card) and upside-down orientation** —
+neither of which is a retrieval problem. Those are the targets worth attacking
+next.
+
 ## 2026-08-02 — `platform-1` — React 19 migration; Vite 8 and Tesseract 7 rejected
 
 The platform migration evaluated each major independently. React upgraded from

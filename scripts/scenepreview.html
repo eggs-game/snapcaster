@@ -1,0 +1,81 @@
+<!doctype html>
+<!--
+  Local-only visual check for SNAPTEST scene rendering. Not part of the app and
+  not routed: it exists so a change to scene.js can be LOOKED AT beside the real
+  webcam frames it is meant to imitate, instead of being reasoned about.
+
+  It lives in scripts/ rather than public/ on purpose — Vite copies public/ into
+  dist/, and this page imports from /src, which does not exist in a production
+  build. Shipping it would put a permanently broken page on the live site.
+
+  Needs no build step; scene.js and its imports are plain ES modules. Serve the
+  repo with a static server that maps /src/** to the repo root and everything
+  else to public/ (see docs/testing.md), then open:
+
+    /scripts/scenepreview.html?scene=0&mat=1
+
+  Query: scene=<n>, mat=<0-9 index into MATS, omit to cycle>, realism=0 for v1.
+-->
+<meta charset="utf-8">
+<title>scene preview</title>
+<style>
+  body { margin: 0; background: #111; color: #ddd; font: 13px system-ui, sans-serif; }
+  #bar { padding: 8px 12px; display: flex; gap: 14px; align-items: center; }
+  canvas { display: block; width: 100vw; height: auto; }
+  #err { color: #f88; padding: 0 12px; white-space: pre-wrap; }
+</style>
+<div id="bar"><span id="status">loading…</span></div>
+<div id="err"></div>
+<canvas id="out"></canvas>
+
+<script type="module">
+import { buildScene } from "/src/snaptest/scene.js";
+
+const q = new URLSearchParams(location.search);
+const sceneIdx = +(q.get("scene") ?? 0);
+const matIdx = q.get("mat");
+const realism = q.get("realism") !== "0";
+
+const MATS = [
+  "magic-con-vegas", "ff-cloud", "commander-series-2",
+  "mythic-land-black", "mythic-land-other",
+  "ultra-pro-green", "ultra-pro-blue", "ultra-pro-red", "ultra-pro-white",
+  null,
+];
+
+// A fixed, hand-picked set of real Scryfall printing IDs. Hard-coded rather
+// than sampled so the preview shows the same ten cards every time and a render
+// change is the only thing that can move between two screenshots.
+const CARDS = [
+  { id: "e07f656c-97b5-4147-821a-edbb49f34e19", name: "Sol Ring", tappable: true },
+  { id: "8bc964b1-26bc-4dd2-99e3-4f421c2f8e67", name: "Cultivate", tappable: false },
+  { id: "3ff0d00d-367c-4aac-994c-9c0f74b5c54b", name: "Rhystic Study", tappable: true },
+  { id: "50fc5b10-6215-48a9-8993-b61681f61186", name: "Swords to Plowshares", tappable: false },
+  { id: "44ff370e-b72d-4a6c-b6dd-8434820559cc", name: "Arcane Signet", tappable: true },
+  { id: "7cf39d35-1426-4edb-98ae-d1f1a470629f", name: "Command Tower", tappable: true },
+  { id: "d99d5685-538d-4e6a-809b-3ebeab634363", name: "Forest", tappable: true },
+  { id: "7c666b4b-c4ff-40ca-9d16-c76aafebaa83", name: "Counterspell", tappable: false },
+  { id: "c7a7fe6e-aa5a-4be6-a730-5cfff4fb89e3", name: "Llanowar Elves", tappable: true },
+  { id: "2e1a99a0-757a-451f-b9be-08c116248136", name: "Beast", tappable: true },
+];
+
+const status = document.getElementById("status");
+const errEl = document.getElementById("err");
+
+try {
+  const playmat = matIdx === null ? MATS[sceneIdx % MATS.length] : MATS[+matIdx];
+  status.textContent = `scene ${sceneIdx} · mat ${playmat ?? "bare cloth"} · realism ${realism}`;
+  const r = await buildScene(CARDS, sceneIdx, 1920, 1080, {
+    realism, perspective: true, dice: true, playmat,
+  });
+  if (!r.canvas) throw new Error(`no canvas; ${r.failed.length} images failed to load`);
+  const out = document.getElementById("out");
+  out.width = r.canvas.width; out.height = r.canvas.height;
+  out.getContext("2d").drawImage(r.canvas, 0, 0);
+  status.textContent += ` · ${r.placed.length} placed, ${r.failed.length} failed`;
+  window.__preview = r;
+} catch (e) {
+  errEl.textContent = String(e && e.stack || e);
+  status.textContent = "failed";
+}
+</script>

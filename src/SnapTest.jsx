@@ -3,12 +3,32 @@ import { identify as identifyCard, preload } from "./recognition/matcher.js";
 import { degrade, loadImage, perspectiveDegrade, scryfallImageUrl, summarize } from "./snaptest/degrade.js";
 import { buildScene, cropScene, perfectCrop, releaseScene } from "./snaptest/scene.js";
 
+// Small seeded PRNG, matching the one scene.js uses, so a suite can fix its
+// card draw without pulling in the scene module's internals.
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 const STAGE_LABEL = {
   "image-load": "image-load",
   "timeout": "timeout (30s)",
   "identify-error": "identify-error",
   "other": "other",
 };
+
+// Backgrounds cycled through a Real life run: a real table is not one mat, and
+// a suite on a single mat measures that mat.
+const REAL_MATS = [
+  "magic-con-vegas", "ff-cloud", "commander-series-2",
+  "mythic-land-black", "mythic-land-other",
+  "ultra-pro-green", "ultra-pro-blue", "ultra-pro-red", "ultra-pro-white",
+  null,
+];
 
 const MODES = {
   random200: { label: "Random 200 (new each run)", size: 200 },
@@ -35,6 +55,20 @@ const MODES = {
     label: "Fixed tableau overlap dice (100 cards, targeted)",
     size: 100, scenes: 10, perScene: 10, dice: true, fixed: true,
     layout: "overlapping",
+  },
+  realLife: {
+    // Modelled on real game footage rather than on a clean render: cards
+    // sleeved and stacked the way lands actually sit, blurred as a webcam over
+    // a compressed link renders them, blown-out glare, and camera perspective.
+    // Drawn from the EDHREC top 2000 so the pool is what people actually play,
+    // and the sampler's usual mix keeps tokens and basic lands in.
+    label: "Real life — sleeved, stacked, glare, perspective, dice (200 cards)",
+    size: 200, scenes: 20, perScene: 10, popular: 2000,
+    realism: true, perspective: true, dice: true,
+    // Fixed draw: the same 200 cards every run, so a change of a few cards is
+    // a real change rather than a different sample.
+    seed: 20260803,
+    diagnosePerfect: true,
   },
   tableauEdh100: {
     label: "Tableau 100 scenes — EDH staples (1000 cards)",
@@ -89,6 +123,12 @@ function captureDiagnostics(rec, data, trueName) {
   rec.wasmHeapMB = data.wasm_heap_mb;
   rec.isolationDebug = data.isolation_debug || null;
   rec.hintHit = !!data.hint_hit;
+  // Coverage instrumentation. 56% of Real life scans reach no confident
+  // pathway, and three quarters of those are still correct — so the question
+  // is how far they sat from the gates, not whether they were right.
+  rec.gateDist = top ? top.distance : null;
+  rec.gateInliers = data.art_best ? (data.art_best.inliers || 0) : 0;
+  rec.gateArtDecisive = !!data.art_decisive;
 }
 
 // Accuracy grouped by an arbitrary key, for the summary breakdowns.
@@ -243,12 +283,16 @@ export default function SnapTest() {
     const picked = [];
     const seen = new Set();
     let guard = 0;
+    // A seeded draw makes a suite repeatable. Two Real life runs of the same
+    // build scored 86.0% and 78.8% on random draws — a 7-point swing that would
+    // bury any real change. `seed` opts in; everything else keeps Math.random.
+    const rand = options.seed != null ? mulberry32(options.seed) : Math.random;
     while (picked.length < n && guard++ < n * 50) {
-      const roll = Math.random();
+      const roll = rand();
       const pool = options.cardsOnly ? ranked
         : roll < CLICK_MIX.tokens ? tokens
           : roll < CLICK_MIX.tokens + CLICK_MIX.basics ? basics : ranked;
-      const j = (Math.random() * pool.length) | 0;
+      const j = (rand() * pool.length) | 0;
       const entry = pool[j];
       if (!entry) continue;
       const key = `${entry.name}:${j}`;
@@ -256,7 +300,7 @@ export default function SnapTest() {
       seen.add(key);
       picked.push({
         name: entry.name, pool: entry.pool,
-        id: entry.ids[(Math.random() * entry.ids.length) | 0],
+        id: entry.ids[(rand() * entry.ids.length) | 0],
       });
     }
     return picked;
@@ -294,6 +338,7 @@ export default function SnapTest() {
     const popular = MODES[mode].popular;
     if (popular) return samplePopular(MODES[mode].size, popular, {
       cardsOnly: MODES[mode].cardsOnly,
+      seed: MODES[mode].seed,
     });
     if (mode === "random200") return sampleIndex(200);
     if (MODES[mode].fixed) return cards.slice(0, MODES[mode].size);
@@ -326,6 +371,11 @@ export default function SnapTest() {
           dice: !!MODES[mode].dice,
           layout: MODES[mode].layout,
           playmat: MODES[mode].playmat,
+          perspective: !!MODES[mode].perspective,
+          // Every mat in rotation, so a run is not a single background.
+          ...(MODES[mode].realism && !MODES[mode].playmat
+            ? { playmat: REAL_MATS[s % REAL_MATS.length] }
+            : {}),
         });
       } catch (e) {
         for (const card of group) {

@@ -1,0 +1,95 @@
+<!doctype html>
+<!--
+  Contact sheet of Real life scenes. Same purpose as scenepreview.html but for
+  several scenes at once, which is how a suite is actually judged — one scene
+  proves nothing about the mat, rotation and lighting variety across a run.
+
+  Serve with scripts/serve_preview.py and open
+  /scripts/scenesheet.html?from=0&count=6
+-->
+<meta charset="utf-8">
+<title>Real life contact sheet</title>
+<style>
+  body { margin: 0; background: #0d0d0f; color: #ddd; font: 12px system-ui, sans-serif; }
+  figure { margin: 0 0 10px; }
+  figcaption { padding: 5px 8px; color: #9aa; }
+  canvas { display: block; width: 100%; height: auto; }
+  #err { color: #f88; padding: 10px; white-space: pre-wrap; }
+</style>
+<div id="err"></div>
+<div id="sheet"></div>
+
+<script type="module">
+import { buildScene, cropScene, releaseScene } from "/src/snaptest/scene.js";
+
+const q = new URLSearchParams(location.search);
+const from = +(q.get("from") ?? 0);
+const count = +(q.get("count") ?? 6);
+const showCrop = q.get("crop") === "1";
+
+// The nine mats the Real life suite cycles, plus bare cloth — same order as
+// REAL_MATS in SnapTest.jsx.
+const MATS = [
+  "magic-con-vegas", "ff-cloud", "commander-series-2",
+  "mythic-land-black", "mythic-land-other",
+  "ultra-pro-green", "ultra-pro-blue", "ultra-pro-red", "ultra-pro-white",
+  null,
+];
+
+const CARDS = [
+  { id: "e07f656c-97b5-4147-821a-edbb49f34e19", name: "Sol Ring" },
+  { id: "8bc964b1-26bc-4dd2-99e3-4f421c2f8e67", name: "Cultivate" },
+  { id: "3ff0d00d-367c-4aac-994c-9c0f74b5c54b", name: "Rhystic Study" },
+  { id: "50fc5b10-6215-48a9-8993-b61681f61186", name: "Swords to Plowshares" },
+  { id: "44ff370e-b72d-4a6c-b6dd-8434820559cc", name: "Arcane Signet" },
+  { id: "7cf39d35-1426-4edb-98ae-d1f1a470629f", name: "Command Tower" },
+  { id: "d99d5685-538d-4e6a-809b-3ebeab634363", name: "Forest" },
+  { id: "7c666b4b-c4ff-40ca-9d16-c76aafebaa83", name: "Counterspell" },
+  { id: "c7a7fe6e-aa5a-4be6-a730-5cfff4fb89e3", name: "Llanowar Elves" },
+  { id: "2e1a99a0-757a-451f-b9be-08c116248136", name: "Beast" },
+];
+
+const sheet = document.getElementById("sheet");
+try {
+  for (let s = from; s < from + count; s++) {
+    const playmat = MATS[s % MATS.length];
+    const r = await buildScene(CARDS, s, 1920, 1080, {
+      realism: true, perspective: true, dice: true, playmat,
+    });
+    if (!r.canvas) continue;
+    const fig = document.createElement("figure");
+    const cap = document.createElement("figcaption");
+    const tapped = r.placed.filter((p) => p.rotationClass === "tapped").length;
+    const inv = r.placed.filter((p) => p.rotationClass === "upsidedown").length;
+    const sleeved = r.placed.filter((p) => p.sleeved).length;
+    const stacked = r.placed.filter((p) => p.stacked).length;
+    cap.textContent = `scene ${s} · ${playmat ?? "bare cloth"} · ${r.placed[0].layout}`
+      + ` · ${tapped} tapped · ${inv} inverted · ${sleeved}/10 sleeved`
+      + ` · ${stacked} stacked · dice on all`;
+
+    let src = r.canvas;
+    if (showCrop) {
+      // What recognition actually receives: the production capture crop around
+      // one clicked card, not the whole frame.
+      const p = r.placed[(s * 3) % r.placed.length];
+      const c = cropScene(r.canvas, p.nx, p.ny);
+      const im = new Image();
+      await new Promise((res) => { im.onload = res; im.src = c.url; });
+      const cc = document.createElement("canvas");
+      cc.width = im.width; cc.height = im.height;
+      cc.getContext("2d").drawImage(im, 0, 0);
+      src = cc;
+      cap.textContent += ` · CROP of "${p.card.name}" (${p.rotationClass}, ${p.occ})`;
+    }
+    const out = document.createElement("canvas");
+    out.width = src.width; out.height = src.height;
+    out.getContext("2d").drawImage(src, 0, 0);
+    fig.append(out, cap);
+    sheet.append(fig);
+    releaseScene(r.canvas);
+  }
+  document.title = "ready";
+} catch (e) {
+  document.getElementById("err").textContent = String(e && e.stack || e);
+}
+</script>

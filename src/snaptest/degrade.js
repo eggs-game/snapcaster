@@ -155,7 +155,7 @@ function affineForTriangle(src, dst) {
 // Canvas 2D has affine transforms but no projective transform. Four clipped
 // triangles are enough for a card: each maps one corner and the card centre,
 // avoiding the obvious diagonal seam a two-triangle split can produce.
-function drawImageOnQuad(x, img, quad) {
+export function drawImageOnQuad(x, img, quad) {
   const sw = img.width, sh = img.height;
   const srcCenter = { x: sw / 2, y: sh / 2 };
   const dstCenter = {

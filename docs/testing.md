@@ -35,8 +35,30 @@ the shape a video tile actually is — containing 10 cards:
   cloth background; JPEG compression
 
 Each card is then clicked at a **random point on its visible artwork** — never
-dead centre, and never on a spot a neighbour covers, since naming the card
-actually under the cursor would not be a miss.
+dead centre, and never on a spot a neighbour or a die covers, since naming the
+card actually under the cursor would not be a miss.
+
+### Calibrating against real frames
+
+Twenty-five real webcam frames were measured the same way the renders were, and
+the comparison corrected several things eyeballing had missed:
+
+| | Real frames | Scenes before | Change |
+| --- | --- | --- | --- |
+| glare — worst % of pixels blown | **11%** | 0.1% | hotspots widened, with a flat saturated core. A highlight that only tints the art is not the case that defeats art verification |
+| sleeves | bright about as often as dark | 5 matte darks only | added saturated blue, green, purple, deep red and a pale cream. A dark sleeve hides the card edge against a dark mat, a bright one against a bright mat |
+| dice | square from above | **rendering as circles** | `roundedRect` was called with `size` passed twice, so the corner radius became the full side length. Every die in every dice suite was a rounder, smaller occluder than intended |
+| blur | one sharp plane, softer away from it | per-card random | blur now follows distance from a focal band, so a scan's difficulty depends on where on the table the card sits. A sharp card beside a soft one at the same distance cannot happen |
+| playmats | many | one registered | the four Ultra-PRO mats and four full-art mats are now registered, so `REAL_MATS` resolves instead of silently falling back to bare cloth |
+
+The frames are a **visual reference, not a target.** The point is that every
+condition is present and in a plausible range, not that a statistic matches.
+
+`scripts/scenepreview.html` renders a single scene for visual inspection with no
+build step. Serve the repo with `python3 scripts/serve_preview.py 8777` (it maps
+`/src/**` to the repo and everything else to `public/`, the way Vite does) and
+open `/scripts/scenepreview.html?scene=0&mat=1`. Query parameters are
+`scene`, `mat` and `realism=0`.
 
 The **Perspective EDH staples** mode keeps one card isolated per frame, but
 maps the card onto a four-corner trapezoid before adding warm cloth lighting,
@@ -81,7 +103,8 @@ add ~1%.
 
 | Mode | Use |
 | --- | --- |
-| **Tableau 10 — EDH staples (100 cards)** | The default. Realistic scenes, realistic cards, ~5 min |
+| **Real life (200 cards)** | **The primary suite.** Every condition a webcam over a real table shows, applied at once: sleeved and stacked cards, tapped and inverted, dice on them, blur, blown-out glare and camera perspective, cycling all nine playmats plus bare cloth. Fixed 200-card draw (`seed: 20260803`) so a few cards moving is a real change and not a different sample |
+| **Tableau 10 — EDH staples (100 cards)** | Faster realistic-scene check, realistic cards, ~5 min |
 | **Tableau Magic Con Vegas playmat — EDH staples (200 cards)** | Twenty 10-card Tableau scenes rendered over the supplied Magic Con Vegas playmat; includes the normal 25% tapped-card mix. Misses also run through an exact counter-rotated crop, reported as `perfectCropControl`, to separate retrieval/isolation failures from unreadable source pixels. |
 | **Tableau 10 EDH dice (100 cards)** | Same EDH tableau, with one white/black/blue/red/pink die on every card |
 | **Fixed tableau overlap dice (100 cards)** | Same 100 frozen cards in forced-overlap dice scenes; repeatable targeted A/B, not a production score |
@@ -104,19 +127,25 @@ or OCR decision change and before releasing that recognition build:
 
 | Order | Suite | Release gate |
 | --- | --- | --- |
-| 1 | **Tableau 10 — EDH staples (100 cards)** | At least 95% overall; no accepted-pathway precision regression; inspect layout and rotation breakdowns. |
-| 2 | **Tableau Magic Con Vegas playmat — EDH staples (200 cards)** | Complete all 200 cards in a fresh browser session. At least 90% overall, 92% on clear cards, 95% on side-by-side cards, and 85% in every rotation bucket. `art-match` and `visual-exact` must remain 100% precise. |
-| 3 | **Tableau 10 EDH dice (100 cards)** | At least 90% overall; inspect every die-colour bucket and compare clear-card accuracy with the ordinary tableau. |
-| 4 | **Random 200** | At least 95% overall; inspect the top-edge/clipped placement separately. |
-| 5 | **EDH staples 200** | At least 93% overall; no regression in the first three placement blocks or the top-edge block. |
+| 1 | **Real life (200 cards)** | The headline suite. Deterministic draw, so compare card-for-card against the last recorded run rather than against a gate alone. `art-match` and `visual-exact` must stay ≥99% precise; inspect `byOcclusion`, `byRotation` and the perfect-crop control. |
+| 2 | **Tableau 10 — EDH staples (100 cards)** | At least 95% overall; no accepted-pathway precision regression; inspect layout and rotation breakdowns. |
+| 3 | **Tableau Magic Con Vegas playmat — EDH staples (200 cards)** | Complete all 200 cards in a fresh browser session. At least 90% overall, 92% on clear cards, 95% on side-by-side cards, and 85% in every rotation bucket. `art-match` and `visual-exact` must remain 100% precise. |
+| 4 | **Tableau 10 EDH dice (100 cards)** | At least 90% overall; inspect every die-colour bucket and compare clear-card accuracy with the ordinary tableau. |
+| 5 | **Random 200** | At least 95% overall; inspect the top-edge/clipped placement separately. |
+| 6 | **EDH staples 200** | At least 93% overall; no regression in the first three placement blocks or the top-edge block. |
+
+**Real life leads the plan** because it is the only suite carrying every
+condition at once. The gates on suites 2–6 were set against cleaner scenes; they
+remain useful as regression detectors but a build that passes them all and
+regresses Real life has regressed.
 
 The Vegas suite is a required playmat-stress gate, not an optional targeted
 experiment. Its illustrated background reproduces the real failure where
 decorative contours and card art compete during isolation. Always report
-`byLayout`, `byRotation`, `byCoverage`, `missTrueRank`, accepted-pathway
-precision, median/p90 latency, first/second-half accuracy, and the perfect-crop
-control. A partial Vegas run may guide development but cannot satisfy the
-release gate.
+`byLayout`, `byRotation`, `byCoverage`, `byOcclusion`, `missTrueRank`,
+accepted-pathway precision, median/p90 latency, first/second-half accuracy, and
+the perfect-crop control. A partial Vegas run may guide development but cannot
+satisfy the release gate.
 
 Run each long suite in a fresh browser session. Sequential runs have previously
 hit bursty reference-image delivery and produced misleading latency tails. A
@@ -181,6 +210,7 @@ diagnose:
 - **`byLayout`** — side-by-side / spaced / overlapping. Isolates crowding.
 - **`byPool`** — card / token / basic. Answers "are tokens weak?"
 - **`byClipped`**, **`byCoverage`** — cost of frame-clipping and of neighbours.
+- **`byOcclusion`** — clear / overlapped / edge.
 - **`byPlacement`** — the single-card crop geometry: two mildly centred
   blocks, an above-click block and the top-edge-clipped block. Each copied miss
   also includes its original index and degradation index for exact replay.

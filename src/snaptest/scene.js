@@ -17,14 +17,111 @@
 // captureGeometry.js, so a tableau run exercises the same capture path the
 // live app uses.
 
-import { loadImage, scryfallImageUrl } from "./degrade.js";
+import { loadImage, scryfallImageUrl, drawImageOnQuad } from "./degrade.js";
 import { cropGeometry } from "../captureGeometry.js";
 
 const CARD_ASPECT = 88 / 63; // MTG card height / width
+// One playmat is enough to stress isolation, but not to prove it generalizes: a
+// run on a single mat measures that mat. The four Ultra-PRO mats already shipped
+// for the landing page carry heavy printed art and a rectangular printed border,
+// which is exactly the decoration that competes with a card's own edges.
+//
+// Every name here must resolve to a file that exists. loadPlaymat swallows a
+// failed load and returns null, which silently downgrades that scene to bare
+// cloth — the opposite of what a playmat-stress suite is for, and invisible in
+// the results.
 const PLAYMAT_IMAGES = {
   "magic-con-vegas": "/snaptest/playmats/magic-con-vegas.png",
+  "ultra-pro-green": "/home-playmats/green.png",
+  "ultra-pro-blue": "/home-playmats/blue.png",
+  "ultra-pro-red": "/home-playmats/red.png",
+  "ultra-pro-white": "/home-playmats/white.png",
+  "ff-cloud": "/snaptest/playmats/ff-cloud.png",
+  "commander-series-2": "/snaptest/playmats/commander-series-2.png",
+  "mythic-land-black": "/snaptest/playmats/mythic-land-black.png",
+  "mythic-land-other": "/snaptest/playmats/mythic-land-other.png",
 };
 const playmatImageCache = new Map();
+
+// Sleeve colours seen on real tables. The first five are the matte darks this
+// started with; the rest were added after looking at 25 real webcam frames, in
+// which bright sleeves were roughly as common as dark ones — saturated blue and
+// green, and a pale cream that is the hardest case of all, because it blows out
+// under glare and takes the card's own border with it.
+//
+// A palette of only dark sleeves tests one half of the problem. A dark sleeve
+// hides the card edge against a dark mat; a bright one hides it against a bright
+// mat, and isolation fails differently in each.
+// `face` is the border visible around the card, `edge` the darker side seen when
+// cards are stacked.
+const SLEEVE_TONES = [
+  { face: "#14161a", edge: "#0b0d10" },
+  { face: "#1b1f26", edge: "#101318" },
+  { face: "#232833", edge: "#161a22" },
+  { face: "#2a1c2e", edge: "#1a1120" },
+  { face: "#122029", edge: "#0b141b" },
+  { face: "#2f6fc4", edge: "#1d4680" },   // saturated blue
+  { face: "#2f7d4a", edge: "#1c4c2d" },   // green
+  { face: "#d8d3b4", edge: "#a29d81" },   // cream / pale
+  { face: "#6b4b9a", edge: "#402d5e" },   // purple
+  { face: "#8f2f2f", edge: "#591d1d" },   // deep red
+];
+// A sleeve adds a few millimetres on every side of a 63mm card, so the visible
+// rectangle is the sleeve rather than the card. That matters: the index is
+// built from bare card scans.
+const SLEEVE_MARGIN = 0.045;
+
+
+// Camera perspective for a card lying on a table. Canvas 2D is affine only, so
+// the card is drawn onto an explicit trapezoid (see drawImageOnQuad). A camera
+// looking across a table sees the far edge narrower than the near edge, which
+// no amount of rotation reproduces.
+function cardQuad(cx, cy, w, h, deg, p) {
+  const top = w * p.top, bot = w * p.bottom, lean = w * p.lean;
+  const local = [
+    { x: -top / 2 + lean, y: -h / 2 },
+    { x: top / 2 + lean, y: -h / 2 },
+    { x: bot / 2, y: h / 2 },
+    { x: -bot / 2, y: h / 2 },
+  ];
+  const a = deg * Math.PI / 180, c = Math.cos(a), sn = Math.sin(a);
+  return local.map((q) => ({ x: cx + q.x * c - q.y * sn, y: cy + q.x * sn + q.y * c }));
+}
+
+// Point at (u,v) in card space, 0..1, interpolated across the quad. Clicks must
+// follow the same warp as the artwork or they stop landing on the art.
+function quadPoint(q, u, v) {
+  const tx = q[0].x + (q[1].x - q[0].x) * u, ty = q[0].y + (q[1].y - q[0].y) * u;
+  const bx = q[3].x + (q[2].x - q[3].x) * u, by = q[3].y + (q[2].y - q[3].y) * u;
+  return { x: tx + (bx - tx) * v, y: ty + (by - ty) * v };
+}
+
+function expandQuad(q, m) {
+  const cx = (q[0].x + q[1].x + q[2].x + q[3].x) / 4;
+  const cy = (q[0].y + q[1].y + q[2].y + q[3].y) / 4;
+  return q.map((p) => ({ x: cx + (p.x - cx) * (1 + m), y: cy + (p.y - cy) * (1 + m) }));
+}
+
+function fillQuad(x, q, fill) {
+  x.fillStyle = fill;
+  x.beginPath();
+  x.moveTo(q[0].x, q[0].y);
+  for (let i = 1; i < 4; i++) x.lineTo(q[i].x, q[i].y);
+  x.closePath();
+  x.fill();
+}
+
+function paintRounded(x, px, py, w, h, r, fill) {
+  x.fillStyle = fill;
+  x.beginPath();
+  x.moveTo(px + r, py);
+  x.arcTo(px + w, py, px + w, py + h, r);
+  x.arcTo(px + w, py + h, px, py + h, r);
+  x.arcTo(px, py + h, px, py, r);
+  x.arcTo(px, py, px + w, py, r);
+  x.closePath();
+  x.fill();
+}
 const DICE = [
   { name: "white", fill: "#f4f1e8", pip: "#20242b" },
   { name: "black", fill: "#20242b", pip: "#f5f3ed" },
@@ -100,7 +197,11 @@ function paintDie(x, card, die) {
   x.shadowBlur = die.size * 0.18;
   x.shadowOffsetY = die.size * 0.1;
   x.fillStyle = die.fill;
-  roundedRect(x, -die.size / 2, -die.size / 2, die.size, die.size, die.size * 0.18);
+  // roundedRect takes (left, top, size, radius). This passed size twice, so the
+  // corner radius became the die's full side length and every die in every dice
+  // suite rendered as a circle — a rounder, smaller occluder than the square
+  // face a real die presents when viewed from above.
+  roundedRect(x, -die.size / 2, -die.size / 2, die.size, die.size * 0.18);
   x.fill();
   x.shadowColor = "transparent";
   x.fillStyle = die.pip;
@@ -199,6 +300,60 @@ function paintLighting(x, W, H, rnd) {
   x.fillRect(0, 0, W, H);
 }
 
+// Blown-out specular glare across the whole frame.
+//
+// Distinct from the per-card gloss streak, which is clipped to a single card
+// and so never crosses onto the mat or a neighbour. A real lamp or window does
+// the opposite: one hotspot lands wherever it lands, saturates toward white,
+// and takes out whatever is underneath — card edges, art, and table alike.
+// That is the case that defeats both edge-based isolation and art
+// verification, and nothing here simulated it.
+//
+// Opt-in via options.glare, because switching it on changes every rendered
+// scene and would make accuracy numbers incomparable to every run already
+// recorded in snaptest/results.md.
+function paintGlare(x, W, H, rnd) {
+  const diag = Math.hypot(W, H);
+  // One or two tight hotspots. The core reaches near-white, which is what
+  // destroys art information rather than merely brightening it.
+  //
+  // Widened after measuring both sides the same way: across 20 rendered scenes
+  // the worst blowout covered 0.1% of pixels, where the real frames reach 11%.
+  // The hotspots were too small and stopped short of saturation, so they tinted
+  // the art instead of destroying it — and a highlight that does not clip to
+  // white is not the case that defeats art verification.
+  const spots = rnd() < 0.45 ? 2 : 1;
+  for (let i = 0; i < spots; i++) {
+    const r = diag * (0.10 + rnd() * 0.20);
+    const cx = W * (0.1 + rnd() * 0.8);
+    const cy = H * (0.1 + rnd() * 0.8);
+    const peak = 0.75 + rnd() * 0.25;
+    const g = x.createRadialGradient(cx, cy, 0, cx, cy, r);
+    // A flat saturated core, then falloff. A real specular highlight clips over
+    // an area rather than peaking at a single point.
+    g.addColorStop(0, `rgba(255,253,246,${peak.toFixed(2)})`);
+    g.addColorStop(0.22, `rgba(255,253,246,${(peak * 0.92).toFixed(2)})`);
+    g.addColorStop(0.5, `rgba(255,251,238,${(peak * 0.34).toFixed(2)})`);
+    g.addColorStop(1, "rgba(255,250,235,0)");
+    x.fillStyle = g;
+    x.fillRect(0, 0, W, H);
+  }
+  // A broad off-axis band: the window-reflection case, low contrast but wide.
+  if (rnd() < 0.45) {
+    x.save();
+    x.translate(W / 2, H / 2);
+    x.rotate((-35 + rnd() * 70) * Math.PI / 180);
+    const band = x.createLinearGradient(-diag / 2, 0, diag / 2, 0);
+    const a = 0.10 + rnd() * 0.16;
+    band.addColorStop(0, "rgba(255,255,255,0)");
+    band.addColorStop(0.42 + rnd() * 0.16, `rgba(255,252,244,${a.toFixed(2)})`);
+    band.addColorStop(1, "rgba(255,255,255,0)");
+    x.fillStyle = band;
+    x.fillRect(-diag, -diag, diag * 2, diag * 2);
+    x.restore();
+  }
+}
+
 /**
  * Compose a tableau of `cards` (index rows with .id/.name) at frame resolution.
  * Layout is deterministic in `sceneIdx` so scenes are reproducible run to run,
@@ -280,6 +435,11 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080, 
   // normally captures all of it. Roughly one scene in ten is framed tight
   // enough to cut the outer row, which works out at about 5% of cards.
   const tightFrame = sceneIdx % 10 === 6;
+  // Scene v2. Defaults on: sleeves, stacks, glare and heavier blur are what a
+  // webcam over a real table actually shows, and their absence made every suite
+  // easier than production. Pass {realism:false} to reproduce v1 scenes.
+  const realism = options.realism !== false;
+  const perspective = options.perspective === true;
   let cardW = shortSide * (0.18 + rnd() * 0.06);
   // Size against 0.96 of the frame while the fit check below uses 0.98, so the
   // column count can never be tipped down by a marginal rounding. Losing a
@@ -356,6 +516,16 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080, 
     }
   }
 
+  // Focus falloff. A webcam over a table holds one plane sharp and lets the rest
+  // go soft. Per-card random blur, which is what this did before, instead put a
+  // sharp card beside a soft one at the same distance from the lens — which
+  // cannot happen, and which meant a scan's difficulty did not depend on where
+  // on the table the card sat. Opt out with {focusFalloff:false}.
+  const focusFalloff = options.focusFalloff !== undefined
+    ? options.focusFalloff : realism;
+  const focusY = frameH * (0.3 + rnd() * 0.4);
+  const focusHalf = frameH * (0.18 + rnd() * 0.16);
+
   const placed = [];
   for (let i = 0; i < ok.length; i++) {
     const slot = slots[i];
@@ -366,15 +536,40 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080, 
     const angle = sceneAngle + (tapped ? 90 : 0) + (rnd() * 2 - 1) * 12;
     const rotationClass = tapped ? "tapped" : sceneAngle === 180 ? "upsidedown" : "upright";
 
+    // Real boards are mostly sleeved, and lands in particular sit in stacks.
+    // Both were absent here: every card was a bare rectangle sitting alone, so
+    // the two commonest things a camera actually sees were never tested.
+    const sleeved = realism ? rnd() < 0.78 : false;
+    const stackUnder = realism && rnd() < 0.28 ? 1 + ((rnd() * 3) | 0) : 0;
+    const sleeve = SLEEVE_TONES[(rnd() * SLEEVE_TONES.length) | 0];
+
+    // Mild, per-card camera perspective: the far edge of a card reads narrower
+    // than the near edge when a webcam looks across a table. Rotation alone
+    // cannot produce that, so the card is drawn onto a trapezoid.
+    const persp = perspective
+      ? { top: 0.88 + rnd() * 0.10, bottom: 1.02 + rnd() * 0.10, lean: (rnd() * 2 - 1) * 0.10 }
+      : { top: 1, bottom: 1, lean: 0 };
+    const quad = cardQuad(cx, cy, cardW, cardH, angle, persp);
+
     x.save();
-    x.translate(cx, cy);
-    x.rotate(angle * Math.PI / 180);
-    // Slight softness: phone/webcam frames of a table are never tack sharp.
-    x.filter = `blur(${(0.7 + rnd() * 1.6).toFixed(2)}px)`;
+    // Distance from the focal band sets the blur, with a floor so nothing is
+    // ever razor sharp — a compressed webcam link never is.
+    const defocus = focusFalloff
+      ? Math.min(1, Math.abs(cy - focusY) / (focusHalf * 2.2))
+      : rnd();
+    x.filter = `blur(${((realism ? 1.1 : 0.7) + defocus * (realism ? 2.2 : 1.6)).toFixed(2)}px)`;
     x.shadowColor = "rgba(0,0,0,0.5)";
     x.shadowBlur = cardW * 0.05;
     x.shadowOffsetY = cardW * 0.02;
-    x.drawImage(ok[i].im, -cardW / 2, -cardH / 2, cardW, cardH);
+    // Cards underneath, drawn first and offset so only their sleeve edge shows.
+    // The label stays the TOP card: that is the one a player clicks and the one
+    // they expect named.
+    for (let s2 = stackUnder; s2 > 0; s2--) {
+      const off = cardW * 0.035 * s2, dir = (i % 2 ? 1 : -1);
+      fillQuad(x, quad.map((q) => ({ x: q.x - off * dir, y: q.y + off })), sleeve.edge);
+    }
+    if (sleeved) fillQuad(x, expandQuad(quad, SLEEVE_MARGIN), sleeve.face);
+    drawImageOnQuad(x, ok[i].im, quad);
     x.restore();
     x.filter = "none";
     x.shadowColor = "transparent"; x.shadowBlur = 0; x.shadowOffsetY = 0;
@@ -406,7 +601,8 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080, 
       card: ok[i].c,
       cx, cy, angle,
       box: bbox(cx, cy, cardW, cardH, angle),
-      rotationClass, layout,
+      rotationClass, layout, sleeved, stacked: stackUnder, quad,
+      perspective: perspective ? +(persp.bottom - persp.top).toFixed(3) : 0,
     };
 
     if (options.dice) {
@@ -429,6 +625,12 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080, 
   }
 
   paintLighting(x, frameW, frameH, rnd);
+  // Own RNG stream, for the same reason dice have one: toggling glare must not
+  // move, rotate or relight a single card, or a glare-vs-no-glare A/B would be
+  // comparing different tableaux rather than the same one under a lamp.
+  if (realism || options.glare) {
+    paintGlare(x, frameW, frameH, mulberry32(((sceneIdx + 7) * 2654435761) >>> 0));
+  }
 
   // Occlusion label: a card is "overlapped" when a later-drawn neighbour covers
   // a meaningful slice of it, "edge" when the frame itself cuts it off.
@@ -456,7 +658,8 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080, 
     for (let attempt = 0; attempt < 16; attempt++) {
       const u = ART.u0 + rnd() * (ART.u1 - ART.u0);
       const v = ART.v0 + rnd() * (ART.v1 - ART.v0);
-      const f = toFrame(p.cx, p.cy, (u - 0.5) * cardW, (v - 0.5) * cardH, p.angle);
+      const f = p.quad ? quadPoint(p.quad, u, v)
+        : toFrame(p.cx, p.cy, (u - 0.5) * cardW, (v - 0.5) * cardH, p.angle);
       if (f.x < 0 || f.y < 0 || f.x > frameW || f.y > frameH) continue;
       const covered = hitsDie(p, f.x, f.y)
         || placed.slice(i + 1).some((q) => hits(q, f.x, f.y, cardW, cardH));
