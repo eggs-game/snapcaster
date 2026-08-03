@@ -413,12 +413,13 @@ export default function Lobby({
       const role = joiningAsVisitor ? "visitor" : "player";
       const { joinGameRoom } = await loadGameRooms();
       const capability = await joinGameRoom({ code, displayName: name.trim(), role });
+      const joinedRole = capability.role || role;
       stopPreview();
-      go(code, role, "", {
+      go(code, joinedRole, "", {
         videoDeviceId,
         audioDeviceId,
-        videoFlipped: role === "visitor" ? false : videoFlipped,
-        startMuted: role === "visitor" && joinMuted,
+        videoFlipped: joinedRole === "visitor" ? false : videoFlipped,
+        startMuted: joinedRole === "visitor" && joinMuted,
         ...capability,
       });
     } catch (joinError) {

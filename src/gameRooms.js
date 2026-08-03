@@ -124,9 +124,12 @@ export async function joinGameRoom({ code, displayName, role }) {
     gameId: data.game_id,
     membershipId: data.membership_id,
     participantToken,
-    ownerToken: null,
+    ownerToken: data.owner ? participantToken : null,
     seatLimit: data.seat_limit,
     realtimeEpoch,
+    role: data.role === "visitor" ? "visitor" : "player",
+    creator: Boolean(data.owner),
+    resumed: Boolean(data.resumed),
   };
   rememberCapability(code, capability);
   return capability;

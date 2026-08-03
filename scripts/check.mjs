@@ -15,6 +15,7 @@ const checks = [
   [node, "scripts/test_auth_intent.mjs"],
   [node, "scripts/test_anonymous_retention.mjs"],
   [node, "scripts/test_realtime_epoch_rotation.mjs"],
+  [node, "scripts/test_game_rejoin_contract.mjs"],
   [node, "scripts/test_recognition_hints.mjs"],
   [node, "scripts/test_recognition_queue.mjs"],
   [python, "scripts/check_hash_duplication.py"],
