@@ -7,7 +7,8 @@ import re
 ROOT = Path(__file__).resolve().parents[1]
 MIGRATIONS = sorted((ROOT / "supabase" / "migrations").glob("*.sql"))
 SQL = "\n".join(path.read_text() for path in MIGRATIONS)
-SRC = "\n".join(path.read_text() for path in (ROOT / "src").glob("**/*") if path.is_file())
+SOURCE_FILES = sorted(path for path in (ROOT / "src").glob("**/*") if path.is_file())
+SRC = "\n".join(path.read_text() for path in SOURCE_FILES)
 DECK_API = (ROOT / "api" / "decks.js").read_text()
 DECK_IMPORT_SURFACE = "\n".join((
     DECK_API,
@@ -174,7 +175,10 @@ assert re.search(
 assert "printing.oracle_id === source.oracle_id" in DECK_API, (
     "card-art changes must stay on the same Oracle card"
 )
-assert not re.search(r'\.from\("saved_deck_cards"\).*?\.(?:insert|upsert|update)\(', SRC, re.S), (
+assert not any(
+    re.search(r'\.from\("saved_deck_cards"\).*?\.(?:insert|upsert|update)\(', path.read_text(), re.S)
+    for path in SOURCE_FILES
+), (
     "browser clients must not write saved deck cards directly"
 )
 for function_name in (
