@@ -4,6 +4,7 @@ import AccountProfile from "./AccountProfile.jsx";
 import DiscordMark from "./DiscordMark.jsx";
 import SiteFooter from "./SiteFooter.jsx";
 import SiteHeader from "./SiteHeader.jsx";
+import { useConfirmDialog } from "./ConfirmDialog.jsx";
 import {
   blockPlayer,
   getAccountSession,
@@ -121,6 +122,7 @@ function MyProfilePage() {
 }
 
 function PublicProfilePage({ profileId }) {
+  const confirmAction = useConfirmDialog();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -234,7 +236,12 @@ function PublicProfilePage({ profileId }) {
                     </button>
                   )}
                   {viewer?.user?.id && data.relationship !== "blocked" && <button className="danger" type="button" onClick={async () => {
-                    if (!window.confirm(`Block ${data.profile.display_name}? This removes friendships, invitations, and future contact.`)) return;
+                    if (!(await confirmAction({
+                      title: `Block ${data.profile.display_name}?`,
+                      description: "This removes friendships, invitations, and future contact.",
+                      confirmLabel: "Block player",
+                      tone: "danger",
+                    }))) return;
                     try {
                       await blockPlayer(data.profile.id);
                       setData((current) => ({ ...current, relationship: "blocked", stats_visible: false }));

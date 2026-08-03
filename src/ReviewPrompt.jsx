@@ -61,7 +61,7 @@ export default function ReviewPrompt({ sessionId, onClose }) {
   return (
     <div className="lobby-modal-backdrop review-prompt-backdrop">
       <section className="lobby-modal review-prompt" role="dialog" aria-modal="true" aria-labelledby="review-prompt-title">
-        <button className="modal-close" type="button" onClick={onClose} aria-label="Close"><X size={20} /></button>
+        <button className="modal-close" type="button" onClick={onClose} aria-label="Close" data-tooltip="Close" data-tooltip-pos="right-bottom"><X size={20} /></button>
         {friendOffer ? (
           <>
             <header className="modal-head compact">

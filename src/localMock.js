@@ -89,6 +89,9 @@ export async function makeLocalMockGameSession(game, displayName, role) {
     localId,
     roster,
     status: game.status,
+    startedAt: game.started_at || (game.status === "live"
+      ? new Date(Date.now() - 45 * 60 * 1000).toISOString()
+      : ""),
     commanders: { ...(game.mock_state?.commanders || {}) },
     commanderPartners: { ...(game.mock_state?.commander_partners || {}) },
     commanderPartnerTypes: { ...(game.mock_state?.commander_partner_types || {}) },

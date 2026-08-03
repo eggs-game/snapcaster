@@ -10,7 +10,7 @@ export default function AccountPrompt({ onContinue, onDismiss, error = "" }) {
         aria-modal="true"
         aria-labelledby="account-prompt-title"
       >
-        <button className="modal-close" onClick={onDismiss} aria-label="Close">
+        <button className="modal-close" onClick={onDismiss} aria-label="Close" data-tooltip="Close" data-tooltip-pos="right-bottom">
           <X size={20} />
         </button>
         <div className="account-prompt-icon" aria-hidden="true">

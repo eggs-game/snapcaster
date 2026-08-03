@@ -19,6 +19,8 @@ import {
 import SiteFooter from "./SiteFooter.jsx";
 import SiteHeader from "./SiteHeader.jsx";
 import AppToast from "./AppToast.jsx";
+import AppDropdown from "./AppDropdown.jsx";
+import { useConfirmDialog } from "./ConfirmDialog.jsx";
 import {
   addCardToSavedDeck,
   deleteCardFromSavedDeck,
@@ -106,6 +108,7 @@ function printingImageUrl(printing) {
 }
 
 export default function DeckPage({ deckId }) {
+  const confirmAction = useConfirmDialog();
   const [account, setAccount] = useState(null);
   const [accountReady, setAccountReady] = useState(false);
   const [deck, setDeck] = useState(null);
@@ -402,14 +405,14 @@ export default function DeckPage({ deckId }) {
               <>
             <section className="deck-builder-toolbar" aria-label="Deck controls">
               <label className="deck-builder-search"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find cards in this deck" /></label>
-              <label className="deck-builder-select"><span>Group</span><select value={groupBy} onChange={(event) => setGroupBy(event.target.value)}><option value="tag">Tag</option><option value="type">Type</option><option value="cmc">Mana value</option><option value="board">Section</option></select></label>
-              <label className="deck-builder-select"><span>Sort</span><select value={sortBy} onChange={(event) => setSortBy(event.target.value)}><option value="name">Name</option><option value="cmc">Mana value</option></select></label>
+              <div className="deck-builder-select"><span>Group</span><AppDropdown label="Group cards" value={groupBy} onChange={setGroupBy} options={[{ value: "tag", label: "Tag" }, { value: "type", label: "Type" }, { value: "cmc", label: "Mana value" }, { value: "board", label: "Section" }]} /></div>
+              <div className="deck-builder-select"><span>Sort</span><AppDropdown label="Sort cards" value={sortBy} onChange={setSortBy} options={[{ value: "name", label: "Name" }, { value: "cmc", label: "Mana value" }]} /></div>
               <button type="button" className="deck-builder-action" onClick={copyDeckList}><Copy size={16} /> Copy list</button>
               {canEdit && <button type="button" className="deck-builder-action" onClick={() => setPanel(panel === "import" ? null : "import")}><Download size={16} /> Import</button>}
               {canEdit && <button type="button" className="deck-builder-action primary" onClick={() => setPanel(panel === "add" ? null : "add")}><Plus size={16} /> Add card</button>}
               <div className="deck-view-control" role="group" aria-label="Card view">
-                <button type="button" className={view === "text" ? "selected" : ""} onClick={() => setView("text")} aria-label="Text view" title="Text view"><List size={17} /></button>
-                <button type="button" className={view === "cards" ? "selected" : ""} onClick={() => setView("cards")} aria-label="Card view" title="Card view"><LayoutGrid size={17} /></button>
+                <button type="button" className={view === "text" ? "selected" : ""} onClick={() => setView("text")} aria-label="Text view" data-tooltip="Text view"><List size={17} /></button>
+                <button type="button" className={view === "cards" ? "selected" : ""} onClick={() => setView("cards")} aria-label="Card view" data-tooltip="Card view"><LayoutGrid size={17} /></button>
               </div>
             </section>
 
@@ -439,7 +442,7 @@ export default function DeckPage({ deckId }) {
                 <form className="deck-add-card-form" onSubmit={addCard}>
                   <label className="modal-field deck-card-name-field"><span>Card name</span><input value={cardName} onChange={(event) => setCardName(event.target.value)} maxLength={200} placeholder="Sol Ring" required /></label>
                   <label className="modal-field"><span>Quantity</span><input type="number" min="1" max="99" value={quantity} onChange={(event) => setQuantity(event.target.value)} required /></label>
-                  <label className="modal-field"><span>Section</span><select value={board} onChange={(event) => setBoard(event.target.value)}>{BOARD_ORDER.map((key) => <option value={key} key={key}>{BOARD_LABELS[key]}</option>)}</select></label>
+                  <div className="modal-field"><span>Section</span><AppDropdown label="Deck section" value={board} onChange={setBoard} options={BOARD_ORDER.map((key) => ({ value: key, label: BOARD_LABELS[key] }))} /></div>
                   <button className="primary" type="submit" disabled={working}>{working ? "Adding…" : "Add card"}</button>
                 </form>
               </section>
@@ -457,11 +460,16 @@ export default function DeckPage({ deckId }) {
                         <h2>{selectedCard.name}</h2>
                         {canEdit && (
                           <details className="deck-card-actions">
-                            <summary aria-label="Card options" title="Card options"><MoreHorizontal size={16} aria-hidden="true" /></summary>
+                            <summary aria-label="Card options" data-tooltip="Card options"><MoreHorizontal size={16} aria-hidden="true" /></summary>
                             <div>
                               <button type="button" disabled={artLoading || busyCardId === selectedCard.id} onClick={toggleArtPicker}><Palette size={15} /> {artLoading ? "Loading art…" : "Change artwork"}</button>
-                              <button className="danger" type="button" disabled={busyCardId === selectedCard.id} onClick={() => {
-                                if (!window.confirm(`Remove ${selectedCard.name} from this deck?`)) return;
+                              <button className="danger" type="button" disabled={busyCardId === selectedCard.id} onClick={async () => {
+                                if (!(await confirmAction({
+                                  title: `Remove ${selectedCard.name}?`,
+                                  description: "This card will be removed from the deck list.",
+                                  confirmLabel: "Remove card",
+                                  tone: "danger",
+                                }))) return;
                                 runCardAction(selectedCard, () => deleteCardFromSavedDeck(account, deck.id, selectedCard.id), () => `${selectedCard.name} removed.`);
                               }}><Trash2 size={15} /> Remove card</button>
                             </div>
@@ -470,7 +478,7 @@ export default function DeckPage({ deckId }) {
                       </div>
                       {canEdit && artPickerOpen && (
                         <div className="deck-art-picker" aria-label={`Artwork for ${selectedCard.name}`}>
-                          <div className="deck-art-picker-heading"><strong>Choose artwork</strong><button type="button" onClick={() => setArtPickerOpen(false)} aria-label="Close artwork picker"><X size={15} /></button></div>
+                          <div className="deck-art-picker-heading"><strong>Choose artwork</strong><button type="button" onClick={() => setArtPickerOpen(false)} aria-label="Close artwork picker" data-tooltip="Close"><X size={15} /></button></div>
                           {artLoading ? <p>Loading printings…</p> : printings.length ? (
                             <div className="deck-art-grid">
                               {printings.map((printing) => (

@@ -898,7 +898,7 @@ function Breakdown({ title, data }) {
 }
 
 const S = {
-  page: { minHeight: "100vh", background: "#14161c", color: "#e8e6e1", fontFamily: "Inter, system-ui, sans-serif", padding: "32px 16px" },
+  page: { minHeight: "100vh", background: "#14161c", color: "#e8e6e1", fontFamily: "var(--font-sans)", padding: "32px 16px" },
   wrap: { maxWidth: 900, margin: "0 auto" },
   h1: { fontSize: 30, letterSpacing: "0.14em", color: "#d4a94e", margin: 0 },
   sub: { color: "#9aa0ac", fontSize: 14, lineHeight: 1.5, marginTop: 8 },

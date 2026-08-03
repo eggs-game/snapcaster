@@ -1,0 +1,31 @@
+.confirmation-dialog {
+  width: min(460px, 100%);
+}
+
+.confirmation-dialog .modal-head {
+  margin-bottom: 0;
+}
+
+.confirmation-dialog .modal-head p {
+  margin: var(--space-3) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--text-md);
+  line-height: 1.5;
+}
+
+.confirmation-dialog-actions .confirmation-dialog-danger {
+  border-color: var(--danger-border);
+  background: var(--danger-bg);
+  color: var(--danger-text);
+}
+
+.confirmation-dialog-actions .confirmation-dialog-danger:hover {
+  border-color: color-mix(in srgb, var(--danger-text) 52%, transparent);
+  background: color-mix(in srgb, var(--danger-bg) 82%, var(--danger-text));
+}
+
+.confirmation-dialog-actions .confirmation-dialog-danger:focus-visible {
+  outline: none;
+  border-color: var(--danger-text);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger-text) 24%, transparent);
+}

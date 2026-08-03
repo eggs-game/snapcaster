@@ -26,6 +26,7 @@ import { accountDisplayName } from "./accountIdentity.js";
 import { resolveInitialLobbyModal } from "./authIntent.js";
 import { getLocalMockGame } from "./localMock.js";
 import GamePreview from "./GamePreview.jsx";
+import AppDropdown from "./AppDropdown.jsx";
 
 const HOME_FEATURES = [
   {
@@ -479,7 +480,7 @@ export default function Lobby({
         >
           <section className={`lobby-modal${modal === "join" || modal === "create-setup" ? " prejoin-modal" : ""}`} role="dialog" aria-modal="true" aria-labelledby="lobby-modal-title">
             {!visitorMode && (
-              <button className="modal-close" onClick={() => setModal(null)} aria-label="Close">
+              <button className="modal-close" onClick={() => setModal(null)} aria-label="Close" data-tooltip="Close" data-tooltip-pos="right-bottom">
                 <X size={20} />
               </button>
             )}
@@ -513,29 +514,36 @@ export default function Lobby({
                 </div>
 
                 <div className="modal-fields two-column table-options" aria-label="Game settings">
-                  <label className="modal-field">
+                  <div className="modal-field">
                     <span>Bracket</span>
-                    <select value={bracket} onChange={(event) => setBracket(event.target.value)}>
-                      {[1, 2, 3, 4, 5].map((value) => (
-                        <option key={value} value={value}>Bracket {value}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="modal-field">
+                    <AppDropdown
+                      label="Bracket"
+                      value={bracket}
+                      onChange={setBracket}
+                      options={[1, 2, 3, 4, 5].map((value) => ({ value, label: `Bracket ${value}` }))}
+                    />
+                  </div>
+                  <div className="modal-field">
                     <span>Player limit</span>
-                    <select value={seatLimit} onChange={(event) => setSeatLimit(event.target.value)}>
-                      {[2, 3, 4, 5, 6].map((value) => (
-                        <option key={value} value={value}>{value} players</option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="modal-field">
+                    <AppDropdown
+                      label="Player limit"
+                      value={seatLimit}
+                      onChange={setSeatLimit}
+                      options={[2, 3, 4, 5, 6].map((value) => ({ value, label: `${value} players` }))}
+                    />
+                  </div>
+                  <div className="modal-field">
                     <span>Visibility</span>
-                    <select value={visibility} onChange={(event) => setVisibility(event.target.value)}>
-                      <option value="private">Private · Invite link only</option>
-                      <option value="public">Public · Listed in Games</option>
-                    </select>
-                  </label>
+                    <AppDropdown
+                      label="Visibility"
+                      value={visibility}
+                      onChange={setVisibility}
+                      options={[
+                        { value: "private", label: "Private · Invite link only" },
+                        { value: "public", label: "Public · Listed in Games" },
+                      ]}
+                    />
+                  </div>
                 </div>
 
                 <ModalStatus status={indexStatus} count={indexCount} />
@@ -684,41 +692,37 @@ export default function Lobby({
                       <>
                         <div className={`device-options${joiningAsVisitor ? " single" : ""}`}>
                           {!joiningAsVisitor && (
-                            <label className="modal-field">
+                            <div className="modal-field">
                               <span>Camera</span>
-                              <select
+                              <AppDropdown
+                                label="Camera"
                                 value={videoDeviceId}
-                                onChange={(event) => {
-                                  const value = event.target.value;
+                                onChange={(value) => {
                                   setVideoDeviceId(value);
                                   acquirePreview(value, audioDeviceId);
                                 }}
-                              >
-                                {cameras.map((device, index) => (
-                                  <option key={device.deviceId} value={device.deviceId}>{device.label || `Camera ${index + 1}`}</option>
-                                ))}
-                              </select>
-                            </label>
+                                options={cameras.map((device, index) => ({ value: device.deviceId, label: device.label || `Camera ${index + 1}` }))}
+                                emptyLabel="No cameras found"
+                              />
+                            </div>
                           )}
-                          <label className="modal-field">
+                          <div className="modal-field">
                             <span>Microphone</span>
-                            <select
+                            <AppDropdown
+                              label="Microphone"
                               value={audioDeviceId}
-                              onChange={(event) => {
-                                const value = event.target.value;
+                              onChange={(value) => {
                                 setAudioDeviceId(value);
                                 acquirePreview(videoDeviceId, value);
                               }}
-                            >
-                              {mics.map((device, index) => (
-                                <option key={device.deviceId} value={device.deviceId}>{device.label || `Microphone ${index + 1}`}</option>
-                              ))}
-                            </select>
+                              options={mics.map((device, index) => ({ value: device.deviceId, label: device.label || `Microphone ${index + 1}` }))}
+                              emptyLabel="No microphones found"
+                            />
                             <div className="mic-test" aria-label="Microphone input level">
                               <span>Mic level</span>
                               <div className="mic-meter"><i style={{ width: `${Math.max(3, micLevel * 100)}%` }} /></div>
                             </div>
-                          </label>
+                          </div>
                         </div>
                         {joiningAsVisitor && (
                           <fieldset className="visitor-audio-choice">

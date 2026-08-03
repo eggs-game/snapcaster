@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
-  Cat, Check, ChessQueen, ChevronDown, ChevronLeft, ChevronRight, Copy, Dices, Drum, ExternalLink, Hourglass, Laugh, Link2, MessageCircle, MessagesSquare, Mic, MicOff,
-  LogOut, PanelLeft, Play, RefreshCw, Search, Settings, Sparkles, Square, Swords, ThumbsDown, UserMinus, UserPlus, UserRound, UsersRound, Video, VideoOff, X,
+  Cat, Check, ChessQueen, ChevronDown, ChevronLeft, ChevronRight, Copy, Dices, Drum, ExternalLink, Hourglass, Laugh, MessageCircle, MessagesSquare, Mic, MicOff,
+  LogOut, PanelLeft, Play, RefreshCw, Search, Settings, Shuffle, Sparkles, Square, Swords, ThumbsDown, UserMinus, UserPlus, UsersRound, Video, VideoOff, X,
 } from "lucide-react";
 import { fetchCardByName, suggestCardNames } from "./cardSearch.js";
 import {
@@ -11,6 +11,8 @@ import {
 import { getSoundEffect, searchSoundEffects } from "./soundEffects.js";
 import { getCounterTextColor, getVideoCounterType, VIDEO_COUNTER_TYPES } from "./videoCounters.js";
 import { OUTGOING_VIDEO_QUALITY_OPTIONS } from "./videoQuality.js";
+import AppDropdown from "./AppDropdown.jsx";
+import { useConfirmDialog } from "./ConfirmDialog.jsx";
 
 // Labels for the ?debug=1 diagnostics panel.
 const CV_LABEL = {
@@ -138,10 +140,10 @@ export default function CardSidebar({
   onChatNotificationsChange,
   turnNotificationsEnabled,
   onTurnNotificationsChange,
+  gameClockVisible = true,
+  onGameClockVisibilityChange,
   videoLayout,
   onVideoLayoutChange,
-  videoFit,
-  onVideoFitChange,
   outgoingVideoQuality,
   onOutgoingVideoQualityChange,
   counterPlayers,
@@ -167,8 +169,12 @@ export default function CardSidebar({
   isCreator = false,
   managementParticipants = [],
   managementStatus = "lobby",
+  gameStartedAt = "",
   managementFriends = [],
   onStartGame,
+  onShufflePositions,
+  onStartReadyCheck,
+  isReadyCheckActive = false,
   onManageMember,
   onEndGame,
   onRestartGame,
@@ -230,6 +236,7 @@ export default function CardSidebar({
   const soundResults = searchSoundEffects(soundQuery, soundPickerTab);
   const soundCooldownRemaining = Math.max(0, soundCooldownUntil - now);
   const soundIsCoolingDown = soundCooldownRemaining > 0;
+  const gameClockRunning = managementStatus === "live" && Boolean(gameStartedAt) && gameClockVisible;
   const soundPickerBlocked = Boolean(whisperTarget || chatDraft.toLowerCase().startsWith("/whisper") || soundIsCoolingDown);
   const soundPickerTooltip = soundIsCoolingDown
     ? `Wait ${Math.floor(Math.ceil(soundCooldownRemaining / 1000) / 60)}:${String(Math.ceil(soundCooldownRemaining / 1000) % 60).padStart(2, "0")}`
@@ -373,10 +380,11 @@ export default function CardSidebar({
   }, [cardPreview]);
 
   useEffect(() => {
-    if (!soundIsCoolingDown) return undefined;
+    if (!soundIsCoolingDown && !gameClockRunning) return undefined;
+    setNow(Date.now());
     const timer = window.setInterval(() => setNow(Date.now()), 500);
     return () => window.clearInterval(timer);
-  }, [soundIsCoolingDown]);
+  }, [gameClockRunning, soundIsCoolingDown]);
 
   useEffect(() => {
     if (!soundPickerOpen) return undefined;
@@ -537,7 +545,9 @@ export default function CardSidebar({
     <button
       type="button"
       className={isVisitor ? "sidebar-game-name readonly" : "sidebar-game-name"}
-      title={isVisitor ? lobbyName : "Click to rename game"}
+      aria-label={isVisitor ? `Game name: ${lobbyName}` : `Rename ${lobbyName || "game"}`}
+      data-tooltip={isVisitor ? lobbyName : "Rename game"}
+      data-tooltip-pos="left-bottom"
       onClick={() => {
         if (!isVisitor) setEditingLobbyName(true);
       }}
@@ -696,6 +706,17 @@ export default function CardSidebar({
             </button>
           </>
         )}
+        {gameClockRunning && (
+          <div
+            className="rail-game-clock"
+            role="timer"
+            aria-label={`Game time ${formatElapsedGameTime(gameStartedAt, now)}`}
+            data-tooltip={`Game time · ${formatElapsedGameTime(gameStartedAt, now)}`}
+            data-tooltip-pos="right-top"
+          >
+            <time>{formatRailGameTime(gameStartedAt, now)}</time>
+          </div>
+        )}
       </nav>
 
       <div className="sidebar-content" aria-hidden={collapsed}>
@@ -741,86 +762,85 @@ export default function CardSidebar({
           participants={managementParticipants}
           currentUserId={currentUserId}
           status={managementStatus}
-          friends={managementFriends}
           onStart={onStartGame}
+          onShufflePositions={onShufflePositions}
+          onStartReadyCheck={onStartReadyCheck}
+          isReadyCheckActive={isReadyCheckActive}
           onManageMember={onManageMember}
           onEnd={onEndGame}
           onRestart={onRestartGame}
-          onInviteFriend={onInviteFriend}
-          onCancelInvitation={onCancelInvitation}
         />
       ) : settings ? (
         <div className="sidebar-settings">
-          <fieldset className="theme-field">
-            <legend className="color-label">Game view</legend>
-            <div className="view-options">
-              {[
-                ["tiles", "Tile"],
-                ["follow", "Active"],
-                ["hero", "Hero"],
-              ].map(([option, label]) => (
-                <button
-                  key={option}
-                  type="button"
-                  aria-pressed={videoLayout === option}
-                  onClick={() => onVideoLayoutChange(option)}
-                >
-                  {label}
-                </button>
-              ))}
+          <fieldset className="theme-field settings-major-section settings-general">
+            <legend className="settings-section-title">General</legend>
+            <div className="settings-general-stack">
+              <div className="settings-inline-select">
+                <span>Game view</span>
+                <AppDropdown
+                  label="Game view"
+                  value={videoLayout}
+                  onChange={onVideoLayoutChange}
+                  variant="text"
+                  options={[
+                    { value: "tiles", label: "Tile" },
+                    { value: "follow", label: "Active" },
+                    { value: "hero", label: "Hero" },
+                  ]}
+                />
+              </div>
+              <div className="settings-choice-stack">
+                <SettingsSwitch
+                  label="Game clock"
+                  checked={gameClockVisible}
+                  onChange={onGameClockVisibilityChange}
+                />
+                <SettingsSwitch
+                  label="Chat notifications"
+                  checked={chatNotificationsEnabled}
+                  onChange={onChatNotificationsChange}
+                />
+                <SettingsSwitch
+                  label="Turn notifications"
+                  checked={turnNotificationsEnabled}
+                  onChange={onTurnNotificationsChange}
+                />
+              </div>
             </div>
           </fieldset>
-          <fieldset className="theme-field">
-            <legend className="color-label">Appearance</legend>
-            <div className="theme-options">
-              {["light", "dark", "system"].map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  aria-pressed={themePreference === option}
-                  onClick={() => onThemePreferenceChange(option)}
-                >
-                  {option[0].toUpperCase() + option.slice(1)}
-                </button>
-              ))}
-            </div>
-          </fieldset>
-          <fieldset className="theme-field">
-            <legend className="color-label">Chat notifications</legend>
-            <div className="theme-options two-up">
-              <button
-                type="button"
-                aria-pressed={chatNotificationsEnabled}
-                onClick={() => onChatNotificationsChange(true)}
-              >
-                On
-              </button>
-              <button
-                type="button"
-                aria-pressed={!chatNotificationsEnabled}
-                onClick={() => onChatNotificationsChange(false)}
-              >
-                Muted
-              </button>
-            </div>
-          </fieldset>
-          <fieldset className="theme-field">
-            <legend className="color-label">Turn notifications</legend>
-            <div className="theme-options two-up">
-              <button
-                type="button"
-                aria-pressed={turnNotificationsEnabled}
-                onClick={() => onTurnNotificationsChange(true)}
-              >
-                On
-              </button>
-              <button
-                type="button"
-                aria-pressed={!turnNotificationsEnabled}
-                onClick={() => onTurnNotificationsChange(false)}
-              >
-                Muted
-              </button>
+          <fieldset className="theme-field settings-major-section">
+            <legend className="settings-section-title">Display</legend>
+            <div className="settings-display-stack">
+              <div className="settings-preference-field">
+                <SettingsChoiceGroup
+                  label="Appearance"
+                  value={themePreference}
+                  onChange={onThemePreferenceChange}
+                  options={[
+                    { value: "light", label: "Light" },
+                    { value: "dark", label: "Dark" },
+                    { value: "system", label: "System" },
+                  ]}
+                />
+              </div>
+              {!isVisitor && (
+                <div className="color-picker">
+                  <div className="color-swatches">
+                    {tileColors.map((color, index) => (
+                      <button
+                        key={color}
+                        type="button"
+                        className={myColor === color ? "color-swatch selected" : "color-swatch"}
+                        style={{ background: color }}
+                        aria-label={`Choose color ${color}`}
+                        data-tooltip="Choose tile color"
+                        data-tooltip-pos={index < Math.ceil(tileColors.length / 2) ? "left-top" : "right-top"}
+                        onClick={() => onChooseColor(color)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </fieldset>
           {isVisitor && (
@@ -829,8 +849,8 @@ export default function CardSidebar({
             </p>
           )}
           {!isVisitor && (
-            <>
-              <h3 className="drawer-section">Video</h3>
+            <section className="settings-major-section">
+              <h3 className="drawer-section settings-section-title">Video</h3>
               <button
                 className={camOn ? "control-row" : "control-row off"}
                 onClick={onToggleCam}
@@ -838,103 +858,59 @@ export default function CardSidebar({
                 {camOn ? <Video size={18} /> : <VideoOff size={18} />}
                 <span>{camOn ? "Camera on" : "Camera off"}</span>
               </button>
-              <label className="device-field device-field-tight">
-                <select
-                  aria-label="Camera"
+              <div className="device-field device-field-tight">
+                <AppDropdown
+                  label="Camera"
                   value={videoDeviceId}
-                  onChange={(e) => onChooseCamera(e.target.value)}
+                  onChange={onChooseCamera}
                   disabled={!cameras.length}
-                >
-                  {!cameras.length && <option value="">No cameras found</option>}
-                  {cameras.map((d, i) => (
-                    <option key={d.deviceId || i} value={d.deviceId}>
-                      {d.label || `Camera ${i + 1}`}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <fieldset className="theme-field theme-field-tight">
-                <legend className="color-label">Outgoing video quality</legend>
-                <div className="theme-options four-up">
-                  {OUTGOING_VIDEO_QUALITY_OPTIONS.map((option) => (
-                    <button
-                      key={option.value}
-                      type="button"
-                      aria-pressed={outgoingVideoQuality === option.value}
-                      onClick={() => onOutgoingVideoQualityChange(option.value)}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
+                  emptyLabel="No cameras found"
+                  options={cameras.map((device, index) => ({
+                    value: device.deviceId,
+                    label: device.label || `Camera ${index + 1}`,
+                  }))}
+                />
+              </div>
+              <div className="theme-field theme-field-tight">
+                <SettingsChoiceGroup
+                  label="Outgoing video quality"
+                  value={outgoingVideoQuality}
+                  onChange={onOutgoingVideoQualityChange}
+                  options={OUTGOING_VIDEO_QUALITY_OPTIONS}
+                />
                 <p className="setting-help">
                   Caps the video sent to everyone. Lower quality uses less upload and processing.
                 </p>
-              </fieldset>
-              <fieldset className="theme-field" aria-label="Video fit">
-                <div className="theme-options two-up">
-                  {[
-                    ["cover", "Cover"],
-                    ["16:9", "16:9"],
-                  ].map(([option, label]) => (
-                    <button
-                      key={option}
-                      type="button"
-                      aria-pressed={videoFit === option}
-                      onClick={() => onVideoFitChange(option)}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </fieldset>
-            </>
-          )}
-
-          <h3 className="drawer-section">Microphone</h3>
-          <button
-            className={micOn ? "control-row" : "control-row off"}
-            onClick={onToggleMic}
-          >
-            {micOn ? <Mic size={18} /> : <MicOff size={18} />}
-            <span>{micOn ? "Mic on" : "Mic muted"}</span>
-          </button>
-          <label className="device-field">
-            <select
-              aria-label="Microphone"
-              value={audioDeviceId}
-              onChange={(e) => onChooseMic(e.target.value)}
-              disabled={!mics.length}
-            >
-              {!mics.length && <option value="">No microphones found</option>}
-              {mics.map((d, i) => (
-                <option key={d.deviceId || i} value={d.deviceId}>
-                  {d.label || `Microphone ${i + 1}`}
-                </option>
-              ))}
-            </select>
-          </label>
-          {deviceError && <p className="device-error">{deviceError}</p>}
-
-          {!isVisitor && (
-            <div className="color-picker">
-              <span className="color-label">Your color</span>
-              <div className="color-swatches">
-                {tileColors.map((color, index) => (
-                  <button
-                    key={color}
-                    type="button"
-                    className={myColor === color ? "color-swatch selected" : "color-swatch"}
-                    style={{ background: color }}
-                    aria-label={`Choose color ${color}`}
-                    data-tooltip="Choose seat color"
-                    data-tooltip-pos={index < Math.ceil(tileColors.length / 2) ? "left-top" : "right-top"}
-                    onClick={() => onChooseColor(color)}
-                  />
-                ))}
               </div>
-            </div>
+            </section>
           )}
+
+          <section className="settings-major-section">
+            <h3 className="drawer-section settings-section-title">Microphone</h3>
+            <button
+              className={micOn ? "control-row" : "control-row off"}
+              onClick={onToggleMic}
+            >
+              {micOn ? <Mic size={18} /> : <MicOff size={18} />}
+              <span>{micOn ? "Mic on" : "Mic muted"}</span>
+            </button>
+            <div className="device-field">
+              <AppDropdown
+                label="Microphone"
+                value={audioDeviceId}
+                onChange={onChooseMic}
+                disabled={!mics.length}
+                emptyLabel="No microphones found"
+                placement="top"
+                options={mics.map((device, index) => ({
+                  value: device.deviceId,
+                  label: device.label || `Microphone ${index + 1}`,
+                }))}
+              />
+            </div>
+            {deviceError && <p className="device-error">{deviceError}</p>}
+          </section>
+
           <button type="button" className="leave-game-button" onClick={onLeave}>
             <LogOut size={16} />
             <span>Leave game</span>
@@ -957,6 +933,10 @@ export default function CardSidebar({
           onCopyGameCode={onCopyGameCode}
           onCopyPlayerLink={onCopyPlayerLink}
           onCopyVisitorLink={onCopyVisitorLink}
+          showFriends={isCreator}
+          friends={managementFriends}
+          onInviteFriend={onInviteFriend}
+          onCancelInvitation={onCancelInvitation}
         />
       ) : dice ? (
         <DicePanel
@@ -1501,24 +1481,89 @@ export default function CardSidebar({
   );
 }
 
+export function formatElapsedGameTime(startedAt, now = Date.now()) {
+  const startedAtMs = new Date(startedAt).getTime();
+  const elapsedSeconds = Number.isFinite(startedAtMs)
+    ? Math.max(0, Math.floor((now - startedAtMs) / 1000))
+    : 0;
+  const hours = Math.floor(elapsedSeconds / 3600);
+  const minutes = Math.floor((elapsedSeconds % 3600) / 60);
+  const seconds = elapsedSeconds % 60;
+  return hours > 0
+    ? `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
+    : `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
+
+export function formatRailGameTime(startedAt, now = Date.now()) {
+  const startedAtMs = new Date(startedAt).getTime();
+  const elapsedSeconds = Number.isFinite(startedAtMs)
+    ? Math.max(0, Math.floor((now - startedAtMs) / 1000))
+    : 0;
+  const hours = Math.floor(elapsedSeconds / 3600);
+  const minutes = Math.floor((elapsedSeconds % 3600) / 60);
+  return hours > 0
+    ? `${hours}:${String(minutes).padStart(2, "0")}`
+    : `${minutes}:${String(elapsedSeconds % 60).padStart(2, "0")}`;
+}
+
+function SettingsChoiceGroup({ label, value, options, onChange }) {
+  return (
+    <div
+      className="settings-choice-group"
+      role="group"
+      aria-label={label}
+      style={{ "--settings-choice-count": options.length }}
+    >
+      {options.map((option) => (
+        <button
+          key={String(option.value)}
+          type="button"
+          aria-pressed={value === option.value}
+          onClick={() => onChange?.(option.value)}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function SettingsSwitch({ label, checked, onChange }) {
+  return (
+    <div className="settings-switch-row">
+      <span>{label}</span>
+      <button
+        className="settings-switch"
+        type="button"
+        role="switch"
+        aria-label={label}
+        aria-checked={checked}
+        onClick={() => onChange?.(!checked)}
+      >
+        <i className="settings-switch-track" aria-hidden="true"><i /></i>
+      </button>
+    </div>
+  );
+}
+
 function DicePanel({ onRoll, counterDraft, onGenerateVideoCounter, counterColor, onStartVideoCounterDrag }) {
   const [selectedSides, setSelectedSides] = useState(20);
   const diceOptions = Array.from({ length: 18 }, (_, index) => index + 3);
   return (
     <div className="dice-panel">
       <div className="dice-controls">
-        <label className="dice-select-field">
+        <div className="dice-select-field">
           <span className="color-label">Die</span>
-          <select
-            className="dice-select"
-            aria-label="Choose a die to roll"
+          <AppDropdown
+            label="Choose a die to roll"
             value={selectedSides}
-            onChange={(event) => setSelectedSides(Number(event.target.value))}
-          >
-            <option value={2}>Coin</option>
-            {diceOptions.map((sides) => <option key={sides} value={sides}>D{sides}</option>)}
-          </select>
-        </label>
+            onChange={(nextValue) => setSelectedSides(Number(nextValue))}
+            options={[
+              { value: 2, label: "Coin" },
+              ...diceOptions.map((sides) => ({ value: sides, label: `D${sides}` })),
+            ]}
+          />
+        </div>
         <button type="button" className="dice-roll-button" onClick={() => onRoll?.(selectedSides)}>
           {selectedSides === 2 ? "Flip coin" : "Roll dice"}
         </button>
@@ -1655,17 +1700,17 @@ function GameManagementPanel({
   participants,
   currentUserId,
   status,
-  friends,
   onStart,
+  onShufflePositions,
+  onStartReadyCheck,
+  isReadyCheckActive,
   onManageMember,
   onEnd,
   onRestart,
-  onInviteFriend,
-  onCancelInvitation,
 }) {
+  const confirmAction = useConfirmDialog();
   const safeParticipants = Array.isArray(participants) ? participants : [];
   const players = safeParticipants.filter((participant) => participant.role !== "visitor");
-  const visitors = safeParticipants.filter((participant) => participant.role === "visitor");
   const eligiblePlayers = players.filter((participant) => participant.membershipId && !participant.eliminated);
   const winnerOptions = eligiblePlayers.length
     ? eligiblePlayers
@@ -1676,8 +1721,6 @@ function GameManagementPanel({
   const [winnerId, setWinnerId] = useState(winnerOptions[0]?.membershipId || "");
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
-  const [inviteTarget, setInviteTarget] = useState("");
-  const [sentInvitations, setSentInvitations] = useState([]);
 
   useEffect(() => {
     if (!winnerOptions.some((player) => player.membershipId === winnerId)) {
@@ -1697,9 +1740,16 @@ function GameManagementPanel({
     }
   };
 
-  const manageParticipant = (participant, action) => {
+  const manageParticipant = async (participant, action) => {
     const verb = action === "remove" ? "Remove" : action === "mute" ? "Mute" : "Unmute";
-    if (!window.confirm(`${verb} ${participant.name || "this participant"}${action === "remove" ? " from this game" : ""}?`)) return;
+    if (!(await confirmAction({
+      title: `${verb} ${participant.name || "this participant"}?`,
+      description: action === "remove"
+        ? "They will be removed from this game."
+        : `Their audio will be ${action === "mute" ? "muted" : "unmuted"} for everyone in the room.`,
+      confirmLabel: `${verb} ${participant.role === "visitor" ? "visitor" : "player"}`,
+      tone: action === "remove" ? "danger" : "primary",
+    }))) return;
     run(`${action}-${participant.id}`, () => onManageMember?.(participant, action));
   };
 
@@ -1708,23 +1758,32 @@ function GameManagementPanel({
       <div className="game-management-panel">
         <button className="game-management-back" type="button" onClick={() => setMode("manage")}>Back to game controls</button>
         <div className="game-management-end-panel">
-          <label className="game-management-field">
+          <div className="game-management-field">
             <span>Result</span>
-            <select value={resultKind} onChange={(event) => setResultKind(event.target.value)}>
-              <option value="winner">Choose a winner</option>
-              <option value="draw">Draw</option>
-              <option value="unresolved">End unresolved</option>
-            </select>
-          </label>
+            <AppDropdown
+              label="Result"
+              value={resultKind}
+              onChange={setResultKind}
+              options={[
+                { value: "winner", label: "Choose a winner" },
+                { value: "draw", label: "Draw" },
+                { value: "unresolved", label: "End unresolved" },
+              ]}
+            />
+          </div>
           {resultKind === "winner" && (
-            <label className="game-management-field">
+            <div className="game-management-field">
               <span>Winner</span>
-              <select value={winnerId} onChange={(event) => setWinnerId(event.target.value)}>
-                {winnerOptions.map((player) => (
-                  <option key={player.membershipId} value={player.membershipId}>{player.name || "Player"}</option>
-                ))}
-              </select>
-            </label>
+              <AppDropdown
+                label="Winner"
+                value={winnerId}
+                onChange={setWinnerId}
+                options={winnerOptions.map((player) => ({
+                  value: player.membershipId,
+                  label: player.name || "Player",
+                }))}
+              />
+            </div>
           )}
           <p className="game-management-note">Players get a 24-hour correction window before a submitted result becomes final.</p>
           {error && <p className="modal-error" role="alert">{error}</p>}
@@ -1746,15 +1805,23 @@ function GameManagementPanel({
 
   return (
     <div className="game-management-panel">
-      <div className="game-management-overview">
-        <span className={`game-status-badge ${status}`}>{status === "live" ? "Live" : status === "finished" ? "Finished" : "Lobby"}</span>
-        <p className="game-management-summary">{players.length} players · {visitors.length} visitors</p>
-      </div>
       <div className="game-management-primary-actions">
         {status === "lobby" && (
-          <button className="game-management-primary" type="button" disabled={Boolean(busy)} onClick={() => run("start", onStart)}>
-            <Play size={16} /> {busy === "start" ? "Starting…" : "Start game"}
-          </button>
+          <>
+            <button className="game-management-primary" type="button" disabled={Boolean(busy)} onClick={() => run("start", onStart)}>
+              <Play size={16} /> {busy === "start" ? "Starting…" : "Start game"}
+            </button>
+            <button type="button" disabled={Boolean(busy)} onClick={() => run("shuffle", onShufflePositions)}>
+              <Shuffle size={16} /> {busy === "shuffle" ? "Shuffling…" : "Shuffle positions"}
+            </button>
+            <button
+              type="button"
+              disabled={Boolean(busy) || isReadyCheckActive}
+              onClick={() => run("ready", onStartReadyCheck)}
+            >
+              <Check size={16} /> {isReadyCheckActive ? "Ready check active" : busy === "ready" ? "Starting…" : "Ready check"}
+            </button>
+          </>
         )}
         {status === "live" && (
           <button type="button" disabled={Boolean(busy)} onClick={() => setMode("end")}>
@@ -1770,6 +1837,9 @@ function GameManagementPanel({
         {safeParticipants.map((participant) => {
           const isVisitorParticipant = participant.role === "visitor";
           const displayName = participant.name || (isVisitorParticipant ? "Visitor" : "Player");
+          const commanderName = participant.commander
+            ? `${participant.commander}${participant.commanderPartner ? ` / ${participant.commanderPartner}` : ""}`
+            : "No commander selected";
           return (
             <section className="game-management-tile" key={participant.id}>
               <div className="game-management-person">
@@ -1783,35 +1853,12 @@ function GameManagementPanel({
                 <div className="game-management-identity">
                   <strong>{displayName}</strong>
                   <span>
-                    {participant.id === currentUserId
-                      ? `You · ${isVisitorParticipant ? "Visitor" : "Player"}`
-                      : isVisitorParticipant ? "Visitor" : "Player"}
+                    {isVisitorParticipant
+                      ? participant.id === currentUserId ? "You · Visitor" : "Visitor"
+                      : commanderName}
                   </span>
                 </div>
                 {participant.reconnecting && <span className="game-management-status">Reconnecting</span>}
-              </div>
-
-              {!isVisitorParticipant && participant.commander && (
-                <div className="game-management-commander">
-                  <small>Commander</small>
-                  <span>
-                    {participant.commander}
-                    {participant.commanderPartner ? ` / ${participant.commanderPartner}` : ""}
-                  </span>
-                </div>
-              )}
-
-              <div className="game-management-media" aria-label={`${displayName} media status`}>
-                {!isVisitorParticipant && (
-                  <span className={participant.cameraOn ? "" : "off"}>
-                    {participant.cameraOn ? <Video size={16} /> : <VideoOff size={16} />}
-                    {participant.cameraOn ? "Camera on" : "Camera off"}
-                  </span>
-                )}
-                <span className={participant.muted ? "off" : ""}>
-                  {participant.muted ? <MicOff size={16} /> : <Mic size={16} />}
-                  {participant.muted ? "Muted" : "Mic on"}
-                </span>
               </div>
               {!participant.isMe && participant.membershipId && (
                 <div className="game-management-member-actions">
@@ -1839,41 +1886,6 @@ function GameManagementPanel({
           );
         })}
       </div>
-      {friends.length > 0 && (
-        <section className="game-management-friends">
-          <h3>Invite a friend</h3>
-          <div className="game-management-invite">
-            <select value={inviteTarget} onChange={(event) => setInviteTarget(event.target.value)}>
-              <option value="">Choose a friend</option>
-              {friends.map((friend) => <option key={friend.id} value={friend.id}>{friend.display_name}</option>)}
-            </select>
-            <button
-              type="button"
-              disabled={!inviteTarget || Boolean(busy)}
-              onClick={() => run("invite", async () => {
-                const invitationId = await onInviteFriend?.(inviteTarget);
-                const friend = friends.find((candidate) => candidate.id === inviteTarget);
-                setSentInvitations((invitations) => [...invitations, {
-                  id: invitationId,
-                  name: friend?.display_name || "Friend",
-                }]);
-                setInviteTarget("");
-              })}
-            >
-              {busy === "invite" ? "Sending…" : "Send"}
-            </button>
-          </div>
-          {sentInvitations.map((invitation) => (
-            <div className="game-management-sent-invite" key={invitation.id}>
-              <span>Invite sent to {invitation.name}</span>
-              <button type="button" disabled={Boolean(busy)} onClick={() => run(`cancel-invite-${invitation.id}`, async () => {
-                await onCancelInvitation?.(invitation.id);
-                setSentInvitations((invitations) => invitations.filter((item) => item.id !== invitation.id));
-              })}>Cancel</button>
-            </div>
-          ))}
-        </section>
-      )}
     </div>
   );
 }
@@ -1976,49 +1988,127 @@ function InvitePanel({
   onCopyGameCode,
   onCopyPlayerLink,
   onCopyVisitorLink,
+  showFriends,
+  friends,
+  onInviteFriend,
+  onCancelInvitation,
 }) {
+  const [sentInvitations, setSentInvitations] = useState([]);
+  const [inviteBusy, setInviteBusy] = useState("");
+  const [inviteError, setInviteError] = useState("");
+  const friendList = [...friends].sort((left, right) => {
+    const leftOnline = left.status === "offline" ? 0 : 1;
+    const rightOnline = right.status === "offline" ? 0 : 1;
+    return rightOnline - leftOnline || String(left.display_name || "").localeCompare(String(right.display_name || ""));
+  });
+
+  const runInviteAction = async (label, action) => {
+    setInviteError("");
+    setInviteBusy(label);
+    try {
+      await action();
+    } catch (actionError) {
+      setInviteError(String(actionError?.message || "That invitation could not be completed."));
+    } finally {
+      setInviteBusy("");
+    }
+  };
+
   return (
     <div className="invite-panel">
-      <p className="invite-intro">Share the game code or send a direct link.</p>
-      <InviteField
-        label="Game code"
-        detail="Enter from the Snapcast home page"
-        value={gameCode}
-        copied={gameCodeCopied}
-        onCopy={onCopyGameCode}
-        code
-      />
-      <InviteField
-        icon={<Link2 size={16} />}
-        label="Player link"
-        detail="Join with a seat, camera, and microphone"
-        value={playerLink}
-        copied={linkCopied}
-        onCopy={onCopyPlayerLink}
-      />
-      <InviteField
-        icon={<UserRound size={16} />}
-        label="Visitor link"
-        detail="Listen, speak, chat, and look up cards"
-        value={visitorLink}
-        copied={visitorLinkCopied}
-        onCopy={onCopyVisitorLink}
-      />
+      <section className="invite-links">
+        <h3 className="sidebar-section-title">Share links</h3>
+        <div className="invite-link-list">
+          <InviteField
+            label="Game code"
+            value={gameCode}
+            copied={gameCodeCopied}
+            onCopy={onCopyGameCode}
+            code
+          />
+          <InviteField
+            label="Player link"
+            value={playerLink}
+            copied={linkCopied}
+            onCopy={onCopyPlayerLink}
+          />
+          <InviteField
+            label="Visitor link"
+            value={visitorLink}
+            copied={visitorLinkCopied}
+            onCopy={onCopyVisitorLink}
+          />
+        </div>
+      </section>
+      {showFriends && (
+        <section className="invite-friends">
+          <div className="invite-section-head">
+            <h3 className="sidebar-section-title">Friends</h3>
+            <small>Invite someone directly to this game</small>
+          </div>
+          {friendList.length ? (
+            <ul className="invite-friend-list">
+              {friendList.map((friend) => {
+                const invitation = sentInvitations.find((item) => item.profileId === friend.id);
+                const online = friend.status === "online" || friend.status === "in_game";
+                const statusLabel = friend.status === "in_game" ? "In game" : online ? "Online" : "Offline";
+                const busyLabel = invitation ? `cancel-invite-${invitation.id}` : `invite-${friend.id}`;
+                return (
+                  <li className="invite-friend-row" key={friend.id}>
+                    <span className="invite-friend-identity">
+                      <strong className="invite-friend-name">
+                        <i className={online ? "online" : "offline"} aria-hidden="true" />
+                        <span>{friend.display_name || "Friend"}</span>
+                      </strong>
+                      <span className={online ? "online" : "offline"}>
+                        {statusLabel}
+                      </span>
+                      {invitation && <small>Invite sent</small>}
+                    </span>
+                    <button
+                      type="button"
+                      className={`${invitation ? "invited" : ""}${!online ? " offline" : ""}`.trim()}
+                      disabled={Boolean(inviteBusy) || !online}
+                      data-tooltip={!online ? "Friend is offline" : undefined}
+                      data-tooltip-pos="left-top"
+                      onClick={() => runInviteAction(busyLabel, async () => {
+                        if (invitation) {
+                          await onCancelInvitation?.(invitation.id);
+                          setSentInvitations((invitations) => invitations.filter((item) => item.id !== invitation.id));
+                          return;
+                        }
+                        const invitationId = await onInviteFriend?.(friend.id);
+                        setSentInvitations((invitations) => [...invitations, {
+                          id: invitationId,
+                          profileId: friend.id,
+                          name: friend.display_name || "Friend",
+                        }]);
+                      })}
+                    >
+                      {inviteBusy === busyLabel ? (invitation ? "Cancelling…" : "Sending…") : invitation ? "Cancel" : "Invite"}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : <p className="invite-friends-empty">Your friends will appear here.</p>}
+          {inviteError && <p className="modal-error" role="alert">{inviteError}</p>}
+        </section>
+      )}
     </div>
   );
 }
 
-function InviteField({ icon, label, detail, value, copied, onCopy, code = false }) {
+function InviteField({ label, value, copied, onCopy, code = false }) {
   return (
     <section className="invite-field">
       <div className="invite-field-head">
-        <span>{icon}{label}</span>
-        <small>{detail}</small>
+        <span>{label}</span>
       </div>
       <div className="invite-value-row">
         <input className={code ? "invite-value code-value" : "invite-value"} value={value || ""} readOnly aria-label={label} />
         <button type="button" onClick={onCopy} aria-label={`Copy ${label.toLowerCase()}`}>
-          <Copy size={16} />
+          {!code && <Copy size={16} />}
           <span>{copied ? "Copied" : "Copy"}</span>
         </button>
       </div>

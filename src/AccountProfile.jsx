@@ -29,6 +29,8 @@ import {
 import { isCommanderCard, isValidCommanderPartner } from "./cardSearch.js";
 import { detectDeckImportInput, parseMoxfieldExport, summarizeDeckCards } from "./deckImport.js";
 import DiscordMark from "./DiscordMark.jsx";
+import AppDropdown from "./AppDropdown.jsx";
+import { useConfirmDialog } from "./ConfirmDialog.jsx";
 import { accountDiscordName } from "./accountIdentity.js";
 import { roomCapability, submitGameCorrection } from "./gameRooms.js";
 
@@ -148,6 +150,7 @@ export default function AccountProfile({
   page = false,
   view = "profile",
 }) {
+  const confirmAction = useConfirmDialog();
   const [displayName, setDisplayName] = useState(() => accountDisplayName(account));
   const [theme, setTheme] = useState(account?.preferences?.theme || "dark");
   const [preferredCameraId, setPreferredCameraId] = useState(account?.preferences?.preferred_camera_id || "");
@@ -633,7 +636,7 @@ export default function AccountProfile({
             : "account-profile-title"}
       >
         {!page && (
-          <button className="modal-close" type="button" onClick={onClose} aria-label="Close">
+          <button className="modal-close" type="button" onClick={onClose} aria-label="Close" data-tooltip="Close" data-tooltip-pos="right-bottom">
             <X size={20} />
           </button>
         )}
@@ -761,14 +764,19 @@ export default function AccountProfile({
 
           {view === "settings" && <div className="account-profile-section">
             <h3 className="profile-tab-heading">Preferences</h3>
-            <label className="modal-field">
+            <div className="modal-field">
               <span>Appearance</span>
-              <select value={theme} onChange={(event) => setTheme(event.target.value)}>
-                <option value="dark">Dark</option>
-                <option value="light">Light</option>
-                <option value="system">Use system setting</option>
-              </select>
-            </label>
+              <AppDropdown
+                label="Appearance"
+                value={theme}
+                onChange={setTheme}
+                options={[
+                  { value: "dark", label: "Dark" },
+                  { value: "light", label: "Light" },
+                  { value: "system", label: "Use system setting" },
+                ]}
+              />
+            </div>
             <label className="account-check-row">
               <input
                 type="checkbox"
@@ -840,21 +848,26 @@ export default function AccountProfile({
                       placeholder="Search decks or commanders"
                     />
                   </label>
-                  <label className="profile-deck-sort">
+                  <div className="profile-deck-sort">
                     <span>Sort by</span>
-                    <select value={deckSort} onChange={(event) => setDeckSort(event.target.value)}>
-                      <option value="name">Name</option>
-                      <option value="colors">Colors</option>
-                      <option value="cmc">Average CMC</option>
-                    </select>
-                  </label>
+                    <AppDropdown
+                      label="Sort decks"
+                      value={deckSort}
+                      onChange={setDeckSort}
+                      options={[
+                        { value: "name", label: "Name" },
+                        { value: "colors", label: "Colors" },
+                        { value: "cmc", label: "Average CMC" },
+                      ]}
+                    />
+                  </div>
                 </div>
                 <div className="deck-view-toggle" role="group" aria-label="Deck view">
                   <button
                     type="button"
                     aria-label="Grid view"
                     aria-pressed={deckView === "grid"}
-                    title="Grid view"
+                    data-tooltip="Grid view"
                     onClick={() => selectDeckView("grid")}
                   >
                     <LayoutGrid size={17} aria-hidden="true" />
@@ -863,7 +876,7 @@ export default function AccountProfile({
                     type="button"
                     aria-label="List view"
                     aria-pressed={deckView === "list"}
-                    title="List view"
+                    data-tooltip="List view"
                     onClick={() => selectDeckView("list")}
                   >
                     <List size={18} aria-hidden="true" />
@@ -955,6 +968,8 @@ export default function AccountProfile({
                     onClick={closeDeckForm}
                     disabled={deckSaving}
                     aria-label="Close add deck"
+                    data-tooltip="Close"
+                    data-tooltip-pos="right-bottom"
                   >
                     <X size={20} />
                   </button>
@@ -1021,6 +1036,8 @@ export default function AccountProfile({
                     onClick={closeDeckImport}
                     disabled={deckImporting}
                     aria-label="Close deck import"
+                    data-tooltip="Close"
+                    data-tooltip-pos="right-bottom"
                   >
                     <X size={20} />
                   </button>
@@ -1142,7 +1159,12 @@ export default function AccountProfile({
                   <a href={`/profile?id=${encodeURIComponent(friend.id)}`}>{friend.display_name}</a>
                   <small>{friend.status === "in_game" ? "In a game" : friend.status === "online" ? "Online" : "Offline"}</small>
                   <button type="button" onClick={async () => {
-                    if (!window.confirm(`Remove ${friend.display_name} from your friends?`)) return;
+                    if (!(await confirmAction({
+                      title: `Remove ${friend.display_name}?`,
+                      description: "They will no longer be able to see your friends-only stats or game history.",
+                      confirmLabel: "Remove friend",
+                      tone: "danger",
+                    }))) return;
                     await removeFriend(friend.id);
                     refreshSocial();
                   }}>Remove</button>
@@ -1163,54 +1185,74 @@ export default function AccountProfile({
             {gameHistory.length > 0 && (
               <div className="account-history-filters" aria-label="Filter game history">
                 <div className="account-history-filter-grid">
-                  <label>
+                  <div className="account-history-filter">
                     <span>Result</span>
-                    <select value={historyFilters.result} onChange={(event) => updateHistoryFilter("result", event.target.value)}>
-                      <option value="">All results</option>
-                      <option value="win">Wins</option>
-                      <option value="loss">Losses</option>
-                      <option value="draw">Draws</option>
-                    </select>
-                  </label>
-                  <label>
+                    <AppDropdown
+                      label="Filter by result"
+                      value={historyFilters.result}
+                      onChange={(value) => updateHistoryFilter("result", value)}
+                      options={[
+                        { value: "", label: "All results" },
+                        { value: "win", label: "Wins" },
+                        { value: "loss", label: "Losses" },
+                        { value: "draw", label: "Draws" },
+                      ]}
+                    />
+                  </div>
+                  <div className="account-history-filter">
                     <span>Bracket</span>
-                    <select value={historyFilters.bracket} onChange={(event) => updateHistoryFilter("bracket", event.target.value)}>
-                      <option value="">All brackets</option>
-                      {historyFilterOptions.brackets.map((bracket) => (
-                        <option value={bracket} key={bracket}>Bracket {bracket}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
+                    <AppDropdown
+                      label="Filter by bracket"
+                      value={historyFilters.bracket}
+                      onChange={(value) => updateHistoryFilter("bracket", value)}
+                      options={[
+                        { value: "", label: "All brackets" },
+                        ...historyFilterOptions.brackets.map((bracket) => ({ value: bracket, label: `Bracket ${bracket}` })),
+                      ]}
+                    />
+                  </div>
+                  <div className="account-history-filter">
                     <span>My commander</span>
-                    <select value={historyFilters.commander} onChange={(event) => updateHistoryFilter("commander", event.target.value)}>
-                      <option value="">All commanders</option>
-                      {historyFilterOptions.commanders.map((commander) => (
-                        <option value={commander} key={commander}>{commander}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
+                    <AppDropdown
+                      label="Filter by my commander"
+                      value={historyFilters.commander}
+                      onChange={(value) => updateHistoryFilter("commander", value)}
+                      searchable
+                      searchPlaceholder="Search commanders"
+                      options={[
+                        { value: "", label: "All commanders" },
+                        ...historyFilterOptions.commanders.map((commander) => ({ value: commander, label: commander })),
+                      ]}
+                    />
+                  </div>
+                  <div className="account-history-filter">
                     <span>Versus commander</span>
-                    <select
+                    <AppDropdown
+                      label="Filter by opposing commander"
                       value={historyFilters.opponentCommander}
-                      onChange={(event) => updateHistoryFilter("opponentCommander", event.target.value)}
-                    >
-                      <option value="">All opposing commanders</option>
-                      {historyFilterOptions.opponentCommanders.map((commander) => (
-                        <option value={commander} key={commander}>{commander}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
+                      onChange={(value) => updateHistoryFilter("opponentCommander", value)}
+                      searchable
+                      searchPlaceholder="Search opposing commanders"
+                      options={[
+                        { value: "", label: "All opposing commanders" },
+                        ...historyFilterOptions.opponentCommanders.map((commander) => ({ value: commander, label: commander })),
+                      ]}
+                    />
+                  </div>
+                  <div className="account-history-filter">
                     <span>Player</span>
-                    <select value={historyFilters.player} onChange={(event) => updateHistoryFilter("player", event.target.value)}>
-                      <option value="">All players</option>
-                      {historyFilterOptions.players.map((player) => (
-                        <option value={player} key={player}>{player}</option>
-                      ))}
-                    </select>
-                  </label>
+                    <AppDropdown
+                      label="Filter by player"
+                      value={historyFilters.player}
+                      onChange={(value) => updateHistoryFilter("player", value)}
+                      searchable
+                      searchPlaceholder="Search players"
+                      options={[
+                        { value: "", label: "All players" },
+                        ...historyFilterOptions.players.map((player) => ({ value: player, label: player })),
+                      ]}
+                    />
+                  </div>
                   <label>
                     <span>From</span>
                     <input
@@ -1245,7 +1287,7 @@ export default function AccountProfile({
                     <span
                       className={`account-history-result ${game.result}`}
                       aria-label={`Result: ${game.result}`}
-                      title={game.result === "win" ? "Win" : game.result === "draw" ? "Draw" : "Loss"}
+                      data-tooltip={game.result === "win" ? "Win" : game.result === "draw" ? "Draw" : "Loss"}
                     >
                       {game.result === "win"
                         ? <Trophy size={20} aria-hidden="true" />
@@ -1333,7 +1375,12 @@ export default function AccountProfile({
               <button type="button" onClick={downloadExport}><Download size={16} /> Export my data</button>
               {!deletionDeadline ? (
                 <button className="danger" type="button" onClick={async () => {
-                  if (!window.confirm("Request account deletion? You will have seven days to cancel before account data is removed or anonymized.")) return;
+                  if (!(await confirmAction({
+                    title: "Request account deletion?",
+                    description: "You will have seven days to cancel before account data is removed or anonymized.",
+                    confirmLabel: "Request deletion",
+                    tone: "danger",
+                  }))) return;
                   try {
                     const deadline = await requestAccountDeletion();
                     localStorage.setItem("sc-account-deletion-deadline", deadline);
@@ -1356,7 +1403,12 @@ export default function AccountProfile({
               )}
               {deletionDeadline && new Date(deletionDeadline) <= new Date() && (
                 <button className="danger" type="button" onClick={async () => {
-                  if (!window.confirm("Permanently delete this Snapcast account now? This cannot be undone.")) return;
+                  if (!(await confirmAction({
+                    title: "Permanently delete this account?",
+                    description: "This cannot be undone. Your account data will be removed or anonymized immediately.",
+                    confirmLabel: "Delete account now",
+                    tone: "danger",
+                  }))) return;
                   try {
                     await finalizeAccountDeletion(account);
                     window.location.href = "/";

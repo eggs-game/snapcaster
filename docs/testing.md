@@ -152,6 +152,12 @@ command. `npm run check` adds a production build and is the normal pre-push
 gate for non-recognition work. Recognition pipeline changes still require the
 full SNAPTEST plan above; a green fast check is not a substitute for pixels.
 
+`npm run test:a11y` serves the production build and runs Playwright with axe
+against representative light/dark landing pages, a public profile, the shared
+confirmation dialog, and the in-game settings drawer. It enforces WCAG 2 A/AA,
+including automated color-contrast checks. Run `npm run check` first so the
+`dist/` bundle being audited matches the code under review.
+
 `test_card_search_cache.mjs` verifies multi-word local autocomplete and that
 concurrent identical Scryfall lookups share one request. Hash-compatibility and
 index-generation Python checks additionally require OpenCV (`cv2`) in the
@@ -273,6 +279,9 @@ CI (`.github/workflows/ci.yml`) runs on every push:
 - **`npm run build`** on Node 22, matching the current Supabase runtime floor;
   the build also rejects an initial JavaScript entry above the documented
   80 KiB gzip budget.
+- **`npm run test:a11y`** after installing Playwright Chromium — axe scans the
+  production bundle for WCAG 2 A/AA regressions, including color contrast, in
+  both themes and in representative account/game overlays.
 
 ## Console runner (fallback)
 

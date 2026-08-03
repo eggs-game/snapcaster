@@ -1,0 +1,25 @@
+.app-dropdown { position: relative; width: 100%; min-width: 0; }
+.app-dropdown-trigger { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; height: var(--input-height); padding: 0 10px 0 12px; overflow: hidden; border: 1px solid var(--border-default); border-radius: 8px; background: var(--bg-surface-raised); color: var(--text-primary); font: inherit; font-size: var(--button-text-size); text-align: left; cursor: pointer; transition: border-color var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard); }
+.app-dropdown-trigger > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.app-dropdown-trigger svg { flex: none; color: var(--text-tertiary); transition: transform var(--duration-standard) var(--ease-standard); }
+.app-dropdown-trigger:hover:not(:disabled) { border-color: var(--border-strong); background: var(--bg-hover); }
+.app-dropdown-trigger:focus-visible, .app-dropdown-trigger[aria-expanded="true"] { outline: 0; border-color: var(--focus-border); box-shadow: 0 0 0 3px var(--focus-ring), inset 0 1px 2px var(--inset-shadow); }
+.app-dropdown-trigger[aria-expanded="true"] svg { transform: rotate(180deg); }
+.app-dropdown-trigger:disabled { border-color: var(--border-subtle); background: var(--disabled-bg); color: var(--text-disabled); cursor: default; }
+.app-dropdown-menu { position: absolute; top: calc(100% + 6px); right: 0; left: 0; z-index: 30; min-width: max-content; max-height: 288px; padding: 6px; overflow: hidden; border: 1px solid var(--glass-border); border-radius: 10px; background: var(--glass-bg-dense); box-shadow: inset 0 1px 0 var(--glass-highlight), var(--overlay-shadow); -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation)); backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation)); }
+.app-dropdown-top .app-dropdown-menu { top: auto; bottom: calc(100% + 6px); }
+.app-dropdown-search { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; gap: 7px; min-width: 220px; height: 36px; margin-bottom: 4px; padding: 0 9px; border: 1px solid var(--border-default); border-radius: 7px; background: var(--bg-surface-raised); color: var(--text-tertiary); }
+.app-dropdown-search:focus-within { border-color: var(--focus-border); box-shadow: 0 0 0 3px var(--focus-ring); }
+.app-dropdown-search input { min-width: 0; width: 100%; padding: 0; border: 0; outline: 0; background: transparent; color: var(--text-primary); font: inherit; font-size: var(--text-md); }
+.app-dropdown-search input::placeholder { color: var(--text-tertiary); }
+.app-dropdown-options { max-height: 236px; overflow-y: auto; }
+.app-dropdown-options button { display: flex; align-items: center; justify-content: space-between; gap: 18px; width: 100%; height: 34px; padding: 0 9px; border: 0; border-radius: 6px; background: transparent; color: var(--text-secondary); font: inherit; font-size: var(--button-text-size); text-align: left; white-space: nowrap; cursor: pointer; }
+.app-dropdown-options button:hover, .app-dropdown-options button:focus-visible { outline: 0; background: var(--bg-hover); color: var(--text-primary); }
+.app-dropdown-options button[aria-selected="true"] { background: var(--bg-surface-raised); color: var(--text-primary); box-shadow: 0 1px 2px var(--inset-shadow), inset 0 0 0 1px var(--border-subtle); }
+.app-dropdown-options button svg { flex: none; color: var(--text-secondary); }
+.app-dropdown-empty { min-width: 200px; margin: 0; padding: 12px 9px; color: var(--text-tertiary); font-size: var(--text-md); text-align: center; }
+.app-dropdown-text { flex: none; width: max-content; min-width: 0; }
+.app-dropdown-text .app-dropdown-trigger { width: auto; height: var(--small-control-height); gap: 6px; padding: 0 8px; border: 1px solid var(--border-default); border-radius: 8px; background: var(--bg-surface-raised); color: var(--text-primary); font-size: var(--text-md); }
+.app-dropdown-text .app-dropdown-trigger:hover, .app-dropdown-text .app-dropdown-trigger[aria-expanded="true"] { border-color: var(--border-strong); background: var(--bg-hover); }
+.app-dropdown-text .app-dropdown-trigger:focus-visible, .app-dropdown-text .app-dropdown-trigger[aria-expanded="true"] { border-color: var(--focus-border); box-shadow: 0 0 0 3px var(--focus-ring); }
+.app-dropdown-text .app-dropdown-menu { right: 0; left: auto; min-width: 128px; }

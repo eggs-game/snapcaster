@@ -24,6 +24,8 @@ import {
   rememberRecognitionHint,
 } from "./recognitionHints.js";
 import CardSidebar, { cardFromScryfall, formatDiceResult, formatDiceSides } from "./CardSidebar.jsx";
+import AppDropdown from "./AppDropdown.jsx";
+import { useConfirmDialog } from "./ConfirmDialog.jsx";
 import { getSoundEffect, playChatNotification, playSoundEffect, playTurnNotification } from "./soundEffects.js";
 import { getCounterTextColor, getVideoCounterType, normalizeVideoCounter } from "./videoCounters.js";
 import {
@@ -97,6 +99,7 @@ function makeChatShowcase(myId, myName) {
 }
 
 export default function Game({ session, account, onLeave, themePreference, onThemePreferenceChange }) {
+  const confirmAction = useConfirmDialog();
   const isVisitor = session.role === "visitor";
   const isLocalMock = Boolean(session.mockGame);
   const connRef = useRef(null);
@@ -169,14 +172,6 @@ export default function Game({ session, account, onLeave, themePreference, onThe
       return "tiles";
     }
   });
-  const [videoFit, setVideoFit] = useState(() => {
-    try {
-      const saved = localStorage.getItem("snapcast-video-fit");
-      return ["cover", "16:9"].includes(saved) ? saved : "cover";
-    } catch {
-      return "cover";
-    }
-  });
   const [outgoingVideoQuality, setOutgoingVideoQuality] = useState(() => {
     try {
       return normalizeOutgoingVideoQuality(localStorage.getItem("snapcast-outgoing-video-quality"));
@@ -216,8 +211,16 @@ export default function Game({ session, account, onLeave, themePreference, onThe
       return true;
     }
   });
+  const [gameClockVisible, setGameClockVisible] = useState(() => {
+    try {
+      return localStorage.getItem("snapcast-game-clock") !== "hidden";
+    } catch {
+      return true;
+    }
+  });
   const [gameStatus, setGameStatus] = useState(session.roomStatus || "lobby");
   const [durableSessionId, setDurableSessionId] = useState(session.gameSessionId || "");
+  const [gameStartedAt, setGameStartedAt] = useState(session.gameStartedAt || session.mockGame?.startedAt || "");
   const [roomMutedMemberships, setRoomMutedMemberships] = useState({});
   const [gameFriends, setGameFriends] = useState([]);
   const [isGameOwner, setIsGameOwner] = useState(Boolean(session.creator));
@@ -242,6 +245,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
     setActivePlayerId(playerIds[0] || "");
     activePlayerIdRef.current = playerIds[0] || "";
     setDurableSessionId("");
+    setGameStartedAt("");
     setGameStatus("lobby");
     gameStatusRef.current = "lobby";
     connRef.current?.setLife(40);
@@ -252,11 +256,24 @@ export default function Game({ session, account, onLeave, themePreference, onThe
   };
 
   useEffect(() => {
-    if (sidebarView !== "management" || !account) return;
-    getSocialDashboard()
-      .then((dashboard) => setGameFriends(dashboard.friends || []))
-      .catch(() => setGameFriends([]));
-  }, [account, sidebarView]);
+    if (sidebarView !== "invite" || !account || !isGameOwner) return undefined;
+    let active = true;
+    const refreshFriends = () => {
+      getSocialDashboard()
+        .then((dashboard) => {
+          if (active) setGameFriends(dashboard.friends || []);
+        })
+        .catch(() => {
+          if (active) setGameFriends([]);
+        });
+    };
+    refreshFriends();
+    const refreshTimer = window.setInterval(refreshFriends, 30000);
+    return () => {
+      active = false;
+      window.clearInterval(refreshTimer);
+    };
+  }, [account, isGameOwner, sidebarView]);
 
   useEffect(() => {
     if (isLocalMock || !session.membershipId || !session.participantToken) return undefined;
@@ -289,6 +306,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
           connRef.current?.rotateRealtimeEpoch(membership.realtime_epoch).catch(() => {});
         }
         if (membership.game_session_id) setDurableSessionId(membership.game_session_id);
+        if (Object.hasOwn(membership, "game_started_at")) setGameStartedAt(membership.game_started_at || "");
         if (membership.owner_membership_id === session.membershipId) {
           setIsGameOwner(true);
           setActiveOwnerToken((token) => token || session.participantToken);
@@ -385,6 +403,14 @@ export default function Game({ session, account, onLeave, themePreference, onThe
     setTurnNotificationsEnabled(next);
     try {
       localStorage.setItem("snapcast-turn-notifications", next ? "enabled" : "muted");
+    } catch { /* preference still applies for this session */ }
+  }, []);
+
+  const chooseGameClockVisibility = useCallback((visible) => {
+    const next = Boolean(visible);
+    setGameClockVisible(next);
+    try {
+      localStorage.setItem("snapcast-game-clock", next ? "visible" : "hidden");
     } catch { /* preference still applies for this session */ }
   }, []);
 
@@ -1337,12 +1363,6 @@ export default function Game({ session, account, onLeave, themePreference, onThe
     try { localStorage.setItem("snapcast-video-layout", next); } catch { /* preference remains in memory */ }
   };
 
-  const chooseVideoFit = (fit) => {
-    const next = ["cover", "16:9"].includes(fit) ? fit : "cover";
-    setVideoFit(next);
-    try { localStorage.setItem("snapcast-video-fit", next); } catch { /* preference remains in memory */ }
-  };
-
   const saveRecognitionReports = (next) => {
     setRecognitionReports(next);
     // The durable copies are in Supabase Storage. Keep only the small report
@@ -1622,12 +1642,14 @@ export default function Game({ session, account, onLeave, themePreference, onThe
   const startManagedGame = async () => {
     if (isLocalMock) {
       setDurableSessionId(`mock-session-${session.code}`);
+      setGameStartedAt(new Date().toISOString());
       setGameStatus("live");
       gameStatusRef.current = "live";
       return;
     }
     const result = await startDurableGame({ gameId: session.gameId, ownerToken: activeOwnerToken });
     setDurableSessionId(result.session_id);
+    setGameStartedAt(result.started_at || new Date().toISOString());
     setGameStatus("live");
     gameStatusRef.current = "live";
   };
@@ -1720,7 +1742,12 @@ export default function Game({ session, account, onLeave, themePreference, onThe
   };
 
   const restartManagedGame = async () => {
-    if (!window.confirm("Restart the table? Current game state will be preserved as unresolved if it has started.")) return;
+    if (!(await confirmAction({
+      title: "Restart the table?",
+      description: "Current game state will be preserved as unresolved if the game has started.",
+      confirmLabel: "Restart table",
+      tone: "danger",
+    }))) return;
     if (!isLocalMock) await restartDurableGame({ gameId: session.gameId, ownerToken: activeOwnerToken });
     resetTableState();
   };
@@ -1951,10 +1978,10 @@ export default function Game({ session, account, onLeave, themePreference, onThe
             onChatNotificationsChange={chooseChatNotifications}
             turnNotificationsEnabled={turnNotificationsEnabled}
             onTurnNotificationsChange={chooseTurnNotifications}
+            gameClockVisible={gameClockVisible}
+            onGameClockVisibilityChange={chooseGameClockVisibility}
             videoLayout={videoLayout}
             onVideoLayoutChange={chooseVideoLayout}
-            videoFit={videoFit}
-            onVideoFitChange={chooseVideoFit}
             outgoingVideoQuality={outgoingVideoQuality}
             onOutgoingVideoQualityChange={chooseOutgoingVideoQuality}
             counterPlayers={counterPreviewPlayers}
@@ -1980,8 +2007,12 @@ export default function Game({ session, account, onLeave, themePreference, onThe
             isCreator={isGameOwner && Boolean(activeOwnerToken)}
             managementParticipants={managementParticipants}
             managementStatus={gameStatus}
+            gameStartedAt={gameStartedAt}
             managementFriends={gameFriends}
             onStartGame={startManagedGame}
+            onShufflePositions={randomizeGrid}
+            onStartReadyCheck={startReadyCheck}
+            isReadyCheckActive={Boolean(readyCheck)}
             onManageMember={manageMember}
             onEndGame={endManagedGame}
             onRestartGame={restartManagedGame}
@@ -2000,9 +2031,13 @@ export default function Game({ session, account, onLeave, themePreference, onThe
             <button
               className={`game-out-trigger${eliminations[myId] ? " active" : ""}`}
               type="button"
-              onClick={() => {
+              onClick={async () => {
                 if (eliminations[myId]) {
-                  if (!window.confirm("Return yourself to the active game?")) return;
+                  if (!(await confirmAction({
+                    title: "Return to the active game?",
+                    description: "Your eliminated status will be cleared for everyone at the table.",
+                    confirmLabel: "Return to game",
+                  }))) return;
                   const next = { ...eliminationsRef.current };
                   delete next[myId];
                   eliminationsRef.current = next;
@@ -2027,7 +2062,12 @@ export default function Game({ session, account, onLeave, themePreference, onThe
                   concede: "concede",
                   other: "other",
                 }[normalized];
-                if (!safeReason || !window.confirm(`Mark yourself out by ${safeReason.replace("_", " ")}?`)) return;
+                if (!safeReason || !(await confirmAction({
+                  title: "Mark yourself out?",
+                  description: `Cause: ${safeReason.replace("_", " ")}. This will be recorded in the game history.`,
+                  confirmLabel: "Mark me out",
+                  tone: "danger",
+                }))) return;
                 const next = { ...eliminationsRef.current, [myId]: safeReason };
                 eliminationsRef.current = next;
                 setEliminations(next);
@@ -2078,7 +2118,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
               </div>
             </div>
           )}
-          <div className={`${videoLayout === "follow" ? "grid follow-active" : videoLayout === "hero" ? "grid hero-view" : `grid${tiles.length > 4 ? " grid-six" : ""}`}${videoFit === "16:9" ? " grid-fit-16-9" : ""}`}>
+          <div className={videoLayout === "follow" ? "grid follow-active" : videoLayout === "hero" ? "grid hero-view" : `grid${tiles.length > 4 ? " grid-six" : ""}`}>
             {visibleTiles.map((t, i) => (
               <VideoTile
                 key={t.id}
@@ -2656,15 +2696,21 @@ function TileMenu({ profileId, flipped, onToggleFlip, canPassTurn, onPassTurn, c
             </a>
           )}
           {onVideoQualityChange && (
-            <label className="tile-quality-control">
+            <div className="tile-quality-control">
               <span>Video quality</span>
-              <select value={videoQuality || "auto"} onChange={(event) => onVideoQualityChange(event.target.value)}>
-                <option value="auto">Auto (recommended)</option>
-                <option value="720p">720p</option>
-                <option value="1080p">1080p</option>
-              </select>
+              <AppDropdown
+                label="Video quality"
+                value={videoQuality || "auto"}
+                onChange={onVideoQualityChange}
+                placement={menuUp ? "top" : "bottom"}
+                options={[
+                  { value: "auto", label: "Auto (recommended)" },
+                  { value: "720p", label: "720p" },
+                  { value: "1080p", label: "1080p" },
+                ]}
+              />
               <small>{videoResolution ? `Receiving ${formatVideoResolution(videoResolution)}` : "Waiting for video…"}</small>
-            </label>
+            </div>
           )}
           <button
             type="button"

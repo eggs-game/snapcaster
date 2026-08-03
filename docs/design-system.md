@@ -1,6 +1,7 @@
 # UI design system
 
-Living notes on shared visual patterns across `src/styles.css`. This is
+Living notes on shared visual patterns across `src/styles.css` and the
+component-owned stylesheets beside reusable UI primitives. This is
 the second-most-consulted doc for any UI change (after actually reading the
 component) — check it before inventing a new size, color, or radius.
 
@@ -43,14 +44,28 @@ duplicated value table that will go stale.
     chromatic, non-themed color is intentional — they identify a specific
     player and must stay stable across light/dark mode.
 - **Typography** — `--text-xs` (12px) through `--text-3xl` (28px), one
-  scale for the whole app. `--font-heading` (Geist, with Inter fallback) is
-  reserved for `h1`–`h6`; `--font-sans` (Inter) remains the UI/body face so
-  controls and dense game surfaces do not reflow. `--font-mono` (Geist Mono)
-  is for code/diagnostic output.
-- **Spacing** — `--space-2` (8px) / `--space-5` (20px) cover the common
-  cases; most components still use literal px for one-off gaps. If you're
-  reaching for a third spacing value repeatedly, consider adding a token
-  rather than a new magic number.
+  scale for the whole app. `--font-heading` and `--font-sans` both use Geist,
+  so headings, body copy, controls, and utility UI share one family. `--font-mono`
+  uses Geist Mono for codes and numeric readouts while remaining within the
+  Geist family. System sans-serif fallbacks exist only for font-load failures.
+  Keep direct family declarations out of components so these tokens govern the
+  entire app consistently. Native form controls (`button`, `input`, `select`,
+  `textarea`, `optgroup`, and `option`) explicitly receive `--font-sans` because
+  browser user-agent styles otherwise substitute platform fonts such as Arial
+  instead of inheriting the body face. Text-labeled buttons use
+  `--button-text-size`, which resolves to `--text-md` (14px), across compact,
+  full-width, menu, and responsive variants. Icon-only controls keep their
+  dimensions from the icon-button tiers; their SVG size is independent of this
+  text token.
+- **Spacing** — `--space-2` (8px), `--space-4` (16px), `--space-5` (20px),
+  and `--space-8` (32px) cover control, title-to-content, field, and major
+  section rhythms. Most components still use literal px for one-off gaps; add
+  a token when a value becomes a repeated system rule.
+- **Control heights** — `--small-control-height` (32px) is the compact Settings
+  and small-button tier; `--input-height` (34px) remains the full-width field
+  and primary sidebar-action tier. Settings switch rows stay on that 32px rhythm,
+  while the visible track uses `--switch-height` (24px) and `--switch-width`
+  (40px) for a quieter proportion.
   - Page-level shells use a shared 1280px content grid with a 20px minimum
     gutter. `--page-max-width` defines the cap and `--page-gutter` expresses
     the matching header padding, so the wordmark and page content keep the same
@@ -64,6 +79,13 @@ duplicated value table that will go stale.
   (the active-turn pulse, hero crossfades) pick their own duration when the
   effect genuinely needs to be slower/faster than UI motion, but should
   still ease with `--ease-standard` unless there's a specific reason not to.
+- **Primary buttons** — use `--text-primary` as the filled surface,
+  `--text-inverse` for the label, and the standard 8px radius. Hover mixes the
+  fill to 88% `--text-primary` with `--bg-canvas`; pressed mixes it to 78%.
+  Focus uses `--focus-border` plus the 3px `--focus-ring`, while disabled
+  controls keep the same shape at 60% opacity and never respond to hover.
+  Start game and other lifecycle actions follow this same state progression;
+  do not reuse the generic secondary hover on a primary control.
 - **Glass/overlay material** — `--glass-bg`, `--glass-border`,
   `--glass-highlight`, `--glass-blur` (16px), `--glass-saturation` (115%)
   define the frosted-panel look used for the sidebar, the video-tile name
@@ -508,7 +530,7 @@ keeps its intentionally small filter set on the bare page canvas: a compact
 search field, an “All brackets” selector, and a table-size selector that
 defaults to four players. Field titles and the old filter-panel shell are
 omitted so selected values do the labeling. Both selectors use the app's
-custom dense-glass listbox pattern—shared 10px overlay radius, blur, border,
+shared `AppDropdown` dense-glass listbox pattern—10px overlay radius, blur, border,
 shadow, 34px option rows, and raised selected state—rather than an OS-native
 menu that breaks visual consistency. Lobby results always require an
 open player seat; that invariant is no longer presented as an optional
@@ -628,6 +650,12 @@ close action inside their headers. The rail’s first action aligns with the
 content panel’s game-name text. When the panel is closed, the persistent rail
 shows no active selection; the selected treatment returns when it is opened.
 
+Every top-level panel title uses `--text-lg` (16px), whether it is a static
+heading such as **Chat**, **Settings**, or **Game management**, or the editable
+game name in the Cards panel. The rename input keeps the same size so entering
+edit mode does not shift the header. Nested control labels remain on the 14px
+and 12px panel type scale.
+
 Rail tooltips use the horizontal `right` anchor so they appear beside the
 icons and expand into the app instead of clipping at the viewport’s left edge.
 Every tooltip has a viewport-aware maximum width and wraps long labels. Triggers
@@ -636,13 +664,30 @@ controls open upward, and top-edge controls open downward; centered defaults
 are reserved for controls with safe space on both sides.
 
 Game owners receive a second rail divider below Settings followed by a Lucide
-Chess Queen action. All creator controls live in this **Game management** view;
-there is no separate floating lobby button or management modal over the game.
-Start, end, restart, invite, mute, and remove actions stay together above and
-within the roster. Every player and visitor appears in an individual
+Chess Queen action. Game lifecycle and moderation controls live in this
+**Game management** view; there is no separate floating lobby button or
+management modal over the game. Start, end, restart, mute, and remove actions
+stay together above and within the roster. Invitation actions stay in the
+dedicated **Invite** view beside the room code and direct links. For owners,
+that view includes a complete friend list sorted online-first, with a small
+green presence dot for Online/In game, a neutral Offline state, and one compact
+Invite or Cancel action per friend. The link controls and friend list are introduced by **Share links** and
+**Friends** headings using the shared 16px sidebar section-title treatment;
+the first control begins 16px below its heading, matching Settings sections.
+Every player and visitor appears in an individual
 10px-radius surface tile. Tiles show identity and role first, then relevant
 commander and media-state details; visitor tiles omit camera and commander rows
 that do not apply to them.
+Once the owner starts a game, the shared session start timestamp drives a
+compact elapsed **Game time** readout at the bottom of the persistent left rail.
+It uses tabular monospace numerals, remains visible when the content panel is
+collapsed, stays hidden while the room is in its lobby, and resets when the
+table is restarted; clients never start independent clocks. It is on by default
+for owners, players, and visitors. Each participant can hide it locally with
+the Game clock control in their own Settings without changing anyone else's
+view. To fit the 48px rail,
+the readout shows minutes:seconds under one hour and hours:minutes thereafter;
+the tooltip and accessible label retain the full elapsed time.
 Visitors also receive the Commander damage rail action and can inspect every
 player's commander-damage and poison totals, but all values render as read-only
 text. Dice, life editing, and counter steppers remain player-only.
@@ -814,17 +859,16 @@ it does not add a filled button background. Account/Profile and Notifications
 use this pattern through `.account-page-tabs`. On small screens each tab shares
 the available row width so labels remain easy to target.
 
-Segmented controls are input-like choice groups rather than content
-navigation. The screenshot-style pattern is the canonical segmented control:
-a bordered, rounded track containing equal-width options with a raised selected
-segment. Keep this treatment for compact mutually exclusive controls such as
-Settings choices, game-directory view filters, visitor role selection, and the
-sound picker. Do not use it for page or panel tabs.
+Segmented controls switch compact peer UI views inside the same surface. Their
+shared track communicates that the interface itself is changing rather than a
+preference being saved. Keep this treatment for immediately visible view
+controls such as game-directory display filters. Do not use it for page or
+panel tabs, persistent settings, appearance choices, notification preferences,
+or on/off settings.
 
 ### Segmented-control construction
 
-The pill-shaped multi-option toggle (Settings' Game view / Video fit /
-Appearance rows): a bordered track (`--border-default`, 8px radius,
+The pill-shaped multi-option toggle is a bordered track (`--border-default`, 8px radius,
 `var(--input)` background) containing equal-width buttons with **2px gap**
 between them, 2px inner padding. Selected state is `aria-pressed="true"`
 driving a raised background (`--bg-surface-raised`) plus a subtle inset
@@ -846,17 +890,85 @@ users too.
 .some-segmented-control button[aria-pressed="true"] { background: var(--bg-surface-raised); color: var(--text-primary); box-shadow: 0 1px 2px var(--inset-shadow), inset 0 0 0 1px var(--border-subtle); }
 ```
 
-Current examples: `.theme-options` (3-up: Appearance; 2-up via the
-`.two-up` modifier: Video fit, Chat notifications, and Turn notifications;
-4-up via `.four-up`: Outgoing video quality), `.view-options` (3-up: Game view). These
-two classes are near-duplicates that predate this doc — don't add a third
-one; extend `.theme-options` with a modifier the way `.two-up` does.
+### Preference choice buttons
+
+Mutually exclusive saved preferences use `SettingsChoiceGroup`: equal-width
+standalone buttons separated by the standard 8px gap, with no surrounding
+track. Every button carries its own 8px radius and default border. The selected
+button uses `aria-pressed="true"`, a raised surface, a stronger border, and an
+inset edge; inactive choices remain on the normal surface. This makes the
+active state clear without implying that the buttons are tabs or view segments.
+The component accepts two, three, or more options and derives equal columns
+from the option count. Appearance and outgoing video quality use this pattern.
+Settings groups Game view, Game clock, and notification controls
+beneath the **General** legend. Game view is a compact inline text dropdown
+aligned opposite its label (with Tile selected by default). Its compact trigger
+uses the secondary-control treatment shared with Camera on: a soft
+`--border-default` stroke and raised surface at rest, with the stronger hover
+border, hover surface, and focus ring used by other controls. Its window is the
+shared `AppDropdown` dense-glass listbox,
+not a native operating-system menu. Camera, Microphone, Dice, and Game
+Management selectors use the same component; use `placement="top"` near a
+bottom edge. The inline trigger remains content-width at the compact button
+tier: 32px height, 8px horizontal padding, and 8px radius. Game
+clock, Chat notifications, and Turn
+notifications are independent switches. The sibling **Display** section holds
+the Appearance choice group and, for seated players, the Tile color swatches.
+Present both control rows directly beneath Display without redundant visible
+“Appearance” or “Tile color” field labels; their controls retain accessible
+names for assistive technology and browser automation.
+Each boolean row uses
+`SettingsSwitch` with the label on the left and a compact
+40×24px switch on the right. The switch exposes `role="switch"` and
+`aria-checked`, uses a white track when enabled and a gray track when disabled,
+and related rows keep a 12px gap. Keep the label outside the interactive button so browser
+annotation, accessibility tooling, and tests can target the 32px switch control
+independently from its row label. The switch's accessible name comes from that
+visible label.
+Use switches for independent on/off behavior; use
+`SettingsChoiceGroup` when users must choose one named value from multiple
+alternatives.
+
+`AppDropdown` is the production default for every select-style control, not
+only Settings. Create/prejoin modals, profile and game-history filters, saved
+deck sorting, deck-editor Group/Sort/Section controls, and per-player video
+quality all use its same keyboard-navigable dense-glass listbox. A surface may
+adapt the trigger width or integrate it into a compact toolbar, but it must not
+replace the listbox with an operating-system-native `<select>` window. The
+developer-only SNAPTEST harness is the sole native-select exception because it
+is not part of the player UI. Dropdowns with eight or more options add the
+shared typeahead field automatically; commander and player-history filters opt
+in even when their current fixture is short so the interaction remains stable
+as history grows. Typing while a searchable trigger is focused opens the menu
+with that query, arrow keys move between filtered options, and Escape returns
+focus to the trigger. Base dropdown styles live with the component in
+`src/AppDropdown.css`; feature-level trigger adaptations remain beside their
+own page or panel styles.
 
 ## Settings-panel field spacing
 
 Every icon-only or text-only button, and every custom control, gets a
 `:hover` state — no exceptions. A control users can interact with but that
 looks identical before and after hovering reads as broken, not minimal.
+
+Settings section headings use the shared `.settings-section-title` treatment:
+`--text-primary`, `--text-lg` (16px), and 500 weight. Use it for structural labels
+such as General, Display, Video, and Microphone. Individual field labels remain
+`--text-secondary` at `--text-md` (14px) so the section hierarchy is visible without adding dividers
+or extra containers. Keep 16px between a section title and its first field or
+control; this spacing is shared across fieldset legends, nested section labels,
+and drawer headings. Keep 32px between sibling major sections such as General,
+Display, Video, and Microphone so one section's final control never reads as
+part of the next title.
+
+Sidebar panels scroll vertically only. Use `overflow-x: clip` and disable
+horizontal overscroll on `.sidebar-content` so trackpad gestures and focus
+management cannot shift Settings or any other sidebar view sideways.
+Sidebar panels use a deliberately compressed type scale: 12px
+(`--text-xs`) for supporting metadata, 14px (`--text-md`) for body copy,
+labels, inputs, and actions, and 16px (`--text-lg`) for explicit section
+titles. The sidebar remaps legacy `--text-sm` references to `--text-md`, so
+no panel renders 13px text while older component rules are consolidated.
 
 Vertical rhythm for stacked fields in the sidebar Settings panel and
 similar forms: **16px** between fields that belong to the same labeled
@@ -883,6 +995,10 @@ is mid-group — the camera toggle → camera select → outgoing-quality → Vi
 sequence in the same "Video" section. Reach for those modifiers rather than a
 one-off margin value when a new field needs to sit mid-group.
 
+The destructive **Leave game** action is intentionally separated from the
+final preference group by 32px so it reads as a standalone exit action rather
+than another setting.
+
 Field labels are handled the same way as icon buttons above — a control
 that already has an on-screen state (the "Camera on"/"Mic on" toggle text)
 doesn't need a repeated `<span>` label like "Camera" above its dropdown;
@@ -897,6 +1013,13 @@ elevation. Prejoin/create-setup flows reuse the same modal shell with a
 `prejoin-modal` modifier rather than a bespoke layout — new multi-step
 flows in the lobby should follow that pattern (same shell, a modifier
 class, and a `modal` state string per step) instead of a new component.
+All destructive and consequential confirmations use the shared
+`ConfirmDialogProvider` instead of `window.confirm`. The dialog reuses the
+modal shell, gives destructive actions the semantic danger treatment, focuses
+Cancel first, traps keyboard focus, closes on Escape or backdrop click, and
+restores focus to the action that opened it. Its component-owned styling lives
+in `src/ConfirmDialog.css`; new modal primitives should follow this extraction
+pattern rather than adding another unrelated block to `src/styles.css`.
 The camera preview may place a 34px icon-only control over its top-right
 corner. It uses the compact 8px-radius button treatment, remains inside the
 preview bounds, and carries its selected state into the matching in-game
@@ -950,37 +1073,7 @@ menus: on a bottom-row tile they use the `menu-up` modifier and open above the
 field, preventing the viewport edge from clipping the available commander
 choices.
 
-Settings → Video fit controls how each player's camera stream fills its
-tile in the game grid, independent of `.grid`'s own layout mode
-(tiles/follow/hero):
-
-- **Cover** (default) — the `<video>` fills the entire tile, whatever
-  shape the CSS Grid cell happens to compute (`object-fit: cover`,
-  stretched to 100%×100%). This is the original behavior; it over-crops
-  when a tile's cell shape is more square than the camera's native 16:9,
-  which reads as "zoomed in."
-- **Fit** (`.grid-fit-16-9` on `.grid`, internal value `"16:9"`) — the
-  *tile itself keeps its normal grid-cell size* (banner, life badge, border
-  unchanged); only the `<video>` element inside is boxed to a centered
-  16:9 area that fits within the available space (`width: 100%; height:
-  auto; max-height: 100%; aspect-ratio: 16/9`), with `object-fit: contain`
-  scaling the full camera frame down to fit that box — nothing is cropped,
-  even if it means pillarboxing inside the box on top of any letterboxing
-  the box already has relative to the tile. This is deliberately different
-  from constraining the *tile's* aspect ratio — that would leave gaps in
-  the grid and shrink the banner/life-badge along with it, which isn't
-  what "Fit" should mean here. (An earlier version of this mode used
-  `object-fit: cover` here, which still cropped — changed after feedback
-  that it should show strictly *more* of the frame than Cover mode, never
-  less.)
-  - The banner's dark semi-transparent scrim (`.commander-banner`'s
-    `background`) exists so name text stays legible over moving video. In
-    16:9 mode the banner (pinned to the tile's top edge) frequently sits
-    over letterboxed background instead of actual video, so
-    `.grid-fit-16-9 .commander-banner` drops the scrim — the name text
-    itself is untouched, only the tint goes.
-
-If a third fit mode is ever needed, extend the `videoFit` state
-(`"cover" | "16:9"`, persisted to `localStorage` as `snapcast-video-fit`)
-and the two-option segmented control in Settings rather than introducing a
-parallel toggle.
+Camera video fills its tile with `object-fit: cover`. The Settings panel does
+not expose a separate video-fit chooser; Video contains the camera control,
+device picker, and four quality choices only. The quality choices sit directly
+beneath the camera picker without a redundant “Outgoing video quality” label.

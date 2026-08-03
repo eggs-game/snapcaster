@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.jsx";
+import { ConfirmDialogProvider } from "./ConfirmDialog.jsx";
 // The benchmark page pulls in SnapTest + the scene generator + the degradation
 // harness (~1300 lines) that no player ever runs. Split it out so it is fetched
 // only when /snaptest is opened.
@@ -39,7 +40,9 @@ const page = route === "/snaptest" ? <SnapTest />
   : route === "/moderation" ? <ModerationPage />
   : null;
 createRoot(document.getElementById("root")).render(
-  page
-    ? <Suspense fallback={null}>{page}</Suspense>
-    : <App />,
+  <ConfirmDialogProvider>
+    {page
+      ? <Suspense fallback={null}>{page}</Suspense>
+      : <App />}
+  </ConfirmDialogProvider>,
 );
