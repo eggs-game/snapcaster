@@ -152,9 +152,10 @@ command. `npm run check` adds a production build and is the normal pre-push
 gate for non-recognition work. Recognition pipeline changes still require the
 full SNAPTEST plan above; a green fast check is not a substitute for pixels.
 
-`npm run test:a11y` serves the production build and runs Playwright with axe
-against representative light/dark landing pages, a public profile, the shared
-confirmation dialog, and the in-game settings drawer. It enforces WCAG 2 A/AA,
+`npm run test:a11y` injects a tracked test-only mock fixture, serves the
+production build, and runs Playwright with axe against representative
+light/dark landing pages, a public profile, the shared confirmation dialog,
+and the in-game settings drawer. It enforces WCAG 2 A/AA,
 including automated color-contrast checks. Run `npm run check` first so the
 `dist/` bundle being audited matches the code under review.
 

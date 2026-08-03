@@ -84,7 +84,10 @@ try {
     try {
       await access("dist/mock-data.local.json");
     } catch {
-      await copyFile("public/mock-data.local.json", "dist/mock-data.local.json");
+      await copyFile(
+        "scripts/fixtures/accessibility-mock-data.json",
+        "dist/mock-data.local.json",
+      );
       addedMockFixture = true;
     }
     server = spawn(

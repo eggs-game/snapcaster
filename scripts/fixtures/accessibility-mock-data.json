@@ -1,0 +1,802 @@
+{
+  "enabled": true,
+  "account": {
+    "localMock": true,
+    "access_token": "local-mock-session",
+    "user": {
+      "id": "10000000-0000-4000-8000-000000000001",
+      "is_anonymous": false,
+      "user_metadata": { "name": "Zach", "avatar_url": "" }
+    },
+    "profile": {
+      "id": "10000000-0000-4000-8000-000000000001",
+      "display_name": "Zach",
+      "avatar_url": "",
+      "created_at": "2026-01-14T18:20:00.000Z",
+      "updated_at": "2026-07-26T18:20:00.000Z"
+    },
+    "preferences": {
+      "preferred_camera_id": null,
+      "preferred_microphone_id": null,
+      "theme": "dark",
+      "appear_offline": false,
+      "show_recent_games": true
+    },
+    "privateAccount": {
+      "email": "local-preview@example.test",
+      "email_verified": true
+    }
+  },
+  "saved_decks": [
+    {
+      "id": "20000000-0000-4000-8000-000000000001",
+      "label": "Counters",
+      "commander_name": "Atraxa, Praetors' Voice",
+      "commander_scryfall_id": "495e2dcb-736f-425e-8f2d-fffba92bb334",
+      "partner_name": null,
+      "partner_scryfall_id": null,
+      "color_identity": ["W", "U", "B", "G"],
+      "average_cmc": 3.18,
+      "sort_order": 0
+    },
+    {
+      "id": "20000000-0000-4000-8000-000000000002",
+      "label": "Tiny pirates",
+      "commander_name": "Malcolm, Keen-Eyed Navigator",
+      "commander_scryfall_id": "303c3a8b-6c07-4d22-a994-e4c36d3a35bf",
+      "partner_name": "Breeches, Brazen Plunderer",
+      "partner_scryfall_id": "d7f623fe-8c85-4d16-954c-ccdde6b20239",
+      "color_identity": ["U", "R"],
+      "average_cmc": 2.92,
+      "sort_order": 1
+    },
+    {
+      "id": "20000000-0000-4000-8000-000000000003",
+      "label": "Dragon storm",
+      "commander_name": "The Ur-Dragon",
+      "commander_scryfall_id": null,
+      "partner_name": null,
+      "partner_scryfall_id": null,
+      "color_identity": ["W", "U", "B", "R", "G"],
+      "average_cmc": 3.85,
+      "sort_order": 2
+    },
+    {
+      "id": "20000000-0000-4000-8000-000000000004",
+      "label": "Graveyard value",
+      "commander_name": "Muldrotha, the Gravetide",
+      "commander_scryfall_id": null,
+      "partner_name": null,
+      "partner_scryfall_id": null,
+      "color_identity": ["U", "B", "G"],
+      "average_cmc": 3.42,
+      "sort_order": 3
+    },
+    {
+      "id": "20000000-0000-4000-8000-000000000005",
+      "label": "Ninja tempo",
+      "commander_name": "Yuriko, the Tiger's Shadow",
+      "commander_scryfall_id": null,
+      "partner_name": null,
+      "partner_scryfall_id": null,
+      "color_identity": ["U", "B"],
+      "average_cmc": 2.55,
+      "sort_order": 4
+    },
+    {
+      "id": "20000000-0000-4000-8000-000000000006",
+      "label": "Four-color friends",
+      "commander_name": "Tymna the Weaver",
+      "commander_scryfall_id": null,
+      "partner_name": "Kraum, Ludevic's Opus",
+      "partner_scryfall_id": null,
+      "color_identity": ["W", "U", "B", "R"],
+      "average_cmc": 3.07,
+      "sort_order": 5
+    },
+    {
+      "id": "20000000-0000-4000-8000-000000000007",
+      "label": "Ant-Man",
+      "commander_name": "The Astonishing Ant-Man",
+      "commander_scryfall_id": "5d98073e-2828-4365-a8d6-f631aac0cca9",
+      "partner_name": null,
+      "partner_scryfall_id": null,
+      "color_identity": ["U", "G"],
+      "average_cmc": 2.76,
+      "sort_order": 6,
+      "source_provider": "moxfield",
+      "source_url": "https://moxfield.com/decks/ZjnNlWRExkurRpAgpFX3dg",
+      "source_fixture": "ant-man",
+      "fixture_loaded": false
+    }
+  ],
+  "games": [
+    {
+      "game_id": "30000000-0000-4000-8000-000000000001",
+      "code": "MOCK01",
+      "name": "Saturday Spells",
+      "bracket": 3,
+      "visibility": "public",
+      "status": "lobby",
+      "seat_limit": 4,
+      "player_count": 2,
+      "visitor_count": 1,
+      "commanders": ["Maya — Alela, Artful Provocateur", "Drew — The Ur-Dragon"],
+      "commander_cards": [
+        { "name": "Alela, Artful Provocateur", "scryfall_id": "43d28c05-0ba1-4afa-a784-b71741375507", "partner_name": null, "partner_scryfall_id": null, "seat_number": 1 },
+        { "name": "The Ur-Dragon", "scryfall_id": "7e78b70b-0c67-4f14-8ad7-c9f8e3f59743", "partner_name": null, "partner_scryfall_id": null, "seat_number": 2 }
+      ],
+      "players": [
+        { "id": "11000000-0000-4000-8000-000000000001", "display_name": "Maya" },
+        { "id": "11000000-0000-4000-8000-000000000002", "display_name": "Drew" }
+      ],
+      "mock_owner": true,
+      "mock_roster": [
+        { "id": "mock-maya", "name": "Maya", "role": "player", "membershipId": "31000000-0000-4000-8000-000000000001", "profileId": "11000000-0000-4000-8000-000000000001" },
+        { "id": "mock-drew", "name": "Drew", "role": "player", "membershipId": "31000000-0000-4000-8000-000000000002", "profileId": "11000000-0000-4000-8000-000000000002" },
+        { "id": "mock-visitor", "name": "Alex", "role": "visitor", "membershipId": "31000000-0000-4000-8000-000000000003", "profileId": "" }
+      ],
+      "mock_state": {
+        "commanders": {
+          "mock-maya": "Alela, Artful Provocateur",
+          "mock-drew": "The Ur-Dragon"
+        },
+        "commander_partners": {},
+        "commander_partner_types": {},
+        "colors": { "mock-maya": "#5d78dc", "mock-drew": "#b55454" },
+        "lives": { "mock-maya": 40, "mock-drew": 40 },
+        "poison": {},
+        "commander_damage": {},
+        "active_player_id": "mock-maya",
+        "chat": [
+          { "id": "mock-chat-1", "from": "mock-maya", "name": "Maya", "text": "Welcome! We are picking opening hands.", "at": 1785105000000 },
+          { "id": "mock-chat-2", "from": "mock-drew", "name": "Drew", "text": "I am keeping seven.", "at": 1785105060000 }
+        ]
+      }
+    },
+    {
+      "game_id": "30000000-0000-4000-8000-000000000002",
+      "code": "MOCK02",
+      "name": "Casual Creatures",
+      "bracket": 2,
+      "visibility": "public",
+      "status": "lobby",
+      "seat_limit": 6,
+      "player_count": 3,
+      "visitor_count": 0,
+      "commanders": ["Sam — Muldrotha, the Gravetide", "Nora — Giada, Font of Hope", "Eli — Krenko, Mob Boss"],
+      "commander_cards": [
+        { "name": "Muldrotha, the Gravetide", "scryfall_id": "c4125bb0-b104-438e-a6a2-97f9d141243c", "partner_name": null, "partner_scryfall_id": null, "seat_number": 1 },
+        { "name": "Giada, Font of Hope", "scryfall_id": "bae077bd-fc8d-44d7-8c75-8dc8699c168e", "partner_name": null, "partner_scryfall_id": null, "seat_number": 2 },
+        { "name": "Krenko, Mob Boss", "scryfall_id": "27141cae-3ca1-4a4f-933f-9608bbcf9bd9", "partner_name": null, "partner_scryfall_id": null, "seat_number": 3 }
+      ],
+      "players": [
+        { "id": "11000000-0000-4000-8000-000000000003", "display_name": "Sam" },
+        { "id": "11000000-0000-4000-8000-000000000004", "display_name": "Nora" }
+      ],
+      "mock_owner": false,
+      "mock_roster": [
+        { "id": "mock-sam", "name": "Sam", "role": "player", "membershipId": "32000000-0000-4000-8000-000000000001", "profileId": "11000000-0000-4000-8000-000000000003" },
+        { "id": "mock-nora", "name": "Nora", "role": "player", "membershipId": "32000000-0000-4000-8000-000000000002", "profileId": "11000000-0000-4000-8000-000000000004" },
+        { "id": "mock-eli", "name": "Eli", "role": "player", "membershipId": "32000000-0000-4000-8000-000000000003", "profileId": "" }
+      ],
+      "mock_state": {
+        "commanders": {
+          "mock-sam": "Muldrotha, the Gravetide",
+          "mock-nora": "Giada, Font of Hope",
+          "mock-eli": "Krenko, Mob Boss"
+        },
+        "commander_partners": {},
+        "commander_partner_types": {},
+        "colors": { "mock-sam": "#4f8f65", "mock-nora": "#d6bd60", "mock-eli": "#bd5b4e" },
+        "lives": { "mock-sam": 40, "mock-nora": 40, "mock-eli": 40 },
+        "poison": {},
+        "commander_damage": {},
+        "active_player_id": "mock-sam",
+        "chat": []
+      }
+    },
+    {
+      "game_id": "30000000-0000-4000-8000-000000000003",
+      "code": "LIVE01",
+      "name": "Dragons After Dark",
+      "bracket": 4,
+      "visibility": "public",
+      "status": "live",
+      "seat_limit": 4,
+      "player_count": 4,
+      "visitor_count": 2,
+      "commanders": ["Maya — Atraxa, Praetors' Voice", "Drew — The Ur-Dragon", "Sam — Yuriko, the Tiger's Shadow", "Nora — Chulane, Teller of Tales"],
+      "commander_cards": [
+        { "name": "Atraxa, Praetors' Voice", "scryfall_id": "d0d33d52-3d28-4635-b985-51e126289259", "partner_name": null, "partner_scryfall_id": null, "seat_number": 1 },
+        { "name": "The Ur-Dragon", "scryfall_id": "7e78b70b-0c67-4f14-8ad7-c9f8e3f59743", "partner_name": null, "partner_scryfall_id": null, "seat_number": 2 },
+        { "name": "Yuriko, the Tiger's Shadow", "scryfall_id": "3bd81ae6-e628-447a-a36b-597e63ede295", "partner_name": null, "partner_scryfall_id": null, "seat_number": 3 },
+        { "name": "Chulane, Teller of Tales", "scryfall_id": "83f43730-1c1f-4150-8771-d901c54bedc4", "partner_name": null, "partner_scryfall_id": null, "seat_number": 4 }
+      ],
+      "players": [
+        { "id": "11000000-0000-4000-8000-000000000001", "display_name": "Maya" },
+        { "id": "11000000-0000-4000-8000-000000000002", "display_name": "Drew" },
+        { "id": "11000000-0000-4000-8000-000000000003", "display_name": "Sam" },
+        { "id": "11000000-0000-4000-8000-000000000004", "display_name": "Nora" }
+      ],
+      "mock_owner": false,
+      "mock_roster": [
+        { "id": "live-maya", "name": "Maya", "role": "player", "membershipId": "33000000-0000-4000-8000-000000000001", "profileId": "11000000-0000-4000-8000-000000000001" },
+        { "id": "live-drew", "name": "Drew", "role": "player", "membershipId": "33000000-0000-4000-8000-000000000002", "profileId": "11000000-0000-4000-8000-000000000002" },
+        { "id": "live-sam", "name": "Sam", "role": "player", "membershipId": "33000000-0000-4000-8000-000000000003", "profileId": "11000000-0000-4000-8000-000000000003" },
+        { "id": "live-nora", "name": "Nora", "role": "player", "membershipId": "33000000-0000-4000-8000-000000000004", "profileId": "11000000-0000-4000-8000-000000000004" },
+        { "id": "live-visitor", "name": "Jamie", "role": "visitor", "membershipId": "33000000-0000-4000-8000-000000000005", "profileId": "" }
+      ],
+      "mock_state": {
+        "commanders": {
+          "live-maya": "Atraxa, Praetors' Voice",
+          "live-drew": "The Ur-Dragon",
+          "live-sam": "Yuriko, the Tiger's Shadow",
+          "live-nora": "Chulane, Teller of Tales"
+        },
+        "commander_partners": {},
+        "commander_partner_types": {},
+        "colors": { "live-maya": "#6b79cc", "live-drew": "#ad5151", "live-sam": "#4a4b58", "live-nora": "#4e8d71" },
+        "lives": { "live-maya": 31, "live-drew": 24, "live-sam": 38, "live-nora": 17 },
+        "poison": { "live-maya": 2, "live-drew": 0, "live-sam": 0, "live-nora": 4 },
+        "commander_damage": {
+          "live-maya": { "live-drew": 6 },
+          "live-drew": { "live-maya": 12 },
+          "live-sam": { "live-nora": 4 },
+          "live-nora": { "live-sam": 8 }
+        },
+        "active_player_id": "live-sam",
+        "chat": [
+          { "id": "live-chat-1", "from": "live-drew", "name": "Drew", "text": "Moving to combat.", "at": 1785104000000 },
+          { "id": "live-chat-2", "from": "live-nora", "name": "Nora", "text": "No responses from me.", "at": 1785104060000 }
+        ]
+      }
+    },
+    {
+      "game_id": "30000000-0000-4000-8000-000000000004",
+      "code": "LIVE02",
+      "name": "Partner Practice",
+      "bracket": 3,
+      "visibility": "public",
+      "status": "live",
+      "seat_limit": 4,
+      "player_count": 3,
+      "visitor_count": 1,
+      "commanders": ["Maya — Tymna the Weaver + Kraum, Ludevic's Opus", "Drew — Malcolm + Breeches", "Sam — Ishai + Jeska"],
+      "commander_cards": [
+        { "name": "Tymna the Weaver", "scryfall_id": "bc7cbe9b-324e-42b8-94e2-36e91cb32163", "partner_name": "Kraum, Ludevic's Opus", "partner_scryfall_id": "557fcd17-6cb3-414a-b2b1-ea9ae32e5aec", "seat_number": 1 },
+        { "name": "Malcolm, Keen-Eyed Navigator", "scryfall_id": "dd85fd88-7e5b-494a-9106-c78602604a1d", "partner_name": "Breeches, Brazen Plunderer", "partner_scryfall_id": "83e8fe2e-ec6c-47fc-85c0-6eec185ecdce", "seat_number": 2 },
+        { "name": "Ishai, Ojutai Dragonspeaker", "scryfall_id": "8acdce6e-ca27-4b4a-b4d9-a4ceed3bf0e3", "partner_name": "Jeska, Thrice Reborn", "partner_scryfall_id": "48caf4c4-745c-4072-bf3d-1a3fa7c3bc9c", "seat_number": 3 }
+      ],
+      "players": [
+        { "id": "11000000-0000-4000-8000-000000000001", "display_name": "Maya" },
+        { "id": "11000000-0000-4000-8000-000000000002", "display_name": "Drew" },
+        { "id": "11000000-0000-4000-8000-000000000003", "display_name": "Sam" }
+      ],
+      "mock_owner": false,
+      "mock_roster": [
+        { "id": "pair-maya", "name": "Maya", "role": "player", "membershipId": "34000000-0000-4000-8000-000000000001", "profileId": "11000000-0000-4000-8000-000000000001" },
+        { "id": "pair-drew", "name": "Drew", "role": "player", "membershipId": "34000000-0000-4000-8000-000000000002", "profileId": "11000000-0000-4000-8000-000000000002" },
+        { "id": "pair-sam", "name": "Sam", "role": "player", "membershipId": "34000000-0000-4000-8000-000000000003", "profileId": "11000000-0000-4000-8000-000000000003" }
+      ],
+      "mock_state": {
+        "commanders": { "pair-maya": "Tymna the Weaver", "pair-drew": "Malcolm, Keen-Eyed Navigator", "pair-sam": "Ishai, Ojutai Dragonspeaker" },
+        "commander_partners": { "pair-maya": "Kraum, Ludevic's Opus", "pair-drew": "Breeches, Brazen Plunderer", "pair-sam": "Jeska, Thrice Reborn" },
+        "commander_partner_types": { "pair-maya": "Legendary Creature — Zombie Horror", "pair-drew": "Legendary Creature — Goblin Pirate", "pair-sam": "Legendary Planeswalker — Jeska" },
+        "colors": { "pair-maya": "#7050a0", "pair-drew": "#4b7da5", "pair-sam": "#b86d4e" },
+        "lives": { "pair-maya": 34, "pair-drew": 29, "pair-sam": 41 },
+        "poison": {},
+        "commander_damage": {},
+        "active_player_id": "pair-drew",
+        "chat": []
+      }
+    }
+  ],
+  "social": {
+    "friends": [
+      { "id": "11000000-0000-4000-8000-000000000001", "display_name": "Maya", "avatar_url": "", "status": "in_game" },
+      { "id": "11000000-0000-4000-8000-000000000002", "display_name": "Drew", "avatar_url": "", "status": "online" },
+      { "id": "11000000-0000-4000-8000-000000000003", "display_name": "Sam", "avatar_url": "", "status": "offline" },
+      { "id": "11000000-0000-4000-8000-000000000004", "display_name": "Nora", "avatar_url": "", "status": "online" }
+    ],
+    "notifications": [
+      {
+        "id": "50000000-0000-4000-8000-000000000002",
+        "kind": "friend_request",
+        "reference_id": "51000000-0000-4000-8000-000000000001",
+        "read_at": null,
+        "created_at": "2026-07-31T20:15:00.000Z",
+        "actor": {
+          "id": "11000000-0000-4000-8000-000000000005",
+          "display_name": "Eli",
+          "avatar_url": ""
+        }
+      },
+      {
+        "id": "50000000-0000-4000-8000-000000000001",
+        "kind": "friend_accepted",
+        "reference_id": null,
+        "read_at": null,
+        "created_at": "2026-07-25T16:00:00.000Z",
+        "actor": { "id": "11000000-0000-4000-8000-000000000004", "display_name": "Nora", "avatar_url": "" }
+      }
+    ]
+  },
+  "history": [
+    {
+      "session_id": "60000000-0000-4000-8000-000000000001",
+      "room_code": "OLD001",
+      "bracket": 3,
+      "started_at": "2026-07-23T23:00:00.000Z",
+      "ended_at": "2026-07-24T00:42:00.000Z",
+      "state": "final",
+      "result": "win",
+      "loss_reason": null,
+      "hidden_by_player": false,
+      "final_life": 12,
+      "final_poison": 0,
+      "commander": "Atraxa, Praetors' Voice",
+      "partner": null,
+      "opponent_commanders": [
+        { "display_name": "Maya", "commander": "Alela, Artful Provocateur", "partner": null },
+        { "display_name": "Drew", "commander": "The Ur-Dragon", "partner": null }
+      ],
+      "players": [
+        { "id": "11000000-0000-4000-8000-000000000001", "display_name": "Maya" },
+        { "id": "11000000-0000-4000-8000-000000000002", "display_name": "Drew" },
+        { "id": null, "display_name": "Guest" }
+      ],
+      "duration_seconds": 6120,
+      "turn_count": 9,
+      "total_turn_ms": 1080000,
+      "average_turn_ms": 120000,
+      "longest_turn_ms": 245000,
+      "player_timing": [
+        { "participant_id": "61000000-0000-4000-8000-000000000001", "display_name": "Zach", "seat_number": 1, "turn_count": 9, "total_turn_ms": 1080000, "average_turn_ms": 120000, "longest_turn_ms": 245000 },
+        { "participant_id": "61000000-0000-4000-8000-000000000002", "display_name": "Maya", "seat_number": 2, "turn_count": 8, "total_turn_ms": 920000, "average_turn_ms": 115000, "longest_turn_ms": 210000 },
+        { "participant_id": "61000000-0000-4000-8000-000000000003", "display_name": "Drew", "seat_number": 3, "turn_count": 8, "total_turn_ms": 1340000, "average_turn_ms": 167500, "longest_turn_ms": 310000 }
+      ],
+      "turn_timeline": [
+        { "turn_number": 1, "participant_id": "61000000-0000-4000-8000-000000000001", "display_name": "Zach", "commander": "Atraxa, Praetors' Voice", "partner": null, "ended_at": "2026-07-23T23:02:01.000Z", "elapsed_ms": 121000 },
+        { "turn_number": 2, "participant_id": "61000000-0000-4000-8000-000000000002", "display_name": "Maya", "commander": "Alela, Artful Provocateur", "partner": null, "ended_at": "2026-07-23T23:03:43.000Z", "elapsed_ms": 102000 },
+        { "turn_number": 3, "participant_id": "61000000-0000-4000-8000-000000000003", "display_name": "Drew", "commander": "The Ur-Dragon", "partner": null, "ended_at": "2026-07-23T23:06:55.000Z", "elapsed_ms": 192000 }
+      ]
+    },
+    {
+      "session_id": "60000000-0000-4000-8000-000000000002",
+      "room_code": "OLD002",
+      "bracket": 4,
+      "started_at": "2026-07-18T21:10:00.000Z",
+      "ended_at": "2026-07-18T22:27:00.000Z",
+      "state": "final",
+      "result": "loss",
+      "loss_reason": "commander_damage",
+      "hidden_by_player": false,
+      "final_life": 18,
+      "final_poison": 0,
+      "commander": "Malcolm, Keen-Eyed Navigator",
+      "partner": "Breeches, Brazen Plunderer",
+      "opponent_commanders": [
+        { "display_name": "Sam", "commander": "Muldrotha, the Gravetide", "partner": null },
+        { "display_name": "Nora", "commander": "Giada, Font of Hope", "partner": null }
+      ],
+      "players": [
+        { "id": "11000000-0000-4000-8000-000000000003", "display_name": "Sam" },
+        { "id": "11000000-0000-4000-8000-000000000004", "display_name": "Nora" }
+      ],
+      "duration_seconds": 4620,
+      "turn_count": 7,
+      "total_turn_ms": 774000,
+      "average_turn_ms": 110571,
+      "longest_turn_ms": 184000,
+      "player_timing": [
+        { "participant_id": "62000000-0000-4000-8000-000000000001", "display_name": "Zach", "seat_number": 1, "turn_count": 7, "total_turn_ms": 774000, "average_turn_ms": 110571, "longest_turn_ms": 184000 },
+        { "participant_id": "62000000-0000-4000-8000-000000000002", "display_name": "Sam", "seat_number": 2, "turn_count": 7, "total_turn_ms": 840000, "average_turn_ms": 120000, "longest_turn_ms": 201000 }
+      ],
+      "turn_timeline": []
+    },
+    {
+      "session_id": "60000000-0000-4000-8000-000000000003",
+      "room_code": "OLD003",
+      "bracket": 3,
+      "started_at": "2026-07-10T20:00:00.000Z",
+      "ended_at": "2026-07-10T21:31:00.000Z",
+      "state": "final",
+      "result": "draw",
+      "loss_reason": null,
+      "hidden_by_player": false,
+      "final_life": 4,
+      "final_poison": 6,
+      "commander": "Muldrotha, the Gravetide",
+      "partner": null,
+      "opponent_commanders": [
+        { "display_name": "Maya", "commander": "Alela, Artful Provocateur", "partner": null },
+        { "display_name": "Nora", "commander": "Chulane, Teller of Tales", "partner": null }
+      ],
+      "players": [
+        { "id": "11000000-0000-4000-8000-000000000001", "display_name": "Maya" },
+        { "id": "11000000-0000-4000-8000-000000000004", "display_name": "Nora" }
+      ],
+      "duration_seconds": 5460,
+      "turn_count": 8,
+      "total_turn_ms": 960000,
+      "average_turn_ms": 120000,
+      "longest_turn_ms": 230000,
+      "player_timing": [],
+      "turn_timeline": []
+    },
+    {
+      "session_id": "60000000-0000-4000-8000-000000000004",
+      "room_code": "OLD004",
+      "bracket": 2,
+      "started_at": "2026-06-29T19:30:00.000Z",
+      "ended_at": "2026-06-29T20:48:00.000Z",
+      "state": "final",
+      "result": "win",
+      "loss_reason": null,
+      "hidden_by_player": false,
+      "final_life": 22,
+      "final_poison": 0,
+      "commander": "Giada, Font of Hope",
+      "partner": null,
+      "opponent_commanders": [
+        { "display_name": "Drew", "commander": "The Ur-Dragon", "partner": null },
+        { "display_name": "Sam", "commander": "Sai, Master Thopterist", "partner": null }
+      ],
+      "players": [
+        { "id": "11000000-0000-4000-8000-000000000002", "display_name": "Drew" },
+        { "id": "11000000-0000-4000-8000-000000000003", "display_name": "Sam" }
+      ],
+      "duration_seconds": 4680,
+      "turn_count": 7,
+      "total_turn_ms": 721000,
+      "average_turn_ms": 103000,
+      "longest_turn_ms": 166000,
+      "player_timing": [],
+      "turn_timeline": []
+    },
+    {
+      "session_id": "60000000-0000-4000-8000-000000000005",
+      "room_code": "OLD005",
+      "started_at": "2026-06-22T20:15:00.000Z",
+      "ended_at": "2026-06-22T21:43:00.000Z",
+      "state": "final", "result": "loss", "loss_reason": "combat_damage", "hidden_by_player": false,
+      "final_life": 0, "final_poison": 0, "commander": "Sai, Master Thopterist", "partner": null,
+      "players": [{ "id": "11000000-0000-4000-8000-000000000001", "display_name": "Maya" }, { "id": "11000000-0000-4000-8000-000000000004", "display_name": "Nora" }],
+      "duration_seconds": 5280, "turn_count": 8, "total_turn_ms": 888000, "average_turn_ms": 111000, "longest_turn_ms": 204000,
+      "player_timing": [], "turn_timeline": []
+    },
+    {
+      "session_id": "60000000-0000-4000-8000-000000000006",
+      "room_code": "OLD006",
+      "started_at": "2026-06-15T23:05:00.000Z",
+      "ended_at": "2026-06-16T00:39:00.000Z",
+      "state": "final", "result": "win", "loss_reason": null, "hidden_by_player": false,
+      "final_life": 9, "final_poison": 0, "commander": "Ghalta, Primal Hunger", "partner": null,
+      "players": [{ "id": "11000000-0000-4000-8000-000000000002", "display_name": "Drew" }, { "id": "11000000-0000-4000-8000-000000000003", "display_name": "Sam" }],
+      "duration_seconds": 5640, "turn_count": 9, "total_turn_ms": 972000, "average_turn_ms": 108000, "longest_turn_ms": 198000,
+      "player_timing": [], "turn_timeline": []
+    },
+    {
+      "session_id": "60000000-0000-4000-8000-000000000007",
+      "room_code": "OLD007",
+      "started_at": "2026-06-07T19:40:00.000Z",
+      "ended_at": "2026-06-07T21:02:00.000Z",
+      "state": "final", "result": "loss", "loss_reason": "commander_damage", "hidden_by_player": false,
+      "final_life": 6, "final_poison": 0, "commander": "Krenko, Mob Boss", "partner": null,
+      "players": [{ "id": "11000000-0000-4000-8000-000000000001", "display_name": "Maya" }, { "id": "11000000-0000-4000-8000-000000000003", "display_name": "Sam" }],
+      "duration_seconds": 4920, "turn_count": 8, "total_turn_ms": 824000, "average_turn_ms": 103000, "longest_turn_ms": 187000,
+      "player_timing": [], "turn_timeline": []
+    },
+    {
+      "session_id": "60000000-0000-4000-8000-000000000008",
+      "room_code": "OLD008",
+      "started_at": "2026-05-30T21:00:00.000Z",
+      "ended_at": "2026-05-30T22:47:00.000Z",
+      "state": "final", "result": "draw", "loss_reason": null, "hidden_by_player": false,
+      "final_life": 11, "final_poison": 0, "commander": "Alela, Artful Provocateur", "partner": null,
+      "players": [{ "id": "11000000-0000-4000-8000-000000000002", "display_name": "Drew" }, { "id": "11000000-0000-4000-8000-000000000004", "display_name": "Nora" }],
+      "duration_seconds": 6420, "turn_count": 10, "total_turn_ms": 1190000, "average_turn_ms": 119000, "longest_turn_ms": 232000,
+      "player_timing": [], "turn_timeline": []
+    },
+    {
+      "session_id": "60000000-0000-4000-8000-000000000009",
+      "room_code": "OLD009",
+      "started_at": "2026-05-22T22:25:00.000Z",
+      "ended_at": "2026-05-22T23:46:00.000Z",
+      "state": "final", "result": "win", "loss_reason": null, "hidden_by_player": false,
+      "final_life": 16, "final_poison": 0, "commander": "Atraxa, Praetors' Voice", "partner": null,
+      "players": [{ "id": "11000000-0000-4000-8000-000000000001", "display_name": "Maya" }, { "id": "11000000-0000-4000-8000-000000000004", "display_name": "Nora" }],
+      "duration_seconds": 4860, "turn_count": 7, "total_turn_ms": 770000, "average_turn_ms": 110000, "longest_turn_ms": 175000,
+      "player_timing": [], "turn_timeline": []
+    },
+    {
+      "session_id": "60000000-0000-4000-8000-000000000010",
+      "room_code": "OLD010",
+      "started_at": "2026-05-14T20:10:00.000Z",
+      "ended_at": "2026-05-14T21:52:00.000Z",
+      "state": "final", "result": "loss", "loss_reason": "poison", "hidden_by_player": false,
+      "final_life": 24, "final_poison": 10, "commander": "Muldrotha, the Gravetide", "partner": null,
+      "players": [{ "id": "11000000-0000-4000-8000-000000000002", "display_name": "Drew" }, { "id": "11000000-0000-4000-8000-000000000003", "display_name": "Sam" }],
+      "duration_seconds": 6120, "turn_count": 9, "total_turn_ms": 1107000, "average_turn_ms": 123000, "longest_turn_ms": 249000,
+      "player_timing": [], "turn_timeline": []
+    },
+    {
+      "session_id": "60000000-0000-4000-8000-000000000011",
+      "room_code": "OLD011",
+      "started_at": "2026-05-03T18:45:00.000Z",
+      "ended_at": "2026-05-03T20:08:00.000Z",
+      "state": "final", "result": "win", "loss_reason": null, "hidden_by_player": false,
+      "final_life": 7, "final_poison": 0, "commander": "Malcolm, Keen-Eyed Navigator", "partner": "Breeches, Brazen Plunderer",
+      "players": [{ "id": "11000000-0000-4000-8000-000000000001", "display_name": "Maya" }, { "id": "11000000-0000-4000-8000-000000000003", "display_name": "Sam" }],
+      "duration_seconds": 4980, "turn_count": 8, "total_turn_ms": 840000, "average_turn_ms": 105000, "longest_turn_ms": 190000,
+      "player_timing": [], "turn_timeline": []
+    },
+    {
+      "session_id": "60000000-0000-4000-8000-000000000012",
+      "room_code": "OLD012",
+      "started_at": "2026-04-25T23:20:00.000Z",
+      "ended_at": "2026-04-26T01:05:00.000Z",
+      "state": "final", "result": "loss", "loss_reason": "combat_damage", "hidden_by_player": false,
+      "final_life": 0, "final_poison": 0, "commander": "Giada, Font of Hope", "partner": null,
+      "players": [{ "id": "11000000-0000-4000-8000-000000000002", "display_name": "Drew" }, { "id": "11000000-0000-4000-8000-000000000004", "display_name": "Nora" }],
+      "duration_seconds": 6300, "turn_count": 10, "total_turn_ms": 1180000, "average_turn_ms": 118000, "longest_turn_ms": 226000,
+      "player_timing": [], "turn_timeline": []
+    },
+    {
+      "session_id": "60000000-0000-4000-8000-000000000013",
+      "room_code": "OLD013",
+      "started_at": "2026-04-17T20:30:00.000Z",
+      "ended_at": "2026-04-17T21:54:00.000Z",
+      "state": "final", "result": "win", "loss_reason": null, "hidden_by_player": false,
+      "final_life": 19, "final_poison": 0, "commander": "Sai, Master Thopterist", "partner": null,
+      "players": [{ "id": "11000000-0000-4000-8000-000000000001", "display_name": "Maya" }, { "id": "11000000-0000-4000-8000-000000000002", "display_name": "Drew" }],
+      "duration_seconds": 5040, "turn_count": 8, "total_turn_ms": 816000, "average_turn_ms": 102000, "longest_turn_ms": 181000,
+      "player_timing": [], "turn_timeline": []
+    },
+    {
+      "session_id": "60000000-0000-4000-8000-000000000014",
+      "room_code": "OLD014",
+      "started_at": "2026-04-09T19:05:00.000Z",
+      "ended_at": "2026-04-09T20:42:00.000Z",
+      "state": "final", "result": "loss", "loss_reason": "commander_damage", "hidden_by_player": false,
+      "final_life": 3, "final_poison": 0, "commander": "Ghalta, Primal Hunger", "partner": null,
+      "players": [{ "id": "11000000-0000-4000-8000-000000000003", "display_name": "Sam" }, { "id": "11000000-0000-4000-8000-000000000004", "display_name": "Nora" }],
+      "duration_seconds": 5820, "turn_count": 9, "total_turn_ms": 1080000, "average_turn_ms": 120000, "longest_turn_ms": 241000,
+      "player_timing": [], "turn_timeline": []
+    },
+    {
+      "session_id": "60000000-0000-4000-8000-000000000015",
+      "room_code": "OLD015",
+      "started_at": "2026-03-29T21:40:00.000Z",
+      "ended_at": "2026-03-29T23:11:00.000Z",
+      "state": "final", "result": "win", "loss_reason": null, "hidden_by_player": false,
+      "final_life": 13, "final_poison": 0, "commander": "Krenko, Mob Boss", "partner": null,
+      "players": [{ "id": "11000000-0000-4000-8000-000000000001", "display_name": "Maya" }, { "id": "11000000-0000-4000-8000-000000000004", "display_name": "Nora" }],
+      "duration_seconds": 5460, "turn_count": 8, "total_turn_ms": 872000, "average_turn_ms": 109000, "longest_turn_ms": 193000,
+      "player_timing": [], "turn_timeline": []
+    },
+    {
+      "session_id": "60000000-0000-4000-8000-000000000016",
+      "room_code": "OLD016",
+      "started_at": "2026-03-20T22:00:00.000Z",
+      "ended_at": "2026-03-20T23:36:00.000Z",
+      "state": "final", "result": "loss", "loss_reason": "combat_damage", "hidden_by_player": false,
+      "final_life": 0, "final_poison": 0, "commander": "Alela, Artful Provocateur", "partner": null,
+      "players": [{ "id": "11000000-0000-4000-8000-000000000002", "display_name": "Drew" }, { "id": "11000000-0000-4000-8000-000000000003", "display_name": "Sam" }],
+      "duration_seconds": 5760, "turn_count": 9, "total_turn_ms": 1017000, "average_turn_ms": 113000, "longest_turn_ms": 215000,
+      "player_timing": [], "turn_timeline": []
+    },
+    {
+      "session_id": "60000000-0000-4000-8000-000000000017",
+      "room_code": "OLD017",
+      "started_at": "2026-03-12T20:25:00.000Z",
+      "ended_at": "2026-03-12T21:55:00.000Z",
+      "state": "final", "result": "draw", "loss_reason": null, "hidden_by_player": false,
+      "final_life": 5, "final_poison": 0, "commander": "Atraxa, Praetors' Voice", "partner": null,
+      "players": [{ "id": "11000000-0000-4000-8000-000000000001", "display_name": "Maya" }, { "id": "11000000-0000-4000-8000-000000000003", "display_name": "Sam" }],
+      "duration_seconds": 5400, "turn_count": 8, "total_turn_ms": 944000, "average_turn_ms": 118000, "longest_turn_ms": 225000,
+      "player_timing": [], "turn_timeline": []
+    },
+    {
+      "session_id": "60000000-0000-4000-8000-000000000018",
+      "room_code": "OLD018",
+      "started_at": "2026-03-04T18:50:00.000Z",
+      "ended_at": "2026-03-04T20:19:00.000Z",
+      "state": "final", "result": "win", "loss_reason": null, "hidden_by_player": false,
+      "final_life": 21, "final_poison": 0, "commander": "Muldrotha, the Gravetide", "partner": null,
+      "players": [{ "id": "11000000-0000-4000-8000-000000000002", "display_name": "Drew" }, { "id": "11000000-0000-4000-8000-000000000004", "display_name": "Nora" }],
+      "duration_seconds": 5340, "turn_count": 8, "total_turn_ms": 824000, "average_turn_ms": 103000, "longest_turn_ms": 177000,
+      "player_timing": [], "turn_timeline": []
+    },
+    {
+      "session_id": "60000000-0000-4000-8000-000000000019",
+      "room_code": "OLD019",
+      "started_at": "2026-02-24T21:15:00.000Z",
+      "ended_at": "2026-02-24T22:44:00.000Z",
+      "state": "final", "result": "loss", "loss_reason": "poison", "hidden_by_player": false,
+      "final_life": 15, "final_poison": 10, "commander": "Malcolm, Keen-Eyed Navigator", "partner": "Breeches, Brazen Plunderer",
+      "players": [{ "id": "11000000-0000-4000-8000-000000000001", "display_name": "Maya" }, { "id": "11000000-0000-4000-8000-000000000002", "display_name": "Drew" }],
+      "duration_seconds": 5340, "turn_count": 8, "total_turn_ms": 912000, "average_turn_ms": 114000, "longest_turn_ms": 220000,
+      "player_timing": [], "turn_timeline": []
+    },
+    {
+      "session_id": "60000000-0000-4000-8000-000000000020",
+      "room_code": "OLD020",
+      "started_at": "2026-02-15T19:30:00.000Z",
+      "ended_at": "2026-02-15T20:58:00.000Z",
+      "state": "final", "result": "win", "loss_reason": null, "hidden_by_player": false,
+      "final_life": 10, "final_poison": 0, "commander": "Giada, Font of Hope", "partner": null,
+      "players": [{ "id": "11000000-0000-4000-8000-000000000003", "display_name": "Sam" }, { "id": "11000000-0000-4000-8000-000000000004", "display_name": "Nora" }],
+      "duration_seconds": 5280, "turn_count": 8, "total_turn_ms": 856000, "average_turn_ms": 107000, "longest_turn_ms": 188000,
+      "player_timing": [], "turn_timeline": []
+    }
+  ],
+  "profiles": {
+    "10000000-0000-4000-8000-000000000001": {
+      "data": {
+        "profile": { "id": "10000000-0000-4000-8000-000000000001", "display_name": "Zach", "avatar_url": "", "created_at": "2026-01-14T18:20:00.000Z" },
+        "overall": { "games": 20, "wins": 10, "losses": 7, "draws": 3, "win_rate": 0.5, "average_game_seconds": 5427 },
+        "turns": { "turns": 142, "average_turn_ms": 118000, "median_turn_ms": 101000, "longest_turn_ms": 310000 },
+        "commanders": [
+          { "commander_name": "Atraxa, Praetors' Voice", "games": 7, "wins": 4, "losses": 3, "draws": 0, "average_turn_ms": 121000 },
+          { "commander_name": "Malcolm + Breeches", "games": 6, "wins": 2, "losses": 3, "draws": 1, "average_turn_ms": 104000 },
+          { "commander_name": "Muldrotha, the Gravetide", "games": 5, "wins": 2, "losses": 2, "draws": 1, "average_turn_ms": 131000 }
+        ],
+        "recent_games_visible": true,
+        "recent_games": [
+          { "session_id": "60000000-0000-4000-8000-000000000001", "started_at": "2026-07-23T23:00:00.000Z", "ended_at": "2026-07-24T00:42:00.000Z", "result": "win", "commander": "Atraxa, Praetors' Voice", "partner": null },
+          { "session_id": "60000000-0000-4000-8000-000000000002", "started_at": "2026-07-18T21:10:00.000Z", "ended_at": "2026-07-18T22:27:00.000Z", "result": "loss", "commander": "Malcolm, Keen-Eyed Navigator", "partner": "Breeches, Brazen Plunderer" }
+        ]
+      },
+      "matchups": {
+        "opponents": [
+          { "id": "11000000-0000-4000-8000-000000000001", "display_name": "Maya", "games": 9, "wins": 4, "losses": 4 },
+          { "id": "11000000-0000-4000-8000-000000000002", "display_name": "Drew", "games": 7, "wins": 3, "losses": 4 }
+        ],
+        "commanders": [
+          { "commander_name": "The Ur-Dragon", "games": 5, "wins": 2, "losses": 3 },
+          { "commander_name": "Alela, Artful Provocateur", "games": 4, "wins": 2, "losses": 2 }
+        ]
+      }
+    },
+    "11000000-0000-4000-8000-000000000001": {
+      "data": {
+        "profile": { "id": "11000000-0000-4000-8000-000000000001", "display_name": "Maya", "discord_username": "maya", "avatar_url": "", "created_at": "2025-11-02T12:00:00.000Z" },
+        "overall": { "games": 43, "wins": 19, "losses": 21, "draws": 3, "win_rate": 0.442, "average_game_seconds": 5820 },
+        "turns": { "turns": 361, "average_turn_ms": 109000, "median_turn_ms": 93000, "longest_turn_ms": 288000 },
+        "commanders": [
+          { "commander_name": "Alela, Artful Provocateur", "games": 18, "wins": 9, "losses": 8, "draws": 1, "average_turn_ms": 98000 },
+          { "commander_name": "Tymna + Kraum", "games": 14, "wins": 7, "losses": 6, "draws": 1, "average_turn_ms": 115000 }
+        ],
+        "recent_games_visible": true,
+        "recent_games": [
+          { "session_id": "71000000-0000-4000-8000-000000000001", "started_at": "2026-07-22T22:00:00.000Z", "ended_at": "2026-07-22T23:36:00.000Z", "result": "win", "commander": "Alela, Artful Provocateur", "partner": null },
+          { "session_id": "71000000-0000-4000-8000-000000000002", "started_at": "2026-07-16T20:00:00.000Z", "ended_at": "2026-07-16T21:17:00.000Z", "result": "loss", "commander": "Tymna the Weaver", "partner": "Kraum, Ludevic's Opus" }
+        ],
+        "decks": [
+          {
+            "id": "21000000-0000-4000-8000-000000000001",
+            "label": "Alela artifacts",
+            "commander_name": "Alela, Artful Provocateur",
+            "commander_scryfall_id": null,
+            "partner_name": null,
+            "partner_scryfall_id": null,
+            "color_identity": ["W", "U", "B"],
+            "card_count": 10,
+            "cards": [
+              { "id": "21100000-0000-4000-8000-000000000001", "name": "Alela, Artful Provocateur", "quantity": 1, "board": "commander", "scryfall_id": null, "oracle_id": null, "set_code": null, "collector_number": null, "mana_value": 4, "type_line": "Legendary Creature — Faerie Warlock", "colors": ["W", "U", "B"], "tags": [] },
+              { "id": "21100000-0000-4000-8000-000000000002", "name": "Sol Ring", "quantity": 1, "board": "mainboard", "scryfall_id": null, "oracle_id": null, "set_code": null, "collector_number": null, "mana_value": 1, "type_line": "Artifact", "colors": [], "tags": ["Ramp"] },
+              { "id": "21100000-0000-4000-8000-000000000003", "name": "Arcane Signet", "quantity": 1, "board": "mainboard", "scryfall_id": null, "oracle_id": null, "set_code": null, "collector_number": null, "mana_value": 2, "type_line": "Artifact", "colors": [], "tags": ["Ramp"] },
+              { "id": "21100000-0000-4000-8000-000000000004", "name": "Skullclamp", "quantity": 1, "board": "mainboard", "scryfall_id": null, "oracle_id": null, "set_code": null, "collector_number": null, "mana_value": 1, "type_line": "Artifact — Equipment", "colors": [], "tags": ["Card draw"] },
+              { "id": "21100000-0000-4000-8000-000000000005", "name": "Swords to Plowshares", "quantity": 1, "board": "mainboard", "scryfall_id": null, "oracle_id": null, "set_code": null, "collector_number": null, "mana_value": 1, "type_line": "Instant", "colors": ["W"], "tags": ["Removal"] },
+              { "id": "21100000-0000-4000-8000-000000000006", "name": "Island", "quantity": 5, "board": "mainboard", "scryfall_id": null, "oracle_id": null, "set_code": null, "collector_number": null, "mana_value": 0, "type_line": "Basic Land — Island", "colors": [], "tags": [] }
+            ]
+          },
+          {
+            "id": "21000000-0000-4000-8000-000000000002",
+            "label": "Tymna Kraum midrange",
+            "commander_name": "Tymna the Weaver",
+            "commander_scryfall_id": null,
+            "partner_name": "Kraum, Ludevic's Opus",
+            "partner_scryfall_id": null,
+            "color_identity": ["W", "U", "B", "R"],
+            "card_count": 9,
+            "cards": [
+              { "id": "21200000-0000-4000-8000-000000000001", "name": "Tymna the Weaver", "quantity": 1, "board": "commander", "scryfall_id": null, "oracle_id": null, "set_code": null, "collector_number": null, "mana_value": 3, "type_line": "Legendary Creature — Human Cleric", "colors": ["W", "B"], "tags": [] },
+              { "id": "21200000-0000-4000-8000-000000000002", "name": "Kraum, Ludevic's Opus", "quantity": 1, "board": "commander", "scryfall_id": null, "oracle_id": null, "set_code": null, "collector_number": null, "mana_value": 5, "type_line": "Legendary Creature — Zombie Horror", "colors": ["U", "R"], "tags": [] },
+              { "id": "21200000-0000-4000-8000-000000000003", "name": "Mana Vault", "quantity": 1, "board": "mainboard", "scryfall_id": null, "oracle_id": null, "set_code": null, "collector_number": null, "mana_value": 1, "type_line": "Artifact", "colors": [], "tags": ["Ramp"] },
+              { "id": "21200000-0000-4000-8000-000000000004", "name": "Rhystic Study", "quantity": 1, "board": "mainboard", "scryfall_id": null, "oracle_id": null, "set_code": null, "collector_number": null, "mana_value": 3, "type_line": "Enchantment", "colors": ["U"], "tags": ["Card draw"] },
+              { "id": "21200000-0000-4000-8000-000000000005", "name": "Demonic Tutor", "quantity": 1, "board": "mainboard", "scryfall_id": null, "oracle_id": null, "set_code": null, "collector_number": null, "mana_value": 2, "type_line": "Sorcery", "colors": ["B"], "tags": ["Tutor"] },
+              { "id": "21200000-0000-4000-8000-000000000006", "name": "Command Tower", "quantity": 4, "board": "mainboard", "scryfall_id": null, "oracle_id": null, "set_code": null, "collector_number": null, "mana_value": 0, "type_line": "Land", "colors": [], "tags": [] }
+            ]
+          }
+        ]
+      },
+      "matchups": {
+        "opponents": [
+          { "id": "10000000-0000-4000-8000-000000000001", "display_name": "Zach", "games": 9, "wins": 4, "losses": 4 },
+          { "id": "11000000-0000-4000-8000-000000000003", "display_name": "Sam", "games": 12, "wins": 6, "losses": 5 }
+        ],
+        "commanders": [
+          { "commander_name": "Muldrotha, the Gravetide", "games": 8, "wins": 5, "losses": 3 },
+          { "commander_name": "The Ur-Dragon", "games": 7, "wins": 3, "losses": 4 }
+        ]
+      }
+    },
+    "11000000-0000-4000-8000-000000000002": {
+      "data": {
+        "profile": { "id": "11000000-0000-4000-8000-000000000002", "display_name": "Drew", "avatar_url": "", "created_at": "2026-02-09T12:00:00.000Z" },
+        "overall": { "games": 31, "wins": 12, "losses": 17, "draws": 2, "win_rate": 0.387, "average_game_seconds": 6240 },
+        "turns": { "turns": 252, "average_turn_ms": 151000, "median_turn_ms": 132000, "longest_turn_ms": 412000 },
+        "commanders": [
+          { "commander_name": "The Ur-Dragon", "games": 20, "wins": 9, "losses": 10, "draws": 1, "average_turn_ms": 164000 },
+          { "commander_name": "Malcolm + Breeches", "games": 11, "wins": 3, "losses": 7, "draws": 1, "average_turn_ms": 127000 }
+        ],
+        "recent_games_visible": true,
+        "recent_games": [
+          { "session_id": "72000000-0000-4000-8000-000000000001", "started_at": "2026-07-20T19:00:00.000Z", "ended_at": "2026-07-20T20:50:00.000Z", "result": "loss", "commander": "The Ur-Dragon", "partner": null }
+        ]
+      },
+      "matchups": {
+        "opponents": [{ "id": "10000000-0000-4000-8000-000000000001", "display_name": "Zach", "games": 7, "wins": 4, "losses": 3 }],
+        "commanders": [{ "commander_name": "Atraxa, Praetors' Voice", "games": 6, "wins": 3, "losses": 3 }]
+      }
+    },
+    "11000000-0000-4000-8000-000000000003": {
+      "data": {
+        "profile": { "id": "11000000-0000-4000-8000-000000000003", "display_name": "Sam", "avatar_url": "", "created_at": "2025-12-18T12:00:00.000Z" },
+        "overall": { "games": 56, "wins": 26, "losses": 27, "draws": 3, "win_rate": 0.464, "average_game_seconds": 5160 },
+        "turns": { "turns": 474, "average_turn_ms": 97000, "median_turn_ms": 81000, "longest_turn_ms": 266000 },
+        "commanders": [
+          { "commander_name": "Muldrotha, the Gravetide", "games": 29, "wins": 15, "losses": 13, "draws": 1, "average_turn_ms": 102000 },
+          { "commander_name": "Yuriko, the Tiger's Shadow", "games": 27, "wins": 11, "losses": 14, "draws": 2, "average_turn_ms": 91000 }
+        ],
+        "recent_games_visible": true,
+        "recent_games": [
+          { "session_id": "73000000-0000-4000-8000-000000000001", "started_at": "2026-07-24T19:00:00.000Z", "ended_at": "2026-07-24T20:19:00.000Z", "result": "win", "commander": "Muldrotha, the Gravetide", "partner": null }
+        ]
+      },
+      "matchups": {
+        "opponents": [{ "id": "11000000-0000-4000-8000-000000000001", "display_name": "Maya", "games": 12, "wins": 5, "losses": 6 }],
+        "commanders": [{ "commander_name": "Alela, Artful Provocateur", "games": 9, "wins": 5, "losses": 4 }]
+      }
+    },
+    "11000000-0000-4000-8000-000000000004": {
+      "data": {
+        "profile": { "id": "11000000-0000-4000-8000-000000000004", "display_name": "Nora", "avatar_url": "", "created_at": "2026-03-11T12:00:00.000Z" },
+        "overall": { "games": 22, "wins": 10, "losses": 11, "draws": 1, "win_rate": 0.455, "average_game_seconds": 4770 },
+        "turns": { "turns": 179, "average_turn_ms": 88000, "median_turn_ms": 76000, "longest_turn_ms": 221000 },
+        "commanders": [
+          { "commander_name": "Giada, Font of Hope", "games": 13, "wins": 7, "losses": 6, "draws": 0, "average_turn_ms": 81000 },
+          { "commander_name": "Chulane, Teller of Tales", "games": 9, "wins": 3, "losses": 5, "draws": 1, "average_turn_ms": 98000 }
+        ],
+        "recent_games_visible": false,
+        "recent_games": []
+      },
+      "matchups": {
+        "opponents": [{ "id": "10000000-0000-4000-8000-000000000001", "display_name": "Zach", "games": 6, "wins": 3, "losses": 3 }],
+        "commanders": [{ "commander_name": "Malcolm + Breeches", "games": 5, "wins": 2, "losses": 3 }]
+      }
+    }
+  },
+  "received_reviews": [
+    {
+      "id": "80000000-0000-4000-8000-000000000001",
+      "rating": 5,
+      "comment": "Fun table, clear communication, and a very close finish.",
+      "created_at": "2026-07-24T01:00:00.000Z",
+      "reviewer": { "id": "11000000-0000-4000-8000-000000000001", "display_name": "Maya" }
+    }
+  ],
+  "sent_reviews": [
+    {
+      "id": "80000000-0000-4000-8000-000000000002",
+      "rating": 4,
+      "comment": "Great game and quick turns.",
+      "created_at": "2026-07-19T00:00:00.000Z",
+      "editable_until": "2026-08-01T00:00:00.000Z",
+      "reviewed": { "id": "11000000-0000-4000-8000-000000000003", "display_name": "Sam" }
+    }
+  ]
+}
