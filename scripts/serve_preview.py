@@ -14,8 +14,12 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 class H(SimpleHTTPRequestHandler):
     def translate_path(self, path):
         p = path.split("?", 1)[0].split("#", 1)[0].lstrip("/")
-        # /src/** and /scripts/** are repo paths; everything else is public/.
-        base = ROOT if p.startswith(("src/", "scripts/")) else os.path.join(ROOT, "public")
+        # /src/**, /scripts/** and /node_modules/** are repo paths; everything
+        # else is public/. node_modules is here only so the local runner can
+        # resolve the bare "tesseract.js" specifier through an import map, the
+        # way Vite resolves it in a real build.
+        repo = p.startswith(("src/", "scripts/", "node_modules/"))
+        base = ROOT if repo else os.path.join(ROOT, "public")
         return os.path.join(base, p)
 
     def end_headers(self):

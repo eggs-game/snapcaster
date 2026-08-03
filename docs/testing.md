@@ -58,7 +58,32 @@ condition is present and in a plausible range, not that a statistic matches.
 build step. Serve the repo with `python3 scripts/serve_preview.py 8777` (it maps
 `/src/**` to the repo and everything else to `public/`, the way Vite does) and
 open `/scripts/scenepreview.html?scene=0&mat=1`. Query parameters are
-`scene`, `mat` and `realism=0`.
+`scene`, `mat` and `realism=0`. `scripts/scenesheet.html?from=0&count=6` shows
+several scenes at once, and `&crop=1` shows the production capture crop the
+recogniser actually receives instead of the whole frame.
+
+### Running Real life without a build
+
+`scripts/reallife_runner.html` drives the real pipeline — `matcher.js`, the
+recognition worker, the live card index — over Real life scenes with no Vite
+build, which matters on a machine with no Node. It mirrors the `realLife` mode's
+card draw, scene options and scoring; **`SnapTest.jsx` remains authoritative** if
+the two ever disagree.
+
+```
+python3 scripts/serve_preview.py 8777
+# open /scripts/reallife_runner.html?scenes=20
+```
+
+Progress and the final summary land on `window.__run`. It needs `tesseract.js`
+resolvable through the page's import map, so `npm install` (or a copy of that
+one package into `node_modules/`) must have happened; without it OCR fails to
+load and timings understate production.
+
+A 200-card run takes roughly 30 minutes. **Do not run anything else heavy on the
+machine while it is going** — a `lsh-recall-1` measurement was once read as a
+54% p90 win that turned out to be another process finishing, and the tell was a
+stage moving that the change could not touch.
 
 The **Perspective EDH staples** mode keeps one card isolated per frame, but
 maps the card onto a four-corner trapezoid before adding warm cloth lighting,

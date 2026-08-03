@@ -9,7 +9,80 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
-## 2026-08-03 — scene v2.1 — calibrated against real frames — NO RUN YET
+## 2026-08-03 — `platform-1` — **Real life on v2.1 scenes — 77.5%** (155/200) — PRODUCTION BASELINE
+
+The first Real life measurement of the recogniser that is actually live.
+`git diff main HEAD -- src/recognition/` is empty and the BUILD marker is
+`platform-1 (React 19)`, so this is production, not a branch build. Neither
+earlier Real life figure was: 86.0% carried `ocr-legibility-1` and the 78.0%
+deterministic baseline also carried orientation-as-type-evidence and an OCR
+cutoff, none of which ever shipped.
+
+**This is the number every future change is measured against.**
+
+| | |
+| --- | --- |
+| accuracy | **77.5%** (155/200), 0 errors |
+| median / p90 | **6098ms** / 7188ms |
+| average / max | 5910ms / 12195ms |
+| stage means | prep 677 · **rank 4257** · orb 766 · ocr 869 |
+| first / second half | 78.0% / 77.0% |
+| WASM heap | 134 → 134MB |
+
+| Breakdown | |
+| --- | --- |
+| `byPathway` | none **79/122 (64.8%)** · art-match 74/76 (97.4%) · visual-exact 2/2 |
+| `byRotation` | upright 81/109 (74.3%) · tapped 44/55 (80.0%) · upside-down 30/36 (83.3%) |
+| `byOcclusion` | clear 149/187 (79.7%) · overlapped 4/10 (40.0%) · edge 2/3 (66.7%) |
+| `byLayout` | side-by-side 94/120 (78.3%) · spaced 50/60 (83.3%) · overlapping 11/20 (55.0%) |
+| `byPool` | card 119/149 (79.9%) · token 31/44 (70.5%) · basic 5/7 (71.4%) |
+| `missTrueRank` | **absent 30 · rank 2-5: 5 · rank 6+: 10** |
+| perfect-crop control | **10/45 misses recovered (22%)** |
+
+### What this says, and it is not what earlier suites said
+
+**Framing is no longer the main accuracy problem.** The perfect-crop control
+recovers only 22% of misses, against 89% on the older cleaner suites. Perfect
+localization is worth about **+5 points** here — roughly 82%, not 95%. Any plan
+resting on "framing is the whole problem" was calibrated on scenes that were
+too clean, and this is the third independent measurement pointing the same way
+(the `lsh-recall-1` negative result already showed retrieval breadth is not the
+constraint either).
+
+**A third of misses are mis-ranked rather than missing.** 15 of 45 had the true
+card in the list — 5 within the top five. Earlier suites were almost entirely
+`absent`. Candidate generation is working; the *ordering* is wrong, which is a
+descriptor problem, not a crop problem.
+
+**Confidence coverage is the real gap.** Only **39%** of scans (78/200) reach a
+confident pathway at all. The other 61% fall through to ranked guesses that are
+right about two times in three. Worse, `art-match` precision has slipped to
+**97.4%** — two false accepts, where it was 100% across every prior run. Under
+real degradation, ORB can manufacture enough spurious keypoint agreement to pass
+a gate that is presented to players as certain.
+
+**`rank` is 70% of the wall clock** — 4257ms of a 6098ms median. That is 10-11
+seed crops each scanning all 110,592 printings across 8 rotation/contrast
+variants: roughly 620 million popcount operations per card, brute force.
+
+### Why the current approach cannot reach 95% at 2s
+
+Both failures share one root: **the 512-bit perceptual hash barely separates a
+correct degraded card from a wrong one.** A correct scan lands near 205 and an
+unrelated card near 220.
+
+- That thin margin *is* the accuracy ceiling — hence mis-ranking, hence only 39%
+  confident coverage.
+- The same overlap forbids pruning. No cheap early exit is sound when the
+  correct and incorrect distributions nearly touch, so the scan must stay
+  exhaustive.
+
+This explains the pattern across the whole log: crop work adds candidates, each
+candidate costs another full 110k scan, so better framing has consistently made
+the pipeline *slower* while buying a point or two. The two goals are coupled
+through the descriptor, and no amount of crop engineering decouples them.
+
+## 2026-08-03 — scene v2.1 — calibrated against real frames
 
 Twenty-five real webcam frames of actual games were measured, and the scenes
 meant to imitate them were measured the same way. Four gaps, one of them a
@@ -49,8 +122,8 @@ the illustrated mat the suite exists to stress. All nine are now registered.
 > change against it.** The 86.0% below is the last figure for v2 scenes.
 
 No recognition code was touched, so this is a harness change and the BUILD
-marker is unchanged. `{realism:false}` still reproduces v1. The next run is a
-fresh Real life baseline.
+marker is unchanged. `{realism:false}` still reproduces v1. The fresh baseline
+on these scenes is the entry above: **77.5%, median 6098ms**.
 
 ## 2026-08-03 — `Real life` — new realistic suite — **86.0%** (172/200, 0 errors)
 

@@ -1,0 +1,232 @@
+<!doctype html>
+<!--
+  Headless-ish Real life runner.
+
+  SNAPTEST proper lives in SnapTest.jsx and needs a Vite build. matcher.js, the
+  recognition worker and scene.js are all plain JS/ES modules, so the same
+  pipeline can be driven without one. This mirrors the realLife mode's card
+  draw, scene options and scoring exactly — it is a way to RUN the suite on a
+  machine with no Node, not a second implementation of it. If the two ever
+  disagree, SnapTest.jsx is authoritative.
+
+    python3 scripts/serve_preview.py 8777
+    open /scripts/reallife_runner.html?scenes=20
+
+  Progress and the final summary are on window.__run.
+-->
+<meta charset="utf-8">
+<title>real life runner</title>
+<script type="importmap">
+{ "imports": { "tesseract.js": "/node_modules/tesseract.js/dist/tesseract.esm.min.js" } }
+</script>
+<style>
+  body { margin: 0; background: #0e0e11; color: #dde; font: 13px ui-monospace, monospace; padding: 12px; }
+  #log { white-space: pre-wrap; line-height: 1.5; }
+  .bad { color: #f88; } .good { color: #8f8; }
+</style>
+<div id="log">starting…</div>
+
+<script type="module">
+import { identify as identifyCard, preload } from "/src/recognition/matcher.js";
+import { buildScene, cropScene, perfectCrop, releaseScene } from "/src/snaptest/scene.js";
+
+const q = new URLSearchParams(location.search);
+const SCENES = +(q.get("scenes") ?? 20);
+const PER_SCENE = 10;
+const SEED = 20260803;      // realLife mode's fixed draw
+const TOP_N = 2000;         // realLife: EDHREC top 2000
+const CLICK_MIX = { tokens: 0.25, basics: 0.05 };
+const REAL_MATS = [
+  "magic-con-vegas", "ff-cloud", "commander-series-2",
+  "mythic-land-black", "mythic-land-other",
+  "ultra-pro-green", "ultra-pro-blue", "ultra-pro-red", "ultra-pro-white",
+  null,
+];
+
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const logEl = document.getElementById("log");
+const lines = [];
+const say = (s) => { lines.push(s); logEl.textContent = lines.slice(-40).join("\n"); };
+
+window.__run = { done: 0, correct: 0, total: SCENES * PER_SCENE, finished: false, recs: [] };
+
+// ── card draw: identical to SnapTest.samplePopular with realLife's options ──
+async function samplePopular(n) {
+  const [names, tokens, rows] = await Promise.all([
+    fetch("/carddata/popularity.json").then((r) => r.json()),
+    fetch("/carddata/tokens.json").then((r) => r.json()),
+    fetch("/carddata/cards.json").then((r) => r.json()),
+  ]);
+  const byName = new Map();
+  for (const r of rows) {
+    if (r[4] !== 0) continue;
+    const list = byName.get(r[0]);
+    if (list) list.push(r[3]); else byName.set(r[0], [r[3]]);
+  }
+  const build = (list, pool) => list
+    .map((name) => ({ name, ids: byName.get(name), pool }))
+    .filter((e) => e.ids);
+  const basics = build([
+    "Forest", "Island", "Swamp", "Mountain", "Plains", "Wastes",
+    "Snow-Covered Forest", "Snow-Covered Island", "Snow-Covered Swamp",
+    "Snow-Covered Mountain", "Snow-Covered Plains",
+  ], "basic");
+  const cards = build(names, "card"), tks = build(tokens, "token");
+  const ranked = cards.slice(0, TOP_N);
+  const picked = [], seen = new Set();
+  const rand = mulberry32(SEED);
+  let guard = 0;
+  while (picked.length < n && guard++ < n * 50) {
+    const roll = rand();
+    const pool = roll < CLICK_MIX.tokens ? tks
+      : roll < CLICK_MIX.tokens + CLICK_MIX.basics ? basics : ranked;
+    const j = (rand() * pool.length) | 0;
+    const entry = pool[j];
+    if (!entry) continue;
+    const key = `${entry.name}:${j}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    picked.push({ name: entry.name, pool: entry.pool, id: entry.ids[(rand() * entry.ids.length) | 0] });
+  }
+  return picked;
+}
+
+const pct = (a, b) => (b ? (a / b * 100).toFixed(1) + "%" : "—");
+function quantile(arr, p) {
+  if (!arr.length) return 0;
+  const s = [...arr].sort((a, b) => a - b);
+  return s[Math.min(s.length - 1, Math.floor(p * s.length))];
+}
+function groupAcc(list, key) {
+  const out = {};
+  for (const r of list) {
+    const k = key(r); if (k == null) continue;
+    out[k] = out[k] || { n: 0, ok: 0 };
+    out[k].n++; if (r.ok) out[k].ok++;
+  }
+  return Object.fromEntries(Object.entries(out)
+    .map(([k, v]) => [k, `${v.ok}/${v.n} (${pct(v.ok, v.n)})`]));
+}
+
+(async () => {
+  try {
+    say("loading card index + warming recognition worker…");
+    const t0 = performance.now();
+    await preload();
+    say(`recognition ready in ${Math.round(performance.now() - t0)}ms`);
+
+    const set = await samplePopular(SCENES * PER_SCENE);
+    say(`drew ${set.length} cards (seed ${SEED}, EDHREC top ${TOP_N})`);
+
+    const acc = [];
+    for (let s = 0; s < SCENES; s++) {
+      const group = set.slice(s * PER_SCENE, (s + 1) * PER_SCENE);
+      if (!group.length) break;
+      let scene = null;
+      try {
+        scene = await buildScene(group, s, 1920, 1080, {
+          dice: true, perspective: true,
+          playmat: REAL_MATS[s % REAL_MATS.length],
+        });
+      } catch (e) {
+        for (const c of group) acc.push({ name: c.name, ok: false, ms: 0, errStage: "image-load" });
+        continue;
+      }
+      for (const c of scene.failed) {
+        acc.push({ name: c.name, ok: false, ms: 0, errStage: "image-load", pool: c.pool });
+      }
+      for (const p of scene.placed) {
+        const rec = {
+          name: p.card.name, pool: p.card.pool, scene: s,
+          rotationClass: p.rotationClass, occ: p.occ, layout: p.layout,
+          coverage: p.coverage, ok: false, ms: 0, errStage: null,
+        };
+        const st = performance.now();
+        try {
+          const crop = cropScene(scene.canvas, p.nx, p.ny);
+          const data = await identifyCard(crop.url, { nx: crop.px, ny: crop.py });
+          rec.ms = Math.round(performance.now() - st);
+          const matches = data.matches || [];
+          rec.top = matches[0] && matches[0].name;
+          rec.by = matches[0] && matches[0].identified_by;
+          rec.dist = matches[0] && matches[0].distance;
+          rec.stages = data.stage_ms || null;
+          rec.wasmHeapMB = data.wasm_heap_mb;
+          const idx = matches.findIndex((m) => m.name === p.card.name);
+          rec.trueRank = idx >= 0 ? idx + 1 : null;
+          rec.ok = rec.top === p.card.name;
+          // Control: does an exact crop of the same pixels identify? Separates
+          // a framing failure, which localization can reach, from a pixel one.
+          if (!rec.ok) {
+            try {
+              const pu = perfectCrop(scene.canvas, p, scene.cardW, scene.cardH);
+              const pd = await identifyCard(pu, { nx: 0.5, ny: 0.5 });
+              rec.perfectOk = (pd.matches || [])[0]?.name === p.card.name;
+            } catch { rec.perfectOk = null; }
+          }
+        } catch (e) {
+          const msg = String((e && e.message) || e);
+          rec.errStage = /timed out/i.test(msg) ? "timeout" : "identify-error";
+          rec.ms = Math.round(performance.now() - st);
+        }
+        acc.push(rec);
+        window.__run.done = acc.length;
+        window.__run.correct = acc.filter((r) => r.ok).length;
+        window.__run.recs = acc;
+        if (acc.length % 5 === 0) {
+          say(`${acc.length}/${window.__run.total} · ${pct(window.__run.correct, acc.length)} correct · median ${quantile(acc.filter(r=>!r.errStage).map(r=>r.ms), 0.5)}ms`);
+        }
+      }
+      releaseScene(scene.canvas);
+    }
+
+    const okList = acc.filter((r) => !r.errStage);
+    const times = okList.map((r) => r.ms);
+    const half = Math.floor(acc.length / 2);
+    const misses = acc.filter((r) => !r.ok && !r.errStage);
+    window.__run.summary = {
+      total: acc.length,
+      correct: acc.filter((r) => r.ok).length,
+      accuracy: pct(acc.filter((r) => r.ok).length, acc.length),
+      errors: acc.filter((r) => r.errStage).length,
+      medianMs: quantile(times, 0.5),
+      p90Ms: quantile(times, 0.9),
+      avgMs: Math.round(times.reduce((a, b) => a + b, 0) / (times.length || 1)),
+      maxMs: Math.max(0, ...times),
+      byPathway: groupAcc(okList, (r) => r.by || "none"),
+      byRotation: groupAcc(okList, (r) => r.rotationClass),
+      byOcclusion: groupAcc(okList, (r) => r.occ),
+      byLayout: groupAcc(okList, (r) => r.layout),
+      byPool: groupAcc(okList, (r) => r.pool),
+      missTrueRank: misses.reduce((m, r) => {
+        const k = r.trueRank == null ? "absent" : r.trueRank <= 5 ? "rank 2-5" : "rank 6+";
+        m[k] = (m[k] || 0) + 1; return m;
+      }, {}),
+      perfectCropRecovered: `${misses.filter((r) => r.perfectOk).length}/${misses.length}`,
+      firstHalf: pct(acc.slice(0, half).filter((r) => r.ok).length, half),
+      secondHalf: pct(acc.slice(half).filter((r) => r.ok).length, acc.length - half),
+      wasmHeapMB: okList[okList.length - 1]?.wasmHeapMB,
+      stageMeans: ["prep", "hint", "rank", "orb", "ocr"].reduce((o, k) => {
+        const v = okList.map((r) => r.stages?.[k]).filter((n) => typeof n === "number");
+        if (v.length) o[k] = Math.round(v.reduce((a, b) => a + b, 0) / v.length);
+        return o;
+      }, {}),
+    };
+    window.__run.finished = true;
+    say("\nDONE\n" + JSON.stringify(window.__run.summary, null, 1));
+    document.title = "finished";
+  } catch (e) {
+    window.__run.error = String(e && e.stack || e);
+    say("FAILED: " + window.__run.error);
+    document.title = "failed";
+  }
+})();
+</script>
