@@ -160,6 +160,9 @@ function groupAcc(list, key) {
           rec.dist = matches[0] && matches[0].distance;
           rec.stages = data.stage_ms || null;
           rec.wasmHeapMB = data.wasm_heap_mb;
+          rec.tried = data.candidates_tried;
+          rec.isolationCandidates = data.isolation_candidates;
+          rec.strategy = matches[0] && matches[0].strategy;
           const idx = matches.findIndex((m) => m.name === p.card.name);
           rec.trueRank = idx >= 0 ? idx + 1 : null;
           rec.ok = rec.top === p.card.name;
@@ -214,7 +217,14 @@ function groupAcc(list, key) {
       firstHalf: pct(acc.slice(0, half).filter((r) => r.ok).length, half),
       secondHalf: pct(acc.slice(half).filter((r) => r.ok).length, acc.length - half),
       wasmHeapMB: okList[okList.length - 1]?.wasmHeapMB,
-      stageMeans: ["prep", "hint", "rank", "orb", "ocr"].reduce((o, k) => {
+      isolationFired: `${okList.filter((r) => r.isolationCandidates > 0).length}/${okList.length}`,
+      triedMean: Math.round(okList.reduce((a, r) => a + (r.tried || 0), 0) / (okList.length || 1)),
+      byStrategy: okList.reduce((m, r) => {
+        const k = (r.strategy || "none").replace(/-\d+$/, "").replace(/^(isolate-[a-z-]+?)-.*/, "$1");
+        m[k] = (m[k] || 0) + 1; return m;
+      }, {}),
+      stageMeans: ["prep", "hint", "rankSeeds", "rankRefine", "isolatePrep",
+                   "isolateScore", "rank", "orb", "ocr"].reduce((o, k) => {
         const v = okList.map((r) => r.stages?.[k]).filter((n) => typeof n === "number");
         if (v.length) o[k] = Math.round(v.reduce((a, b) => a + b, 0) / v.length);
         return o;

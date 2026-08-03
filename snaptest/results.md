@@ -9,7 +9,65 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
-## 2026-08-03 — two-stage prefix retrieval — **REJECTED**; but the scan is ~5x slower than it needs to be
+## 2026-08-03 — where `rank` actually goes — **the blind isolation sweep is 44% of the clock**
+
+`rank` was one span covering seed scoring, refinement and the whole isolation
+fallback, so its 4257ms could not be attributed. Sub-marks (`rankSeeds`,
+`rankRefine`, `isolatePrep`, `isolateScore`) now split it. Measured on a 50-card
+slice of Real life, same build, same seeded draw:
+
+| stage | mean ms | |
+| --- | --- | --- |
+| prep | 704 | crop generation, contours |
+| rankSeeds | 1314 | 10-11 full-index scans **plus** their art/colour work |
+| rankRefine | 880 | non-seed crops refining the shortlist |
+| **isolatePrep** | **1619** | **`localCardIsolationCandidates` — the blind rectangle sweep** |
+| **isolateScore** | **919** | scoring what it proposed |
+| orb | 674 | |
+| ocr | 856 | |
+
+**Isolation fires on 38 of 49 scans (78%) and costs 2538ms — about 44% of the
+5793ms median.** It cannot simply be switched off: `byStrategy` shows
+`isolate-portrait` (17) and `isolate-sideways` (12) winning **29 of 49** scans,
+against `outline` at 18. It is doing most of the work and charging most of the
+time, which is exactly what the `edge-rect` notes recorded independently.
+
+This corrects two earlier conclusions in this log, both mine:
+
+- The 110k hamming scan is **not** the bottleneck. Microbenchmarked in isolation
+  it is **43.2ms** per seed — *faster* than numpy's 72ms for the identical
+  computation, not 5.4x slower as the previous entry inferred from the whole
+  stage timer. All 10-11 seeds are ~475ms, roughly 11% of `rank`. A WASM SIMD
+  rewrite would buy about 7% of the median. Dropped.
+- The single-pass variant scan shipped in `isolation-speed-2` is real and
+  already banked: 8 separate scans measure 70.1ms against 43.2ms combined,
+  a 1.62x win.
+
+### What this points at
+
+`isolatePrep` is a blind search over position, scale and angle, evaluating
+several thousand card-shaped rectangles by edge coherence. Predicting the card's
+quad directly would replace ~1619ms of sweep with a few milliseconds of
+inference, and would cut `isolateScore` too by handing the scorer two or three
+proposals instead of up to 144.
+
+That detector already exists in the `Recognition-Two` branch: trained to IoU
+0.851 mean / 79.6% above 0.8 on held-out scenes, and already ported to plain JS
+(~60 lines, no ML runtime, verified against numpy to five decimals) precisely
+because the recognition worker is a classic worker that cannot import one. A
+perturbation sweep there established the threshold that matters: above IoU 0.8,
+23 of 24 perturbed quads still identified correctly; below 0.6, none of 8 did.
+
+Its known weakness is generalization — IoU 0.777 on playmats it never trained
+on, against 0.851 on trained ones — and scene v2.1 changed the backgrounds
+again, so it would need retraining before it could be trusted here.
+
+**Projected, not measured:** removing the sweep should take the median from
+~5800ms to roughly 3300ms. That is the largest speed lever identified so far and
+the only one that does not trade away recall, since the downstream scoring is
+unchanged — it is fed better proposals rather than fewer.
+
+## 2026-08-03 — two-stage prefix retrieval — **REJECTED** (its scan-speed claim is superseded above)
 
 `rank` is 70% of Real life's wall clock. The obvious saving is a coarse-to-fine
 scan: rank every printing on a short PREFIX of its hash, keep the best K, and

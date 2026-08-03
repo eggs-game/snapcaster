@@ -1,0 +1,93 @@
+<!doctype html>
+<!--
+  Times hammingSearchVariants in isolation, on the real index.
+
+  The `rank` stage timer covers seed selection, the shortlist cutoff and art
+  rescoring as well as the scan, so it cannot be compared against a numpy
+  figure for the scan alone. This measures only the inner loop, on the same
+  110,592 x 64 bytes, so the JS-vs-SIMD gap is a like-for-like number.
+
+    python3 scripts/serve_preview.py 8777
+    open /scripts/bench_hamming.html
+-->
+<meta charset="utf-8">
+<title>hamming bench</title>
+<style>body{margin:0;background:#0e0e11;color:#dde;font:13px ui-monospace,monospace;padding:14px}
+pre{line-height:1.6}</style>
+<pre id="out">loading index…</pre>
+
+<script type="module">
+import { queryVariants, hammingSearch } from "/src/recognition/hash.js";
+
+const out = document.getElementById("out");
+const lines = [];
+const say = (s) => { lines.push(s); out.textContent = lines.join("\n"); };
+
+// Mirror of recognizer.js's hammingSearchVariants — the function actually on
+// the hot path. hash.js only exports the single-query hammingSearch, and the
+// worker's copy is not importable from a module, so it is reproduced here.
+function hammingSearchVariants(queries, index, nCards, distsOut, POPCOUNT) {
+  const [q0,q1,q2,q3,q4,q5,q6,q7] = queries;
+  const VEC_BYTES = 64;
+  for (let i = 0; i < nCards; i++) {
+    const off = i * VEC_BYTES;
+    let d0=0,d1=0,d2=0,d3=0,d4=0,d5=0,d6=0,d7=0;
+    for (let b = 0; b < VEC_BYTES; b++) {
+      const v = index[off + b];
+      d0 += POPCOUNT[v ^ q0[b]]; d1 += POPCOUNT[v ^ q1[b]];
+      d2 += POPCOUNT[v ^ q2[b]]; d3 += POPCOUNT[v ^ q3[b]];
+      d4 += POPCOUNT[v ^ q4[b]]; d5 += POPCOUNT[v ^ q5[b]];
+      d6 += POPCOUNT[v ^ q6[b]]; d7 += POPCOUNT[v ^ q7[b]];
+    }
+    const best = Math.min(d0,d1,d2,d3,d4,d5,d6,d7);
+    if (best < distsOut[i]) distsOut[i] = best;
+  }
+}
+
+(async () => {
+  const buf = await (await fetch("/carddata/hashes.bin")).arrayBuffer();
+  const index = new Uint8Array(buf);
+  const n = index.length / 64;
+  say(`index: ${n} printings x 64 bytes (${(index.length/1e6).toFixed(1)} MB)`);
+
+  const POPCOUNT = new Uint8Array(256);
+  for (let i = 0; i < 256; i++) POPCOUNT[i] = (i & 1) + POPCOUNT[i >> 1];
+
+  // Eight plausible query vectors. Content does not affect timing — the loop is
+  // data-independent — but they are built the real way rather than from noise.
+  const gray = { pix: new Float32Array(244 * 340), w: 244, h: 340 };
+  for (let i = 0; i < gray.pix.length; i++) gray.pix[i] = (i * 2654435761 % 255);
+  const variants = queryVariants(gray);
+  say(`variants: ${variants.length} x ${variants[0].length} bytes`);
+
+  const dists = new Uint16Array(n);
+  const time = (label, fn, reps) => {
+    fn(); // warm
+    const t0 = performance.now();
+    for (let r = 0; r < reps; r++) fn();
+    const ms = (performance.now() - t0) / reps;
+    say(`  ${label.padEnd(46)} ${ms.toFixed(1)} ms/call`);
+    return ms;
+  };
+
+  say("\n— one seed's work: 8 variants over the whole index —");
+  const v8 = time("hammingSearchVariants (production hot path)", () => {
+    dists.fill(0xffff);
+    hammingSearchVariants(variants, index, n, dists, POPCOUNT);
+  }, 5);
+
+  const v1 = time("hammingSearch x8 (the pre-2026-07-25 path)", () => {
+    dists.fill(0xffff);
+    for (const q of variants) hammingSearch(q, index, n, dists);
+  }, 3);
+
+  say("\n— context —");
+  say(`  numpy, same computation, this machine        72.0 ms/call`);
+  say(`  JS / numpy ratio                             ${(v8 / 72).toFixed(2)}x`);
+  say(`  production rank stage (10-11 seeds)          4257 ms  (baseline mean)`);
+  say(`  scan share of that: ${(v8 * 10.5).toFixed(0)}-${(v8 * 11).toFixed(0)} ms ` +
+      `= ${(v8 * 10.5 / 4257 * 100).toFixed(0)}% of the rank stage`);
+  say(`  single-pass win over 8 separate scans        ${(v1 / v8).toFixed(2)}x`);
+  document.title = "done";
+})().catch(e => { say("FAILED: " + (e && e.stack || e)); document.title = "failed"; });
+</script>

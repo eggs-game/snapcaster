@@ -1905,6 +1905,12 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
     for (const i of seedIdx) {
       if (scoreFull(prepared[i]) <= 60) { decisive = true; break; }
     }
+    // `rank` used to be one span covering seeds, refinement and the whole
+    // isolation fallback, which made it impossible to say where its ~4.3s went.
+    // A microbenchmark of the 110k hamming scan put one seed at 43ms, so all
+    // 10-11 seeds account for roughly a tenth of the stage; the rest was
+    // invisible. These sub-marks attribute it.
+    mark("rankSeeds");
     if (!decisive) {
       // Shortlist = every printing a seed brought into contention (finite
       // combined rank under v3, or the gray-closest 4000 under v2).
@@ -1979,12 +1985,14 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
     // are independent of contours. This is deliberately deferred: normal
     // scans keep their existing fast path, while a busy printed playmat earns
     // the extra work needed to isolate the actual card rather than its art.
+    mark("rankRefine");
     if (bestCandidateDistance > 120) {
       const isolation = localCardIsolationCandidates(getSourceImageData(), normalizedPoint, {
         allowAboveClick: !clickInsideCardLikeQuad,
       })
         .map(prepareCandidate)
         .sort((a, b) => b.frame - a.frame);
+      mark("isolatePrep");
       isolationCandidates = isolation.length;
       isolationDebug = isolation.slice(0, 12).map((p) => ({
         strategy: p.candidate.strategy,
@@ -2033,6 +2041,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
         }
         recordCandidateBest(p, candidateBest);
       }
+      mark("isolateScore");
     }
   }
   mark("rank");
