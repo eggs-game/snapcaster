@@ -9,6 +9,69 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-08-03 — pretrained embeddings vs the hash — **REJECTED, hypothesis falsified**
+
+The claim under test was mine: that the accuracy ceiling and the 4.3s ranking
+stage share one cause — a perceptual hash that barely separates a correct
+degraded card from a wrong one — and that a learned embedding would fix both.
+The cheap version of that claim is that a *generic pretrained* embedding, with
+no Magic-specific training, should already separate these images better.
+
+**It does not. It is roughly three times worse.**
+
+Controlled: both descriptors ranked the same 2,000-card reference pool from the
+same 200 query images — the perfect crops of the production baseline's own
+scenes, so localization is removed and only the descriptor is under test.
+Reference hashes were read straight out of the shipped `hashes.bin`, so the
+hash arm is production's exact bytes.
+
+| Descriptor | top-1 | top-5 | median rank |
+| --- | --- | --- | --- |
+| **pHash+dHash (production, 8 variants)** | **74.0%** | **82.0%** | **1** |
+| DINOv2 ViT-S/14, CLS, aspect kept | 23.5% | 33.5% | 15 |
+| DINOv2 ViT-S/14, patch-mean | 16.5% | 31.5% | 28 |
+| CLIP ViT-B/32 laion2b | 17.5% | 27.0% | 32 |
+| DINOv2, squashed to square | 14.0% | 25.5% | 44 |
+
+The result is robust across model family, pooling strategy and aspect handling,
+so it is not an artefact of one bad configuration.
+
+**Why, in hindsight.** DINOv2 and CLIP are trained for *semantic* similarity —
+"these are both pictures of dragons." Magic printings share a layout and differ
+in fine art detail, so semantic features actively collapse different cards
+together: the best *wrong* card scored a higher cosine (0.515) than the correct
+one (0.382). A perceptual hash is a *structural* descriptor keyed to exact
+spatial luminance, which is the right invariance for telling two printings
+apart. Reaching for a general-purpose vision model was reaching for the wrong
+kind of invariance.
+
+**What this kills, and what it does not.** It kills the cheap route — dropping a
+pretrained embedding into the pipeline. It does not disprove that a
+*purpose-trained* metric-learning embedding could beat the hash, because that
+has a different objective: discriminating 110k specific images rather than
+generalizing semantically. But that is now an unproven bet rather than, as it
+was previously described here, "the only route." It should not be started
+without a cheaper probe that its objective can actually be tested by.
+
+**The genuinely useful number is the hash's own.** On *perfect* crops, against a
+pool 55x smaller than production's 110,592, the hash reaches only **74.0%** —
+below the 77.5% the full pipeline scores at full scale. So the descriptor really
+is the ceiling, and the crop family plus ORB art-match are already carrying the
+pipeline past raw hash performance. The diagnosis was right; the proposed cure
+was wrong.
+
+Measured distances also correct a figure quoted earlier in this log: on perfect
+crops the correct card sits at a median of **158** and the best wrong card at
+**178**, not the 205/220 previously cited.
+
+One more result worth keeping: on the raw *capture* crop, before any crop
+generation, both descriptors score **0%**. That is expected — the capture square
+holds several cards and a lot of playmat — but it is a reminder that "descriptor
+versus framing" is not as cleanly separable as this entry's framing implies.
+
+Reproduce with `scripts/harvest_crops.html` plus the probe scripts noted in the
+commit; the venv and downloads are throwaway.
+
 ## 2026-08-03 — `platform-1` — **Real life on v2.1 scenes — 77.5%** (155/200) — PRODUCTION BASELINE
 
 The first Real life measurement of the recogniser that is actually live.
