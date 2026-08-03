@@ -1,0 +1,63 @@
+<!doctype html>
+<!--
+  Renders the suite's cards at several blur settings so BLUR_SCALE can be set by
+  measurement rather than taste.
+
+  Card sharpness was measured on both sides at a matched 244x340: real webcam
+  cards sit at a Laplacian variance median of ~303, the rendered suite at ~23.
+  This writes perfect crops for a range of blurScale values; scripts/sharpness.py
+  then says which one matches.
+
+    PREVIEW_SAVE_DIR=/tmp/blurcal python3 scripts/serve_preview.py 8777
+    open /scripts/calibrate_blur.html
+-->
+<meta charset="utf-8">
+<title>blur calibration</title>
+<style>body{margin:0;background:#101014;color:#dde;font:13px ui-monospace,monospace;padding:12px}</style>
+<div id="log">…</div>
+
+<script type="module">
+import { buildScene, perfectCrop, releaseScene } from "/src/snaptest/scene.js";
+
+const SCALES = (new URLSearchParams(location.search).get("scales")
+  || "1.0,0.6,0.4,0.25,0.15,0.08").split(",").map(Number);
+const SCENES = +(new URLSearchParams(location.search).get("scenes") ?? 4);
+const REAL_MATS = ["magic-con-vegas","ff-cloud","commander-series-2","mythic-land-black",
+  "mythic-land-other","ultra-pro-green","ultra-pro-blue","ultra-pro-red","ultra-pro-white",null];
+
+const logEl = document.getElementById("log");
+const say = (s) => { logEl.textContent = s; };
+const save = (n, b) => fetch("/__save/" + n, { method: "POST", body: b }).then(r => r.text());
+const toBlob = (u) => fetch(u).then(r => r.blob());
+
+(async () => {
+  const rows = await (await fetch("/carddata/cards.json")).json();
+  const fronts = rows.filter(r => r[4] === 0);
+  // Fixed cards across every scale, so only the blur differs between arms.
+  const group = Array.from({ length: 10 }, (_, i) => {
+    const r = fronts[(i * 7919 + 13) % fronts.length];
+    return { id: r[3], name: r[0] };
+  });
+
+  for (const scale of SCALES) {
+    let n = 0;
+    for (let s = 0; s < SCENES; s++) {
+      const scene = await buildScene(group, s, 1920, 1080, {
+        dice: true, perspective: true, playmat: REAL_MATS[s % REAL_MATS.length],
+        blurScale: scale,
+      });
+      if (!scene.canvas) continue;
+      for (const p of scene.placed) {
+        const url = perfectCrop(scene.canvas, p, scene.cardW, scene.cardH);
+        await save(`s${String(scale).replace(".", "p")}_${String(n).padStart(3, "0")}.jpg`,
+                   await toBlob(url));
+        n++;
+      }
+      releaseScene(scene.canvas);
+    }
+    say(`blurScale ${scale}: ${n} cards written`);
+  }
+  say("DONE");
+  document.title = "finished";
+})().catch(e => { say("FAILED: " + e); document.title = "failed"; });
+</script>

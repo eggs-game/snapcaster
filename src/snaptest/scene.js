@@ -71,6 +71,25 @@ const SLEEVE_TONES = [
 // built from bare card scans.
 const SLEEVE_MARGIN = 0.045;
 
+// Multiplies the per-card blur.
+//
+// 1.0 was the uncalibrated scene-v2.1 setting and it was badly wrong: measured
+// at a matched 244x340, rendered cards sat at a Laplacian variance median of 22
+// where real webcam cards sit at 303. The sharpest tenth of rendered cards was
+// still below the real *tenth* percentile. Visually the difference is a card
+// whose title cannot be read at all versus one whose rules text can.
+//
+// A blur ladder (scripts/calibrate_blur.html) measured 1.0 -> 22, 0.6 -> 39,
+// 0.4 -> 82, 0.25 -> 218, 0.15 -> 542. Interpolating to the real median of 303
+// lands at ~0.22.
+//
+// Caveat kept deliberately: real frames carry sensor grain and encoder
+// sharpening, both of which inflate these statistics without meaning "less
+// blurred", so the real figure is an upper bound and the true match may be
+// slightly blurrier. Erring sharp is the risk this project has historically
+// been bitten by, so this is not a number to nudge further without re-measuring.
+const BLUR_SCALE = 0.22;
+
 
 // Camera perspective for a card lying on a table. Canvas 2D is affine only, so
 // the card is drawn onto an explicit trapezoid (see drawImageOnQuad). A camera
@@ -525,6 +544,15 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080, 
     ? options.focusFalloff : realism;
   const focusY = frameH * (0.3 + rnd() * 0.4);
   const focusHalf = frameH * (0.18 + rnd() * 0.16);
+  // Blur is calibrated, not chosen. Card-level sharpness was measured on both
+  // sides at a matched 244x340: real webcam cards sit at a Laplacian variance
+  // median of ~303 and a mean gradient of ~68, where the rendered suite was at
+  // 23 and 30 — the sharpest tenth of rendered cards was still well below the
+  // real median. The suite had drifted far harsher than the frames it models,
+  // which made every accuracy number pessimistic and every "the descriptor is
+  // the ceiling" conclusion suspect. BLUR_SCALE is the correction factor;
+  // scripts/calibrate_blur.py is what sets it.
+  const blurScale = options.blurScale !== undefined ? options.blurScale : BLUR_SCALE;
 
   const placed = [];
   for (let i = 0; i < ok.length; i++) {
@@ -557,7 +585,8 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080, 
     const defocus = focusFalloff
       ? Math.min(1, Math.abs(cy - focusY) / (focusHalf * 2.2))
       : rnd();
-    x.filter = `blur(${((realism ? 1.1 : 0.7) + defocus * (realism ? 2.2 : 1.6)).toFixed(2)}px)`;
+    const blurPx = ((realism ? 1.1 : 0.7) + defocus * (realism ? 2.2 : 1.6)) * blurScale;
+    x.filter = `blur(${blurPx.toFixed(2)}px)`;
     x.shadowColor = "rgba(0,0,0,0.5)";
     x.shadowBlur = cardW * 0.05;
     x.shadowOffsetY = cardW * 0.02;
