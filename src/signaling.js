@@ -276,6 +276,9 @@ export async function joinRoom(code, name, role, {
       event: "msg",
       payload: { type: "participant-leaving", from: myId, to: null },
     }),
-    leave: () => { ch.untrack(); client().removeChannel(ch); },
+    leave: async () => {
+      await ch.untrack().catch(() => {});
+      await client().removeChannel(ch);
+    },
   };
 }

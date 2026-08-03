@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   Cat, Check, ChessQueen, ChevronDown, ChevronLeft, ChevronRight, Copy, Dices, Drum, ExternalLink, Hourglass, Laugh, Link2, MessageCircle, MessagesSquare, Mic, MicOff,
-  LogOut, PanelLeft, Play, Search, Settings, Sparkles, Swords, ThumbsDown, UserPlus, UserRound, UsersRound, Video, VideoOff, X,
+  LogOut, PanelLeft, Play, RefreshCw, Search, Settings, Sparkles, Square, Swords, ThumbsDown, UserMinus, UserPlus, UserRound, UsersRound, Video, VideoOff, X,
 } from "lucide-react";
 import { fetchCardByName, suggestCardNames } from "./cardSearch.js";
 import {
@@ -166,6 +166,14 @@ export default function CardSidebar({
   onLeave,
   isCreator = false,
   managementParticipants = [],
+  managementStatus = "lobby",
+  managementFriends = [],
+  onStartGame,
+  onManageMember,
+  onEndGame,
+  onRestartGame,
+  onInviteFriend,
+  onCancelInvitation,
 }) {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
@@ -729,7 +737,18 @@ export default function CardSidebar({
       </div>
 
       {management ? (
-        <GameManagementPanel participants={managementParticipants} currentUserId={currentUserId} />
+        <GameManagementPanel
+          participants={managementParticipants}
+          currentUserId={currentUserId}
+          status={managementStatus}
+          friends={managementFriends}
+          onStart={onStartGame}
+          onManageMember={onManageMember}
+          onEnd={onEndGame}
+          onRestart={onRestartGame}
+          onInviteFriend={onInviteFriend}
+          onCancelInvitation={onCancelInvitation}
+        />
       ) : settings ? (
         <div className="sidebar-settings">
           <fieldset className="theme-field">
@@ -1632,14 +1651,121 @@ export function formatDiceResult(value, sides) {
   return String(value ?? "—");
 }
 
-function GameManagementPanel({ participants, currentUserId }) {
+function GameManagementPanel({
+  participants,
+  currentUserId,
+  status,
+  friends,
+  onStart,
+  onManageMember,
+  onEnd,
+  onRestart,
+  onInviteFriend,
+  onCancelInvitation,
+}) {
   const safeParticipants = Array.isArray(participants) ? participants : [];
+  const players = safeParticipants.filter((participant) => participant.role !== "visitor");
+  const visitors = safeParticipants.filter((participant) => participant.role === "visitor");
+  const eligiblePlayers = players.filter((participant) => participant.membershipId && !participant.eliminated);
+  const winnerOptions = eligiblePlayers.length
+    ? eligiblePlayers
+    : players.filter((participant) => participant.membershipId);
+  const winnerMembershipIds = winnerOptions.map((player) => player.membershipId).join("|");
+  const [mode, setMode] = useState("manage");
+  const [resultKind, setResultKind] = useState("winner");
+  const [winnerId, setWinnerId] = useState(winnerOptions[0]?.membershipId || "");
+  const [busy, setBusy] = useState("");
+  const [error, setError] = useState("");
+  const [inviteTarget, setInviteTarget] = useState("");
+  const [sentInvitations, setSentInvitations] = useState([]);
+
+  useEffect(() => {
+    if (!winnerOptions.some((player) => player.membershipId === winnerId)) {
+      setWinnerId(winnerOptions[0]?.membershipId || "");
+    }
+  }, [winnerId, winnerMembershipIds]);
+
+  const run = async (label, action) => {
+    setError("");
+    setBusy(label);
+    try {
+      await action?.();
+    } catch (actionError) {
+      setError(String(actionError?.message || "That action could not be completed."));
+    } finally {
+      setBusy("");
+    }
+  };
+
+  const manageParticipant = (participant, action) => {
+    const verb = action === "remove" ? "Remove" : action === "mute" ? "Mute" : "Unmute";
+    if (!window.confirm(`${verb} ${participant.name || "this participant"}${action === "remove" ? " from this game" : ""}?`)) return;
+    run(`${action}-${participant.id}`, () => onManageMember?.(participant, action));
+  };
+
+  if (mode === "end") {
+    return (
+      <div className="game-management-panel">
+        <button className="game-management-back" type="button" onClick={() => setMode("manage")}>Back to game controls</button>
+        <div className="game-management-end-panel">
+          <label className="game-management-field">
+            <span>Result</span>
+            <select value={resultKind} onChange={(event) => setResultKind(event.target.value)}>
+              <option value="winner">Choose a winner</option>
+              <option value="draw">Draw</option>
+              <option value="unresolved">End unresolved</option>
+            </select>
+          </label>
+          {resultKind === "winner" && (
+            <label className="game-management-field">
+              <span>Winner</span>
+              <select value={winnerId} onChange={(event) => setWinnerId(event.target.value)}>
+                {winnerOptions.map((player) => (
+                  <option key={player.membershipId} value={player.membershipId}>{player.name || "Player"}</option>
+                ))}
+              </select>
+            </label>
+          )}
+          <p className="game-management-note">Players get a 24-hour correction window before a submitted result becomes final.</p>
+          {error && <p className="modal-error" role="alert">{error}</p>}
+          <button
+            className="game-management-primary"
+            type="button"
+            disabled={Boolean(busy) || (resultKind === "winner" && !winnerId)}
+            onClick={() => run("end", async () => {
+              await onEnd?.({ resultKind, winnerMembershipId: winnerId });
+              setMode("manage");
+            })}
+          >
+            <Square size={16} /> {busy === "end" ? "Ending…" : "Confirm end game"}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="game-management-panel">
-      <p className="game-management-summary">
-        {safeParticipants.length} {safeParticipants.length === 1 ? "person" : "people"} in this game
-      </p>
+      <div className="game-management-overview">
+        <span className={`game-status-badge ${status}`}>{status === "live" ? "Live" : status === "finished" ? "Finished" : "Lobby"}</span>
+        <p className="game-management-summary">{players.length} players · {visitors.length} visitors</p>
+      </div>
+      <div className="game-management-primary-actions">
+        {status === "lobby" && (
+          <button className="game-management-primary" type="button" disabled={Boolean(busy)} onClick={() => run("start", onStart)}>
+            <Play size={16} /> {busy === "start" ? "Starting…" : "Start game"}
+          </button>
+        )}
+        {status === "live" && (
+          <button type="button" disabled={Boolean(busy)} onClick={() => setMode("end")}>
+            <Square size={16} /> End game
+          </button>
+        )}
+        <button type="button" disabled={Boolean(busy)} onClick={() => run("restart", onRestart)}>
+          <RefreshCw size={16} /> {busy === "restart" ? "Restarting…" : "Restart table"}
+        </button>
+      </div>
+      {error && <p className="modal-error" role="alert">{error}</p>}
       <div className="game-management-list">
         {safeParticipants.map((participant) => {
           const isVisitorParticipant = participant.role === "visitor";
@@ -1687,10 +1813,67 @@ function GameManagementPanel({ participants, currentUserId }) {
                   {participant.muted ? "Muted" : "Mic on"}
                 </span>
               </div>
+              {!participant.isMe && participant.membershipId && (
+                <div className="game-management-member-actions">
+                  {isVisitorParticipant && (
+                    <button
+                      type="button"
+                      disabled={Boolean(busy)}
+                      onClick={() => manageParticipant(participant, participant.roomMuted ? "unmute" : "mute")}
+                    >
+                      {participant.roomMuted ? <Mic size={16} /> : <MicOff size={16} />}
+                      {participant.roomMuted ? "Unmute visitor" : "Mute visitor"}
+                    </button>
+                  )}
+                  <button
+                    className="danger"
+                    type="button"
+                    disabled={Boolean(busy)}
+                    onClick={() => manageParticipant(participant, "remove")}
+                  >
+                    <UserMinus size={16} /> Remove
+                  </button>
+                </div>
+              )}
             </section>
           );
         })}
       </div>
+      {friends.length > 0 && (
+        <section className="game-management-friends">
+          <h3>Invite a friend</h3>
+          <div className="game-management-invite">
+            <select value={inviteTarget} onChange={(event) => setInviteTarget(event.target.value)}>
+              <option value="">Choose a friend</option>
+              {friends.map((friend) => <option key={friend.id} value={friend.id}>{friend.display_name}</option>)}
+            </select>
+            <button
+              type="button"
+              disabled={!inviteTarget || Boolean(busy)}
+              onClick={() => run("invite", async () => {
+                const invitationId = await onInviteFriend?.(inviteTarget);
+                const friend = friends.find((candidate) => candidate.id === inviteTarget);
+                setSentInvitations((invitations) => [...invitations, {
+                  id: invitationId,
+                  name: friend?.display_name || "Friend",
+                }]);
+                setInviteTarget("");
+              })}
+            >
+              {busy === "invite" ? "Sending…" : "Send"}
+            </button>
+          </div>
+          {sentInvitations.map((invitation) => (
+            <div className="game-management-sent-invite" key={invitation.id}>
+              <span>Invite sent to {invitation.name}</span>
+              <button type="button" disabled={Boolean(busy)} onClick={() => run(`cancel-invite-${invitation.id}`, async () => {
+                await onCancelInvitation?.(invitation.id);
+                setSentInvitations((invitations) => invitations.filter((item) => item.id !== invitation.id));
+              })}>Cancel</button>
+            </div>
+          ))}
+        </section>
+      )}
     </div>
   );
 }

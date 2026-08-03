@@ -474,6 +474,10 @@ Account access remains secondary to those hero actions. Outside the landing
 header, Discord sign-in and signed-in profile controls remain 34px-tall labeled
 buttons with an 8px radius and the shared glass material. The profile menu uses the same dense glass
 overlay as other floating menus. Authentication failures appear directly below
+the account control. An account-only Discord return clears stale Join, room-code,
+and visitor intent before the lobby renders, so signing in never opens a game
+entry modal. Sign-in initiated from an active game remains a separate recovery
+flow and may restore that game after authentication.
 that control rather than disappearing into a game-creation modal.
 
 The join modal presents Player and Visitor as two equal choice cards, using the
@@ -631,11 +635,14 @@ on the right edge use a right-aligned top/bottom position, bottom-row video
 controls open upward, and top-edge controls open downward; centered defaults
 are reserved for controls with safe space on both sides.
 
-Game creators receive a second rail divider below Settings followed by a
-Lucide Chess Queen action. It opens the **Game management** view, where every
-player and visitor appears in an individual 10px-radius surface tile. Tiles
-show identity and role first, then relevant commander and media-state details;
-visitor tiles omit camera and commander rows that do not apply to them.
+Game owners receive a second rail divider below Settings followed by a Lucide
+Chess Queen action. All creator controls live in this **Game management** view;
+there is no separate floating lobby button or management modal over the game.
+Start, end, restart, invite, mute, and remove actions stay together above and
+within the roster. Every player and visitor appears in an individual
+10px-radius surface tile. Tiles show identity and role first, then relevant
+commander and media-state details; visitor tiles omit camera and commander rows
+that do not apply to them.
 Visitors also receive the Commander damage rail action and can inspect every
 player's commander-damage and poison totals, but all values render as read-only
 text. Dice, life editing, and counter steppers remain player-only.

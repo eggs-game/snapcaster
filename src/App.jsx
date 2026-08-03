@@ -1,6 +1,11 @@
 import React, { lazy, Suspense, useEffect, useState } from "react";
 import Lobby from "./Lobby.jsx";
 import AccountPrompt from "./AccountPrompt.jsx";
+import {
+  clearAccountOnlySignInIntent,
+  hasAccountOnlySignInIntent,
+  stripJoinIntentFromSearch,
+} from "./authIntent.js";
 
 const Game = lazy(() => import("./Game.jsx"));
 const loadAccount = () => import("./account.js");
@@ -49,6 +54,17 @@ export default function App() {
   const [savedCommanderDecks, setSavedCommanderDecks] = useState([]);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [themePreference, setThemePreference] = useState(initialThemePreference);
+  const [suppressInitialJoinModal] = useState(hasAccountOnlySignInIntent);
+
+  useEffect(() => {
+    if (!suppressInitialJoinModal) return;
+    clearAccountOnlySignInIntent();
+    if (window.location.pathname !== "/") return;
+    const nextSearch = stripJoinIntentFromSearch(window.location.search);
+    if (nextSearch !== window.location.search) {
+      window.history.replaceState({}, "", `/${nextSearch}`);
+    }
+  }, [suppressInitialJoinModal]);
 
   const startSession = (nextSession) => {
     const next = {
@@ -261,6 +277,7 @@ export default function App() {
           onSignOut={signOut}
           onSaveEntryPreferences={saveDevices}
           notificationCount={unreadNotifications}
+          suppressInitialJoinModal={suppressInitialJoinModal}
         />
       </>
     );

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import {
-  Check, Crown, Dices, FlipVertical2, Mic, MicOff, Minus, MoreVertical, PanelLeft, Plus, Shuffle, SkipForward,
+  Check, Dices, FlipVertical2, Mic, MicOff, Minus, MoreVertical, PanelLeft, Plus, Shuffle, SkipForward,
   Swords, UserRound, Video, VideoOff, X,
 } from "lucide-react";
 import { GameConnection, captureLocalFrame, clickToNormalized } from "./webrtc.js";
@@ -44,7 +44,6 @@ function shallowNonFunctionPropsEqual(previous, next) {
 
 const StableCardSidebar = React.memo(CardSidebar, shallowNonFunctionPropsEqual);
 
-import GameManagement from "./GameManagement.jsx";
 import ReviewPrompt from "./ReviewPrompt.jsx";
 import { getSocialDashboard } from "./account.js";
 import {
@@ -219,7 +218,6 @@ export default function Game({ session, account, onLeave, themePreference, onThe
   });
   const [gameStatus, setGameStatus] = useState(session.roomStatus || "lobby");
   const [durableSessionId, setDurableSessionId] = useState(session.gameSessionId || "");
-  const [gameManagementOpen, setGameManagementOpen] = useState(false);
   const [roomMutedMemberships, setRoomMutedMemberships] = useState({});
   const [gameFriends, setGameFriends] = useState([]);
   const [isGameOwner, setIsGameOwner] = useState(Boolean(session.creator));
@@ -254,11 +252,11 @@ export default function Game({ session, account, onLeave, themePreference, onThe
   };
 
   useEffect(() => {
-    if (!gameManagementOpen || !account) return;
+    if (sidebarView !== "management" || !account) return;
     getSocialDashboard()
       .then((dashboard) => setGameFriends(dashboard.friends || []))
       .catch(() => setGameFriends([]));
-  }, [account, gameManagementOpen]);
+  }, [account, sidebarView]);
 
   useEffect(() => {
     if (isLocalMock || !session.membershipId || !session.participantToken) return undefined;
@@ -1718,7 +1716,6 @@ export default function Game({ session, account, onLeave, themePreference, onThe
     }
     setGameStatus("finished");
     gameStatusRef.current = "finished";
-    setGameManagementOpen(false);
     if (!isLocalMock && account && durableSessionId) setReviewSessionId(durableSessionId);
   };
 
@@ -1726,7 +1723,6 @@ export default function Game({ session, account, onLeave, themePreference, onThe
     if (!window.confirm("Restart the table? Current game state will be preserved as unresolved if it has started.")) return;
     if (!isLocalMock) await restartDurableGame({ gameId: session.gameId, ownerToken: activeOwnerToken });
     resetTableState();
-    setGameManagementOpen(false);
   };
 
   const players = roster.filter((p) => p.role !== "visitor").slice(0, 6);
@@ -1863,6 +1859,9 @@ export default function Game({ session, account, onLeave, themePreference, onThe
     muted: !!mutedPlayers[participant.id],
     cameraOn: participant.role !== "visitor" && cameraEnabledByPlayer[participant.id] !== false,
     reconnecting: !!reconnectingPlayers[participant.id],
+    roomMuted: participant.role === "visitor" && Boolean(roomMutedMemberships[participant.membershipId]),
+    eliminated: Boolean(eliminations[participant.id]),
+    lossReason: eliminations[participant.id] || "",
   }));
 
   if (error) {
@@ -1978,21 +1977,25 @@ export default function Game({ session, account, onLeave, themePreference, onThe
             lobbyName={lobbyName || "Untitled game"}
             onRenameLobby={chooseLobbyName}
             onLeave={leaveExplicitly}
-            isCreator={!!session.creator}
+            isCreator={isGameOwner && Boolean(activeOwnerToken)}
             managementParticipants={managementParticipants}
+            managementStatus={gameStatus}
+            managementFriends={gameFriends}
+            onStartGame={startManagedGame}
+            onManageMember={manageMember}
+            onEndGame={endManagedGame}
+            onRestartGame={restartManagedGame}
+            onInviteFriend={(profileId) => inviteFriendToGame({
+              gameId: session.gameId,
+              ownerToken: activeOwnerToken,
+              profileId,
+            })}
+            onCancelInvitation={(invitationId) => cancelGameInvitation({
+              invitationId,
+              ownerToken: activeOwnerToken,
+            })}
           />
         <div className="video-panel">
-          {isGameOwner && activeOwnerToken && (
-            <button
-              className="game-management-trigger"
-              type="button"
-              onClick={() => setGameManagementOpen(true)}
-            >
-              <Crown size={16} />
-              Manage game
-              <span className={`game-status-badge ${gameStatus}`}>{gameStatus === "live" ? "Live" : gameStatus === "lobby" ? "Lobby" : "Finished"}</span>
-            </button>
-          )}
           {!isVisitor && myId && gameStatus === "live" && (
             <button
               className={`game-out-trigger${eliminations[myId] ? " active" : ""}`}
@@ -2123,34 +2126,6 @@ export default function Game({ session, account, onLeave, themePreference, onThe
           </div>
         </div>
       </div>
-      {gameManagementOpen && isGameOwner && (
-        <GameManagement
-          status={gameStatus}
-          players={players.map((player) => ({
-            ...player,
-            isMe: player.id === myId,
-            commander: commanders[player.id] || "",
-            eliminated: Boolean(eliminations[player.id]),
-            lossReason: eliminations[player.id] || "",
-          }))}
-          visitors={visitors}
-          onClose={() => setGameManagementOpen(false)}
-          onStart={startManagedGame}
-          onManageMember={manageMember}
-          onEnd={endManagedGame}
-          onRestart={restartManagedGame}
-          friends={gameFriends}
-          onInviteFriend={(profileId) => inviteFriendToGame({
-            gameId: session.gameId,
-            ownerToken: activeOwnerToken,
-            profileId,
-          })}
-          onCancelInvitation={(invitationId) => cancelGameInvitation({
-            invitationId,
-            ownerToken: activeOwnerToken,
-          })}
-        />
-      )}
       {reviewSessionId && account && (
         <ReviewPrompt
           sessionId={reviewSessionId}

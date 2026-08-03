@@ -23,6 +23,7 @@ import { isConfigured, makeCode, CODE_LENGTH } from "./roomCode.js";
 import SiteFooter from "./SiteFooter.jsx";
 import SiteHeader from "./SiteHeader.jsx";
 import { accountDisplayName } from "./accountIdentity.js";
+import { resolveInitialLobbyModal } from "./authIntent.js";
 import { getLocalMockGame } from "./localMock.js";
 import GamePreview from "./GamePreview.jsx";
 
@@ -124,20 +125,15 @@ export default function Lobby({
   onSignOut,
   onSaveEntryPreferences,
   notificationCount = 0,
+  suppressInitialJoinModal = false,
 }) {
   const params = new URLSearchParams(window.location.search);
   const visitorMode = params.get("visitor") === "1";
-  const initialAction = params.get("action");
   const initialCode = (params.get("code") || "").toUpperCase().slice(0, CODE_LENGTH);
-  const [modal, setModal] = useState(
-    initialCode || visitorMode
-      ? "join"
-      : initialAction === "create"
-        ? "create"
-        : initialAction === "join"
-          ? "join-code"
-          : null,
-  );
+  const [modal, setModal] = useState(() => resolveInitialLobbyModal(
+    window.location.search,
+    { suppressJoin: suppressInitialJoinModal },
+  ));
   const [name, setName] = useState(() => {
     try { return localStorage.getItem("sc-name") || ""; } catch { return ""; }
   });

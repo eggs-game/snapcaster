@@ -10,6 +10,10 @@ import {
   parseMoxfieldExport,
 } from "./deckImport.js";
 import { ANT_MAN_DECK_TEXT } from "./mockDeckFixtures.js";
+import {
+  clearAccountOnlySignInIntent,
+  markAccountOnlySignInIntent,
+} from "./authIntent.js";
 export { accountAvatarUrl, accountDisplayName } from "./accountIdentity.js";
 
 const PENDING_GAME_KEY = "sc-pending-game";
@@ -17,6 +21,7 @@ const PENDING_GAME_KEY = "sc-pending-game";
 async function hydrateAccount(session) {
   if (!session?.user?.id) return null;
   if (session.user.is_anonymous) return null;
+  clearAccountOnlySignInIntent();
   const supabase = getSupabase();
   const [profileResult, preferencesResult, privateResult] = await Promise.all([
     supabase.from("profiles").select("id, display_name, avatar_url, created_at, updated_at").eq("id", session.user.id).single(),
@@ -80,10 +85,12 @@ export async function signInWithDiscord({ pendingGame = null, redirectPath = "/"
   }
   if (pendingGame) {
     sessionStorage.setItem(PENDING_GAME_KEY, JSON.stringify(pendingGame));
+    clearAccountOnlySignInIntent();
   } else {
     // A header sign-in is account-only. Clear any abandoned post-game prompt
     // intent so returning from Discord always lands on the home page.
     sessionStorage.removeItem(PENDING_GAME_KEY);
+    markAccountOnlySignInIntent();
   }
   const safeRedirectPath = String(redirectPath || "/").startsWith("/") ? redirectPath : "/";
   const redirectTo = `${window.location.origin}${safeRedirectPath}`;
@@ -94,7 +101,10 @@ export async function signInWithDiscord({ pendingGame = null, redirectPath = "/"
       scopes: "identify email",
     },
   });
-  if (error) throw error;
+  if (error) {
+    clearAccountOnlySignInIntent();
+    throw error;
+  }
 }
 
 export async function signOutAccount() {
@@ -104,6 +114,7 @@ export async function signOutAccount() {
   const { error } = await getSupabase().auth.signOut();
   if (error) throw error;
   sessionStorage.removeItem(PENDING_GAME_KEY);
+  clearAccountOnlySignInIntent();
 }
 
 export async function updateAccountSettings(account, {

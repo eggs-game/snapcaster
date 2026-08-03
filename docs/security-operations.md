@@ -14,9 +14,11 @@ turns them on and verifies the deployed system.
    callback to Discord, and allow exact `https://snapcast.app`,
    `https://snapcaster.vercel.app`, their `/moderation` callback paths, and
    intended local redirect origins.
-5. Enable Supabase Anonymous Sign-Ins for guest room authorization. Configure
-   the provider’s recommended CAPTCHA/rate controls and a cleanup schedule for
-   anonymous Auth users older than the approved retention period.
+5. Enable Supabase Anonymous Sign-Ins for guest room authorization. Keep the
+   provider IP rate limit enabled, add CAPTCHA before raising that limit, and
+   retain the daily maintenance cleanup for anonymous Auth users older than 30
+   days. Anonymous identities receive no profile and cannot use account-only
+   APIs.
 6. Set `SUPABASE_URL`, `SUPABASE_ANON_KEY`,
    `SUPABASE_SERVICE_ROLE_KEY`, and `CRON_SECRET` as server-only Vercel
    variables. Never create a `VITE_` service-role or provider-secret variable.
@@ -26,7 +28,8 @@ turns them on and verifies the deployed system.
    authorization checks below before opening discovery or profiles publicly.
 
 The daily `/api/maintenance` Vercel cron runs retention, finalizes due game
-results, and processes up to 50 due account deletions. Vercel supplies
+results, processes up to 50 due account deletions, and deletes up to 100
+anonymous Auth identities older than 30 days. Vercel supplies
 `Authorization: Bearer $CRON_SECRET`; requests without the exact secret fail.
 The user-facing `/api/account-delete` route can process a due deletion
 immediately after revalidating the signed-in Supabase session.

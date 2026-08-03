@@ -302,8 +302,12 @@ the main thread — an early bug that made the lobby unresponsive.
   role fields with capability-authorized database membership state, close
   removed peers, and discard broadcasts from memberships that are no longer
   active. Private Realtime policies require an active membership for the
-  current room epoch; removal rotates that epoch so an already-connected or
-  modified client cannot stay on the new topic. WebRTC data channels carry
+  current room epoch. Removal or departure rotates that epoch so an
+  already-connected or modified client cannot stay on the new topic. Active
+  members may authorize the immediately previous epoch for a 90-second handoff
+  while their clients serialize onto the newest key; inactive memberships fail
+  the policy immediately on both epochs. Ownership transfer after a departure
+  does not rotate a second time. WebRTC data channels carry
   capture requests and apply the same rule —
   a visitor cannot request a capture, requests are rate limited per peer, and
     every peer-controlled field is bounds-checked.

@@ -4,6 +4,7 @@
 import { joinRoom, saveConnectionEvent } from "./signaling.js";
 import { cropGeometry } from "./captureGeometry.js";
 import { normalizeRecognitionHint } from "./recognitionHints.js";
+import { RealtimeEpochRotator } from "./realtimeEpochRotation.js";
 import { getSoundEffect } from "./soundEffects.js";
 import { normalizeVideoCounter } from "./videoCounters.js";
 import {
@@ -164,6 +165,12 @@ export class GameConnection {
     this.joinedAt = 0;
     this.reconnectReason = "new-session";
     this.lifecycleTimer = null;
+    this.realtimeEpoch = "";
+    this.joinDetails = null;
+    this.epochRotator = new RealtimeEpochRotator({
+      currentEpoch: () => this.realtimeEpoch,
+      rotate: (nextEpoch) => this._replaceRealtimeRoom(nextEpoch),
+    });
   }
 
   _playerStateKey() {
@@ -324,6 +331,7 @@ export class GameConnection {
     if (status === "CHANNEL_ERROR") {
       this.lastRealtimeProblemAt = Date.now();
       this._diagnostic("realtime-channel-error", { details: { error: detail }, persist: true });
+      if (/unauthorized|channel topic/i.test(detail)) this.h.onMembershipRefresh?.();
     } else if (status === "TIMED_OUT") {
       this.lastRealtimeProblemAt = Date.now();
       this._diagnostic("realtime-timed-out", { details: { error: detail }, persist: true });
@@ -563,25 +571,23 @@ export class GameConnection {
   }
 
   async rotateRealtimeEpoch(realtimeEpoch) {
-    const nextEpoch = String(realtimeEpoch || "");
-    if (!nextEpoch || nextEpoch === this.realtimeEpoch || nextEpoch === this.rotatingEpoch || !this.joinDetails || !this.myId) return;
+    if (!this.joinDetails || !this.myId) return;
+    await this.epochRotator.request(realtimeEpoch);
+  }
+
+  async _replaceRealtimeRoom(nextEpoch) {
     const previousRoom = this.room;
-    this.rotatingEpoch = nextEpoch;
-    try {
-      const nextRoom = await joinRoom(this.joinDetails.code, this.joinDetails.name, this.role, {
-        ...this.signalHandlers,
-        participantId: this.participantId,
-        joinedAt: this.joinedAt,
-        realtimeEpoch: nextEpoch,
-        membershipId: this.joinDetails.membershipId,
-        profileId: this.joinDetails.profileId,
-      });
-      this.room = nextRoom;
-      this.realtimeEpoch = nextEpoch;
-      previousRoom?.leave();
-    } finally {
-      this.rotatingEpoch = "";
-    }
+    const nextRoom = await joinRoom(this.joinDetails.code, this.joinDetails.name, this.role, {
+      ...this.signalHandlers,
+      participantId: this.participantId,
+      joinedAt: this.joinedAt,
+      realtimeEpoch: nextEpoch,
+      membershipId: this.joinDetails.membershipId,
+      profileId: this.joinDetails.profileId,
+    });
+    this.room = nextRoom;
+    this.realtimeEpoch = nextEpoch;
+    await previousRoom?.leave();
   }
 
   _finalizeDeparture(departed, intentional = false) {
