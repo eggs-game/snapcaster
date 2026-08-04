@@ -112,6 +112,33 @@ loss sits entirely in the deliberately overlapping scene — now with genuinely
 bigger dice on it. Not separately controlled, unlike Tableau EDH, because the
 gate passes.
 
+**Vegas 200 — 84.5% — FAILS the >=90% gate** (historical 93.0%), 0 errors.
+
+| | |
+| --- | --- |
+| side-by-side | 106/120 (88.3%) |
+| spaced | 50/60 (83.3%) |
+| overlapping | 13/20 (65.0%) |
+| clear | 163/188 (86.7%) |
+| `byRotation` | upright 86.8%, tapped 83.0%, **upside-down 78.8%** |
+| `art-match` | 161/163 (98.8%) |
+| `missTrueRank` | **absent 29**, rank 2-5: 1, rank 6+: 1 |
+| **perfect-crop recovery** | **27/31 (87%)** |
+| first / second half | 87.0% / 82.0% |
+
+This is the one gate where a speed change is a plausible cause rather than a
+scene change. Vegas was **already pinned to `magic-con-vegas`**, so the playmat
+registration bug never touched it — its background is identical to the
+historical run, unlike every other scene suite.
+
+And the miss signature points at localization: **87% of misses are recovered by
+a perfect crop**, against 42% on Real life, with 29 of 31 misses `absent`. These
+are framing failures, which is exactly what the isolation sweep exists to fix
+and exactly what the halved candidate cap trims. The upside-down bucket at 78.8%
+also breaches the suite's 85%-per-rotation sub-gate.
+
+A paired control with all four cuts reverted is running to confirm or clear it.
+
 Median is not quoted for the 200-card gates: the host was loaded and absolute
 latency in this environment is only comparable within a paired session.
 
