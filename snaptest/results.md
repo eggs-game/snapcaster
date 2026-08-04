@@ -9,6 +9,51 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-08-04 — OCR gate raised to 220 — **stage eliminated, accuracy unchanged**
+
+`OCR_SKIP_DISTANCE` was 150, calibrated when a good scan measured 60-90. On
+realistic captures correct scans land at 91-180, so the gate admitted nearly
+every weak scan to a read that has never settled one: `byPathway` carried no
+title entry across 264 realistic scans previously, and shows only `art-match`
+and `none` in every Real life run today.
+
+Raised to 220 — past 210, where matches stop surviving at all. Both arms, 60
+scans, back to back:
+
+| | skip 150 | **skip 220** |
+| --- | --- | --- |
+| accuracy | 80.0% | **80.0%** |
+| `art-match` | 46/48 | **46/48** |
+| `missTrueRank` absent | 10 | **10** |
+| median | 4423ms | **4294ms** |
+| p90 | — | **4813ms** |
+| `ocr` stage | 954ms | **never ran** |
+
+Identical accuracy, coverage and miss composition; the stage disappears from the
+timings. The median moves only 129ms because **OCR was never on the median
+path** — the 954ms was the mean among scans that reached it, and it fired on the
+worst ones. That matches the earlier note that cutting a tail cannot move a
+middle, and the gain is correspondingly in p90.
+
+**Caveat:** this is measured on Real life. OCR historically produced 0-1
+identifications per 100 on the older single-card suites, so it was marginal
+everywhere, but those suites have not been re-run against this gate.
+
+### Cumulative
+
+| | median |
+| --- | --- |
+| production baseline | 6098ms |
+| + isolation cap x0.5 | 4995ms |
+| + art budget x0.5 | 4619ms |
+| + art budget x0.25 | 4423ms |
+| **+ OCR gate 220** | **4294ms** |
+
+**~1800ms, about 30%, with no decision changed by any of the three.** Every one
+was a constant calibrated against cleaner inputs than the benchmark now
+produces — the pipeline was not badly designed, it was tuned for a world the
+suite has since moved away from.
+
 ## 2026-08-04 — art scan budget halved — **-400ms median, zero decisions changed**
 
 Art and colour rescoring measured 960ms per scan against the hash scan's 802ms,

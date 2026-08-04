@@ -19,7 +19,7 @@ const Community = lazy(() => import("./Community.jsx"));
 const ModerationPage = lazy(() => import("./ModerationPage.jsx"));
 import "./styles.css";
 
-const BUILD = "speed-cuts-1 (candidate prep x0.5, art budget x0.5)";
+const BUILD = "speed-cuts-2 (prep x0.5, art x0.25, ocr gate 220)";
 window.__SNAP_BUILD = BUILD;
 console.log(`%c[snapcast] build: ${BUILD}`, "color:#0a0;font-weight:bold");
 

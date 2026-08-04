@@ -822,7 +822,17 @@ const VISUAL_EXACT_DISTANCE = 90;
 // 264 realistic scans `byPathway` carried no title entry at all, and every Real
 // life run today shows only art-match and none. It still costs ~900ms per scan
 // averaged over the suite.
-let OCR_SKIP_DISTANCE = 150;
+// Raised from 150 to 220 — past 210, where matches stop surviving at all — so
+// OCR no longer runs on this suite. Measured against the otherwise identical
+// build, 60 scans back to back:
+//
+//   skip 150   80.0%  median 4423ms  ocr stage 954ms  art-match 46/48  absent 10
+//   skip 220   80.0%  median 4294ms  ocr NEVER RAN    art-match 46/48  absent 10
+//
+// Accuracy, coverage and miss composition identical; the stage disappears from
+// the timings entirely. The median barely moves because OCR was never on the
+// median path — it fired on the worst scans, so the gain is in p90.
+let OCR_SKIP_DISTANCE = 220;
 
 // Raising this skips OCR on more scans. Exported so both arms of an A/B run in
 // one session, since latency here is only comparable within a session.
