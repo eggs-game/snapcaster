@@ -63,8 +63,37 @@ Both like-for-like suites now clear, and the top-edge block — the placement
 where the half-rotation change would fail first — is unchanged on one and better
 on the other.
 
-Median is not quoted for either: the host was loaded and absolute latency in
-this environment is only comparable within a paired session.
+**Tableau EDH 100 — 93.0% — FAILS the >=95% gate, but so does the control.**
+
+A paired control in the same session, with all four speed changes reverted
+(`cap=1.0&art=1.0&ocr=150&halfrot=0`):
+
+| | cuts ON | **cuts OFF (control)** |
+| --- | --- | --- |
+| accuracy | 93.0% | **94.0%** |
+| side-by-side | 60/60 | 59/60 |
+| spaced | 28/30 | 30/30 |
+| **overlapping** | **5/10** | **5/10** |
+| clear | 91/93 | 92/93 |
+| `art-match` | 88/88 (100%) | 86/86 (100%) |
+
+**The control fails the gate too.** One card separates the arms, inside the
+documented two-card noise band, and the failing bucket is identical at 5/10.
+The speed changes are not the cause.
+
+**The gate threshold is stale**, and for a specific reason: it was calibrated
+against a suite carrying two bugs fixed this session. Dice rendered as *circles*
+— `roundedRect` was called with `size` passed twice, so every die in every dice
+suite was a rounder, smaller occluder than a real one — and `PLAYMAT_IMAGES`
+registered only one of the nine mats `REAL_MATS` cycles, so four scenes in ten
+silently rendered on bare cloth instead of illustrated backgrounds.
+
+Both fixes make the suite harder and both make it more correct. The 95% figure
+describes a benchmark that no longer exists. **It needs re-deriving against the
+corrected scenes, not the code reverting** — the new baseline is 93-94%.
+
+Median is not quoted for the 200-card gates: the host was loaded and absolute
+latency in this environment is only comparable within a paired session.
 
 ## 2026-08-04 — `speed-cuts-3` — **200-card confirmation: 81.0%, median 4098ms**
 
