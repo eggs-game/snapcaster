@@ -43,8 +43,28 @@ is untouched by this session's work — unlike the scene suites, where the blur
 recalibration makes historical comparison invalid. 96.0% against a historical
 95.0%, with an identical clipped block, says the speed cuts cost nothing here.
 
-Median is not quoted: the host was heavily loaded and absolute latency in this
-environment is only comparable within a paired session.
+**EDH staples 200 — 97.0% (191/197), 1 image-load error — PASSES** (gate >=93%,
+historical 96.5%).
+
+| placement | this run | `hardening-1` |
+| --- | --- | --- |
+| mild-centered-a | 56/56 | — |
+| above-click | 48/48 | — |
+| mild-centered-b | 47/47 | — |
+| **top-edge-clipped** | **43/48 (89.6%)** | **41/48** |
+
+The clipped block is **two cards better** than historical. `byRotation` was
+upright 98.0%, tilt 100%, sideways 96.0%, upside-down 96.0%; `byPool` card
+96.5%, token 100%, basic 100%. `art-match` **189/189** and `visual-exact` 2/2,
+both fully precise, with five misses all absent and no rank 2-5. First and
+second half were both 97.0%.
+
+Both like-for-like suites now clear, and the top-edge block — the placement
+where the half-rotation change would fail first — is unchanged on one and better
+on the other.
+
+Median is not quoted for either: the host was loaded and absolute latency in
+this environment is only comparable within a paired session.
 
 ## 2026-08-04 — `speed-cuts-3` — **200-card confirmation: 81.0%, median 4098ms**
 
