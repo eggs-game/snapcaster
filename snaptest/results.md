@@ -9,6 +9,51 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-08-04 — `speed-cuts-3` — **200-card confirmation: 81.0%, median 4098ms**
+
+The four speed changes stacked and verified at full scale. Accuracy is not
+merely within noise of the pre-cuts 200-card run — it is identical, as is every
+coverage and miss figure.
+
+| n=200 | before the cuts | **after all four** |
+| --- | --- | --- |
+| accuracy | 81.0% | **81.0%** |
+| `art-match` | 156/160 (97.5%) | **156/160 (97.5%)** |
+| `missTrueRank` | absent 35, rank 2-5: 3 | **absent 35, rank 2-5: 3** |
+| perfect-crop recovery | 16/38 | 15/38 |
+| **median** | 4995ms | **4098ms** |
+| p90 | — | 4829ms |
+| first / second half | 79.0% / 83.0% | 80.0% / 82.0% |
+| WASM heap | 134MB | 134MB |
+
+`byRotation` held where the half-rotation assumption would break first:
+**upside-down 30/36 (83.3%)**, tapped 81.8%, upright 79.8%. At n=60 that bucket
+had only 8 cards; 36 is a real test of it.
+
+### Where the remaining time is
+
+| stage | ms |
+| --- | --- |
+| **orb** | **1022** |
+| rankSeeds | 758 (of which hamming 531) |
+| rankRefine | 747 |
+| isolatePrep | 729 |
+| prep | 629 |
+| isolateScore | 313 |
+
+`queryVariants` is still 883ms across ~99 candidates even after halving, because
+it runs on every one. **`orb` is now the largest single stage** and has not been
+touched or split; it rose as `art-match` coverage grew, since more scans now
+reach verification at all.
+
+### On the cumulative figure
+
+Each change was validated by a paired same-session A/B, which is the only
+trustworthy latency comparison in this environment: isolation cap -1051ms, art
+budget -596ms, OCR gate -129ms median (its gain is p90), half rotations plus the
+four-query fast path -627ms. The 200-card runs confirm accuracy, but their
+absolute medians are cross-session and should not be differenced.
+
 ## 2026-08-04 — half rotations for oriented crops — **-627ms and +2 cards**
 
 Splitting `prepareCandidate` found `queryVariants` at **925ms per scan across
