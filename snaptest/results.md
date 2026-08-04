@@ -9,6 +9,71 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-08-03 — blur calibration A/B — accuracy +3, but **confident coverage 38% -> 81%**
+
+Both arms run back to back in one session, 100 cards each, same seeded draw:
+arm A at the old `blurScale` 1.0, arm B at the calibrated 0.22. Paired because
+latency in this environment drifts badly across a session (see below).
+
+| | A — blur 1.0 | B — calibrated 0.22 |
+| --- | --- | --- |
+| accuracy | 77.0% | **80.0%** |
+| **confident pathway coverage** | **38/98 (38%)** | **80/99 (81%)** |
+| `art-match` precision | 36/37 (97.3%) | 78/80 (97.5%) |
+| fell through to ranked guesses | 61 scans, 65.6% right | 19 scans, 10.5% right |
+| **perfect-crop recovery of misses** | **5/22 (23%)** | **8/19 (42%)** |
+| `missTrueRank` | absent 15, 2-5: 3, 6+: 4 | absent 16, 2-5: 2, 6+: 1 |
+| isolation fired | 85/99 | 79/99 |
+
+**The accuracy move is marginal** — three cards on n=100 sits right at the edge
+of this project's documented two-card noise band, and is not on its own a
+result.
+
+**The coverage move is not marginal.** Confident answers more than doubled,
+38% to 81%, at unchanged 97.5% precision. The baseline entry identified "only
+39% of scans reach a confident pathway" as the real gap; that gap was largely an
+artefact of over-blurred cards. This matters to players independently of
+accuracy, because a confident answer is presented as certain while a ranked
+guess is not — the same board now returns a definite name four times as often.
+
+It also explains why accuracy barely moved: the scans that migrated to
+`art-match` were mostly ones plain ranking was already getting right. What
+changed is that the pipeline now *knows* it is right.
+
+### The number that changes the plan
+
+**Perfect crops now recover 42% of misses, against 23% at the old blur.**
+Framing is worth roughly twice what the baseline suggested. Implied ceiling from
+localization alone is about **88%** (80% + 42% of the remaining 20%), where the
+earlier estimate was ~82%.
+
+That promotes the quad detector from a pure speed lever to the main accuracy
+lever as well, and it is already the largest speed lever. It is now
+unambiguously the next thing to build.
+
+Misses are also almost entirely `absent` now (16 of 19), with only 3 mis-ranked
+against 7 before — consistent with a retrieval/framing problem rather than a
+ranking one, and consistent with the descriptor being adequate.
+
+### Latency: not measurable in this environment
+
+Arm A is the exact configuration that produced the 77.5% / 6098ms production
+baseline. It reproduced the accuracy almost perfectly (77.0%, perfect-crop
+recovery 23% vs 22%, `art-match` 97.3% vs 97.4%) and missed the median by 3x:
+**18221ms against 6098ms**, same code, same seed, same cards.
+
+The cause is host CPU contention that grows over a session — the app's own
+renderer competes with the benchmark, and earlier a set of stale tabs each held
+a recognition worker with OpenCV's 134MB WASM heap resident. Arm B's median of
+6651ms is *not* evidence that calibrated blur is 2.7x faster; some of it is real
+(more scans exit early at `art-match`, isolation fired less) and some is load,
+and the two cannot be separated here.
+
+**Accuracy, coverage and pathway counts are reliable in this environment.
+Absolute latency is not.** Speed work needs the harness run on an idle machine:
+`python3 scripts/serve_preview.py 8777`, then
+`/scripts/reallife_runner.html?scenes=20`.
+
 ## 2026-08-03 — VLAD local-feature retrieval — **REJECTED**; nothing beats the hash
 
 The reasoning was that ORB art verification is the pipeline's most precise
