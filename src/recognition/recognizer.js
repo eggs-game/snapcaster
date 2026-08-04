@@ -1054,6 +1054,11 @@ function cardBoundaryScore(gray, point, angleDeg, scale, anchorV, anchorH, lands
 let ISOLATION_CAP_SCALE = 0.5;
 
 const isolationTiming = { score: 0, render: 0, proposals: 0, rendered: 0 };
+// rankSeeds is now the largest stage and has never been split. Three times
+// today a stage's cost turned out to be somewhere other than where it looked,
+// so this measures scoreFull's parts rather than assuming the 110k hamming
+// scan dominates — it is 43ms per seed and demonstrably did not dominate rank.
+const scoreFullTiming = { hamming: 0, update: 0, art: 0, calls: 0 };
 
 function localCardIsolationCandidates(src, point, { allowAboveClick = true } = {}) {
   const tScoreStart = performance.now();
@@ -1836,6 +1841,8 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
   // how often it saved the sweep, rather than leaving that to inference.
   let detectorUsed = false;
   let detectorDistance = null;
+  scoreFullTiming.hamming = 0; scoreFullTiming.update = 0;
+  scoreFullTiming.art = 0; scoreFullTiming.calls = 0;
   const recordCandidateBest = (p, candidateBest) => {
     const aboveClick = p.candidate.strategy.startsWith("isolate-top-edge-");
     if (aboveClick && candidateBest < bestAboveClickDistance) {
@@ -2004,8 +2011,12 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
   // best-candidate tracking. Returns the crop's best gray distance.
   const scoreFull = (p, { escalation = false } = {}) => {
     candidatesTried++;
+    scoreFullTiming.calls++;
+    const tHam = performance.now();
     const candidateDists = new Uint16Array(n).fill(0xffff);
     hammingSearchVariants(p.variants, index, n, candidateDists);
+    scoreFullTiming.hamming += performance.now() - tHam;
+    const tUpd = performance.now();
     let candidateBest = 0xffff;
     for (let i = 0; i < n; i++) {
       if (candidateDists[i] < candidateBest) candidateBest = candidateDists[i];
@@ -2014,6 +2025,8 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
         if (!useV3) strategies[i] = p.candidate.strategy;
       }
     }
+    scoreFullTiming.update += performance.now() - tUpd;
+    const tArt = performance.now();
     if (useV3) {
       // Rescore this candidate's ~1000 gray-closest printings with art+color.
       // This pool doubles as the fine-pass shortlist, so a wider pool directly
@@ -2046,6 +2059,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
         if (score < rank[i]) { rank[i] = score; strategies[i] = p.candidate.strategy; }
       }
     }
+    scoreFullTiming.art += performance.now() - tArt;
     recordCandidateBest(p, candidateBest);
     return candidateBest;
   };
@@ -2367,6 +2381,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
     isolationDebug, isolationCandidates,
     detectorUsed, detectorState, detectorDistance,
     isolationTiming: { ...isolationTiming },
+    scoreFullTiming: { ...scoreFullTiming },
     artBest, artChecked, artDecisive, stageMs: stage.ms,
     // OpenCV's WASM heap is invisible to performance.memory, which is why a
     // 1000-card run reported 52MB of JS heap while the tab held 1.5GB.

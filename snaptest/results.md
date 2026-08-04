@@ -9,6 +9,58 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-08-04 — `isolation-cap-1` — **200-card confirmation: 81.0%, median 4995ms**
+
+Confirms the halved candidate cap at full scale and settles the doubt from the
+n=60 arms. 200 cards, calibrated blur, cap x0.5, 0 errors.
+
+| | production baseline | cap x1.0 (n=60) | cap x0.5 (n=60) | **cap x0.5 (n=200)** |
+| --- | --- | --- | --- | --- |
+| accuracy | 77.5% | 81.7% | 80.0% | **81.0%** |
+| median | 6098ms | 5799ms | 4748ms | **4995ms** |
+
+**The cap costs nothing measurable.** 81.0% at n=200 against 81.7% for the full
+cap at n=60 is inside noise, so the 80.0% that prompted the "one card" caveat
+was small-sample variance rather than a real penalty. `isolatePrep` fell
+1649 -> 977ms and `isolateScore` 868 -> 649ms, about 890ms off the clock.
+
+| | |
+| --- | --- |
+| `art-match` | **156/160 (97.5% precise)** |
+| confident coverage | **160/200 (80%)** |
+| `missTrueRank` | absent 35, rank 2-5: 3 |
+| perfect-crop recovery | 16/38 (42%) |
+| first / second half | 79.0% / 83.0% |
+| WASM heap | 134 -> 134MB |
+| `byRotation` | upright 78.9%, tapped 83.6%, upside-down 83.3% |
+
+Note the accuracy gain over the 77.5% baseline is mostly the **blur
+recalibration**, which is a benchmark correction rather than a recogniser
+improvement. The recogniser change here is the cap, and its contribution is
+latency.
+
+### The next target, measured rather than assumed
+
+`scoreFull` was split for the first time, over all 200 scans and ~17 calls each:
+
+| | per scan |
+| --- | --- |
+| hamming scan (512-bit, 110k, 8 variants) | 802ms |
+| candidate update loop | **6ms** |
+| **art + colour rescoring** | **960ms** |
+
+**Art and colour rescoring is the largest single cost in the pipeline** — more
+than the hash scan it exists to refine. It comes from `artVecsFor` producing
+five shifted art variants and up to `ART_GLOBAL_SEED_BUDGET` (6) global art
+scans per lookup, each sweeping 110,592 x 32 bytes.
+
+That is structurally the same situation as the isolation cap: a generously set
+budget constant on a stage nobody had measured. Same experiment applies — halve
+it, both arms in one session, watch whether `absent` misses climb.
+
+The isolation split also held at 200 scans: proposal scoring 119ms, rasterising
+93ms. The search was never the cost there and is not worth optimising.
+
 ## 2026-08-04 — isolation candidate cap — **-1482ms median for -2 cards**
 
 Splitting `isolatePrep` into its halves found that almost none of it is the

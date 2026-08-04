@@ -129,7 +129,7 @@ function getWorker() {
       const {
         id, matches, printingMatches, titleCandidates, metadataStrips, titleCount, queryCandidates,
         shardedIndex, cardFound, cvStatus, candidatesTried, cropsDropped, artBest, artChecked,
-        artDecisive, isolationDebug, isolationCandidates, detectorUsed, detectorState, detectorDistance, isolationTiming,
+        artDecisive, isolationDebug, isolationCandidates, detectorUsed, detectorState, detectorDistance, isolationTiming, scoreFullTiming,
         stageMs, wasmHeapMB,
         hintHit, preloaded, indexReady, indexCount, workerMs, error,
       } = e.data || {};
@@ -167,6 +167,7 @@ function getWorker() {
         detector_state: detectorState || "idle",
         detector_distance: typeof detectorDistance === "number" ? detectorDistance : null,
         isolation_timing: isolationTiming || null,
+        score_full_timing: scoreFullTiming || null,
         hint_hit: !!hintHit,
         stage_ms: stageMs || {},
         wasm_heap_mb: typeof wasmHeapMB === "number" ? wasmHeapMB : null,
