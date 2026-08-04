@@ -27,7 +27,7 @@
 <div id="log">starting…</div>
 
 <script type="module">
-import { identify as identifyCard, preload, setIsolationCapScale, setArtScanScale } from "/src/recognition/matcher.js";
+import { identify as identifyCard, preload, setIsolationCapScale, setArtScanScale, setOcrSkipDistance } from "/src/recognition/matcher.js";
 import { buildScene, cropScene, perfectCrop, releaseScene } from "/src/snaptest/scene.js";
 
 const q = new URLSearchParams(location.search);
@@ -43,6 +43,9 @@ const CAP = q.get("cap") !== null ? +q.get("cap") : undefined;
 // Scales the global art-scan budget — art rescoring is the largest single
 // cost in the pipeline at 960ms per scan.
 const ART = q.get("art") !== null ? +q.get("art") : undefined;
+// OCR skip distance. ~900ms/scan for a pathway that has never settled a scan
+// on this suite; raising this skips it on more scans.
+const OCR = q.get("ocr") !== null ? +q.get("ocr") : undefined;
 const PER_SCENE = 10;
 const SEED = 20260803;      // realLife mode's fixed draw
 const TOP_N = 2000;         // realLife: EDHREC top 2000
@@ -134,13 +137,15 @@ function groupAcc(list, key) {
     await preload();
     if (CAP !== undefined) setIsolationCapScale(CAP);
     if (ART !== undefined) setArtScanScale(ART);
+    if (OCR !== undefined) setOcrSkipDistance(OCR);
     say(`recognition ready in ${Math.round(performance.now() - t0)}ms`);
 
     const set = await samplePopular(SCENES * PER_SCENE);
     say(`drew ${set.length} cards (seed ${SEED}, EDHREC top ${TOP_N})`
         + (BLUR !== undefined ? ` · blurScale ${BLUR}` : " · calibrated blur")
         + (CAP !== undefined ? ` · isolation cap x${CAP}` : "")
-        + (ART !== undefined ? ` · art budget x${ART}` : ""));
+        + (ART !== undefined ? ` · art budget x${ART}` : "")
+        + (OCR !== undefined ? ` · ocr skip ${OCR}` : ""));
 
     const acc = [];
     for (let s = 0; s < SCENES; s++) {

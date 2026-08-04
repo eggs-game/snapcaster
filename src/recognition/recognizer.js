@@ -1065,16 +1065,20 @@ let ISOLATION_CAP_SCALE = 0.5;
 // Same shape as the isolation cap: a generous constant on a stage nobody had
 // measured. Halving it changed NO decisions — arms of 60 scans, back to back:
 //
-//   x1.0   80.0%  median 5019ms  art 918ms  art-match 46/48  absent 10
-//   x0.5   80.0%  median 4619ms  art 561ms  art-match 46/48  absent 10
+//   x1.0    80.0%  median 5019ms  art 918ms  art-match 46/48  absent 10
+//   x0.5    80.0%  median 4619ms  art 561ms  art-match 46/48  absent 10
+//   x0.25   80.0%  median 4423ms  art 433ms  art-match 46/48  absent 10
 //
-// Accuracy, art-match coverage, absent misses and rank-2-5 misses were all
-// identical, so the removed scans were not contributing to any answer. The
-// art/hamming ratio — load-invariant, unlike absolute ms in this environment —
-// fell 1.222 to 0.810.
+// Accuracy, art-match coverage, absent misses and rank-2-5 misses were IDENTICAL
+// across all three — not within noise, identical. The removed scans were
+// contributing to no answer, so a budget of six was doing nothing a budget of
+// two does not. The art/hamming ratio, load-invariant where absolute ms are not
+// in this environment, fell 1.222 -> 0.810 -> 0.626.
 //
-// Toggleable so both arms of a further A/B run in one session.
-let ART_SCAN_SCALE = 0.5;
+// Not pushed lower: at x0.25 the budget is already 2, and the ~433ms that
+// remains is per-shortlist art scoring inside combineScore, which this constant
+// does not control.
+let ART_SCAN_SCALE = 0.25;
 
 const isolationTiming = { score: 0, render: 0, proposals: 0, rendered: 0 };
 // rankSeeds is now the largest stage and has never been split. Three times

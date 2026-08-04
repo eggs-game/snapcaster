@@ -815,7 +815,20 @@ const VISUAL_EXACT_DISTANCE = 90;
 // contributor to a 12s p90 against a 2.5s median. Cards in the 90-150 band are
 // not relabelled as exact; they simply stop paying for a read that has never
 // rescued them.
-const OCR_SKIP_DISTANCE = 150;
+//
+// Adjustable because that 150 was calibrated when a good scan measured 60-90.
+// On realistic captures correct scans land at 91-180, so the gate now lets
+// nearly every weak scan through to a read that has never settled one: across
+// 264 realistic scans `byPathway` carried no title entry at all, and every Real
+// life run today shows only art-match and none. It still costs ~900ms per scan
+// averaged over the suite.
+let OCR_SKIP_DISTANCE = 150;
+
+// Raising this skips OCR on more scans. Exported so both arms of an A/B run in
+// one session, since latency here is only comparable within a session.
+export function setOcrSkipDistance(distance) {
+  OCR_SKIP_DISTANCE = distance;
+}
 
 async function finishIdentify(result) {
   if (result.art_decisive && result.matches?.[0]?.identified_by === "art-match") return result;

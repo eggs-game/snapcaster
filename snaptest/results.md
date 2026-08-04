@@ -19,16 +19,16 @@ budget of six that is ~276M, comparable to the entire 512-bit hash scan.
 
 Both arms, 60 scans each, back to back in one session:
 
-| | art x1.0 | **art x0.5** |
-| --- | --- | --- |
-| accuracy | 80.0% | **80.0%** |
-| `art-match` | 46/48 | **46/48** |
-| `missTrueRank` absent | 10 | **10** |
-| rank 2-5 | 2 | **2** |
-| **median** | 5019ms | **4619ms** |
-| art stage | 918ms | **561ms** |
-| `rankSeeds` | 1332ms | **936ms** |
-| art / hamming ratio | 1.222 | **0.810** |
+| | art x1.0 | art x0.5 | **art x0.25** |
+| --- | --- | --- | --- |
+| accuracy | 80.0% | 80.0% | **80.0%** |
+| `art-match` | 46/48 | 46/48 | **46/48** |
+| `missTrueRank` absent | 10 | 10 | **10** |
+| rank 2-5 | 2 | 2 | **2** |
+| **median** | 5019ms | 4619ms | **4423ms** |
+| art stage | 918ms | 561ms | **433ms** |
+| `rankSeeds` | 1332ms | 936ms | **824ms** |
+| art / hamming ratio | 1.222 | 0.810 | **0.626** |
 
 **Every accuracy and coverage figure is identical.** Not "within noise" —
 identical. The halved budget changed no decision on any of the 60 scans, so the
@@ -38,7 +38,9 @@ The art/hamming ratio is quoted because it is load-invariant: both stages scale
 together under CPU contention, which has invalidated most absolute timings in
 this environment. It fell from 1.222 to 0.810.
 
-Shipped. `BUILD` is now `speed-cuts-1`.
+Shipped at **x0.25**, where the budget is 2 rather than 6. Not pushed lower:
+the ~433ms that remains is per-shortlist art scoring inside `combineScore`,
+which this constant does not control. `BUILD` is now `speed-cuts-1`.
 
 ## 2026-08-04 — `isolation-cap-1` — **200-card confirmation: 81.0%, median 4995ms**
 
