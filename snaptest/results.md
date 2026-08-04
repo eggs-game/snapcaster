@@ -46,8 +46,26 @@ This is the first measured speed win of the session, and unlike every other
 latency figure recorded today the comparison is trustworthy, because both arms
 ran in one session under the same load.
 
-A middle setting is the obvious follow-up: most of a 1482ms saving for fewer
-than two cards would be a clear ship, while x0.25 is a judgement call.
+A third arm settled it. All three, 60 scans each, back to back:
+
+| cap | accuracy | median | `isolatePrep` | crops prepared | `absent` |
+| --- | --- | --- | --- | --- | --- |
+| x1.0 | 81.7% | 5799ms | 1649ms | 147 | 9 |
+| **x0.5** | **80.0%** | **4748ms** | **865ms** | **74** | 10 |
+| x0.25 | 78.3% | 4317ms | 485ms | 37 | 11 |
+
+Each halving costs roughly one card, and `absent` climbs monotonically 9/10/11
+in step with it, so the trade is real rather than sampling. But the returns fall
+off sharply: x1.0 to x0.5 buys **1051ms**, x0.5 to x0.25 only 431ms more.
+
+**Shipped at x0.5**: a one-card difference at n=60 is well inside the documented
+noise band while a 1051ms median saving is not. `art-match` precision held at
+95.8-95.9% across all three arms, so nothing becomes newly wrong — the marginal
+losses are cards that stop being found at all.
+
+Needs a full 200-card confirmation before production. n=60 cannot separate one
+card from noise, and the case rests on the monotonic `absent` trend plus the
+size of the latency win, not on the accuracy delta being significant.
 
 ## 2026-08-04 — detector as a sweep replacement — **REJECTED**; wins 2 crops of 27
 

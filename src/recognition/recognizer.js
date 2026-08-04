@@ -1035,10 +1035,23 @@ function cardBoundaryScore(gray, point, angleDeg, scale, anchorV, anchorH, lands
 // of isolatePrep's 1573ms. Proposal scoring was 104ms and rasterising 172ms, so
 // the number of candidates PREPARED is the cost, not the search that finds them.
 //
-// Proposals are already sorted by boundary score, so the question this exists
-// to answer is whether the winning crop sits near the top. Toggleable to keep
-// both arms of that A/B inside one session.
-let ISOLATION_CAP_SCALE = 1.0;
+// Proposals are already sorted by boundary score, so the winning crop tends to
+// sit near the top and most of that preparation is wasted. Measured over three
+// arms, 60 scans each, back to back in one session:
+//
+//   x1.0    81.7%  median 5799ms  isolatePrep 1649  147 crops  9 absent
+//   x0.5    80.0%  median 4748ms  isolatePrep  865   74 crops  10 absent
+//   x0.25   78.3%  median 4317ms  isolatePrep  485   37 crops  11 absent
+//
+// Each halving costs about one card, but the returns fall off: 1.0 -> 0.5 buys
+// 1051ms and 0.5 -> 0.25 only 431ms more. 0.5 is therefore the setting — a
+// one-card difference at n=60 is well inside the documented noise band, while
+// the saving is not. art-match precision was unchanged across all three, so
+// nothing becomes newly wrong; the marginal losses are cards that stop being
+// found at all.
+//
+// Still to confirm on a full 200-card run before this reaches production.
+let ISOLATION_CAP_SCALE = 0.5;
 
 const isolationTiming = { score: 0, render: 0, proposals: 0, rendered: 0 };
 

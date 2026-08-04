@@ -19,7 +19,7 @@ const Community = lazy(() => import("./Community.jsx"));
 const ModerationPage = lazy(() => import("./ModerationPage.jsx"));
 import "./styles.css";
 
-const BUILD = "platform-1 (React 19)";
+const BUILD = "isolation-cap-1 (candidate prep cap x0.5)";
 window.__SNAP_BUILD = BUILD;
 console.log(`%c[snapcast] build: ${BUILD}`, "color:#0a0;font-weight:bold");
 
