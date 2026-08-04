@@ -27,7 +27,7 @@
 <div id="log">starting…</div>
 
 <script type="module">
-import { identify as identifyCard, preload, setIsolationCapScale, setArtScanScale, setOcrSkipDistance } from "/src/recognition/matcher.js";
+import { identify as identifyCard, preload, setIsolationCapScale, setArtScanScale, setOcrSkipDistance, setHalfRotations } from "/src/recognition/matcher.js";
 import { buildScene, cropScene, perfectCrop, releaseScene } from "/src/snaptest/scene.js";
 
 const q = new URLSearchParams(location.search);
@@ -46,6 +46,9 @@ const ART = q.get("art") !== null ? +q.get("art") : undefined;
 // OCR skip distance. ~900ms/scan for a pathway that has never settled a scan
 // on this suite; raising this skips it on more scans.
 const OCR = q.get("ocr") !== null ? +q.get("ocr") : undefined;
+// Half the rotation variants for crops already oriented by construction.
+// queryVariants is 925ms/scan, the largest single cost in the pipeline.
+const HALFROT = q.get("halfrot") !== null ? q.get("halfrot") === "1" : undefined;
 const PER_SCENE = 10;
 const SEED = 20260803;      // realLife mode's fixed draw
 const TOP_N = 2000;         // realLife: EDHREC top 2000
@@ -138,6 +141,7 @@ function groupAcc(list, key) {
     if (CAP !== undefined) setIsolationCapScale(CAP);
     if (ART !== undefined) setArtScanScale(ART);
     if (OCR !== undefined) setOcrSkipDistance(OCR);
+    if (HALFROT !== undefined) setHalfRotations(HALFROT);
     say(`recognition ready in ${Math.round(performance.now() - t0)}ms`);
 
     const set = await samplePopular(SCENES * PER_SCENE);
@@ -145,7 +149,8 @@ function groupAcc(list, key) {
         + (BLUR !== undefined ? ` · blurScale ${BLUR}` : " · calibrated blur")
         + (CAP !== undefined ? ` · isolation cap x${CAP}` : "")
         + (ART !== undefined ? ` · art budget x${ART}` : "")
-        + (OCR !== undefined ? ` · ocr skip ${OCR}` : ""));
+        + (OCR !== undefined ? ` · ocr skip ${OCR}` : "")
+        + (HALFROT !== undefined ? ` · halfRotations ${HALFROT}` : ""));
 
     const acc = [];
     for (let s = 0; s < SCENES; s++) {
@@ -190,6 +195,7 @@ function groupAcc(list, key) {
           rec.detectorDistance = data.detector_distance;
           rec.isoTiming = data.isolation_timing;
           rec.sfTiming = data.score_full_timing;
+          rec.prepTiming = data.prep_timing;
           const idx = matches.findIndex((m) => m.name === p.card.name);
           rec.trueRank = idx >= 0 ? idx + 1 : null;
           rec.ok = rec.top === p.card.name;
@@ -246,6 +252,11 @@ function groupAcc(list, key) {
       wasmHeapMB: okList[okList.length - 1]?.wasmHeapMB,
       isolationFired: `${okList.filter((r) => r.isolationCandidates > 0).length}/${okList.length}`,
       detectorState: [...new Set(okList.map((r) => r.detectorState))].join(","),
+      prepSplit: (() => {
+        const w = okList.filter((r) => r.prepTiming && r.prepTiming.calls > 0);
+        const m = (k) => Math.round(w.reduce((a, r) => a + r.prepTiming[k], 0) / (w.length || 1));
+        return { n: w.length, wbMs: m('wb'), grayMs: m('gray'), variantsMs: m('variants'), calls: m('calls') };
+      })(),
       scoreFullSplit: (() => {
         const w = okList.filter((r) => r.sfTiming && r.sfTiming.calls > 0);
         const m = (k) => Math.round(w.reduce((a, r) => a + r.sfTiming[k], 0) / (w.length || 1));

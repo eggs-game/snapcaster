@@ -68,6 +68,10 @@ export function preloadOCR() {
 // of a detector A/B run inside one session: latency on this pipeline is only
 // comparable within a session, and comparing against a figure recorded earlier
 // has produced a false result here before.
+export function setHalfRotations(enabled) {
+  getWorker().postMessage({ id: `rot-${Date.now()}`, type: "set-half-rotations", enabled });
+}
+
 export function setArtScanScale(artScale) {
   getWorker().postMessage({ id: `art-${Date.now()}`, type: "set-art-scale", artScale });
 }
@@ -133,7 +137,7 @@ function getWorker() {
       const {
         id, matches, printingMatches, titleCandidates, metadataStrips, titleCount, queryCandidates,
         shardedIndex, cardFound, cvStatus, candidatesTried, cropsDropped, artBest, artChecked,
-        artDecisive, isolationDebug, isolationCandidates, detectorUsed, detectorState, detectorDistance, isolationTiming, scoreFullTiming,
+        artDecisive, isolationDebug, isolationCandidates, detectorUsed, detectorState, detectorDistance, isolationTiming, scoreFullTiming, prepTiming,
         stageMs, wasmHeapMB,
         hintHit, preloaded, indexReady, indexCount, workerMs, error,
       } = e.data || {};
@@ -172,6 +176,7 @@ function getWorker() {
         detector_distance: typeof detectorDistance === "number" ? detectorDistance : null,
         isolation_timing: isolationTiming || null,
         score_full_timing: scoreFullTiming || null,
+        prep_timing: prepTiming || null,
         hint_hit: !!hintHit,
         stage_ms: stageMs || {},
         wasm_heap_mb: typeof wasmHeapMB === "number" ? wasmHeapMB : null,

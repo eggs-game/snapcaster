@@ -9,6 +9,59 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-08-04 — half rotations for oriented crops — **-627ms and +2 cards**
+
+Splitting `prepareCandidate` found `queryVariants` at **925ms per scan across
+~91 candidates** — 22% of the whole pipeline and its largest single cost, being
+eight DCT-based hashes each. White balance was 35ms and greyscale 18ms.
+
+A crop whose construction already fixes its orientation cannot match at 90 or
+270 degrees. Isolation proposals are built at a chosen angle for a chosen family
+(`portrait`, `sideways-raw`, `sideways-rotated`, `top-edge`) and outline
+candidates are perspective-rectified upright, so those two hashes can only ever
+surface a WRONG card that happens to match sideways. 180 is kept: a card
+belonging to the player opposite genuinely arrives inverted.
+
+| | off | on | **on + 4-query fast path** |
+| --- | --- | --- | --- |
+| accuracy | 80.0% | 83.3% | **83.3%** |
+| `missTrueRank` absent | 10 | 8 | **8** |
+| `art-match` | 46/48 | 48/50 | **48/50** |
+| hamming | 671ms | 843ms | **569ms** |
+| **median** | 4294ms | 4155ms | **3667ms** |
+| p90 | 4813ms | 4761ms | **4185ms** |
+
+**Accuracy improved rather than merely holding** — the removed variants were
+injecting false candidates, not finding real ones. That makes this the first
+change today that made the recogniser better rather than cheaper, though two
+cards at n=60 is inside noise and wants a larger run.
+
+The middle column is the cautionary part. Halving the variants initially made
+`hamming` *worse*, +172ms, because `hammingSearchVariants` had a single-pass
+path only for exactly eight queries and four-variant crops fell back to four
+separate walks of the 7MB table. Adding a four-query fast path — the same fix
+`isolation-speed-2` made for eight — recovered 274ms of that and took the median
+below 3700ms.
+
+`queryVariants` itself is untouched: it is one of the seven functions the
+cross-language hash contract covers, so this is a separate entry point beside
+it and `check_hash_duplication.py` still passes.
+
+`byRotation` is where a wrong orientation assumption would show first, and it
+held: upside-down 8/8, tapped 89.5%.
+
+### Cumulative
+
+| | median |
+| --- | --- |
+| production baseline | 6098ms |
+| + isolation cap x0.5 | 4995ms |
+| + art budget x0.25 | 4423ms |
+| + OCR gate 220 | 4294ms |
+| **+ half rotations & 4-query path** | **3667ms** |
+
+**-40%, with accuracy flat-to-up throughout.** Needs a 200-card confirmation.
+
 ## 2026-08-04 — OCR gate raised to 220 — **stage eliminated, accuracy unchanged**
 
 `OCR_SKIP_DISTANCE` was 150, calibrated when a good scan measured 60-90. On

@@ -183,6 +183,28 @@ function queryVariants(gray) {
   return variants;
 }
 
+// Half-rotation variant set: 2 contrast levels x {0, 180} instead of x4.
+//
+// queryVariants measured 925ms per scan across ~91 candidates — 22% of the
+// whole pipeline and its single largest cost, being 8 DCT-based hashes each.
+// A crop whose construction already fixes its orientation cannot match at 90
+// or 270, so those two hashes can only ever cost time.
+//
+// Deliberately NOT a change to queryVariants itself: that function is one of
+// the seven the cross-language hash contract covers, and must stay
+// bit-identical to hash.js. This is an additional entry point beside it.
+//
+// 180 is retained because the recogniser genuinely cannot know which way up a
+// rectified card is — a card belonging to the player opposite arrives inverted.
+function queryVariantsUpright(gray) {
+  const variants = [];
+  for (const base of [gray, contrastStretch(gray)]) {
+    variants.push(computeHashes(base));
+    variants.push(computeHashes(rotate90(rotate90(base))));
+  }
+  return variants;
+}
+
 // Art region of an upright card — MUST mirror ART_X0..ART_Y1 in
 // scripts/build_index.py.
 const ART_X0 = 0.08, ART_X1 = 0.92, ART_Y0 = 0.10, ART_Y1 = 0.56;
@@ -240,6 +262,29 @@ function hammingSearch(query, index, nCards, distsOut) {
 // bit-for-bit identical to eight hammingSearch calls; only traversal order
 // changes.
 function hammingSearchVariants(queries, index, nCards, distsOut) {
+  // Four-query single pass, for crops whose orientation is fixed by
+  // construction and so carry 2 contrast levels x {0, 180} instead of x4.
+  // Without this they fell back to four separate hammingSearch calls, rereading
+  // the 7MB table each time — which measured +172ms and cancelled most of the
+  // saving that halving their variants produced. Same argument, and same fix,
+  // as the eight-query path below.
+  if (queries.length === 4) {
+    const [r0, r1, r2, r3] = queries;
+    for (let i = 0; i < nCards; i++) {
+      const off = i * VEC_BYTES;
+      let d0 = 0, d1 = 0, d2 = 0, d3 = 0;
+      for (let b = 0; b < VEC_BYTES; b++) {
+        const value = index[off + b];
+        d0 += POPCOUNT[value ^ r0[b]];
+        d1 += POPCOUNT[value ^ r1[b]];
+        d2 += POPCOUNT[value ^ r2[b]];
+        d3 += POPCOUNT[value ^ r3[b]];
+      }
+      const best = Math.min(d0, d1, d2, d3);
+      if (best < distsOut[i]) distsOut[i] = best;
+    }
+    return;
+  }
   if (queries.length !== 8) {
     for (const query of queries) hammingSearch(query, index, nCards, distsOut);
     return;
@@ -1086,6 +1131,31 @@ const isolationTiming = { score: 0, render: 0, proposals: 0, rendered: 0 };
 // so this measures scoreFull's parts rather than assuming the 110k hamming
 // scan dominates — it is 43ms per seed and demonstrably did not dominate rank.
 const scoreFullTiming = { hamming: 0, update: 0, art: 0, calls: 0 };
+// prepareCandidate runs on every crop in both prep and isolatePrep, and its
+// three parts have very different costs — queryVariants alone is eight hash
+// computations, each a DCT. Never split before; on this session's record the
+// cost will not be where it looks.
+const prepTiming = { wb: 0, gray: 0, variants: 0, calls: 0 };
+
+// Crops whose construction already fixes orientation up to 180 degrees:
+// isolation proposals are built at a chosen angle for a chosen family, and
+// outline candidates are perspective-rectified to upright. Testing them at 90
+// and 270 cannot find the clicked card — it can only surface WRONG cards that
+// happen to match a sideways hash, which is why removing those two variants
+// improved accuracy rather than merely saving time.
+//
+// Measured, 60 scans per arm, back to back, with the four-query fast path in
+// hammingSearchVariants (without it the fallback to four separate index walks
+// cost +172ms and cancelled most of the gain):
+//
+//   off              80.0%  median 4294ms  hamming 671ms  absent 10  art-match 46/48
+//   on               83.3%  median 4155ms  hamming 843ms  absent  8  art-match 48/50
+//   on + fast path   83.3%  median 3667ms  hamming 569ms  absent  8  art-match 48/50
+//
+// byRotation held where the assumption would break first: upside-down 8/8,
+// tapped 89.5%. Toggleable so both arms run in one session.
+let HALF_ROTATIONS = true;
+const ORIENTED_STRATEGY = /^(isolate-|outline-|detector$)/;
 
 function localCardIsolationCandidates(src, point, { allowAboveClick = true } = {}) {
   const tScoreStart = performance.now();
@@ -1622,9 +1692,17 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
   const prepareCandidate = (candidate) => {
     const cached = preparedCache.get(candidate);
     if (cached) return cached;
+    prepTiming.calls++;
+    const t0 = performance.now();
     const wbImage = whiteBalance(candidate.image);
+    const t1 = performance.now();
     const gray = toGray(wbImage);
-    const variants = queryVariants(gray);
+    const t2 = performance.now();
+    const oriented = HALF_ROTATIONS && ORIENTED_STRATEGY.test(candidate.strategy || "");
+    const variants = oriented ? queryVariantsUpright(gray) : queryVariants(gray);
+    prepTiming.wb += t1 - t0;
+    prepTiming.gray += t2 - t1;
+    prepTiming.variants += performance.now() - t2;
     const prepared = {
       candidate, wbImage, gray, variants, detail: detailScore(gray),
       frame: candidate.isolationScore || 0,
@@ -1870,6 +1948,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
   let detectorDistance = null;
   scoreFullTiming.hamming = 0; scoreFullTiming.update = 0;
   scoreFullTiming.art = 0; scoreFullTiming.calls = 0;
+  prepTiming.wb = 0; prepTiming.gray = 0; prepTiming.variants = 0; prepTiming.calls = 0;
   const recordCandidateBest = (p, candidateBest) => {
     const aboveClick = p.candidate.strategy.startsWith("isolate-top-edge-");
     if (aboveClick && candidateBest < bestAboveClickDistance) {
@@ -2409,6 +2488,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
     detectorUsed, detectorState, detectorDistance,
     isolationTiming: { ...isolationTiming },
     scoreFullTiming: { ...scoreFullTiming },
+    prepTiming: { ...prepTiming },
     artBest, artChecked, artDecisive, stageMs: stage.ms,
     // OpenCV's WASM heap is invisible to performance.memory, which is why a
     // 1000-card run reported 52MB of JS heap while the tab held 1.5GB.
@@ -2797,6 +2877,11 @@ let lastTitleSource = { scanId: null, candidates: [] };
 
 self.onmessage = async (e) => {
   const { id, type, bmp, point, hints, queryCandidates, scanId, enabled } = e.data || {};
+  if (type === "set-half-rotations") {
+    HALF_ROTATIONS = e.data.enabled === true;
+    self.postMessage({ id, halfRotations: HALF_ROTATIONS });
+    return;
+  }
   if (type === "set-art-scale") {
     ART_SCAN_SCALE = typeof e.data.artScale === "number" ? e.data.artScale : 1.0;
     self.postMessage({ id, artScale: ART_SCAN_SCALE });
