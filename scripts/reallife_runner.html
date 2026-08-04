@@ -32,6 +32,11 @@ import { buildScene, cropScene, perfectCrop, releaseScene } from "/src/snaptest/
 
 const q = new URLSearchParams(location.search);
 const SCENES = +(q.get("scenes") ?? 20);
+// Overrides scene.js's calibrated BLUR_SCALE, so the two arms of a blur A/B can
+// run back to back in one session. Latency here is only ever comparable within
+// a session: the host's own CPU load drifts, and a delta measured against a
+// number from hours ago has been wrong before.
+const BLUR = q.get("blur") !== null ? +q.get("blur") : undefined;
 const PER_SCENE = 10;
 const SEED = 20260803;      // realLife mode's fixed draw
 const TOP_N = 2000;         // realLife: EDHREC top 2000
@@ -124,7 +129,8 @@ function groupAcc(list, key) {
     say(`recognition ready in ${Math.round(performance.now() - t0)}ms`);
 
     const set = await samplePopular(SCENES * PER_SCENE);
-    say(`drew ${set.length} cards (seed ${SEED}, EDHREC top ${TOP_N})`);
+    say(`drew ${set.length} cards (seed ${SEED}, EDHREC top ${TOP_N})`
+        + (BLUR !== undefined ? ` · blurScale override ${BLUR}` : " · calibrated blur"));
 
     const acc = [];
     for (let s = 0; s < SCENES; s++) {
@@ -135,6 +141,7 @@ function groupAcc(list, key) {
         scene = await buildScene(group, s, 1920, 1080, {
           dice: true, perspective: true,
           playmat: REAL_MATS[s % REAL_MATS.length],
+          ...(BLUR !== undefined ? { blurScale: BLUR } : {}),
         });
       } catch (e) {
         for (const c of group) acc.push({ name: c.name, ok: false, ms: 0, errStage: "image-load" });
