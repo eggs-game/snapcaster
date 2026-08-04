@@ -170,6 +170,9 @@ function groupAcc(list, key) {
           rec.tried = data.candidates_tried;
           rec.isolationCandidates = data.isolation_candidates;
           rec.strategy = matches[0] && matches[0].strategy;
+          rec.detectorUsed = data.detector_used;
+          rec.detectorState = data.detector_state;
+          rec.detectorDistance = data.detector_distance;
           const idx = matches.findIndex((m) => m.name === p.card.name);
           rec.trueRank = idx >= 0 ? idx + 1 : null;
           rec.ok = rec.top === p.card.name;
@@ -225,12 +228,21 @@ function groupAcc(list, key) {
       secondHalf: pct(acc.slice(half).filter((r) => r.ok).length, acc.length - half),
       wasmHeapMB: okList[okList.length - 1]?.wasmHeapMB,
       isolationFired: `${okList.filter((r) => r.isolationCandidates > 0).length}/${okList.length}`,
+      detectorState: [...new Set(okList.map((r) => r.detectorState))].join(","),
+      detectorTried: `${okList.filter((r) => r.detectorUsed).length}/${okList.length}`,
+      // The point of the gate: how often the prediction meant the blind sweep
+      // never had to run at all.
+      detectorSavedSweep: `${okList.filter((r) => r.detectorUsed && !(r.isolationCandidates > 0)).length}/${okList.filter((r) => r.detectorUsed).length}`,
+      // Distance the detector's own crop achieved, split by whether the scan
+      // ended up correct — this is what the skip threshold must be read from.
+      detectorDistOk: okList.filter((r) => r.ok && r.detectorDistance != null).map((r) => r.detectorDistance).sort((a, b) => a - b),
+      detectorDistMiss: okList.filter((r) => !r.ok && r.detectorDistance != null).map((r) => r.detectorDistance).sort((a, b) => a - b),
       triedMean: Math.round(okList.reduce((a, r) => a + (r.tried || 0), 0) / (okList.length || 1)),
       byStrategy: okList.reduce((m, r) => {
         const k = (r.strategy || "none").replace(/-\d+$/, "").replace(/^(isolate-[a-z-]+?)-.*/, "$1");
         m[k] = (m[k] || 0) + 1; return m;
       }, {}),
-      stageMeans: ["prep", "hint", "rankSeeds", "rankRefine", "isolatePrep",
+      stageMeans: ["prep", "hint", "rankSeeds", "rankRefine", "detector", "isolatePrep",
                    "isolateScore", "rank", "orb", "ocr"].reduce((o, k) => {
         const v = okList.map((r) => r.stages?.[k]).filter((n) => typeof n === "number");
         if (v.length) o[k] = Math.round(v.reduce((a, b) => a + b, 0) / v.length);

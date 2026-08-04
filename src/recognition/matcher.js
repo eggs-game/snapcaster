@@ -64,6 +64,14 @@ export function preloadOCR() {
   scheduleOCRWarm();
 }
 
+// Turn the learned quad detector on or off in the worker. Exists so both arms
+// of a detector A/B run inside one session: latency on this pipeline is only
+// comparable within a session, and comparing against a figure recorded earlier
+// has produced a false result here before.
+export function setDetectorEnabled(enabled) {
+  getWorker().postMessage({ id: `det-${Date.now()}`, type: "set-detector", enabled });
+}
+
 // Warm the worker's actual recognition core ahead of the first click. This
 // waits for OpenCV and the full hash/card/color/art tables, not just the small
 // names.json file used by the lobby banner.
@@ -117,7 +125,8 @@ function getWorker() {
       const {
         id, matches, printingMatches, titleCandidates, metadataStrips, titleCount, queryCandidates,
         shardedIndex, cardFound, cvStatus, candidatesTried, cropsDropped, artBest, artChecked,
-        artDecisive, isolationDebug, isolationCandidates, stageMs, wasmHeapMB,
+        artDecisive, isolationDebug, isolationCandidates, detectorUsed, detectorState, detectorDistance,
+        stageMs, wasmHeapMB,
         hintHit, preloaded, indexReady, indexCount, workerMs, error,
       } = e.data || {};
       const p = pending.get(id);
@@ -150,6 +159,9 @@ function getWorker() {
         art_decisive: !!artDecisive,
         isolation_debug: isolationDebug || null,
         isolation_candidates: Number(isolationCandidates) || 0,
+        detector_used: !!detectorUsed,
+        detector_state: detectorState || "idle",
+        detector_distance: typeof detectorDistance === "number" ? detectorDistance : null,
         hint_hit: !!hintHit,
         stage_ms: stageMs || {},
         wasm_heap_mb: typeof wasmHeapMB === "number" ? wasmHeapMB : null,

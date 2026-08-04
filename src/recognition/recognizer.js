@@ -1166,6 +1166,114 @@ function localCardIsolationCandidates(src, point, { allowAboveClick = true } = {
   }));
 }
 
+// ── Learned card-quad detector ──────────────────────────────────────────────
+//
+// The isolation sweep below evaluates several thousand card-shaped rectangles
+// and measured 2538ms — about 44% of the Real life median. This predicts the
+// rectangle instead, in one 126ms forward pass, so the sweep only has to run
+// when the prediction does not pan out.
+//
+// It is a bounded bet, not a replacement. On playmats it never trained on, 58%
+// of predictions clear IoU 0.8 (where an earlier perturbation sweep showed 23
+// of 24 quads still identify) and 94% clear 0.6 (below which none of 8 did).
+// So it is right often enough to be worth trying first and wrong often enough
+// that the sweep must stay.
+const DETECTOR_URL = new URL("/carddata/detector.js", self.location.origin).href;
+let detectorState = "idle";
+// DEFAULT OFF — measured, not shipped. Across 27 scans where it ran, the
+// detector's crop won 2 while the sweep's `isolate-*` crops won 16, and
+// skipping the sweep would have cost 13 of 23 correct answers. No distance
+// threshold separates the two: correct scans spanned 103-197 and misses
+// 179-195, sitting inside that range.
+//
+// The failure is structural rather than a tuning problem. The sweep proposes
+// ~110 rectangles and keeps the best; the detector proposes one, and a single
+// quad at IoU 0.8 loses to the best of 110. The "IoU>0.8 still identifies"
+// result it was designed against came from *perturbing the true quad*, and a
+// model's systematic error is not the same thing as random perturbation.
+//
+// Kept, flag-gated, because the promising use is the opposite of replacement:
+// let the prediction NARROW the sweep's search over angle and scale rather
+// than stand in for it, which preserves best-of-many selection while cutting
+// the 1549ms proposal stage. Enable with matcher's setDetectorEnabled(true).
+let detectorEnabled = false;
+
+function loadDetector() {
+  if (detectorState !== "idle") return detectorState === "ready";
+  detectorState = "loading";
+  try {
+    importScripts(DETECTOR_URL);
+    const self_test = self.__SNAP_DETECTOR && self.__SNAP_DETECTOR.selfTest();
+    // The port is hand-written JS against exported weights. If it disagrees
+    // with the numbers the exporter checked against torch, the model is not
+    // what was measured and must not be trusted to place crops.
+    if (!self_test || !self_test.ok) {
+      console.warn("[snapcast worker] detector self-test failed", self_test);
+      detectorState = "failed";
+      return false;
+    }
+    detectorState = "ready";
+    return true;
+  } catch (e) {
+    console.warn("[snapcast worker] detector unavailable", e);
+    detectorState = "failed";
+    return false;
+  }
+}
+
+// Downsample the capture to the detector's input and run it. Returns the crop
+// parameters the existing isolation machinery already speaks, so the prediction
+// flows through exactly the same preparation, scoring and verification as a
+// swept proposal — nothing downstream needs to know where the quad came from.
+function detectorProposal(src, point) {
+  if (!loadDetector()) return null;
+  const D = self.__SNAP_DETECTOR;
+  const size = D.size;
+  const canvas = new OffscreenCanvas(size, size);
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  const bmp = new OffscreenCanvas(src.width, src.height);
+  bmp.getContext("2d").putImageData(src, 0, 0);
+  ctx.drawImage(bmp, 0, 0, size, size);
+  const px = ctx.getImageData(0, 0, size, size).data;
+
+  // CHW float, matching the training preprocessing (RGB, /255, no mean/std).
+  const input = new Float32Array(3 * size * size);
+  const plane = size * size;
+  for (let i = 0, p = 0; i < px.length; i += 4, p++) {
+    input[p] = px[i] / 255;
+    input[plane + p] = px[i + 1] / 255;
+    input[2 * plane + p] = px[i + 2] / 255;
+  }
+
+  const out = D.predict(input, size);
+  if (!Number.isFinite(out.cx) || !Number.isFinite(out.cy)
+      || !Number.isFinite(out.h) || !Number.isFinite(out.angleDeg)) return null;
+  // A card cannot be a tenth of the crop or larger than it; a prediction out
+  // of that band is the model failing, not a small card.
+  if (out.h < 0.15 || out.h > 1.6) return null;
+
+  // Convert centre + size + angle into the (scale, anchor) form the crop
+  // helper takes. The anchor is where the CLICK sits inside the predicted
+  // card, in card-local coordinates.
+  const side = src.height;
+  const cardH = out.h * side;
+  const cardW = cardH * (CARD_W / CARD_H);
+  const rad = out.angleDeg * Math.PI / 180;
+  const cos = Math.cos(rad), sin = Math.sin(rad);
+  const dx = point.nx * src.width - out.cx * src.width;
+  const dy = point.ny * src.height - out.cy * side;
+  const lx = dx * cos + dy * sin;
+  const ly = -dx * sin + dy * cos;
+  const anchorH = 0.5 + lx / Math.max(1, cardW);
+  const anchorV = 0.5 + ly / Math.max(1, cardH);
+  // The click must land on the predicted card. If it does not, the prediction
+  // is describing some other card and is worse than useless — it would hand
+  // the recogniser a confident crop of the wrong subject.
+  if (anchorH < -0.05 || anchorH > 1.05 || anchorV < -0.05 || anchorV > 1.05) return null;
+
+  return { angle: out.angleDeg, scale: out.h, anchorV, anchorH, landscape: false };
+}
+
 function bitmapToImageData(bmp) {
   const canvas = new OffscreenCanvas(bmp.width, bmp.height);
   const ctx = canvas.getContext("2d");
@@ -1686,6 +1794,10 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
   let bestAboveClickDistance = 0xffff;
   let isolationDebug = null;
   let isolationCandidates = 0;
+  // Reported per scan so a run can say how often the prediction was tried and
+  // how often it saved the sweep, rather than leaving that to inference.
+  let detectorUsed = false;
+  let detectorDistance = null;
   const recordCandidateBest = (p, candidateBest) => {
     const aboveClick = p.candidate.strategy.startsWith("isolate-top-edge-");
     if (aboveClick && candidateBest < bestAboveClickDistance) {
@@ -1986,6 +2098,33 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
     // scans keep their existing fast path, while a busy printed playmat earns
     // the extra work needed to isolate the actual card rather than its art.
     mark("rankRefine");
+    // One predicted rectangle before the blind sweep. If it resolves the scan
+    // the sweep never runs; if it does not, the sweep runs exactly as before
+    // and the only cost is the forward pass. Deliberately gated on the same
+    // distance the sweep itself is gated on, so a scan that was already going
+    // well pays nothing.
+    if (bestCandidateDistance > 120 && detectorEnabled) {
+      const guess = detectorProposal(getSourceImageData(), normalizedPoint);
+      if (guess) {
+        const p = prepareCandidate({
+          image: rotatedAnchoredCropImageData(getSourceImageData(), guess.angle,
+            guess.scale, normalizedPoint, guess.anchorV, guess.anchorH, guess.landscape),
+          strategy: "detector",
+          isolation: true,
+          isolationScore: 0,
+        });
+        if (p) {
+          detectorUsed = true;
+          // Reported so the skip threshold can be chosen from the observed
+          // distribution rather than guessed. The existing >120 gate was
+          // calibrated on far cleaner scenes: on realistic captures even
+          // correct crops land well above it, so reusing it as the
+          // skip-the-sweep condition would never fire.
+          detectorDistance = scoreFull(p, { escalation: true });
+        }
+      }
+      mark("detector");
+    }
     if (bestCandidateDistance > 120) {
       const isolation = localCardIsolationCandidates(getSourceImageData(), normalizedPoint, {
         allowAboveClick: !clickInsideCardLikeQuad,
@@ -2188,6 +2327,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
     cardFound, cvStatus, candidatesTried, shardedIndex,
     cropsDropped: preparedAll.length - prepared.length,
     isolationDebug, isolationCandidates,
+    detectorUsed, detectorState, detectorDistance,
     artBest, artChecked, artDecisive, stageMs: stage.ms,
     // OpenCV's WASM heap is invisible to performance.memory, which is why a
     // 1000-card run reported 52MB of JS heap while the tab held 1.5GB.
@@ -2575,7 +2715,12 @@ loadCV().catch(() => {});
 let lastTitleSource = { scanId: null, candidates: [] };
 
 self.onmessage = async (e) => {
-  const { id, type, bmp, point, hints, queryCandidates, scanId } = e.data || {};
+  const { id, type, bmp, point, hints, queryCandidates, scanId, enabled } = e.data || {};
+  if (type === "set-detector") {
+    detectorEnabled = enabled !== false;
+    self.postMessage({ id, detectorEnabled });
+    return;
+  }
   if (type === "preload") {
     try {
       const ready = await warmCore();

@@ -9,6 +9,46 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-08-04 — detector as a sweep replacement — **REJECTED**; wins 2 crops of 27
+
+Integrated behind the same `bestCandidateDistance > 120` gate the sweep uses,
+scoring its predicted quad through the identical `prepareCandidate` /
+`scoreFull` path a swept proposal takes. It loads, self-tests, and produces
+usable crops. It is still not worth shipping.
+
+Measured over 40 Real life scans, 27 of which reached the detector:
+
+| winning crop family | count | of which correct |
+| --- | --- | --- |
+| **`isolate-*`** (the sweep) | **16** | 13 |
+| `outline-*` | 8 | 8 |
+| **`detector`** | **2** | 2 |
+
+**Skipping the sweep would have cost 13 of 23 correct answers.** No threshold
+fixes this: the distance the detector's own crop achieved was 103-197 on
+correct scans and 179-195 on misses — the miss range sits *inside* the correct
+range, so the two cannot be separated.
+
+### Why, and it is not a tuning problem
+
+The sweep proposes ~110 rectangles and keeps the best. The detector proposes
+one. A single quad at IoU 0.8 loses to the best of 110, and that is structural.
+
+The design also inherited an assumption I did not check. The rule it was built
+against — "above IoU 0.8, 23 of 24 quads still identify" — was established by
+**perturbing the true quad**. A model's error is systematic, not random
+perturbation, so an IoU of 0.8 from a detector and an IoU of 0.8 from jitter are
+not interchangeable. That equivalence was the load-bearing assumption and it
+does not hold.
+
+Left in place behind `detectorEnabled = false`, because the promising use is the
+opposite of replacement: let the prediction **narrow** the sweep's search over
+angle and scale instead of standing in for it. That keeps the best-of-many
+selection which is demonstrably doing the work, while cutting the 1549ms
+proposal stage that is the actual cost. Not attempted.
+
+Cost as integrated: 184ms mean, pure overhead at present.
+
 ## 2026-08-04 — card-quad detector — trained, ported, **not yet integrated**
 
 Replaces the blind isolation sweep, which sub-stage marks put at 1619ms
