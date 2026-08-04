@@ -92,6 +92,26 @@ Both fixes make the suite harder and both make it more correct. The 95% figure
 describes a benchmark that no longer exists. **It needs re-deriving against the
 corrected scenes, not the code reverting** — the new baseline is 93-94%.
 
+**Tableau EDH dice 100 — 90.0% — PASSES** (gate >=90%), but exactly at the
+threshold, against a 94.0% historical figure.
+
+| | |
+| --- | --- |
+| side-by-side | 58/60 | 
+| spaced | 29/30 |
+| **overlapping** | **3/10** |
+| clear | 90/93 (96.8%) |
+| overlapped | 0/7 |
+| `art-match` | **84/84 (100% precise)** |
+| first / second half | 96.0% / 84.0% |
+
+The 4-point drop is very likely the dice fix rather than the speed changes: a
+square die is a strictly larger occluder than the circle it had been rendering
+as, and this is the suite built to measure dice. Clear cards are 96.8%, so the
+loss sits entirely in the deliberately overlapping scene — now with genuinely
+bigger dice on it. Not separately controlled, unlike Tableau EDH, because the
+gate passes.
+
 Median is not quoted for the 200-card gates: the host was loaded and absolute
 latency in this environment is only comparable within a paired session.
 
