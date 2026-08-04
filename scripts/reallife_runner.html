@@ -29,9 +29,26 @@
 <script type="module">
 import { identify as identifyCard, preload, setIsolationCapScale, setArtScanScale, setOcrSkipDistance, setHalfRotations } from "/src/recognition/matcher.js";
 import { buildScene, cropScene, perfectCrop, releaseScene } from "/src/snaptest/scene.js";
+import { degrade, loadImage, scryfallImageUrl } from "/src/snaptest/degrade.js";
 
 const q = new URLSearchParams(location.search);
-const SCENES = +(q.get("scenes") ?? 20);
+
+// The release-gate suites from docs/testing.md, mirroring MODES in
+// SnapTest.jsx. Real life alone does not clear a recognition release: crop,
+// retrieval and OCR decision changes require the full plan, and the other
+// suites stress things Real life does not — Vegas the decorative-contour
+// competition, the single-card modes the top-edge clipped placements.
+const MODES = {
+  realLife:   { scenes: 20, perScene: 10, popular: 2000,  seed: 20260803, dice: true, perspective: true, rotateMats: true },
+  tableauEdh: { scenes: 10, perScene: 10, popular: 15000 },
+  vegas:      { scenes: 20, perScene: 10, popular: 15000, playmat: "magic-con-vegas" },
+  dice:       { scenes: 10, perScene: 10, popular: 15000, dice: true },
+  random200:  { single: true, size: 200, index: true },
+  edh200:     { single: true, size: 200, popular: 15000 },
+};
+const MODE = q.get("mode") || "realLife";
+const M = MODES[MODE] || MODES.realLife;
+const SCENES = +(q.get("scenes") ?? (M.scenes || 20));
 // Overrides scene.js's calibrated BLUR_SCALE, so the two arms of a blur A/B can
 // run back to back in one session. Latency here is only ever comparable within
 // a session: the host's own CPU load drifts, and a delta measured against a
@@ -49,9 +66,9 @@ const OCR = q.get("ocr") !== null ? +q.get("ocr") : undefined;
 // Half the rotation variants for crops already oriented by construction.
 // queryVariants is 925ms/scan, the largest single cost in the pipeline.
 const HALFROT = q.get("halfrot") !== null ? q.get("halfrot") === "1" : undefined;
-const PER_SCENE = 10;
-const SEED = 20260803;      // realLife mode's fixed draw
-const TOP_N = 2000;         // realLife: EDHREC top 2000
+const PER_SCENE = M.perScene || 10;
+const SEED = M.seed;            // only realLife fixes its draw
+const TOP_N = M.popular || 15000;
 const CLICK_MIX = { tokens: 0.25, basics: 0.05 };
 const REAL_MATS = [
   "magic-con-vegas", "ff-cloud", "commander-series-2",
@@ -99,7 +116,7 @@ async function samplePopular(n) {
   const cards = build(names, "card"), tks = build(tokens, "token");
   const ranked = cards.slice(0, TOP_N);
   const picked = [], seen = new Set();
-  const rand = mulberry32(SEED);
+  const rand = SEED != null ? mulberry32(SEED) : Math.random;
   let guard = 0;
   while (picked.length < n && guard++ < n * 50) {
     const roll = rand();
@@ -114,6 +131,17 @@ async function samplePopular(n) {
     picked.push({ name: entry.name, pool: entry.pool, id: entry.ids[(rand() * entry.ids.length) | 0] });
   }
   return picked;
+}
+
+async function sampleIndex(n) {
+  const rows = await (await fetch("/carddata/cards.json")).json();
+  const fronts = rows.filter((r) => r[4] === 0);
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const r = fronts[(Math.random() * fronts.length) | 0];
+    out.push({ name: r[0], id: r[3], pool: "index" });
+  }
+  return out;
 }
 
 const pct = (a, b) => (b ? (a / b * 100).toFixed(1) + "%" : "—");
@@ -144,8 +172,12 @@ function groupAcc(list, key) {
     if (HALFROT !== undefined) setHalfRotations(HALFROT);
     say(`recognition ready in ${Math.round(performance.now() - t0)}ms`);
 
-    const set = await samplePopular(SCENES * PER_SCENE);
-    say(`drew ${set.length} cards (seed ${SEED}, EDHREC top ${TOP_N})`
+    const want = M.single ? M.size : SCENES * PER_SCENE;
+    const set = M.index ? await sampleIndex(want) : await samplePopular(want);
+    window.__run.total = set.length;
+    say(`mode ${MODE}: drew ${set.length} cards`
+        + (SEED != null ? ` (seed ${SEED})` : " (fresh draw)")
+        + ` · EDHREC top ${TOP_N}`
         + (BLUR !== undefined ? ` · blurScale ${BLUR}` : " · calibrated blur")
         + (CAP !== undefined ? ` · isolation cap x${CAP}` : "")
         + (ART !== undefined ? ` · art budget x${ART}` : "")
@@ -153,14 +185,63 @@ function groupAcc(list, key) {
         + (HALFROT !== undefined ? ` · halfRotations ${HALFROT}` : ""));
 
     const acc = [];
+
+    // Single-card suites (Random 200, EDH staples 200) put one card alone on a
+    // field with a deterministic degradation per index, rather than rendering a
+    // tableau. They are the gates that cover the top-edge clipped placements,
+    // which the scene modes do not exercise.
+    if (M.single) {
+      for (let i = 0; i < set.length; i++) {
+        const card = set[i];
+        const rec = { name: card.name, pool: card.pool, ok: false, ms: 0, errStage: null };
+        const st = performance.now();
+        try {
+          const img = await loadImage(scryfallImageUrl(card.id));
+          const deg = degrade(img, i);
+          rec.rotationClass = deg.rotationClass;
+          rec.occ = deg.occ;
+          rec.placement = deg.placementClass;
+          const data = await identifyCard(deg.url, { nx: 0.5, ny: 0.5 });
+          rec.ms = Math.round(performance.now() - st);
+          const matches = data.matches || [];
+          rec.top = matches[0] && matches[0].name;
+          rec.by = matches[0] && matches[0].identified_by;
+          rec.dist = matches[0] && matches[0].distance;
+          rec.stages = data.stage_ms || null;
+          rec.wasmHeapMB = data.wasm_heap_mb;
+          rec.tried = data.candidates_tried;
+          rec.isolationCandidates = data.isolation_candidates;
+          rec.strategy = matches[0] && matches[0].strategy;
+          rec.sfTiming = data.score_full_timing;
+          rec.prepTiming = data.prep_timing;
+          const idx = matches.findIndex((m) => m.name === card.name);
+          rec.trueRank = idx >= 0 ? idx + 1 : null;
+          rec.ok = rec.top === card.name;
+        } catch (e) {
+          const msg = String((e && e.message) || e);
+          rec.errStage = /timed out/i.test(msg) ? "timeout"
+            : /image/i.test(msg) ? "image-load" : "identify-error";
+          rec.ms = Math.round(performance.now() - st);
+        }
+        acc.push(rec);
+        window.__run.done = acc.length;
+        window.__run.correct = acc.filter((r) => r.ok).length;
+        window.__run.recs = acc;
+        if (acc.length % 10 === 0) {
+          say(`${acc.length}/${set.length} · ${pct(window.__run.correct, acc.length)} correct`);
+        }
+      }
+    } else
     for (let s = 0; s < SCENES; s++) {
       const group = set.slice(s * PER_SCENE, (s + 1) * PER_SCENE);
       if (!group.length) break;
       let scene = null;
       try {
         scene = await buildScene(group, s, 1920, 1080, {
-          dice: true, perspective: true,
-          playmat: REAL_MATS[s % REAL_MATS.length],
+          dice: !!M.dice,
+          perspective: !!M.perspective,
+          // Real life cycles every mat; the gate suites pin one or use cloth.
+          playmat: M.playmat || (M.rotateMats ? REAL_MATS[s % REAL_MATS.length] : undefined),
           ...(BLUR !== undefined ? { blurScale: BLUR } : {}),
         });
       } catch (e) {
@@ -242,6 +323,8 @@ function groupAcc(list, key) {
       byOcclusion: groupAcc(okList, (r) => r.occ),
       byLayout: groupAcc(okList, (r) => r.layout),
       byPool: groupAcc(okList, (r) => r.pool),
+      byPlacement: groupAcc(okList, (r) => r.placement),
+      byOcc: groupAcc(okList, (r) => r.occ),
       missTrueRank: misses.reduce((m, r) => {
         const k = r.trueRank == null ? "absent" : r.trueRank <= 5 ? "rank 2-5" : "rank 6+";
         m[k] = (m[k] || 0) + 1; return m;
