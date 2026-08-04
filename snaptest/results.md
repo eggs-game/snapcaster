@@ -9,6 +9,43 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-08-04 — `speed-cuts-3` — release gates
+
+Running the full plan from `docs/testing.md`, which the four speed changes
+require: they are crop, retrieval and OCR decision changes, and only Real life
+had been measured.
+
+**Random 200 — 96.0% (192/200), 0 errors — PASSES** (gate >=95%).
+
+| placement | this run | `hardening-1` |
+| --- | --- | --- |
+| mild-centered-a | 56/56 | — |
+| above-click | 48/48 | — |
+| mild-centered-b | 48/48 | — |
+| **top-edge-clipped** | **40/48 (83.3%)** | **40/48** |
+
+The clipped block is **identical** to the historical figure, which is the
+specific evidence wanted: it is the hardest placement in any suite and the one
+where the half-rotation change would break first if a clipped card's
+rectification guessed orientation wrongly. It did not.
+
+| | |
+| --- | --- |
+| `byRotation` | upright 98.0%, tilt 98.0%, sideways 94.0%, upside-down 94.0% |
+| `byOcc` | none 98.1%, fingers 94.2%, dice 97.9%, fingers-dice 93.8% |
+| `art-match` | **189/189 (100% precise)** |
+| `missTrueRank` | absent 8, no rank 2-5 |
+| first / second half | 98.0% / 94.0% |
+| WASM heap | 134MB |
+
+This suite is the cleanest regression evidence available, because `degrade.js`
+is untouched by this session's work — unlike the scene suites, where the blur
+recalibration makes historical comparison invalid. 96.0% against a historical
+95.0%, with an identical clipped block, says the speed cuts cost nothing here.
+
+Median is not quoted: the host was heavily loaded and absolute latency in this
+environment is only comparable within a paired session.
+
 ## 2026-08-04 — `speed-cuts-3` — **200-card confirmation: 81.0%, median 4098ms**
 
 The four speed changes stacked and verified at full scale. Accuracy is not
