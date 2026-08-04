@@ -9,6 +9,65 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-08-04 — card-quad detector — trained, ported, **not yet integrated**
+
+Replaces the blind isolation sweep, which sub-stage marks put at 1619ms
+(`isolatePrep`) + 919ms (`isolateScore`) = 2538ms, about 44% of the median.
+
+Trained on 12,000 scene-v2.1 capture crops across 8 playmats, evaluated on 2,000
+crops from **two mats held out entirely**, because a detector trained and tested
+on the same mats has only learned those mats. Labels were verified visually
+before training — every quad drawn back onto its crop lands on the card — since
+a mislabelled corpus fails silently.
+
+| | unseen scenes, trained mats | **held-out mats** |
+| --- | --- | --- |
+| run 1, no augmentation | 75.2% above IoU 0.8 | **34.4%** |
+| **run 2, augmented** | **78.9%** | **58.2%** |
+| run 2, above IoU 0.6 | 97.3% | **94.2%** |
+| run 2, tapped cards | 71% | 51% |
+
+Run 1 failed outright: a 41-point generalization gap, worse than the 25-point
+gap the earlier attempt recorded, because eight backgrounds seen 12,000 times
+teaches mats rather than cards. Photometric jitter plus a mirror — whose label
+transform (`cx -> 1-cx`, `sin2t -> -sin2t`) was verified visually before use —
+closed it to 21 points and beat the earlier attempt's 54.1%.
+
+The IoU thresholds are not arbitrary: an earlier perturbation sweep on this
+pipeline established that above 0.8, 23 of 24 perturbed quads still identify,
+and below 0.6, none of 8 do. So **58% of held-out-mat predictions are directly
+usable and 94% are not hopeless**, which is the profile a gated design needs
+rather than a replacement one.
+
+### Ported to JS, and slower than projected
+
+`scripts/export_detector_js.py` folds BatchNorm into each convolution and emits
+plain JS with base64 Float32 weights — the recognition worker is a *classic*
+worker that needs `importScripts` for OpenCV and cannot import an ML runtime.
+The port self-tests against a fixed probe: **max abs error 3e-8 versus torch**,
+so an integration failure can only be model quality, never a silent numerical
+mismatch.
+
+**Inference measures 126ms, not the "few milliseconds" projected earlier.** The
+model is ~50M multiply-accumulates and plain JS manages roughly 400M/s. That
+projection was wrong by about 25x and the arithmetic below uses the measurement.
+
+| detector hit rate | net saving against the 2538ms sweep |
+| --- | --- |
+| 58% (held-out mats) | ~1346ms |
+| 79% (trained mats) | ~1879ms |
+
+So the honest expectation is a median around **4100-4400ms**, not the ~3300ms
+projected before inference was measured, and not 2000ms. Payload is 2.8MB,
+which sits alongside the 7.1MB `hashes.bin` the worker already loads but is not
+free. Both are reducible — int8 quantisation for the payload, a narrower model
+or a smaller input for the latency — and neither has been attempted.
+
+**Not integrated.** The remaining work is gating it ahead of the sweep in
+`recognizer.js`: score the predicted quad against the actual edges, use it when
+it holds up, fall back to the sweep when it does not, so the sweep's cost is
+only paid when the detector abstains.
+
 ## 2026-08-03 — blur calibration A/B — accuracy +3, but **confident coverage 38% -> 81%**
 
 Both arms run back to back in one session, 100 cards each, same seeded draw:
