@@ -9,6 +9,46 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-08-04 — isolation candidate cap — **-1482ms median for -2 cards**
+
+Splitting `isolatePrep` into its halves found that almost none of it is the
+search. Measured over 60 scans: **proposal scoring 102ms, rasterising 174ms,
+and ~1370ms preparing candidates** — white balance, greyscale, then eight
+rotation/contrast hash variants for each of ~147 surviving crops, roughly 1,160
+hash computations per scan.
+
+That invalidated the plan this was heading toward. "Use the detector to narrow
+the sweep's search" would have addressed the 102ms, not the 1370ms — the same
+misdirection as the earlier SIMD idea and the detector-as-replacement, both of
+which also aimed at a stage that was not the cost.
+
+The lever is how many candidates get PREPARED, and it needs no model. Proposals
+are already sorted by boundary score, so the question is only whether the
+winning crop sits near the top. Both arms back to back in one session:
+
+| | cap x1.0 | **cap x0.25** |
+| --- | --- | --- |
+| accuracy | 81.7% | 78.3% |
+| **median** | 5799ms | **4317ms** |
+| `isolatePrep` | 1649ms | **485ms** |
+| `isolateScore` | 868ms | **410ms** |
+| crops prepared | 147 | 37 |
+| `missTrueRank` absent | 9 | 11 |
+| `art-match` precision | 95.9% | 95.7% |
+
+**-1482ms of median for -2 cards.** Two cards on n=60 is inside sampling noise,
+but `absent` rising 9 to 11 accounts for exactly that loss, which suggests a
+real effect rather than a draw: the cut is discarding crops that were surfacing
+cards. Precision is unchanged, so nothing became newly wrong — the losses are
+cards that stopped being found at all.
+
+This is the first measured speed win of the session, and unlike every other
+latency figure recorded today the comparison is trustworthy, because both arms
+ran in one session under the same load.
+
+A middle setting is the obvious follow-up: most of a 1482ms saving for fewer
+than two cards would be a clear ship, while x0.25 is a judgement call.
+
 ## 2026-08-04 — detector as a sweep replacement — **REJECTED**; wins 2 crops of 27
 
 Integrated behind the same `bestCandidateDistance > 120` gate the sweep uses,

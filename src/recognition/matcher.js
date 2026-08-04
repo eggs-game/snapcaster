@@ -68,6 +68,10 @@ export function preloadOCR() {
 // of a detector A/B run inside one session: latency on this pipeline is only
 // comparable within a session, and comparing against a figure recorded earlier
 // has produced a false result here before.
+export function setIsolationCapScale(capScale) {
+  getWorker().postMessage({ id: `cap-${Date.now()}`, type: "set-isolation-cap", capScale });
+}
+
 export function setDetectorEnabled(enabled) {
   getWorker().postMessage({ id: `det-${Date.now()}`, type: "set-detector", enabled });
 }
@@ -125,7 +129,7 @@ function getWorker() {
       const {
         id, matches, printingMatches, titleCandidates, metadataStrips, titleCount, queryCandidates,
         shardedIndex, cardFound, cvStatus, candidatesTried, cropsDropped, artBest, artChecked,
-        artDecisive, isolationDebug, isolationCandidates, detectorUsed, detectorState, detectorDistance,
+        artDecisive, isolationDebug, isolationCandidates, detectorUsed, detectorState, detectorDistance, isolationTiming,
         stageMs, wasmHeapMB,
         hintHit, preloaded, indexReady, indexCount, workerMs, error,
       } = e.data || {};
@@ -162,6 +166,7 @@ function getWorker() {
         detector_used: !!detectorUsed,
         detector_state: detectorState || "idle",
         detector_distance: typeof detectorDistance === "number" ? detectorDistance : null,
+        isolation_timing: isolationTiming || null,
         hint_hit: !!hintHit,
         stage_ms: stageMs || {},
         wasm_heap_mb: typeof wasmHeapMB === "number" ? wasmHeapMB : null,

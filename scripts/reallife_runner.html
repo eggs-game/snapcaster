@@ -27,7 +27,7 @@
 <div id="log">starting…</div>
 
 <script type="module">
-import { identify as identifyCard, preload } from "/src/recognition/matcher.js";
+import { identify as identifyCard, preload, setIsolationCapScale } from "/src/recognition/matcher.js";
 import { buildScene, cropScene, perfectCrop, releaseScene } from "/src/snaptest/scene.js";
 
 const q = new URLSearchParams(location.search);
@@ -37,6 +37,9 @@ const SCENES = +(q.get("scenes") ?? 20);
 // a session: the host's own CPU load drifts, and a delta measured against a
 // number from hours ago has been wrong before.
 const BLUR = q.get("blur") !== null ? +q.get("blur") : undefined;
+// Scales the isolation proposal cap. Preparing the ~145 surviving crops is
+// ~82% of isolatePrep, so this is the arm that actually moves that stage.
+const CAP = q.get("cap") !== null ? +q.get("cap") : undefined;
 const PER_SCENE = 10;
 const SEED = 20260803;      // realLife mode's fixed draw
 const TOP_N = 2000;         // realLife: EDHREC top 2000
@@ -126,11 +129,13 @@ function groupAcc(list, key) {
     say("loading card index + warming recognition worker…");
     const t0 = performance.now();
     await preload();
+    if (CAP !== undefined) setIsolationCapScale(CAP);
     say(`recognition ready in ${Math.round(performance.now() - t0)}ms`);
 
     const set = await samplePopular(SCENES * PER_SCENE);
     say(`drew ${set.length} cards (seed ${SEED}, EDHREC top ${TOP_N})`
-        + (BLUR !== undefined ? ` · blurScale override ${BLUR}` : " · calibrated blur"));
+        + (BLUR !== undefined ? ` · blurScale ${BLUR}` : " · calibrated blur")
+        + (CAP !== undefined ? ` · isolation cap x${CAP}` : ""));
 
     const acc = [];
     for (let s = 0; s < SCENES; s++) {
@@ -173,6 +178,7 @@ function groupAcc(list, key) {
           rec.detectorUsed = data.detector_used;
           rec.detectorState = data.detector_state;
           rec.detectorDistance = data.detector_distance;
+          rec.isoTiming = data.isolation_timing;
           const idx = matches.findIndex((m) => m.name === p.card.name);
           rec.trueRank = idx >= 0 ? idx + 1 : null;
           rec.ok = rec.top === p.card.name;
@@ -229,6 +235,11 @@ function groupAcc(list, key) {
       wasmHeapMB: okList[okList.length - 1]?.wasmHeapMB,
       isolationFired: `${okList.filter((r) => r.isolationCandidates > 0).length}/${okList.length}`,
       detectorState: [...new Set(okList.map((r) => r.detectorState))].join(","),
+      isolationSplit: (() => {
+        const w = okList.filter((r) => r.isoTiming && r.isoTiming.rendered > 0);
+        const m = (k) => Math.round(w.reduce((a, r) => a + r.isoTiming[k], 0) / (w.length || 1));
+        return { n: w.length, scoreMs: m('score'), renderMs: m('render'), proposals: m('proposals'), rendered: m('rendered') };
+      })(),
       detectorTried: `${okList.filter((r) => r.detectorUsed).length}/${okList.length}`,
       // The point of the gate: how often the prediction meant the blind sweep
       // never had to run at all.

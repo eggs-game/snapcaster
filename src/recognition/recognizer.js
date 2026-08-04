@@ -1029,7 +1029,21 @@ function cardBoundaryScore(gray, point, angleDeg, scale, anchorV, anchorH, lands
   return median + upper * 0.45 + supported * 16;
 }
 
+// Scales the per-family proposal cap. The caps (48, and 32 for top-edge) let
+// ~145 crops through to prepareCandidate, and preparing them — white balance,
+// greyscale, then eight rotation/contrast hash variants each — measured ~1297ms
+// of isolatePrep's 1573ms. Proposal scoring was 104ms and rasterising 172ms, so
+// the number of candidates PREPARED is the cost, not the search that finds them.
+//
+// Proposals are already sorted by boundary score, so the question this exists
+// to answer is whether the winning crop sits near the top. Toggleable to keep
+// both arms of that A/B inside one session.
+let ISOLATION_CAP_SCALE = 1.0;
+
+const isolationTiming = { score: 0, render: 0, proposals: 0, rendered: 0 };
+
 function localCardIsolationCandidates(src, point, { allowAboveClick = true } = {}) {
+  const tScoreStart = performance.now();
   const gray = toGray(src);
   const proposals = [];
   const add = (angle, scale, anchorV, anchorH, landscape = false, family = "portrait") => {
@@ -1152,18 +1166,29 @@ function localCardIsolationCandidates(src, point, { allowAboveClick = true } = {
         && Math.abs(kept.anchorV - proposal.anchorV) <= 0.015
       ));
       if (!nearDuplicate) familySelected.push(proposal);
-      if (familySelected.length >= (family === "top-edge" ? 32 : 48)) break;
+      if (familySelected.length >= Math.round(
+        (family === "top-edge" ? 32 : 48) * ISOLATION_CAP_SCALE)) break;
     }
     selected.push(...familySelected);
   }
   selected.sort((a, b) => b.score - a.score);
-  return selected.map((proposal) => ({
+  // isolatePrep is 1549ms and has two halves that need different fixes:
+  // scoring thousands of candidate rectangles, and rasterising the survivors.
+  // Narrowing the search only helps the first. Splitting them here so the
+  // target is chosen from a measurement rather than an assumption.
+  isolationTiming.score = performance.now() - tScoreStart;
+  const tRender = performance.now();
+  const out = selected.map((proposal) => ({
     image: rotatedAnchoredCropImageData(src, proposal.angle, proposal.scale, point,
       proposal.anchorV, proposal.anchorH, proposal.landscape),
     strategy: `isolate-${proposal.family}-${proposal.angle}-${Math.round(proposal.scale * 100)}-${Math.round(proposal.anchorH * 100)}-${Math.round(proposal.anchorV * 100)}`,
     isolation: true,
     isolationScore: proposal.score,
   }));
+  isolationTiming.render = performance.now() - tRender;
+  isolationTiming.proposals = proposals.length;
+  isolationTiming.rendered = out.length;
+  return out;
 }
 
 // ── Learned card-quad detector ──────────────────────────────────────────────
@@ -2328,6 +2353,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
     cropsDropped: preparedAll.length - prepared.length,
     isolationDebug, isolationCandidates,
     detectorUsed, detectorState, detectorDistance,
+    isolationTiming: { ...isolationTiming },
     artBest, artChecked, artDecisive, stageMs: stage.ms,
     // OpenCV's WASM heap is invisible to performance.memory, which is why a
     // 1000-card run reported 52MB of JS heap while the tab held 1.5GB.
@@ -2716,6 +2742,11 @@ let lastTitleSource = { scanId: null, candidates: [] };
 
 self.onmessage = async (e) => {
   const { id, type, bmp, point, hints, queryCandidates, scanId, enabled } = e.data || {};
+  if (type === "set-isolation-cap") {
+    ISOLATION_CAP_SCALE = typeof e.data.capScale === "number" ? e.data.capScale : 1.0;
+    self.postMessage({ id, capScale: ISOLATION_CAP_SCALE });
+    return;
+  }
   if (type === "set-detector") {
     detectorEnabled = enabled !== false;
     self.postMessage({ id, detectorEnabled });
