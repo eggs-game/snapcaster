@@ -9,6 +9,37 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-08-04 — art scan budget halved — **-400ms median, zero decisions changed**
+
+Art and colour rescoring measured 960ms per scan against the hash scan's 802ms,
+making it the largest single cost in the pipeline. A shifted crop builds 13 art
+vectors (five Y-shifts raw, five contrast-stretched, three rotations) and one
+global scan is 110,592 x 13 x 32 bytes, about 46M popcount operations; at a
+budget of six that is ~276M, comparable to the entire 512-bit hash scan.
+
+Both arms, 60 scans each, back to back in one session:
+
+| | art x1.0 | **art x0.5** |
+| --- | --- | --- |
+| accuracy | 80.0% | **80.0%** |
+| `art-match` | 46/48 | **46/48** |
+| `missTrueRank` absent | 10 | **10** |
+| rank 2-5 | 2 | **2** |
+| **median** | 5019ms | **4619ms** |
+| art stage | 918ms | **561ms** |
+| `rankSeeds` | 1332ms | **936ms** |
+| art / hamming ratio | 1.222 | **0.810** |
+
+**Every accuracy and coverage figure is identical.** Not "within noise" —
+identical. The halved budget changed no decision on any of the 60 scans, so the
+removed scans were contributing to no answer. This is pure cost removal.
+
+The art/hamming ratio is quoted because it is load-invariant: both stages scale
+together under CPU contention, which has invalidated most absolute timings in
+this environment. It fell from 1.222 to 0.810.
+
+Shipped. `BUILD` is now `speed-cuts-1`.
+
 ## 2026-08-04 — `isolation-cap-1` — **200-card confirmation: 81.0%, median 4995ms**
 
 Confirms the halved candidate cap at full scale and settles the doubt from the

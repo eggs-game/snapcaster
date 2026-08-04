@@ -1053,6 +1053,29 @@ function cardBoundaryScore(gray, point, angleDeg, scale, anchorV, anchorH, lands
 // Still to confirm on a full 200-card run before this reaches production.
 let ISOLATION_CAP_SCALE = 0.5;
 
+// Scales the global art-scan budget. Splitting scoreFull over 200 scans put art
+// and colour rescoring at 960ms against the hash scan's 802ms — the largest
+// single cost in the pipeline, and larger than the scan it exists to refine.
+//
+// The arithmetic: a shifted crop builds 13 art vectors (five Y-shifts raw, five
+// contrast-stretched, three rotations), and one global scan is
+// 110,592 x 13 x 32 bytes ~= 46M popcount operations. At a budget of six that
+// is ~276M, comparable to the entire 512-bit hash scan.
+//
+// Same shape as the isolation cap: a generous constant on a stage nobody had
+// measured. Halving it changed NO decisions — arms of 60 scans, back to back:
+//
+//   x1.0   80.0%  median 5019ms  art 918ms  art-match 46/48  absent 10
+//   x0.5   80.0%  median 4619ms  art 561ms  art-match 46/48  absent 10
+//
+// Accuracy, art-match coverage, absent misses and rank-2-5 misses were all
+// identical, so the removed scans were not contributing to any answer. The
+// art/hamming ratio — load-invariant, unlike absolute ms in this environment —
+// fell 1.222 to 0.810.
+//
+// Toggleable so both arms of a further A/B run in one session.
+let ART_SCAN_SCALE = 0.5;
+
 const isolationTiming = { score: 0, render: 0, proposals: 0, rendered: 0 };
 // rankSeeds is now the largest stage and has never been split. Three times
 // today a stage's cost turned out to be somewhere other than where it looked,
@@ -2004,8 +2027,8 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
   // so outline-4/5 can still rescue a top-cropped card without bypassing the
   // total budget.
   let artGlobalScans = 0;
-  const ART_GLOBAL_SEED_BUDGET = 6;
-  const ART_GLOBAL_TOTAL_BUDGET = 8;
+  const ART_GLOBAL_SEED_BUDGET = Math.max(1, Math.round(6 * ART_SCAN_SCALE));
+  const ART_GLOBAL_TOTAL_BUDGET = Math.max(2, Math.round(8 * ART_SCAN_SCALE));
 
   // Full-index scoring of one crop; updates dists/rank/artGlobal and the
   // best-candidate tracking. Returns the crop's best gray distance.
@@ -2770,6 +2793,11 @@ let lastTitleSource = { scanId: null, candidates: [] };
 
 self.onmessage = async (e) => {
   const { id, type, bmp, point, hints, queryCandidates, scanId, enabled } = e.data || {};
+  if (type === "set-art-scale") {
+    ART_SCAN_SCALE = typeof e.data.artScale === "number" ? e.data.artScale : 1.0;
+    self.postMessage({ id, artScale: ART_SCAN_SCALE });
+    return;
+  }
   if (type === "set-isolation-cap") {
     ISOLATION_CAP_SCALE = typeof e.data.capScale === "number" ? e.data.capScale : 1.0;
     self.postMessage({ id, capScale: ISOLATION_CAP_SCALE });

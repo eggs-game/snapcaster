@@ -68,6 +68,10 @@ export function preloadOCR() {
 // of a detector A/B run inside one session: latency on this pipeline is only
 // comparable within a session, and comparing against a figure recorded earlier
 // has produced a false result here before.
+export function setArtScanScale(artScale) {
+  getWorker().postMessage({ id: `art-${Date.now()}`, type: "set-art-scale", artScale });
+}
+
 export function setIsolationCapScale(capScale) {
   getWorker().postMessage({ id: `cap-${Date.now()}`, type: "set-isolation-cap", capScale });
 }

@@ -27,7 +27,7 @@
 <div id="log">starting…</div>
 
 <script type="module">
-import { identify as identifyCard, preload, setIsolationCapScale } from "/src/recognition/matcher.js";
+import { identify as identifyCard, preload, setIsolationCapScale, setArtScanScale } from "/src/recognition/matcher.js";
 import { buildScene, cropScene, perfectCrop, releaseScene } from "/src/snaptest/scene.js";
 
 const q = new URLSearchParams(location.search);
@@ -40,6 +40,9 @@ const BLUR = q.get("blur") !== null ? +q.get("blur") : undefined;
 // Scales the isolation proposal cap. Preparing the ~145 surviving crops is
 // ~82% of isolatePrep, so this is the arm that actually moves that stage.
 const CAP = q.get("cap") !== null ? +q.get("cap") : undefined;
+// Scales the global art-scan budget — art rescoring is the largest single
+// cost in the pipeline at 960ms per scan.
+const ART = q.get("art") !== null ? +q.get("art") : undefined;
 const PER_SCENE = 10;
 const SEED = 20260803;      // realLife mode's fixed draw
 const TOP_N = 2000;         // realLife: EDHREC top 2000
@@ -130,12 +133,14 @@ function groupAcc(list, key) {
     const t0 = performance.now();
     await preload();
     if (CAP !== undefined) setIsolationCapScale(CAP);
+    if (ART !== undefined) setArtScanScale(ART);
     say(`recognition ready in ${Math.round(performance.now() - t0)}ms`);
 
     const set = await samplePopular(SCENES * PER_SCENE);
     say(`drew ${set.length} cards (seed ${SEED}, EDHREC top ${TOP_N})`
         + (BLUR !== undefined ? ` · blurScale ${BLUR}` : " · calibrated blur")
-        + (CAP !== undefined ? ` · isolation cap x${CAP}` : ""));
+        + (CAP !== undefined ? ` · isolation cap x${CAP}` : "")
+        + (ART !== undefined ? ` · art budget x${ART}` : ""));
 
     const acc = [];
     for (let s = 0; s < SCENES; s++) {
