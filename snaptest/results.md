@@ -137,7 +137,35 @@ are framing failures, which is exactly what the isolation sweep exists to fix
 and exactly what the halved candidate cap trims. The upside-down bucket at 78.8%
 also breaches the suite's 85%-per-rotation sub-gate.
 
-A paired control with all four cuts reverted is running to confirm or clear it.
+**The paired control also fails: 86.0%.**
+
+| Vegas 200 | cuts ON | **cuts OFF (control)** | historical |
+| --- | --- | --- | --- |
+| accuracy | 84.5% | **86.0%** | 93.0% |
+| overlapping | 13/20 | 15/20 | — |
+| tapped | 83.0% | 79.2% | — |
+| upside-down | 78.8% | 84.8% | — |
+| `absent` | 29 | 25 | — |
+| `art-match` | 161/163 (98.8%) | 164/167 (98.2%) | — |
+| perfect-crop recovery | 27/31 | 25/28 | 22/23 |
+
+At matched n the arms are much closer than the final figures suggest — at n=88
+the treatment led 88.6% to 87.5%, because this suite declines sharply through
+its later overlapping scenes.
+
+**Attribution:** the scene fixes cost about **7 points** (93.0% -> 86.0% with
+original code), the speed cuts about **1.5 points** (3 cards on n=200), which
+sits at the edge of the noise band and splits across buckets — treatment better
+on tapped, control better on upside-down.
+
+So the gate failure is dominated by the corrected scenes, not the cuts. But
+unlike Real life, where the cuts were bit-identical, there is a small possible
+cost here and it is not rounded to zero.
+
+The earlier note in this entry that the miss signature "implicates the cap" was
+wrong: the 87% perfect-crop recovery does show Vegas is framing-limited, but
+that has always been true (22/23 historically), so it does not distinguish the
+arms.
 
 Median is not quoted for the 200-card gates: the host was loaded and absolute
 latency in this environment is only comparable within a paired session.
