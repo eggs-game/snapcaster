@@ -51,6 +51,29 @@ Accuracy, coverage and miss composition identical across all three. Full
 verification still runs afterwards, so the answer is produced by exactly the
 same path as before — only work that could no longer change it is skipped.
 
+### Firing it even earlier — REJECTED
+
+Refinement (~710ms) is also downstream of the seed scans, so the obvious
+extension is to check after seeds and skip refinement too. Measured, it is
+worse:
+
+| | after refinement (shipped) | after seeds |
+| --- | --- | --- |
+| **median** | **3280ms** | 3760ms |
+| decisive | 16 of 44 | **10 of 55** |
+| probe cost | 121ms | **302ms** |
+| decisive and correct | 16/16 | 10/10 |
+
+Three effects compound. Fewer scans are decisive that early, so **refinement is
+genuinely what surfaces the match** rather than being redundant work. More scans
+reach the probe, so its cost is paid more often. And each probe costs 2.5x more,
+because the seed-stage shortlist is lower quality and ORB works harder against
+worse candidates.
+
+Precision held at 10/10, so the decisive gate is sound; the evidence simply is
+not available yet at that point. This is a useful negative: it says the ranking
+stages are doing real work, not padding.
+
 ### Where the remaining time is
 
 | stage | ms |

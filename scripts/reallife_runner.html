@@ -27,7 +27,7 @@
 <div id="log">starting…</div>
 
 <script type="module">
-import { identify as identifyCard, preload, setIsolationCapScale, setArtScanScale, setOcrSkipDistance, setHalfRotations, setOrbShortlist, setEarlyOrbProbe, setEarlyOrbExit } from "/src/recognition/matcher.js";
+import { identify as identifyCard, preload, setIsolationCapScale, setArtScanScale, setOcrSkipDistance, setHalfRotations, setOrbShortlist, setEarlyOrbProbe, setEarlyOrbExit, setEarlyOrbAfterSeeds } from "/src/recognition/matcher.js";
 import { buildScene, cropScene, perfectCrop, releaseScene } from "/src/snaptest/scene.js";
 import { degrade, loadImage, scryfallImageUrl } from "/src/snaptest/degrade.js";
 
@@ -74,6 +74,9 @@ const ORBN = q.get("orbn") !== null ? +q.get("orbn") : undefined;
 const EARLYORB = q.get("earlyorb") === "1";
 // Act on the probe: a decisive pre-isolation match skips the sweep entirely.
 const EARLYEXIT = q.get("earlyexit") === "1";
+// Run the early check after seeds rather than after refinement, so a decisive
+// match skips refinement (~710ms) as well as isolation (~1070ms).
+const EARLYSEEDS = q.get("earlyseeds") === "1";
 const PER_SCENE = M.perScene || 10;
 const SEED = M.seed;            // only realLife fixes its draw
 const TOP_N = M.popular || 15000;
@@ -181,6 +184,7 @@ function groupAcc(list, key) {
     if (ORBN !== undefined) setOrbShortlist(ORBN);
     if (EARLYORB) setEarlyOrbProbe(true);
     if (EARLYEXIT) setEarlyOrbExit(true);
+    if (EARLYSEEDS) setEarlyOrbAfterSeeds(true);
     say(`recognition ready in ${Math.round(performance.now() - t0)}ms`);
 
     const want = M.single ? M.size : SCENES * PER_SCENE;
@@ -356,6 +360,8 @@ function groupAcc(list, key) {
         const right = dec.filter((r) => r.earlyOrb.name === r.name);
         return { probed: w.length, decisive: dec.length,
                  skippedIsolation: w.filter((r) => r.earlyOrb.skipped).length,
+                 atSeeds: w.filter((r) => r.earlyOrb.stage === 'seeds').length,
+                 atRefine: w.filter((r) => r.earlyOrb.stage === 'refine').length,
                  decisiveAndCorrect: right.length,
                  probeMs: Math.round(w.reduce((a, r) => a + r.earlyOrb.ms, 0) / (w.length || 1)) };
       })(),

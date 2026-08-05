@@ -1179,7 +1179,24 @@ let EARLY_ORB_PROBE = false;
 // across all three, and 16 of 16 early-decisive matches were the correct card
 // in both runs that measured it.
 let EARLY_ORB_EXIT = true;
-const earlyOrb = { ran: 0, decisive: 0, leadInliers: 0, name: null, ms: 0, skipped: 0 };
+// Run the check after the SEED scans rather than after refinement.
+//
+// REJECTED, measured: firing earlier is worse. 60 scans per arm, same session:
+//
+//   after refinement   85.0%*  median 3280ms  decisive 16/44  probe 121ms
+//   after seeds        85.0%   median 3760ms  decisive 10/55  probe 302ms
+//
+// Three effects compound against it. Fewer scans are decisive that early, so
+// refinement is genuinely what surfaces the match rather than being redundant.
+// More scans reach the probe, so its cost is paid more often. And each probe
+// costs 2.5x more, because the seed-stage shortlist is lower quality and ORB
+// works harder against worse candidates.
+//
+// Precision held at 10/10 correct, so the decisive gate is sound — the evidence
+// simply is not available yet at that point. Kept switchable for re-testing if
+// the ranking stages ever change.
+let EARLY_ORB_AFTER_SEEDS = false;
+const earlyOrb = { ran: 0, decisive: 0, leadInliers: 0, name: null, ms: 0, skipped: 0, stage: null };
 
 // Crops whose construction already fixes orientation up to 180 degrees:
 // isolation proposals are built at a chosen angle for a chosen family, and
@@ -1995,7 +2012,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
   scoreFullTiming.art = 0; scoreFullTiming.calls = 0;
   prepTiming.wb = 0; prepTiming.gray = 0; prepTiming.variants = 0; prepTiming.calls = 0;
   earlyOrb.ran = 0; earlyOrb.decisive = 0; earlyOrb.leadInliers = 0;
-  earlyOrb.name = null; earlyOrb.ms = 0; earlyOrb.skipped = 0;
+  earlyOrb.name = null; earlyOrb.ms = 0; earlyOrb.skipped = 0; earlyOrb.stage = null;
   const recordCandidateBest = (p, candidateBest) => {
     const aboveClick = p.candidate.strategy.startsWith("isolate-top-edge-");
     if (aboveClick && candidateBest < bestAboveClickDistance) {
@@ -2217,6 +2234,34 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
     return candidateBest;
   };
 
+  // Bounded verification against whatever the ranking has produced so far.
+  // Returns true when it settled the answer, in which case every remaining
+  // search stage is redundant: they exist to find a crop good enough to
+  // identify a card, and one already has been.
+  const runEarlyOrb = async (stage) => {
+    if (!(EARLY_ORB_PROBE || EARLY_ORB_EXIT)) return false;
+    if (!(bestCandidateDistance > 120 && useV3 && rank)) return false;
+    const tEarly = performance.now();
+    const order = Array.from({ length: n }, (_, i) => i)
+      .filter((i) => rank[i] < Infinity)
+      .sort((a, b) => rank[a] - rank[b])
+      .slice(0, 12);
+    const probeMatches = order.map((i) => cardMeta(i, rank[i]));
+    const probeImages = [bestCandidateImage].filter(Boolean);
+    if (probeMatches.length && probeImages.length) {
+      try {
+        const v = await verifyTopMatches(probeMatches, probeImages, false);
+        earlyOrb.ran = 1;
+        earlyOrb.stage = stage;
+        earlyOrb.decisive = v.artDecisive ? 1 : 0;
+        earlyOrb.leadInliers = v.artBest?.inliers || 0;
+        earlyOrb.name = v.matches?.[0]?.name || null;
+      } catch { /* probe only — never affects the answer */ }
+    }
+    earlyOrb.ms += performance.now() - tEarly;
+    return EARLY_ORB_EXIT && !!earlyOrb.decisive;
+  };
+
   if (n) {
     let decisive = false;
     for (const i of seedIdx) {
@@ -2228,6 +2273,15 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
     // 10-11 seeds account for roughly a tenth of the stage; the rest was
     // invisible. These sub-marks attribute it.
     mark("rankSeeds");
+    // Fire at the earliest point the evidence can exist. Refinement (~710ms)
+    // and isolation (~1070ms) are both downstream of this, so a decisive match
+    // here skips both rather than just the sweep.
+    if (EARLY_ORB_AFTER_SEEDS && !decisive && await runEarlyOrb("seeds")) {
+      earlyOrb.skipped = 1;
+      decisive = true;
+      skipIsolation = true;
+    }
+    mark("earlyOrbProbe");
     if (!decisive) {
       // Shortlist = every printing a seed brought into contention (finite
       // combined rank under v3, or the gray-closest 4000 under v2).
@@ -2303,37 +2357,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
     // scans keep their existing fast path, while a busy printed playmat earns
     // the extra work needed to isolate the actual card rather than its art.
     mark("rankRefine");
-    if ((EARLY_ORB_PROBE || EARLY_ORB_EXIT) && bestCandidateDistance > 120 && useV3 && rank) {
-      // Same shortlist construction the final verification uses, but capped
-      // small: the question is whether a decisive match is ALREADY available,
-      // not how good it could get with more work.
-      const tEarly = performance.now();
-      const order = Array.from({ length: n }, (_, i) => i)
-        .filter((i) => rank[i] < Infinity)
-        .sort((a, b) => rank[a] - rank[b])
-        .slice(0, 12);
-      const probeMatches = order.map((i) => cardMeta(i, rank[i]));
-      const probeImages = [bestCandidateImage].filter(Boolean);
-      if (probeMatches.length && probeImages.length) {
-        try {
-          const v = await verifyTopMatches(probeMatches, probeImages, false);
-          earlyOrb.ran = 1;
-          earlyOrb.decisive = v.artDecisive ? 1 : 0;
-          earlyOrb.leadInliers = v.artBest?.inliers || 0;
-          earlyOrb.name = v.matches?.[0]?.name || null;
-        } catch { /* probe only — never affects the answer */ }
-      }
-      earlyOrb.ms = performance.now() - tEarly;
-      mark("earlyOrbProbe");
-      // Isolation exists to find a crop good enough to identify. A decisive
-      // keypoint match means one already has been, so the sweep has nothing
-      // left to contribute. The full verification still runs afterwards, so
-      // the answer is produced by exactly the same path as before.
-      if (EARLY_ORB_EXIT && earlyOrb.decisive) {
-        earlyOrb.skipped = 1;
-        skipIsolation = true;
-      }
-    }
+    if (!earlyOrb.ran) await runEarlyOrb("refine");
     // One predicted rectangle before the blind sweep. If it resolves the scan
     // the sweep never runs; if it does not, the sweep runs exactly as before
     // and the only cost is the forward pass. Deliberately gated on the same
@@ -2970,6 +2994,11 @@ self.onmessage = async (e) => {
   if (type === "set-early-orb-probe") {
     EARLY_ORB_PROBE = e.data.enabled === true;
     self.postMessage({ id, earlyOrbProbe: EARLY_ORB_PROBE });
+    return;
+  }
+  if (type === "set-early-orb-seeds") {
+    EARLY_ORB_AFTER_SEEDS = e.data.enabled === true;
+    self.postMessage({ id, earlyOrbAfterSeeds: EARLY_ORB_AFTER_SEEDS });
     return;
   }
   if (type === "set-early-orb-exit") {

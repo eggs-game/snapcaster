@@ -68,6 +68,10 @@ export function preloadOCR() {
 // of a detector A/B run inside one session: latency on this pipeline is only
 // comparable within a session, and comparing against a figure recorded earlier
 // has produced a false result here before.
+export function setEarlyOrbAfterSeeds(enabled) {
+  getWorker().postMessage({ id: `eos-${Date.now()}`, type: "set-early-orb-seeds", enabled });
+}
+
 export function setEarlyOrbExit(enabled) {
   getWorker().postMessage({ id: `eox-${Date.now()}`, type: "set-early-orb-exit", enabled });
 }
