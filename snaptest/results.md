@@ -9,6 +9,63 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-08-04 — early ORB exit — **-346ms, the first structural change that worked**
+
+Every previous speed win this session removed over-provisioned work. This one
+reorders it: verification ran *last*, after the isolation sweep had spent
+~1070ms and fired on 78% of scans, while `art-match` decides 80% of them.
+
+Isolation exists to find a crop good enough to identify a card. If a decisive
+keypoint match is already available, one has been found and the sweep has
+nothing left to contribute.
+
+**Measured the opportunity before building it.** A probe ran bounded
+verification at the pre-isolation point, recorded whether it would have been
+decisive, then discarded the result and let the scan proceed normally:
+
+| | |
+| --- | --- |
+| isolation-bound scans probed | 44 |
+| already decisive before isolation | **16 (36%)** |
+| **decisive AND correct** | **16 of 16 (100%)** |
+
+No false confidence at all — the result that makes this safe, since `art-match`
+is presented to players as certain and a decisive-but-wrong early exit would be
+worse than a slow scan. The gate is the existing one (>=16 inliers, 1.5x lead
+over the best rival *card*), already 97.5% precise in production.
+
+Three arms, 60 scans each, same session:
+
+| | baseline | probe only | **early exit** |
+| --- | --- | --- | --- |
+| accuracy | 83.3% | 83.3% | **83.3%** |
+| `art-match` | 48/50 | 48/50 | **48/50** |
+| `missTrueRank` absent | 8 | 8 | **8** |
+| **median** | 3626ms | 3794ms | **3280ms** |
+
+The probe-only arm is the control for the probe's own cost: it pays ~120-190ms
+and gets nothing, landing *above* baseline. Acting on it turns that into a
+346ms net gain.
+
+Accuracy, coverage and miss composition identical across all three. Full
+verification still runs afterwards, so the answer is produced by exactly the
+same path as before — only work that could no longer change it is skipped.
+
+### Where the remaining time is
+
+| stage | ms |
+| --- | --- |
+| rankSeeds | 756 |
+| isolatePrep | 727 (now on 47% fewer scans) |
+| rankRefine | 710 |
+| prep | 615 |
+| orb | 605 |
+| isolateScore | 363 |
+
+`queryVariants` remains ~780ms spread across `prep` and `isolatePrep`. The
+over-provisioned constants are spent; what remains is work the pipeline
+genuinely performs.
+
 ## 2026-08-04 — `speed-cuts-3` — release gates
 
 Running the full plan from `docs/testing.md`, which the four speed changes

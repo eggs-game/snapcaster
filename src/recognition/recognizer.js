@@ -1136,6 +1136,50 @@ const scoreFullTiming = { hamming: 0, update: 0, art: 0, calls: 0 };
 // computations, each a DCT. Never split before; on this session's record the
 // cost will not be where it looks.
 const prepTiming = { wb: 0, gray: 0, variants: 0, calls: 0 };
+// orb is the largest remaining stage at ~1022ms and has never been split. It
+// mixes two costs with entirely different fixes: fetching up to 36 reference
+// images from Scryfall, and the ORB extract/match over them. A network-bound
+// stage and a compute-bound one need opposite work.
+const orbTiming = { fetch: 0, queryFeat: 0, refFeat: 0, match: 0, refs: 0, winRank: -1 };
+
+// Size of the ORB verification shortlist. Fetching the references (317ms) and
+// matching against them (299ms) are the two largest parts of the orb stage and
+// both scale directly with this, so it is the one lever that cuts both. 24 come
+// from combined ranking and the rest are pure-art rescues.
+//
+// Cutting it blind would trade against art-match, which is 97.5% precise and
+// decides ~80% of scans, so winRank is reported: the shortlist position of the
+// entry that ends up leading. If leaders are always near the top, the tail is
+// free to remove.
+let ORB_SHORTLIST = 36;
+
+// Probe: would ORB have settled the answer BEFORE the isolation sweep ran?
+//
+// Verification currently runs last, after isolation has spent ~1000ms and fired
+// on 78% of scans, while art-match decides 80% of them. If a decisive keypoint
+// match were already available from the ordinary crops, most scans could skip
+// isolation entirely — the single largest structural saving left.
+//
+// This measures the ceiling of that idea without changing any answer: it runs a
+// bounded verification at the pre-isolation point, records whether it would have
+// been decisive, and then discards the result and proceeds normally.
+let EARLY_ORB_PROBE = false;
+// Act on the probe rather than only measuring it. Measured over 44
+// isolation-bound scans: 16 already had a decisive keypoint match before
+// isolation ran, and **all 16 were the correct card**. No false confidence,
+// which is the result that makes this safe — art-match is shown to players as
+// certain, so a decisive-but-wrong early exit would be worse than a slow scan.
+// Measured over three arms, 60 scans each, same session:
+//
+//   baseline (no probe)   83.3%  median 3626ms
+//   probe only            83.3%  median 3794ms   (cost, no benefit)
+//   **early exit**        83.3%  median 3280ms   (-346ms)
+//
+// Accuracy, art-match coverage (48/50) and absent misses (8) were identical
+// across all three, and 16 of 16 early-decisive matches were the correct card
+// in both runs that measured it.
+let EARLY_ORB_EXIT = true;
+const earlyOrb = { ran: 0, decisive: 0, leadInliers: 0, name: null, ms: 0, skipped: 0 };
 
 // Crops whose construction already fixes orientation up to 180 degrees:
 // isolation proposals are built at a chosen angle for a chosen family, and
@@ -1946,9 +1990,12 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
   // how often it saved the sweep, rather than leaving that to inference.
   let detectorUsed = false;
   let detectorDistance = null;
+  let skipIsolation = false;
   scoreFullTiming.hamming = 0; scoreFullTiming.update = 0;
   scoreFullTiming.art = 0; scoreFullTiming.calls = 0;
   prepTiming.wb = 0; prepTiming.gray = 0; prepTiming.variants = 0; prepTiming.calls = 0;
+  earlyOrb.ran = 0; earlyOrb.decisive = 0; earlyOrb.leadInliers = 0;
+  earlyOrb.name = null; earlyOrb.ms = 0; earlyOrb.skipped = 0;
   const recordCandidateBest = (p, candidateBest) => {
     const aboveClick = p.candidate.strategy.startsWith("isolate-top-edge-");
     if (aboveClick && candidateBest < bestAboveClickDistance) {
@@ -2256,6 +2303,37 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
     // scans keep their existing fast path, while a busy printed playmat earns
     // the extra work needed to isolate the actual card rather than its art.
     mark("rankRefine");
+    if ((EARLY_ORB_PROBE || EARLY_ORB_EXIT) && bestCandidateDistance > 120 && useV3 && rank) {
+      // Same shortlist construction the final verification uses, but capped
+      // small: the question is whether a decisive match is ALREADY available,
+      // not how good it could get with more work.
+      const tEarly = performance.now();
+      const order = Array.from({ length: n }, (_, i) => i)
+        .filter((i) => rank[i] < Infinity)
+        .sort((a, b) => rank[a] - rank[b])
+        .slice(0, 12);
+      const probeMatches = order.map((i) => cardMeta(i, rank[i]));
+      const probeImages = [bestCandidateImage].filter(Boolean);
+      if (probeMatches.length && probeImages.length) {
+        try {
+          const v = await verifyTopMatches(probeMatches, probeImages, false);
+          earlyOrb.ran = 1;
+          earlyOrb.decisive = v.artDecisive ? 1 : 0;
+          earlyOrb.leadInliers = v.artBest?.inliers || 0;
+          earlyOrb.name = v.matches?.[0]?.name || null;
+        } catch { /* probe only — never affects the answer */ }
+      }
+      earlyOrb.ms = performance.now() - tEarly;
+      mark("earlyOrbProbe");
+      // Isolation exists to find a crop good enough to identify. A decisive
+      // keypoint match means one already has been, so the sweep has nothing
+      // left to contribute. The full verification still runs afterwards, so
+      // the answer is produced by exactly the same path as before.
+      if (EARLY_ORB_EXIT && earlyOrb.decisive) {
+        earlyOrb.skipped = 1;
+        skipIsolation = true;
+      }
+    }
     // One predicted rectangle before the blind sweep. If it resolves the scan
     // the sweep never runs; if it does not, the sweep runs exactly as before
     // and the only cost is the forward pass. Deliberately gated on the same
@@ -2283,7 +2361,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
       }
       mark("detector");
     }
-    if (bestCandidateDistance > 120) {
+    if (bestCandidateDistance > 120 && !skipIsolation) {
       const isolation = localCardIsolationCandidates(getSourceImageData(), normalizedPoint, {
         allowAboveClick: !clickInsideCardLikeQuad,
       })
@@ -2489,6 +2567,8 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
     isolationTiming: { ...isolationTiming },
     scoreFullTiming: { ...scoreFullTiming },
     prepTiming: { ...prepTiming },
+    orbTiming: { ...orbTiming },
+    earlyOrb: { ...earlyOrb },
     artBest, artChecked, artDecisive, stageMs: stage.ms,
     // OpenCV's WASM heap is invisible to performance.memory, which is why a
     // 1000-card run reported 52MB of JS heap while the tab held 1.5GB.
@@ -2712,9 +2792,15 @@ function ringSignature(imageData) {
 async function verifyTopMatches(matches, queryImages, queryIsCardShaped) {
   // The first 24 entries come from combined ranking; the remaining bounded
   // slots are pure-art rescues that the old 24-item slice silently discarded.
-  const shortlist = matches.slice(0, 36);
+  const shortlist = matches.slice(0, ORB_SHORTLIST);
+  orbTiming.fetch = 0; orbTiming.queryFeat = 0; orbTiming.refFeat = 0;
+  orbTiming.match = 0; orbTiming.refs = shortlist.length;
+  const tFetch = performance.now();
   const refs = await Promise.all(shortlist.map((m) => fetchReference(m.scryfall_id, m.face || 0)));
+  orbTiming.fetch = performance.now() - tFetch;
+  const tQF = performance.now();
   const queryFeats = queryImages.map((img) => orbFeatures(img, 500));
+  orbTiming.queryFeat = performance.now() - tQF;
   // References are neutral Scryfall scans, so neutralize the query's room cast
   // before comparing color and frame-ring hue.
   const wbQuery = whiteBalance(queryImages[0]);
@@ -2724,17 +2810,21 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped) {
     let lead = 0, second = 0;
     for (let i = 0; i < shortlist.length; i++) {
       if (!refs[i]) { shortlist[i].art_inliers = 0; shortlist[i].color_sim = 0; continue; }
+      const tRF = performance.now();
       const rf = orbFeatures(refs[i], 300);
+      orbTiming.refFeat += performance.now() - tRF;
       let inliers = 0;
       try {
+        const tM = performance.now();
         for (const qf of queryFeats) inliers = Math.max(inliers, orbScore(qf, rf));
+        orbTiming.match += performance.now() - tM;
         shortlist[i].art_inliers = inliers;
       } finally {
         rf.kp.delete(); rf.desc.delete();
       }
       shortlist[i].color_sim = colorSimilarity(querySig, colorSignature(refs[i]));
       if (queryRing) shortlist[i].ring_sim = colorSimilarity(queryRing, ringSignature(refs[i]));
-      if (inliers > lead) { second = lead; lead = inliers; }
+      if (inliers > lead) { second = lead; lead = inliers; orbTiming.winRank = i; }
       else if (inliers > second) second = inliers;
       // Early stop: after the top-ranked references, an overwhelming keypoint
       // leader can't be displaced by lower-ranked cards — skip the rest.
@@ -2877,6 +2967,21 @@ let lastTitleSource = { scanId: null, candidates: [] };
 
 self.onmessage = async (e) => {
   const { id, type, bmp, point, hints, queryCandidates, scanId, enabled } = e.data || {};
+  if (type === "set-early-orb-probe") {
+    EARLY_ORB_PROBE = e.data.enabled === true;
+    self.postMessage({ id, earlyOrbProbe: EARLY_ORB_PROBE });
+    return;
+  }
+  if (type === "set-early-orb-exit") {
+    EARLY_ORB_EXIT = e.data.enabled === true;
+    self.postMessage({ id, earlyOrbExit: EARLY_ORB_EXIT });
+    return;
+  }
+  if (type === "set-orb-shortlist") {
+    ORB_SHORTLIST = Math.max(4, Math.min(36, e.data.size | 0));
+    self.postMessage({ id, orbShortlist: ORB_SHORTLIST });
+    return;
+  }
   if (type === "set-half-rotations") {
     HALF_ROTATIONS = e.data.enabled === true;
     self.postMessage({ id, halfRotations: HALF_ROTATIONS });

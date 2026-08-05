@@ -68,6 +68,18 @@ export function preloadOCR() {
 // of a detector A/B run inside one session: latency on this pipeline is only
 // comparable within a session, and comparing against a figure recorded earlier
 // has produced a false result here before.
+export function setEarlyOrbExit(enabled) {
+  getWorker().postMessage({ id: `eox-${Date.now()}`, type: "set-early-orb-exit", enabled });
+}
+
+export function setEarlyOrbProbe(enabled) {
+  getWorker().postMessage({ id: `eorb-${Date.now()}`, type: "set-early-orb-probe", enabled });
+}
+
+export function setOrbShortlist(size) {
+  getWorker().postMessage({ id: `orb-${Date.now()}`, type: "set-orb-shortlist", size });
+}
+
 export function setHalfRotations(enabled) {
   getWorker().postMessage({ id: `rot-${Date.now()}`, type: "set-half-rotations", enabled });
 }
@@ -137,7 +149,7 @@ function getWorker() {
       const {
         id, matches, printingMatches, titleCandidates, metadataStrips, titleCount, queryCandidates,
         shardedIndex, cardFound, cvStatus, candidatesTried, cropsDropped, artBest, artChecked,
-        artDecisive, isolationDebug, isolationCandidates, detectorUsed, detectorState, detectorDistance, isolationTiming, scoreFullTiming, prepTiming,
+        artDecisive, isolationDebug, isolationCandidates, detectorUsed, detectorState, detectorDistance, isolationTiming, scoreFullTiming, prepTiming, orbTiming, earlyOrb,
         stageMs, wasmHeapMB,
         hintHit, preloaded, indexReady, indexCount, workerMs, error,
       } = e.data || {};
@@ -177,6 +189,8 @@ function getWorker() {
         isolation_timing: isolationTiming || null,
         score_full_timing: scoreFullTiming || null,
         prep_timing: prepTiming || null,
+        orb_timing: orbTiming || null,
+        early_orb: earlyOrb || null,
         hint_hit: !!hintHit,
         stage_ms: stageMs || {},
         wasm_heap_mb: typeof wasmHeapMB === "number" ? wasmHeapMB : null,
