@@ -10,6 +10,7 @@ Start with the docs; they are the authoritative description of this project.
 | [docs/testing.md](docs/testing.md) | SNAPTEST — how to verify a change |
 | [docs/design-system.md](docs/design-system.md) | Shared UI tokens and patterns — colors, spacing, radii, tiny buttons |
 | [snaptest/results.md](snaptest/results.md) | Benchmark history with per-run analysis |
+| [docs/recognition-v2-plan.md](docs/recognition-v2-plan.md) | Why the pipeline stops at ~3.3s and the architecture that reaches 2s |
 
 ## Working agreements
 

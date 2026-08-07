@@ -14,6 +14,7 @@ builder). No terminal required.
 | [docs/why.md](docs/why.md) | Why this exists, what problem it solves, what "working" means |
 | [docs/architecture.md](docs/architecture.md) | How the app is put together — stack, files, index, multiplayer, security |
 | [docs/recognition.md](docs/recognition.md) | How a click becomes a card name in ~1.6s across 110k printings |
+| [docs/recognition-v2-plan.md](docs/recognition-v2-plan.md) | Why the current pipeline stops at ~3.3s, and the architecture that reaches 2s |
 | [docs/testing.md](docs/testing.md) | SNAPTEST — how we prove it works and avoid fooling ourselves |
 | [docs/metadata-recognition.md](docs/metadata-recognition.md) | How v4 mana/type/text evidence will be measured and introduced |
 | [docs/design-system.md](docs/design-system.md) | Shared UI tokens and patterns — colors, spacing, radii, tiny buttons |
