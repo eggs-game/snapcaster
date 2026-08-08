@@ -9,6 +9,46 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-08-08 — detector end-to-end — **+1 card. A 17-point IoU gain converted to nothing.**
+
+The combined-corpus detector took unseen playmats from 58.2% to 75.3% at
+IoU > 0.8. Run through the real pipeline on the same fixed 100-card draw as the
+control, with `?detector=1`:
+
+| | correct | detector ran | **replaced the sweep** |
+| --- | --- | --- | --- |
+| control | 80/100 | — | — |
+| detector | **81/100** | 80 | **3** |
+
++1 card is inside the ~2-card noise floor. The detector is accuracy-neutral.
+
+The number that explains it is the last column. The detector ran on 80 scans
+and its crop was good enough to settle the answer on **3**. The previous, much
+worse detector won 2 of 27 — proportionally *better*. Localisation improved a
+great deal and conversion did not improve at all.
+
+This is the plan's own warning landing exactly where it said it would: "IoU >
+0.8 identifies" came from perturbing the true quad, and a model's error is
+systematic, not random jitter. A mean IoU of 0.840 sounds close to a correct
+crop and still loses to the sweep's best-of-110, because the sweep does not
+need to be right once — it needs one of 110 tries to be right.
+
+Not a leak or a degrading harness: WASM heap flat 134MB start to end, halves
+43/50 and 38/50.
+
+The detector's own crop distance does separate its successes from its failures
+— correct scans 94-139, misses 131-177 — so there is signal for a confidence
+gate, but overlapping enough that it cannot stand alone.
+
+By rotation: upsidedown 12/12, tapped 27/33, upright 42/55.
+
+**Conclusion: a single proposal is not enough, confirmed on the metric that
+decides it.** The plan already says so ("One proposal, not many"); this
+measures the cost of ignoring it. Either the detector emits top-k proposals and
+the existing scoring picks among them, or the localisation bet does not pay and
+v2 needs a different lever. Nothing about the detector should ship until a
+multi-proposal version beats this, and `detectorEnabled` stays false.
+
 ## 2026-08-08 — real + procedural backgrounds — **58.2% -> 75.3% on unseen playmats**
 
 Same 12,000 procedural samples, but added to the eight real playmats instead of

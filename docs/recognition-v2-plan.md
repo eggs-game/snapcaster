@@ -102,6 +102,28 @@ identification rate**, not IoU.
 Target: **90% of scans have a correct card among the top-3 proposals, on
 playmats never trained on.** Below that the fallback fires too often to matter.
 
+**Status, measured 2026-08-08.** The first two causes have been tested and the
+results split:
+
+- *Too few backgrounds* — real. But the prescription was backwards. Procedural
+  backgrounds **replacing** the real mats made unseen playmats worse, 58.2% to
+  38.4%; a synthetic family is not a superset of the real one. Procedural data
+  **added to** the real mats works: unseen playmats reach **75.3%** at
+  IoU > 0.8 and the generalisation gap falls from 21 points to under 9.
+- *One proposal, not many* — **confirmed, and it is the binding constraint.**
+  That much better detector, run end-to-end on the fixed 100-card draw, scored
+  81/100 against the control's 80 and replaced the isolation sweep on **3 of
+  80 scans**. A 17-point localisation gain converted to nothing, because the
+  sweep does not need to be right once, it needs one of 110 tries to be right.
+
+So the third cause — *wrong success metric* — is the one that mattered most.
+Selecting on IoU would have called this detector a large win. The end-to-end
+number is the only reason it is not being shipped, and `detectorEnabled`
+stays false until top-k proposals beat it.
+
+Next experiment is therefore top-k, not more data: the corpus is no longer the
+limiting factor.
+
 ### 2. A confidence gate
 
 Already proven in miniature — the part that matters here is precision, and it
