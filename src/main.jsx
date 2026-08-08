@@ -19,7 +19,7 @@ const Community = lazy(() => import("./Community.jsx"));
 const ModerationPage = lazy(() => import("./ModerationPage.jsx"));
 import "./styles.css";
 
-const BUILD = "speed-cuts-4 (+ early ORB exit skips isolation)";
+const BUILD = "speed-cuts-4 (early ORB exit measured net-negative, off)";
 window.__SNAP_BUILD = BUILD;
 console.log(`%c[snapcast] build: ${BUILD}`, "color:#0a0;font-weight:bold");
 

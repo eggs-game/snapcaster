@@ -1164,21 +1164,35 @@ let ORB_SHORTLIST = 36;
 // bounded verification at the pre-isolation point, records whether it would have
 // been decisive, and then discards the result and proceeds normally.
 let EARLY_ORB_PROBE = false;
-// Act on the probe rather than only measuring it. Measured over 44
-// isolation-bound scans: 16 already had a decisive keypoint match before
-// isolation ran, and **all 16 were the correct card**. No false confidence,
-// which is the result that makes this safe — art-match is shown to players as
-// certain, so a decisive-but-wrong early exit would be worse than a slow scan.
-// Measured over three arms, 60 scans each, same session:
+// Act on the probe rather than only measuring it: a decisive keypoint match
+// before isolation means every remaining search stage is redundant.
 //
-//   baseline (no probe)   83.3%  median 3626ms
-//   probe only            83.3%  median 3794ms   (cost, no benefit)
-//   **early exit**        83.3%  median 3280ms   (-346ms)
+// The mechanism is sound and it is SAFE — across every run that measured it,
+// each early-decisive match was the correct card (25/25 in the clean A/B
+// below). That matters because art-match is shown to players as certain, so a
+// decisive-but-wrong early exit would be worse than a slow scan.
 //
-// Accuracy, art-match coverage (48/50) and absent misses (8) were identical
-// across all three, and 16 of 16 early-decisive matches were the correct card
-// in both runs that measured it.
-let EARLY_ORB_EXIT = true;
+// But it does not pay for itself, and is OFF for that reason. Paired arms,
+// 100 scans each, same session, pane visible throughout:
+//
+//   off   80.0%  median 3850ms  mean 3734ms
+//   on    80.0%  median 3790ms  mean 3849ms   ran 80 · decisive 25 · skipped 25
+//
+// The 25 scans it settles really are ~884ms faster (median 3382ms against
+// 4266ms for the rest). The probe just runs on 80 to win 25:
+//
+//   0.31 x 884ms saved - 335ms probe cost = -61ms per scan
+//
+// which is why the median moved less than run-to-run noise and the mean went
+// up. An earlier "-346ms" reading here was measured while the exit was
+// silently inert (the refine call site discarded runEarlyOrb's return value),
+// so it was really just probe cost against nothing; that figure is withdrawn.
+//
+// The lever that could make it positive is EARLY_ORB_N: the break-even hit
+// rate at N=12 is ~38%, and a shorter shortlist cuts the cost proportionally
+// while probably keeping most decisive hits. Untested — the arm needs the
+// browser pane visible for its full duration and has not had it yet.
+let EARLY_ORB_EXIT = false;
 // Run the check after the SEED scans rather than after refinement.
 //
 // REJECTED, measured: firing earlier is worse. 60 scans per arm, same session:
@@ -1196,7 +1210,11 @@ let EARLY_ORB_EXIT = true;
 // simply is not available yet at that point. Kept switchable for re-testing if
 // the ranking stages ever change.
 let EARLY_ORB_AFTER_SEEDS = false;
-const earlyOrb = { ran: 0, decisive: 0, leadInliers: 0, name: null, ms: 0, skipped: 0, stage: null };
+// How many hash candidates the early probe verifies. Fetch and match both
+// scale with it and are most of the probe's cost.
+let EARLY_ORB_N = 12;
+const earlyOrb = { ran: 0, decisive: 0, leadInliers: 0, name: null, ms: 0, skipped: 0,
+  stage: null, winnerRank: -1, gateDist: 0, probeN: 0 };
 
 // Crops whose construction already fixes orientation up to 180 degrees:
 // isolation proposals are built at a chosen angle for a chosen family, and
@@ -2013,6 +2031,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
   prepTiming.wb = 0; prepTiming.gray = 0; prepTiming.variants = 0; prepTiming.calls = 0;
   earlyOrb.ran = 0; earlyOrb.decisive = 0; earlyOrb.leadInliers = 0;
   earlyOrb.name = null; earlyOrb.ms = 0; earlyOrb.skipped = 0; earlyOrb.stage = null;
+  earlyOrb.winnerRank = -1; earlyOrb.gateDist = 0; earlyOrb.probeN = 0;
   const recordCandidateBest = (p, candidateBest) => {
     const aboveClick = p.candidate.strategy.startsWith("isolate-top-edge-");
     if (aboveClick && candidateBest < bestAboveClickDistance) {
@@ -2245,7 +2264,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
     const order = Array.from({ length: n }, (_, i) => i)
       .filter((i) => rank[i] < Infinity)
       .sort((a, b) => rank[a] - rank[b])
-      .slice(0, 12);
+      .slice(0, EARLY_ORB_N);
     const probeMatches = order.map((i) => cardMeta(i, rank[i]));
     const probeImages = [bestCandidateImage].filter(Boolean);
     if (probeMatches.length && probeImages.length) {
@@ -2256,6 +2275,16 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
         earlyOrb.decisive = v.artDecisive ? 1 : 0;
         earlyOrb.leadInliers = v.artBest?.inliers || 0;
         earlyOrb.name = v.matches?.[0]?.name || null;
+        // The probe costs ~335ms on every unconfident scan but only settles
+        // ~31% of them, so at N=12 it is a net loss. These two fields say
+        // whether a cheaper probe would keep the wins: `winnerRank` is where
+        // the ORB winner sat in the hash ordering (if it is always 0-1, the
+        // other ten fetches are pure waste) and `gateDist` is the hash
+        // distance the probe was launched at, for a skip gate.
+        earlyOrb.winnerRank = earlyOrb.name
+          ? probeMatches.findIndex((m) => m.name === earlyOrb.name) : -1;
+        earlyOrb.gateDist = bestCandidateDistance;
+        earlyOrb.probeN = probeMatches.length;
       } catch { /* probe only — never affects the answer */ }
     }
     earlyOrb.ms += performance.now() - tEarly;
@@ -3007,6 +3036,11 @@ self.onmessage = async (e) => {
   if (type === "set-early-orb-seeds") {
     EARLY_ORB_AFTER_SEEDS = e.data.enabled === true;
     self.postMessage({ id, earlyOrbAfterSeeds: EARLY_ORB_AFTER_SEEDS });
+    return;
+  }
+  if (type === "set-early-orb-n") {
+    EARLY_ORB_N = Math.max(1, e.data.size | 0);
+    self.postMessage({ id, earlyOrbN: EARLY_ORB_N });
     return;
   }
   if (type === "set-early-orb-exit") {

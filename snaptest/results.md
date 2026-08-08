@@ -9,6 +9,41 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-08-08 — early ORB exit, clean A/B — **net-negative, turned off**
+
+The first honest measurement of the exit now that it actually fires. Paired
+arms, 100 scans each, same session, browser pane visible and verified
+unthrottled throughout.
+
+| | accuracy | median | mean | p25 |
+| --- | --- | --- | --- | --- |
+| early exit **off** | 80.0% | 3850ms | 3734ms | 3343ms |
+| early exit **on** | 80.0% | 3790ms | **3849ms** | 3237ms |
+
+`ran 80 · decisive 25 · skipped 25`, and **25 of 25 early-decisive matches were
+the correct card**. The safety result holds — it has never once exited on a
+wrong answer, across every run that measured it.
+
+It just does not pay for itself. The scans it settles are genuinely much
+faster, median **3382ms against 4266ms** for the rest, about 884ms each. But
+the probe runs on 80 scans to win 25:
+
+    0.31 x 884ms saved - 335ms probe cost = -61ms per scan
+
+which is exactly why the median moved less than run-to-run noise while the mean
+went *up*. Shipping it would add a live code path to production for no gain, so
+`EARLY_ORB_EXIT` now defaults to **false**.
+
+**The earlier "-346ms" entry is withdrawn.** It was measured while the exit was
+inert, so it compared probe-cost-against-nothing to a baseline — the direction
+was an artefact.
+
+The remaining lever is the probe's shortlist size, now switchable as
+`EARLY_ORB_N` (`?earlyn=`). Break-even at N=12 needs a 38% hit rate against the
+31% observed; fetch and match both scale with N, so N=4 would cost roughly a
+third for probably most of the same hits. **Untested** — the arm needs the pane
+visible for its full duration and has not had it yet.
+
 ## 2026-08-04 — early ORB exit was silently doing nothing — fixed
 
 Refactoring the probe into a shared `runEarlyOrb()` helper, to add the
@@ -51,7 +86,11 @@ roughly tripled is the host-contention signature seen repeatedly today.
 **Accuracy, coverage and miss composition were identical to every reference arm**
 (83.3%, `art-match` 48/50, absent 8), which is the property that matters.
 
-## 2026-08-04 — early ORB exit — **-346ms, the first structural change that worked**
+## 2026-08-04 — early ORB exit — ~~**-346ms**~~ **WITHDRAWN**
+
+> Superseded by the 2026-08-08 clean A/B above. The exit was inert when
+> these numbers were taken, so the -346ms is an artefact; the change is
+> actually about -61ms per scan and is now off. Kept for the record.
 
 Every previous speed win this session removed over-provisioned work. This one
 reorders it: verification ran *last*, after the isolation sweep had spent
