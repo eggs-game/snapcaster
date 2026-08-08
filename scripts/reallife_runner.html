@@ -27,7 +27,7 @@
 <div id="log">starting…</div>
 
 <script type="module">
-import { identify as identifyCard, preload, setIsolationCapScale, setArtScanScale, setOcrSkipDistance, setHalfRotations, setOrbShortlist, setEarlyOrbProbe, setEarlyOrbExit, setEarlyOrbAfterSeeds, setEarlyOrbN } from "/src/recognition/matcher.js";
+import { identify as identifyCard, preload, setIsolationCapScale, setArtScanScale, setOcrSkipDistance, setHalfRotations, setOrbShortlist, setEarlyOrbProbe, setEarlyOrbExit, setEarlyOrbAfterSeeds, setEarlyOrbN, setDetectorEnabled } from "/src/recognition/matcher.js";
 import { buildScene, cropScene, perfectCrop, releaseScene } from "/src/snaptest/scene.js";
 import { degrade, loadImage, scryfallImageUrl } from "/src/snaptest/degrade.js";
 
@@ -81,6 +81,9 @@ const EARLYEXIT = q.get("earlyexit") !== null ? q.get("earlyexit") === "1" : und
 // How many candidates the early probe verifies. At 12 the probe costs more
 // than it saves; this is the arm that tests a cheaper one.
 const EARLYN = q.get("earlyn") !== null ? +q.get("earlyn") : undefined;
+// Card-quad detector as an isolation shortcut. IoU is not the metric that
+// decides this — end-to-end identification is — so this is the arm.
+const DETECTOR = q.get("detector") !== null ? q.get("detector") === "1" : undefined;
 const EARLYSEEDS = q.get("earlyseeds") === "1";
 const PER_SCENE = M.perScene || 10;
 const SEED = M.seed;            // only realLife fixes its draw
@@ -196,8 +199,14 @@ document.addEventListener("visibilitychange", () => {
   if (document.hidden) hidDuringScan = true;
 });
 
+// Accuracy-only runs do not care that a hidden pane is slow, and parking them
+// makes the environment unusable for exactly the questions that tolerate it.
+// The opt-out still taints every scan, so a run started this way can never be
+// quoted as a latency result by accident.
+const IGNORE_HIDDEN = q.get("ignorehidden") === "1";
+
 async function awaitVisible() {
-  if (!document.hidden) return;
+  if (IGNORE_HIDDEN || !document.hidden) return;
   window.__run.hiddenPauses++;
   say("PAUSED — pane hidden; background tabs get ~4x slower worker threads, "
       + "so timings would not be comparable. Bring the pane forward to resume.");
@@ -224,6 +233,7 @@ async function awaitVisible() {
     if (EARLYORB) setEarlyOrbProbe(true);
     if (EARLYEXIT !== undefined) setEarlyOrbExit(EARLYEXIT);
     if (EARLYN !== undefined) setEarlyOrbN(EARLYN);
+    if (DETECTOR !== undefined) setDetectorEnabled(DETECTOR);
     if (EARLYSEEDS) setEarlyOrbAfterSeeds(true);
     say(`recognition ready in ${Math.round(performance.now() - t0)}ms`);
 
