@@ -329,15 +329,15 @@ function paintProceduralBackground(x, W, H, rnd) {
       }
     } else if (family === 1) {
       // Dense line art / hatching, as on illustrated map and crow mats.
-      const n = 40 + ((rnd() * 160) | 0);
+      const n = 40 + ((rnd() * 120) | 0);
       x.strokeStyle = `hsla(${(hue + 40) % 360},${sat}%,${(light + 25) % 100}%,0.35)`;
       x.lineWidth = 0.5 + rnd() * 2;
+      x.beginPath();
       for (let i = 0; i < n; i++) {
-        x.beginPath();
         x.moveTo(rnd() * W, rnd() * H);
         x.lineTo(rnd() * W, rnd() * H);
-        x.stroke();
       }
+      x.stroke();
     } else if (family === 2) {
       // Text-like blocks: high-contrast horizontal runs at card-ish scale.
       const rows = 3 + ((rnd() * 14) | 0);
@@ -348,25 +348,28 @@ function paintProceduralBackground(x, W, H, rnd) {
       }
     } else if (family === 3) {
       // Photographic-ish blobs: soft large-scale luminance structure.
-      for (let i = 0; i < 30 + ((rnd() * 60) | 0); i++) {
-        const r = W * (0.03 + rnd() * 0.28);
-        const g = x.createRadialGradient(rnd() * W, rnd() * H, 0, rnd() * W, rnd() * H, r);
-        g.addColorStop(0, `hsla(${rnd() * 360},${sat}%,${(light + 30) % 100}%,0.35)`);
+      // Each gradient fills only its OWN bounding box. Filling the whole
+      // 1920x1080 canvas per blob dropped generation from 79 samples/s to 1.4 —
+      // 20,000 samples would have taken four hours instead of four minutes.
+      for (let i = 0; i < 12 + ((rnd() * 18) | 0); i++) {
+        const r = W * (0.05 + rnd() * 0.22);
+        const cx = rnd() * W, cy = rnd() * H;
+        const g = x.createRadialGradient(cx, cy, 0, cx, cy, r);
+        g.addColorStop(0, `hsla(${rnd() * 360},${sat}%,${(light + 30) % 100}%,0.4)`);
         g.addColorStop(1, "hsla(0,0%,0%,0)");
         x.fillStyle = g;
-        x.fillRect(0, 0, W, H);
+        x.fillRect(cx - r, cy - r, r * 2, r * 2);
       }
     } else {
-      // Woven cloth: fine regular texture, the bare-table case.
-      const step = 3 + ((rnd() * 9) | 0);
+      // Woven cloth: fine regular texture, the bare-table case. Drawn as one
+      // path rather than ~1000 separate stroke calls.
+      const step = 6 + ((rnd() * 14) | 0);
       x.strokeStyle = `hsla(${hue},${sat}%,${(light + 12) % 100}%,0.22)`;
       x.lineWidth = 1;
-      for (let i = 0; i < W; i += step) {
-        x.beginPath(); x.moveTo(i, 0); x.lineTo(i, H); x.stroke();
-      }
-      for (let j = 0; j < H; j += step) {
-        x.beginPath(); x.moveTo(0, j); x.lineTo(W, j); x.stroke();
-      }
+      x.beginPath();
+      for (let i = 0; i < W; i += step) { x.moveTo(i, 0); x.lineTo(i, H); }
+      for (let j = 0; j < H; j += step) { x.moveTo(0, j); x.lineTo(W, j); }
+      x.stroke();
     }
     x.restore();
   }
