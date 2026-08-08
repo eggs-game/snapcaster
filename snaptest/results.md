@@ -9,6 +9,75 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-08-08 — real + procedural backgrounds — **58.2% -> 75.3% on unseen playmats**
+
+Same 12,000 procedural samples, but added to the eight real playmats instead of
+replacing them. 24,000 samples, 40 epochs, the same two real mats held out.
+
+| training data | val (unseen *scenes*) | held-out **real mats** | gap |
+| --- | --- | --- | --- |
+| 8 real playmats + augmentation | 78.9% | 58.2% | 21 pts |
+| procedural only | 81.8% | 38.4% | 43 pts |
+| **real + procedural** | **84.0%** | **75.3%** | **8.7 pts** |
+
+IoU > 0.8. Held-out mean IoU 0.840, and **IoU > 0.6 reaches 97.7%** — the
+detector now lands roughly the right rectangle on almost every card it has
+never seen the background of.
+
+The generalisation gap fell from 21 points to under 9, which is the part that
+matters. The two curves now rise together instead of diverging: at epoch 30
+val was 80.9% and held-out 75.9%, five points apart, against the 43-point
+spread the procedural-only model reached. That is the signature of learning
+what a card looks like rather than what a background looks like.
+
+So the plan's diagnosis was right and its prescription was wrong. Too few
+backgrounds *was* the problem; replacing them with synthetic ones was not the
+fix, because a synthetic family is not a superset of the real one. Procedural
+data is worth exactly what augmentation is usually worth — it broadens what
+surrounds the card without claiming to be the real distribution.
+
+Tapped cards stay the weakest rotation on unseen mats (65% against upright's
+81%), consistent with every earlier measurement.
+
+**This is still an IoU number, and IoU is not the success metric.** The plan is
+explicit that "IoU > 0.8 identifies" came from perturbing the true quad, and a
+model's error is systematic rather than random jitter — the previous detector
+scored 58% by this measure and still won only 2 of 27 scans against the
+sweep's best-of-110. The next step is end-to-end identification rate.
+
+## 2026-08-08 — procedural backgrounds for the detector — **REJECTED, it made real mats worse**
+
+The v2 plan's first bet was that eight playmats seen 12,000 times teaches mats
+rather than cards, and that unlimited synthetic backgrounds would fix it.
+Generated 12,000 samples on procedural backgrounds, trained 40 epochs, and
+evaluated on the same two real playmats held out from the start.
+
+| training data | val (unseen *scenes*) | held-out **real mats** | gap |
+| --- | --- | --- | --- |
+| 8 real playmats + augmentation | 78.9% | **58.2%** | 21 pts |
+| procedural backgrounds | 81.8% | **38.4%** | **43 pts** |
+
+IoU > 0.8. It moved the wrong way by 20 points, and the gap doubled.
+
+The hypothesis was not merely unproven, it was backwards. Unlimited variety did
+not teach background-invariance; it taught *procedural-texture* invariance, and
+real photographic playmats sit outside that distribution. Variety within a
+synthetic family is not coverage of the real family — the model got a harder
+training set and still learned a shortcut, just a different one.
+
+The tell is in the training curve. Held-out accuracy plateaued around 33-41%
+from epoch 20 while val kept climbing to 82%, so the two were diverging, not
+converging. Both rise together when the model is learning what a card looks
+like; they separate when it is learning what the background looks like.
+
+Also worth recording: procedural training is *better* on unseen procedural
+scenes (81.8% against 78.9%). Judged on its own validation split this looks
+like the best detector yet. Only the held-out real mats say otherwise, which is
+the entire argument for holding out a domain rather than a random sample.
+
+**Next:** procedural data should augment the real mats, not replace them — see
+the combined result below, which is where this ends up paying off.
+
 ## 2026-08-08 — early ORB exit, clean A/B — **net-negative, turned off**
 
 The first honest measurement of the exit now that it actually fires. Paired
