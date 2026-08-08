@@ -30,7 +30,8 @@
 <div id="log">…</div>
 
 <script type="module">
-import { buildScene, cropScene, releaseScene } from "/src/snaptest/scene.js";
+import { buildScene, releaseScene } from "/src/snaptest/scene.js";
+import { cropGeometry } from "/src/captureGeometry.js";
 
 const q = new URLSearchParams(location.search);
 const SCENES = +(q.get("scenes") ?? 1200);
@@ -83,6 +84,7 @@ async function postBatch(name, blobs) {
   const labels = [];
   let pending = [], batchIdx = 0, i = 0;
   const t0 = performance.now();
+  let lastCount = 0, lastAt = t0;
 
   for (let s = 0; s < SCENES; s++) {
     const sceneIdx = SEED_BASE + s;
@@ -101,12 +103,19 @@ async function postBatch(name, blobs) {
     if (!scene.canvas) continue;
 
     for (const p of scene.placed) {
-      const crop = cropScene(scene.canvas, p.nx, p.ny);
-      const img = new Image();
-      try {
-        await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = crop.url; });
-      } catch { continue; }
-      ox.drawImage(img, 0, 0, SIZE, SIZE);
+      // cropGeometry is the same function cropScene uses, so the framing is
+      // production's — but it returns the numbers without encoding anything.
+      //
+      // cropScene itself allocates a canvas and JPEG-encodes a data URL. The
+      // harvester only ever needed sx/sy/side, and decoding that URL back into
+      // an Image measured 10,155ms per ten samples, ~80% of generation time,
+      // because procedural backgrounds compress far worse than a smooth playmat
+      // photo. Calling cropScene purely for its geometry still paid the encode
+      // and left the discarded strings for the collector, which is why the rate
+      // kept decaying over a run rather than being merely slow.
+      const crop = cropGeometry(scene.canvas.width, scene.canvas.height, p.nx, p.ny);
+      ox.drawImage(scene.canvas, crop.sx, crop.sy, crop.side, crop.side,
+                   0, 0, SIZE, SIZE);
       const blob = await new Promise((r) => out.toBlob(r, "image/jpeg", 0.85));
       pending.push(blob);
 
@@ -130,8 +139,16 @@ async function postBatch(name, blobs) {
     }
     releaseScene(scene.canvas);
     if (s % 20 === 0) {
-      const rate = i / ((performance.now() - t0) / 1000);
-      say(`${SPLIT}: scene ${s}/${SCENES} · ${i} samples · ${rate.toFixed(1)}/s`);
+      // Instantaneous rate, and whether the tab is hidden. A hidden pane is
+      // throttled to a full stop, and a CUMULATIVE rate hides that completely —
+      // it just decays, which reads as a memory leak or a slow generator. Two
+      // real but irrelevant optimisations were made chasing that before
+      // `document.hidden` was checked.
+      const now = performance.now();
+      const rate = (i - lastCount) / Math.max(0.001, (now - lastAt) / 1000);
+      lastCount = i; lastAt = now;
+      say(`${SPLIT}: scene ${s}/${SCENES} · ${i} samples · ${rate.toFixed(1)}/s now`
+          + (document.hidden ? " · TAB HIDDEN (throttled)" : ""));
     }
   }
   if (pending.length) await postBatch(`${SPLIT}_${String(batchIdx++).padStart(4, "0")}.bin`, pending);
