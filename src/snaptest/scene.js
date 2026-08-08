@@ -288,6 +288,90 @@ function paintBackground(x, W, H, rnd, warm) {
   }
 }
 
+// Procedural backgrounds — TRAINING DATA ONLY, never the benchmark.
+//
+// The quad detector scored 78.9% above IoU 0.8 on trained playmats and 34.4% on
+// unseen ones before augmentation, 58.2% after. Eight backgrounds seen 12,000
+// times teaches mats, not cards, and photometric jitter can only disguise a mat
+// so far — it cannot invent a new one.
+//
+// This generates unlimited distinct backgrounds from a handful of families
+// chosen to span what actually competes with a card's edges on a real table:
+// large printed rectangles, dense line art, high-contrast text blocks,
+// photographic blobs and woven texture. Nothing here is meant to look like a
+// specific playmat; the point is that no two training scenes share one.
+//
+// The benchmark keeps the real supplied mats, because it must model what
+// players own. These two purposes pull in opposite directions and are kept
+// apart deliberately.
+function paintProceduralBackground(x, W, H, rnd) {
+  const hue = rnd() * 360;
+  const sat = 8 + rnd() * 55;
+  const light = 18 + rnd() * 55;
+  x.fillStyle = `hsl(${hue.toFixed(0)},${sat.toFixed(0)}%,${light.toFixed(0)}%)`;
+  x.fillRect(0, 0, W, H);
+
+  const families = [];
+  const pick = (n) => { while (families.length < n) families.push((rnd() * 5) | 0); };
+  pick(1 + ((rnd() * 3) | 0));
+
+  for (const family of families) {
+    x.save();
+    if (family === 0) {
+      // Printed zone rectangles — the strongest decoy a real mat carries, and
+      // the reason mats with UNITS / LEADER / DECK boxes are hard.
+      const n = 2 + ((rnd() * 6) | 0);
+      for (let i = 0; i < n; i++) {
+        const w = W * (0.08 + rnd() * 0.30), h = H * (0.08 + rnd() * 0.34);
+        x.strokeStyle = `hsla(${(hue + 180) % 360},${sat}%,${(light + 35) % 100}%,${(0.25 + rnd() * 0.6).toFixed(2)})`;
+        x.lineWidth = 1 + rnd() * 5;
+        x.strokeRect(rnd() * (W - w), rnd() * (H - h), w, h);
+      }
+    } else if (family === 1) {
+      // Dense line art / hatching, as on illustrated map and crow mats.
+      const n = 40 + ((rnd() * 160) | 0);
+      x.strokeStyle = `hsla(${(hue + 40) % 360},${sat}%,${(light + 25) % 100}%,0.35)`;
+      x.lineWidth = 0.5 + rnd() * 2;
+      for (let i = 0; i < n; i++) {
+        x.beginPath();
+        x.moveTo(rnd() * W, rnd() * H);
+        x.lineTo(rnd() * W, rnd() * H);
+        x.stroke();
+      }
+    } else if (family === 2) {
+      // Text-like blocks: high-contrast horizontal runs at card-ish scale.
+      const rows = 3 + ((rnd() * 14) | 0);
+      for (let r = 0; r < rows; r++) {
+        const y = rnd() * H, w = W * (0.05 + rnd() * 0.45);
+        x.fillStyle = `hsla(${hue},${sat}%,${(light + (rnd() < 0.5 ? 40 : -30) + 100) % 100}%,${(0.3 + rnd() * 0.5).toFixed(2)})`;
+        x.fillRect(rnd() * (W - w), y, w, 3 + rnd() * 16);
+      }
+    } else if (family === 3) {
+      // Photographic-ish blobs: soft large-scale luminance structure.
+      for (let i = 0; i < 30 + ((rnd() * 60) | 0); i++) {
+        const r = W * (0.03 + rnd() * 0.28);
+        const g = x.createRadialGradient(rnd() * W, rnd() * H, 0, rnd() * W, rnd() * H, r);
+        g.addColorStop(0, `hsla(${rnd() * 360},${sat}%,${(light + 30) % 100}%,0.35)`);
+        g.addColorStop(1, "hsla(0,0%,0%,0)");
+        x.fillStyle = g;
+        x.fillRect(0, 0, W, H);
+      }
+    } else {
+      // Woven cloth: fine regular texture, the bare-table case.
+      const step = 3 + ((rnd() * 9) | 0);
+      x.strokeStyle = `hsla(${hue},${sat}%,${(light + 12) % 100}%,0.22)`;
+      x.lineWidth = 1;
+      for (let i = 0; i < W; i += step) {
+        x.beginPath(); x.moveTo(i, 0); x.lineTo(i, H); x.stroke();
+      }
+      for (let j = 0; j < H; j += step) {
+        x.beginPath(); x.moveTo(0, j); x.lineTo(W, j); x.stroke();
+      }
+    }
+    x.restore();
+  }
+}
+
 function paintPlaymatBackground(x, W, H, image) {
   // Cover rather than stretch: the supplied 1200×700 playmat stays at its
   // intended proportions while a landscape video frame trims only its sides.
@@ -404,7 +488,11 @@ export async function buildScene(cards, sceneIdx, frameW = 1920, frameH = 1080, 
   const canvas = document.createElement("canvas");
   canvas.width = frameW; canvas.height = frameH;
   const x = canvas.getContext("2d");
-  if (playmat) paintPlaymatBackground(x, frameW, frameH, playmat);
+  // proceduralBg is training-only; see paintProceduralBackground.
+  if (options.proceduralBg) {
+    paintProceduralBackground(x, frameW, frameH,
+      mulberry32(((sceneIdx + 101) * 2246822519) >>> 0));
+  } else if (playmat) paintPlaymatBackground(x, frameW, frameH, playmat);
   else paintBackground(x, frameW, frameH, rnd, warm);
 
   // Card size is set against the short frame edge so it stays consistent with

@@ -37,6 +37,9 @@ const SCENES = +(q.get("scenes") ?? 1200);
 const SPLIT = q.get("split") ?? "train";
 const SIZE = +(q.get("size") ?? 128);
 const SEED_BASE = +(q.get("seed") ?? 0);
+// Procedural backgrounds: unlimited variety, so no mat can be memorised.
+// Training only — the benchmark keeps the real supplied playmats.
+const PROCEDURAL = q.get("procedural") !== "0";
 const POOL = +(q.get("pool") ?? 400);      // distinct printings, so images cache
 const BATCH = 250;                          // images per POST
 
@@ -87,7 +90,12 @@ async function postBatch(name, blobs) {
     let scene;
     try {
       scene = await buildScene(group, sceneIdx, 1920, 1080, {
-        dice: true, perspective: true, playmat: MATS[sceneIdx % MATS.length],
+        dice: true, perspective: true,
+        // Held-out evaluation still uses the REAL unseen mats: the question is
+        // whether procedural training generalises to actual playmats.
+        ...(PROCEDURAL && SPLIT === "train"
+          ? { proceduralBg: true }
+          : { playmat: MATS[sceneIdx % MATS.length] }),
       });
     } catch { continue; }
     if (!scene.canvas) continue;
@@ -110,7 +118,7 @@ async function postBatch(name, blobs) {
         h:  +((p.h ?? scene.cardH) / crop.side).toFixed(5),
         c2: +Math.cos(2 * t).toFixed(5),
         s2: +Math.sin(2 * t).toFixed(5),
-        mat: MATS[sceneIdx % MATS.length] || "cloth",
+        mat: (PROCEDURAL && SPLIT === "train") ? "procedural" : (MATS[sceneIdx % MATS.length] || "cloth"),
         rot: p.rotationClass, occ: p.occ,
       });
       i++;
