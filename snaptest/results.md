@@ -9,6 +9,48 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-08-04 — early ORB exit was silently doing nothing — fixed
+
+Refactoring the probe into a shared `runEarlyOrb()` helper, to add the
+seeds-stage variant, left the refine-stage call site as a bare
+`await runEarlyOrb("refine")` — **the return value was discarded**, so the exit
+paid its probe cost and skipped nothing. The seeds call site used the return
+value; the refine one did not.
+
+Caught by an internal contradiction on a Vegas run: `decisive 25,
+skippedIsolation 0`. Median, accuracy and every breakdown looked entirely
+normal. A metric worth having is one that can disagree with another metric.
+
+| | broken | **fixed** |
+| --- | --- | --- |
+| decisive | 25 | 16 |
+| **skippedIsolation** | **0** | **16** |
+| isolation fired | 44/60 | **28/60** |
+| accuracy | 83.5% (Vegas) | 83.3% (Real life) |
+| `art-match` | 159/162 | 48/50 |
+
+**Two records this invalidates:**
+
+- The **-346ms** in `4797871` was measured against the pre-refactor inline code;
+  the committed version delivered nothing. The mechanism and safety result are
+  unaffected — 16 of 16 early-decisive matches correct, reproduced here — but
+  the speed figure needs re-measuring on an unloaded machine.
+- The **seeds-stage rejection** in `ca21e42` compared the seeds exit against a
+  refine exit that was silently broken, so its *median* comparison is void. The
+  conclusion survives on the counts, which do not depend on either exit firing:
+  16 of 44 decisive after refinement against 10 of 55 after seeds, at 121ms
+  against 302ms per probe. Refinement does surface matches.
+
+The broken Vegas run doubles as an upper bound on risk: it measured the probe's
+cost with no benefit and scored 83.5% against an 84.5% reference — two cards,
+noise. A probe that never changes control flow can only move results through
+sampling, so the mechanism carries no accuracy cost.
+
+Timing on the verification run is not quoted: median 9155ms with every stage
+roughly tripled is the host-contention signature seen repeatedly today.
+**Accuracy, coverage and miss composition were identical to every reference arm**
+(83.3%, `art-match` 48/50, absent 8), which is the property that matters.
+
 ## 2026-08-04 — early ORB exit — **-346ms, the first structural change that worked**
 
 Every previous speed win this session removed over-provisioned work. This one
@@ -41,7 +83,7 @@ Three arms, 60 scans each, same session:
 | accuracy | 83.3% | 83.3% | **83.3%** |
 | `art-match` | 48/50 | 48/50 | **48/50** |
 | `missTrueRank` absent | 8 | 8 | **8** |
-| **median** | 3626ms | 3794ms | **3280ms** |
+| **median** | 3626ms | 3794ms | **3280ms** (void, see above) |
 
 The probe-only arm is the control for the probe's own cost: it pays ~120-190ms
 and gets nothing, landing *above* baseline. Acting on it turns that into a

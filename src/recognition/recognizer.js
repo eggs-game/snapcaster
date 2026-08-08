@@ -2357,7 +2357,15 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
     // scans keep their existing fast path, while a busy printed playmat earns
     // the extra work needed to isolate the actual card rather than its art.
     mark("rankRefine");
-    if (!earlyOrb.ran) await runEarlyOrb("refine");
+    // Act on the result. Refactoring the probe into runEarlyOrb() for the
+    // seeds-stage experiment dropped this: the call was left bare, so the exit
+    // paid its cost and skipped nothing. `decisive 25, skippedIsolation 0` on a
+    // Vegas run is what surfaced it — a metric only worth having because it can
+    // contradict itself.
+    if (!earlyOrb.ran && await runEarlyOrb("refine")) {
+      earlyOrb.skipped = 1;
+      skipIsolation = true;
+    }
     // One predicted rectangle before the blind sweep. If it resolves the scan
     // the sweep never runs; if it does not, the sweep runs exactly as before
     // and the only cost is the forward pass. Deliberately gated on the same
