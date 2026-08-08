@@ -37,11 +37,10 @@ BATCH = 128
 DEVICE = "mps" if torch.backends.mps.is_available() else "cpu"
 
 
-def load_split(split):
+def _read_batches(paths):
     """Unpack the length-prefixed JPEG batches the harvester wrote."""
-    labels = json.load(open(os.path.join(DATA, f"labels_{split}.json")))
     imgs = []
-    for path in sorted(glob.glob(os.path.join(DATA, f"{split}_*.bin"))):
+    for path in paths:
         blob = open(path, "rb").read()
         n = struct.unpack_from("<I", blob, 0)[0]
         lens = struct.unpack_from(f"<{n}I", blob, 4)
@@ -50,8 +49,39 @@ def load_split(split):
             a = cv2.imdecode(np.frombuffer(blob[off:off + L], np.uint8), cv2.IMREAD_COLOR)
             imgs.append(cv2.cvtColor(a, cv2.COLOR_BGR2RGB))
             off += L
-    k = min(len(imgs), len(labels))
-    imgs, labels = imgs[:k], labels[:k]
+    return imgs
+
+
+def load_split(split):
+    """Load every chunk of a split and concatenate them.
+
+    The harvester writes one chunk per run, scoped by seed base
+    (`labels_train_s300.json` alongside `train_s300_*.bin`), because a
+    throttled pane cannot hold one long unattended run open. Chunks must be
+    paired image-to-label INDIVIDUALLY: a run interrupted mid-batch leaves its
+    own images and labels slightly out of step, and truncating only the
+    concatenated totals would silently shift every later chunk's labels onto
+    the wrong images — a corpus that trains fine and means nothing.
+    """
+    chunks = sorted(glob.glob(os.path.join(DATA, f"labels_{split}_s*.json")))
+    if not chunks:                                    # pre-chunking layout
+        chunks = [os.path.join(DATA, f"labels_{split}.json")]
+
+    imgs, labels = [], []
+    for lpath in chunks:
+        tag = os.path.basename(lpath)[len("labels_"):-len(".json")]
+        part = sorted(glob.glob(os.path.join(DATA, f"{tag}_*.bin")))
+        if not part:                                  # pre-chunking layout
+            part = sorted(glob.glob(os.path.join(DATA, f"{split}_*.bin")))
+        li = json.load(open(lpath))
+        xi = _read_batches(part)
+        k = min(len(xi), len(li))
+        if k < max(len(xi), len(li)):
+            print(f"  {tag}: {len(xi)} images / {len(li)} labels -> keeping {k}")
+        imgs += xi[:k]
+        labels += li[:k]
+
+    print(f"  {split}: {len(imgs)} samples from {len(chunks)} chunk(s)")
     X = np.stack(imgs).astype(np.uint8)                       # N,H,W,3
     Y = np.array([[l["cx"], l["cy"], l["h"], l["c2"], l["s2"]] for l in labels], np.float32)
     meta = [{"mat": l["mat"], "rot": l["rot"], "occ": l["occ"]} for l in labels]

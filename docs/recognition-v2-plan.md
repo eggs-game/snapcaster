@@ -104,11 +104,20 @@ playmats never trained on.** Below that the fallback fires too often to matter.
 
 ### 2. A confidence gate
 
-Already proven in miniature. The early ORB exit skips isolation when a decisive
-keypoint match exists, and across two runs **26 of 26 early-decisive matches
-were correct** — no false confidence. The same gate shape applies: take the
-detector's fast path, verify with ORB, and fall through to the current pipeline
-when verification fails.
+Already proven in miniature — the part that matters here is precision, and it
+is perfect. The early ORB exit skips isolation when a decisive keypoint match
+exists, and **every early-decisive match has been the correct card**: 26 of 26
+across the first two runs, 25 of 25 in the clean A/B that followed. The same
+gate shape applies: take the detector's fast path, verify with ORB, and fall
+through to the current pipeline when verification fails.
+
+The exit itself is **off in production**, but for cost, not correctness — at a
+31% hit rate its probe runs on 80 scans to win 25 and nets -61ms. That is an
+argument about *when* to spend a verification, not about whether the verdict
+can be trusted, and it does not weaken the gate. It does carry one warning
+forward: the fast path has to be cheap enough that paying for it on every scan
+is worth the scans it saves. A detector at ~130ms clears that bar far more
+easily than a 335ms ORB probe does.
 
 This is what makes the plan low-risk. A detector that works 70% of the time
 still cuts the median enormously, because the other 30% costs only the

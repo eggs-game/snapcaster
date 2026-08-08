@@ -21,8 +21,13 @@
   mats has only learned those mats, and the previous attempt measured IoU 0.851
   on trained mats against 0.777 on unseen ones — that gap is the whole risk.
 
+  Output files are scoped by `seed`, so runs ACCUMULATE rather than overwrite:
+  generate the corpus as several short chunks instead of one long unattended
+  run, which a throttled pane cannot sustain.
+
     PREVIEW_SAVE_DIR=/tmp/detector python3 scripts/serve_preview.py 8777
-    open /scripts/harvest_detector.html?scenes=1200&split=train
+    open /scripts/harvest_detector.html?scenes=300&split=train&seed=0
+    open /scripts/harvest_detector.html?scenes=300&split=train&seed=300
 -->
 <meta charset="utf-8">
 <title>detector harvest</title>
@@ -77,6 +82,14 @@ async function postBatch(name, blobs) {
     const r = fronts[(rnd() * fronts.length) | 0];
     return { id: r[3], name: r[0] };
   });
+
+  // Batch and label files are scoped by SEED_BASE. Every run used to write
+  // train_0000.bin and labels_train.json, so a second run silently overwrote
+  // the first — which made the corpus un-resumable exactly when it needed to
+  // be. A hidden pane slows generation ~4x (see snaptest/results.md), and the
+  // answer to that is not one long unattended run this environment cannot
+  // hold open, it is many short chunks that accumulate.
+  const CHUNK = `${SPLIT}_s${SEED_BASE}`;
 
   const out = document.createElement("canvas");
   out.width = out.height = SIZE;
@@ -133,8 +146,15 @@ async function postBatch(name, blobs) {
       i++;
 
       if (pending.length >= BATCH) {
-        await postBatch(`${SPLIT}_${String(batchIdx++).padStart(4, "0")}.bin`, pending);
+        await postBatch(`${CHUNK}_${String(batchIdx++).padStart(4, "0")}.bin`, pending);
         pending = [];
+        // Flush labels with every batch, not once at the end. A run that is
+        // interrupted — and under throttling they will be — otherwise leaves
+        // images on disk with no labels at all, which is worse than useless.
+        // Only labels for images already POSTed are written, so the two files
+        // always agree.
+        await fetch("/__save/labels_" + CHUNK + ".json",
+          { method: "POST", body: new Blob([JSON.stringify(labels.slice(0, batchIdx * BATCH))]) });
       }
     }
     releaseScene(scene.canvas);
@@ -151,9 +171,9 @@ async function postBatch(name, blobs) {
           + (document.hidden ? " · TAB HIDDEN (throttled)" : ""));
     }
   }
-  if (pending.length) await postBatch(`${SPLIT}_${String(batchIdx++).padStart(4, "0")}.bin`, pending);
+  if (pending.length) await postBatch(`${CHUNK}_${String(batchIdx++).padStart(4, "0")}.bin`, pending);
 
-  await fetch("/__save/labels_" + SPLIT + ".json",
+  await fetch("/__save/labels_" + CHUNK + ".json",
     { method: "POST", body: new Blob([JSON.stringify(labels)]) });
   say(`DONE — ${labels.length} ${SPLIT} samples in ${batchIdx} batches`);
   document.title = "finished";
