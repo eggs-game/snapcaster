@@ -80,6 +80,19 @@ resolvable through the page's import map, so `npm install` (or a copy of that
 one package into `node_modules/`) must have happened; without it OCR fails to
 load and timings understate production.
 
+**Keep the browser pane visible for the whole run.** Chrome deprioritises the
+worker threads of a background tab, and every pipeline stage inflates by
+roughly 4x — an 18-second scan against 3.8. It is a nasty failure because the
+usual throttling checks all look fine in a stalled tab (`setTimeout(0)` 0.1ms,
+image load 8.2ms, microtasks 0ms); only the worker's CPU share is affected, and
+no harness code can outrank the scheduler.
+
+The runner defends itself: it **parks before each scan while the pane is
+hidden** rather than emit a number it cannot stand behind, and marks any scan
+the pane hides *during* as `tainted`, dropping it from the latency stats while
+still counting it for accuracy. Check `taintedScans` and `hiddenPauses` in the
+summary before trusting a median. Long unattended runs need another machine.
+
 A 200-card run takes roughly 30 minutes. **Do not run anything else heavy on the
 machine while it is going** — a `lsh-recall-1` measurement was once read as a
 54% p90 win that turned out to be another process finishing, and the tell was a

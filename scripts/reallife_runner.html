@@ -27,7 +27,7 @@
 <div id="log">starting…</div>
 
 <script type="module">
-import { identify as identifyCard, preload, setIsolationCapScale, setArtScanScale, setOcrSkipDistance, setHalfRotations, setOrbShortlist, setEarlyOrbProbe, setEarlyOrbExit, setEarlyOrbAfterSeeds } from "/src/recognition/matcher.js";
+import { identify as identifyCard, preload, setIsolationCapScale, setArtScanScale, setOcrSkipDistance, setHalfRotations, setOrbShortlist, setEarlyOrbProbe, setEarlyOrbExit, setEarlyOrbAfterSeeds, setEarlyOrbN } from "/src/recognition/matcher.js";
 import { buildScene, cropScene, perfectCrop, releaseScene } from "/src/snaptest/scene.js";
 import { degrade, loadImage, scryfallImageUrl } from "/src/snaptest/degrade.js";
 
@@ -73,9 +73,14 @@ const ORBN = q.get("orbn") !== null ? +q.get("orbn") : undefined;
 // ceiling of moving verification earlier, without changing any answer.
 const EARLYORB = q.get("earlyorb") === "1";
 // Act on the probe: a decisive pre-isolation match skips the sweep entirely.
-const EARLYEXIT = q.get("earlyexit") === "1";
+// Tri-state: unset leaves the shipped default, 1 forces on, 0 forces off, so
+// both arms of the A/B are reachable now that it defaults to on.
+const EARLYEXIT = q.get("earlyexit") !== null ? q.get("earlyexit") === "1" : undefined;
 // Run the early check after seeds rather than after refinement, so a decisive
 // match skips refinement (~710ms) as well as isolation (~1070ms).
+// How many candidates the early probe verifies. At 12 the probe costs more
+// than it saves; this is the arm that tests a cheaper one.
+const EARLYN = q.get("earlyn") !== null ? +q.get("earlyn") : undefined;
 const EARLYSEEDS = q.get("earlyseeds") === "1";
 const PER_SCENE = M.perScene || 10;
 const SEED = M.seed;            // only realLife fixes its draw
@@ -172,6 +177,40 @@ function groupAcc(list, key) {
     .map(([k, v]) => [k, `${v.ok}/${v.n} (${pct(v.ok, v.n)})`]));
 }
 
+// Chrome deprioritises the worker threads of a background tab: every stage of a
+// scan slows by roughly 4x uniformly (prep 700ms -> 2885ms, orb 1700ms ->
+// 5576ms), while timers, image decode and microtasks stay fast — so the usual
+// throttling checks all look clean. Nothing in this harness can outrank the
+// scheduler, so a hidden run cannot produce a comparable latency number.
+//
+// Rather than emit one silently, the loop parks until the pane is visible
+// again. A run then takes longer but is never contaminated; `hiddenPauses`
+// records that it happened.
+window.__run.hiddenPauses = 0;
+// awaitVisible only gates the START of a scan. If the pane hides midway the
+// scan is still contaminated, so this flag watches the whole scan and taints
+// the record — timing stats then drop tainted scans instead of averaging a
+// 4x-slow outlier into the median.
+let hidDuringScan = false;
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) hidDuringScan = true;
+});
+
+async function awaitVisible() {
+  if (!document.hidden) return;
+  window.__run.hiddenPauses++;
+  say("PAUSED — pane hidden; background tabs get ~4x slower worker threads, "
+      + "so timings would not be comparable. Bring the pane forward to resume.");
+  await new Promise((res) => {
+    const on = () => {
+      if (document.hidden) return;
+      document.removeEventListener("visibilitychange", on);
+      res();
+    };
+    document.addEventListener("visibilitychange", on);
+  });
+}
+
 (async () => {
   try {
     say("loading card index + warming recognition worker…");
@@ -183,7 +222,8 @@ function groupAcc(list, key) {
     if (HALFROT !== undefined) setHalfRotations(HALFROT);
     if (ORBN !== undefined) setOrbShortlist(ORBN);
     if (EARLYORB) setEarlyOrbProbe(true);
-    if (EARLYEXIT) setEarlyOrbExit(true);
+    if (EARLYEXIT !== undefined) setEarlyOrbExit(EARLYEXIT);
+    if (EARLYN !== undefined) setEarlyOrbN(EARLYN);
     if (EARLYSEEDS) setEarlyOrbAfterSeeds(true);
     say(`recognition ready in ${Math.round(performance.now() - t0)}ms`);
 
@@ -216,6 +256,8 @@ function groupAcc(list, key) {
           rec.rotationClass = deg.rotationClass;
           rec.occ = deg.occ;
           rec.placement = deg.placementClass;
+          await awaitVisible();
+          hidDuringScan = document.hidden;
           const data = await identifyCard(deg.url, { nx: 0.5, ny: 0.5 });
           rec.ms = Math.round(performance.now() - st);
           const matches = data.matches || [];
@@ -231,6 +273,7 @@ function groupAcc(list, key) {
           rec.prepTiming = data.prep_timing;
           rec.orbTiming = data.orb_timing;
           rec.earlyOrb = data.early_orb;
+          rec.tainted = hidDuringScan;
           const idx = matches.findIndex((m) => m.name === card.name);
           rec.trueRank = idx >= 0 ? idx + 1 : null;
           rec.ok = rec.top === card.name;
@@ -277,6 +320,8 @@ function groupAcc(list, key) {
         const st = performance.now();
         try {
           const crop = cropScene(scene.canvas, p.nx, p.ny);
+          await awaitVisible();
+          hidDuringScan = document.hidden;
           const data = await identifyCard(crop.url, { nx: crop.px, ny: crop.py });
           rec.ms = Math.round(performance.now() - st);
           const matches = data.matches || [];
@@ -296,6 +341,7 @@ function groupAcc(list, key) {
           rec.prepTiming = data.prep_timing;
           rec.orbTiming = data.orb_timing;
           rec.earlyOrb = data.early_orb;
+          rec.tainted = hidDuringScan;
           const idx = matches.findIndex((m) => m.name === p.card.name);
           rec.trueRank = idx >= 0 ? idx + 1 : null;
           rec.ok = rec.top === p.card.name;
@@ -325,7 +371,11 @@ function groupAcc(list, key) {
     }
 
     const okList = acc.filter((r) => !r.errStage);
-    const times = okList.map((r) => r.ms);
+    // Accuracy uses every scan — a hidden pane makes a scan slow, not wrong.
+    // Latency uses only untainted ones, because a background tab's worker
+    // threads run ~4x slower and one such scan drags the median far more than
+    // any change being measured.
+    const times = okList.filter((r) => !r.tainted).map((r) => r.ms);
     const half = Math.floor(acc.length / 2);
     const misses = acc.filter((r) => !r.ok && !r.errStage);
     window.__run.summary = {
@@ -333,6 +383,9 @@ function groupAcc(list, key) {
       correct: acc.filter((r) => r.ok).length,
       accuracy: pct(acc.filter((r) => r.ok).length, acc.length),
       errors: acc.filter((r) => r.errStage).length,
+      timedScans: times.length,
+      taintedScans: acc.filter((r) => r.tainted).length,
+      hiddenPauses: window.__run.hiddenPauses,
       medianMs: quantile(times, 0.5),
       p90Ms: quantile(times, 0.9),
       avgMs: Math.round(times.reduce((a, b) => a + b, 0) / (times.length || 1)),

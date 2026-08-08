@@ -44,6 +44,42 @@ The remaining lever is the probe's shortlist size, now switchable as
 third for probably most of the same hits. **Untested** — the arm needs the pane
 visible for its full duration and has not had it yet.
 
+## 2026-08-08 — background tabs slow the worker ~4x — every timing needs a visible pane
+
+The N=4 arm produced 18s scans. The cause is not the pipeline:
+
+    prep 2885ms · rankSeeds 4017ms · rankRefine 5519ms · orb 5576ms · total 18042ms
+
+Every stage inflated by roughly the same factor, which is the signature of the
+whole worker thread getting less CPU rather than any one stage regressing.
+Chrome deprioritises the worker threads of a background tab.
+
+What makes this nasty is that **all the obvious throttling checks come back
+clean.** Measured in the stalled tab:
+
+    document.hidden true · setTimeout(0) 0.1ms · image load 8.2ms · microtask 0ms
+
+So it is not intensive timer throttling, not blocked decode, not the event
+loop. Only the worker is affected, and only its scheduling priority — nothing
+in the harness can outrank that.
+
+This is the same mechanism behind the harvester's "decaying" generation rate,
+and it retroactively explains session-long latency drift that was previously
+blamed on leaks and slow generators.
+
+Two harness changes make it impossible to be fooled again:
+
+- The runner **parks** before each scan while the pane is hidden, and says so.
+  A run takes longer but is never contaminated.
+- Any scan the pane hides *during* is marked `tainted` and dropped from the
+  latency stats — accuracy still counts it, since a hidden pane makes a scan
+  slow, not wrong. The summary reports `timedScans`, `taintedScans` and
+  `hiddenPauses` so a compromised run announces itself.
+
+Standing constraint: **latency numbers from this environment are only valid
+with the browser pane visible for the whole run.** Long unattended runs need
+another machine.
+
 ## 2026-08-04 — early ORB exit was silently doing nothing — fixed
 
 Refactoring the probe into a shared `runEarlyOrb()` helper, to add the
