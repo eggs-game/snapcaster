@@ -121,8 +121,28 @@ Selecting on IoU would have called this detector a large win. The end-to-end
 number is the only reason it is not being shipped, and `detectorEnabled`
 stays false until top-k proposals beat it.
 
-Next experiment is therefore top-k, not more data: the corpus is no longer the
-limiting factor.
+**Update 2026-08-09: top-k was tested cheaply and the bet is closed.** Rather
+than retrain a top-k head, the detector's prediction was re-cropped at five
+scales and angles and all five scored — the most generous form top-k could
+take, since the spread is hand-picked rather than learned. It converted no
+better than one crop: 79/100 against the control's 80, the sweep replaced on
+5 of 79 scans, and the detector's crop **wrong 5 times in 13** when it won the
+ranking.
+
+Jitter covers near-misses in scale and angle, which is the failure mode mean
+IoU 0.840 implies. Since that converted nothing, the remaining errors are not
+near-misses — the detector sometimes locks onto the wrong object entirely, and
+re-cropping the wrong object cannot help.
+
+A learned head could propose genuinely different rectangles, so this is not a
+proof. But two independent ways of giving the detector more to work with — a
+17-point IoU gain, and a 5x crop spread — both landed in the noise, and the
+falsification criterion above (90% top-3 on unseen mats) is nowhere in reach
+from a 6% replacement rate. `detectorEnabled` stays false and the 126ms
+forward pass plus 2.9MB asset are not worth paying.
+
+**The localisation bet should be considered closed. v2 needs a different
+lever.**
 
 ### 2. A confidence gate
 

@@ -9,6 +9,53 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-08-09 — multi-proposal ceiling test — **the localisation bet does not pay**
+
+Before spending a retrain on a real top-k head, the cheap version of the same
+question: take the detector's prediction and re-crop it at five scales and
+angles, score all five, keep the best. That is the most generous form top-k
+could take, since the spread is hand-picked rather than learned.
+
+| | correct | detector ran | **replaced the sweep** | detector crop won |
+| --- | --- | --- | --- | --- |
+| control | 80/100 | — | — | — |
+| detector x1 | 81/100 | 80 | 3 | — |
+| **detector x5** | **79/100** | 79 | **5** | **8 correct / 13** |
+
+Same fixed 100-card draw throughout. Five crops convert no better than one:
+accuracy is noise-equivalent and slightly *down*, and the sweep is still
+replaced on only 6% of scans.
+
+The new number is the last column, and it is the damaging one. When the
+detector's crop wins the ranking it is **wrong 5 times in 13**. Those are not
+neutral — a confident bad crop displaces a correct answer that the sweep would
+otherwise have found. All five jitter variants appear among the winners, so the
+spread is genuinely contributing candidates; it is contributing wrong ones
+about as often as right ones.
+
+Not a leak: WASM heap flat 134MB start to end. Halves 44/50 and 35/50.
+By rotation: upsidedown 12/12, tapped 27/33, upright 40/55.
+
+**What this rules out.** Jitter covers near-misses in scale and angle, which is
+the failure mode a mean IoU of 0.840 implies. It converted nothing, so the
+detector's remaining errors are not near-misses that a slightly better
+rectangle would fix. The only surviving explanation is that it sometimes locks
+onto the wrong object entirely — a neighbouring card, a sleeve edge, a die —
+and no amount of re-cropping the wrong object helps.
+
+A learned top-k head could in principle propose genuinely *different*
+rectangles rather than rescalings of one, so this is not a mathematical proof
+that top-k fails. But the evidence against it is now consistent and expensive:
+a 17-point IoU gain converted to +1 card, and a 5x crop spread converted to -1.
+Two independent ways of giving the detector more to work with, both landing in
+the noise.
+
+**Recommendation: close the localisation bet.** `detectorEnabled` stays false.
+The 126ms forward pass and the 2.9MB asset buy a 6% sweep replacement rate and
+a 38% error rate on the scans it does win. v2 needs a different lever, and the
+plan's own falsification criterion — "90% of scans have a correct card among
+the top-3 proposals" — is nowhere in reach from 6%.
+
 ## 2026-08-08 — detector end-to-end — **+1 card. A 17-point IoU gain converted to nothing.**
 
 The combined-corpus detector took unseen playmats from 58.2% to 75.3% at

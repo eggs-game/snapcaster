@@ -72,6 +72,10 @@ export function setEarlyOrbAfterSeeds(enabled) {
   getWorker().postMessage({ id: `eos-${Date.now()}`, type: "set-early-orb-seeds", enabled });
 }
 
+export function setDetectorProposals(size) {
+  getWorker().postMessage({ id: `dpn-${Date.now()}`, type: "set-detector-proposals", size });
+}
+
 export function setEarlyOrbN(size) {
   getWorker().postMessage({ id: `eon-${Date.now()}`, type: "set-early-orb-n", size });
 }

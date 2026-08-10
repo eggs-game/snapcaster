@@ -27,7 +27,7 @@
 <div id="log">starting…</div>
 
 <script type="module">
-import { identify as identifyCard, preload, setIsolationCapScale, setArtScanScale, setOcrSkipDistance, setHalfRotations, setOrbShortlist, setEarlyOrbProbe, setEarlyOrbExit, setEarlyOrbAfterSeeds, setEarlyOrbN, setDetectorEnabled } from "/src/recognition/matcher.js";
+import { identify as identifyCard, preload, setIsolationCapScale, setArtScanScale, setOcrSkipDistance, setHalfRotations, setOrbShortlist, setEarlyOrbProbe, setEarlyOrbExit, setEarlyOrbAfterSeeds, setEarlyOrbN, setDetectorEnabled, setDetectorProposals } from "/src/recognition/matcher.js";
 import { buildScene, cropScene, perfectCrop, releaseScene } from "/src/snaptest/scene.js";
 import { degrade, loadImage, scryfallImageUrl } from "/src/snaptest/degrade.js";
 
@@ -84,6 +84,9 @@ const EARLYN = q.get("earlyn") !== null ? +q.get("earlyn") : undefined;
 // Card-quad detector as an isolation shortcut. IoU is not the metric that
 // decides this — end-to-end identification is — so this is the arm.
 const DETECTOR = q.get("detector") !== null ? q.get("detector") === "1" : undefined;
+// Crops taken around the detector's prediction. A ceiling test for a top-k
+// head: if a hand-made spread cannot beat one crop, a learned one will not.
+const DETPROPS = q.get("detprops") !== null ? +q.get("detprops") : undefined;
 const EARLYSEEDS = q.get("earlyseeds") === "1";
 const PER_SCENE = M.perScene || 10;
 const SEED = M.seed;            // only realLife fixes its draw
@@ -234,6 +237,7 @@ async function awaitVisible() {
     if (EARLYEXIT !== undefined) setEarlyOrbExit(EARLYEXIT);
     if (EARLYN !== undefined) setEarlyOrbN(EARLYN);
     if (DETECTOR !== undefined) setDetectorEnabled(DETECTOR);
+    if (DETPROPS !== undefined) setDetectorProposals(DETPROPS);
     if (EARLYSEEDS) setEarlyOrbAfterSeeds(true);
     say(`recognition ready in ${Math.round(performance.now() - t0)}ms`);
 

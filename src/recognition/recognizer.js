@@ -1416,6 +1416,17 @@ let detectorState = "idle";
 // than stand in for it, which preserves best-of-many selection while cutting
 // the 1549ms proposal stage. Enable with matcher's setDetectorEnabled(true).
 let detectorEnabled = false;
+// How many crops to take around the detector's prediction, and the ladder they
+// come from. Index 0 is the prediction itself, so DETECTOR_PROPOSALS = 1 is
+// exactly the single-proposal behaviour that measured +1 card.
+let DETECTOR_PROPOSALS = 1;
+const DETECTOR_JITTER = [
+  { ds: 1.00, da: 0 },
+  { ds: 0.90, da: 0 },
+  { ds: 1.10, da: 0 },
+  { ds: 1.00, da: -6 },
+  { ds: 1.00, da: 6 },
+];
 
 function loadDetector() {
   if (detectorState !== "idle") return detectorState === "ready";
@@ -2403,21 +2414,35 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
     if (bestCandidateDistance > 120 && detectorEnabled) {
       const guess = detectorProposal(getSourceImageData(), normalizedPoint);
       if (guess) {
-        const p = prepareCandidate({
-          image: rotatedAnchoredCropImageData(getSourceImageData(), guess.angle,
-            guess.scale, normalizedPoint, guess.anchorV, guess.anchorH, guess.landscape),
-          strategy: "detector",
-          isolation: true,
-          isolationScore: 0,
-        });
-        if (p) {
+        // A single predicted rectangle measured +1 card end-to-end while
+        // replacing the sweep on only 3 of 80 scans, even at mean IoU 0.840 —
+        // one good quad loses to best-of-110 because the sweep does not have
+        // to be right, it only has to contain something right.
+        //
+        // Before building a real top-k head, this asks whether MORE crops near
+        // the prediction convert at all: the same quad re-cropped at a few
+        // scales and angles. If a hand-made spread does not beat one crop, a
+        // learned top-k will not either, and the localisation bet is dead
+        // without spending a retrain on it.
+        for (const j of DETECTOR_JITTER.slice(0, DETECTOR_PROPOSALS)) {
+          const p = prepareCandidate({
+            image: rotatedAnchoredCropImageData(getSourceImageData(),
+              guess.angle + j.da, guess.scale * j.ds, normalizedPoint,
+              guess.anchorV, guess.anchorH, guess.landscape),
+            strategy: j.ds === 1 && j.da === 0 ? "detector" : `detector-j${j.ds}@${j.da}`,
+            isolation: true,
+            isolationScore: 0,
+          });
+          if (!p) continue;
           detectorUsed = true;
           // Reported so the skip threshold can be chosen from the observed
           // distribution rather than guessed. The existing >120 gate was
           // calibrated on far cleaner scenes: on realistic captures even
           // correct crops land well above it, so reusing it as the
-          // skip-the-sweep condition would never fire.
-          detectorDistance = scoreFull(p, { escalation: true });
+          // skip-the-sweep condition would never fire. With several proposals
+          // this is the BEST of them, which is what a top-k head would deliver.
+          const d = scoreFull(p, { escalation: true });
+          if (detectorDistance == null || d < detectorDistance) detectorDistance = d;
         }
       }
       mark("detector");
@@ -3036,6 +3061,11 @@ self.onmessage = async (e) => {
   if (type === "set-early-orb-seeds") {
     EARLY_ORB_AFTER_SEEDS = e.data.enabled === true;
     self.postMessage({ id, earlyOrbAfterSeeds: EARLY_ORB_AFTER_SEEDS });
+    return;
+  }
+  if (type === "set-detector-proposals") {
+    DETECTOR_PROPOSALS = Math.max(1, Math.min(DETECTOR_JITTER.length, e.data.size | 0));
+    self.postMessage({ id, detectorProposals: DETECTOR_PROPOSALS });
     return;
   }
   if (type === "set-early-orb-n") {
