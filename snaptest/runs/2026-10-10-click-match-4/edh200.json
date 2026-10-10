@@ -1,0 +1,501 @@
+{
+  "build": "click-match-4 (local vision)",
+  "aiCropEnabled": true,
+  "mode": "edh200",
+  "summary": {
+    "n": 200,
+    "errors": 0,
+    "accuracy": 0.985,
+    "avgMs": 1480,
+    "medianMs": 844,
+    "byRotation": {
+      "upright": {
+        "n": 50,
+        "ok": 49,
+        "acc": 0.98
+      },
+      "tilt": {
+        "n": 50,
+        "ok": 50,
+        "acc": 1
+      },
+      "sideways": {
+        "n": 50,
+        "ok": 50,
+        "acc": 1
+      },
+      "upsidedown": {
+        "n": 50,
+        "ok": 48,
+        "acc": 0.96
+      }
+    },
+    "byOcclusion": {
+      "none": {
+        "n": 52,
+        "ok": 52,
+        "acc": 1
+      },
+      "fingers": {
+        "n": 52,
+        "ok": 50,
+        "acc": 0.962
+      },
+      "dice": {
+        "n": 48,
+        "ok": 48,
+        "acc": 1
+      },
+      "fingers-dice": {
+        "n": 48,
+        "ok": 47,
+        "acc": 0.979
+      }
+    },
+    "firstHalfAcc": 0.99,
+    "secondHalfAcc": 0.98,
+    "peakHeapMB": 20,
+    "wasmHeapStartMB": 134,
+    "wasmHeapEndMB": 134,
+    "wasmHeapPeakMB": 134,
+    "errorsByStage": {},
+    "stageAvgMs": {
+      "prep": 178,
+      "rank": 0,
+      "orb": 506,
+      "total": 1393
+    },
+    "p90Ms": 3388,
+    "maxMs": 5025,
+    "byPathway": {
+      "art-match": {
+        "n": 191,
+        "ok": 191,
+        "acc": 1
+      },
+      "(no match)": {
+        "n": 6,
+        "ok": 3,
+        "acc": 0.5
+      },
+      "visual-exact": {
+        "n": 3,
+        "ok": 3,
+        "acc": 1
+      }
+    },
+    "byPlacement": {
+      "mild-centered-a": {
+        "n": 56,
+        "ok": 56,
+        "acc": 1
+      },
+      "above-click": {
+        "n": 48,
+        "ok": 48,
+        "acc": 1
+      },
+      "mild-centered-b": {
+        "n": 48,
+        "ok": 48,
+        "acc": 1
+      },
+      "top-edge-clipped": {
+        "n": 48,
+        "ok": 45,
+        "acc": 0.938
+      }
+    },
+    "byPool": {
+      "card": {
+        "n": 138,
+        "ok": 136,
+        "acc": 0.986
+      },
+      "token": {
+        "n": 55,
+        "ok": 55,
+        "acc": 1
+      },
+      "basic": {
+        "n": 7,
+        "ok": 6,
+        "acc": 0.857
+      }
+    },
+    "missTrueRank": {
+      "rank 2": 0,
+      "rank 3-5": 0,
+      "rank 6+": 0,
+      "absent": 3
+    },
+    "missAvgDist": 194,
+    "ranAt": "2026-10-10T21:52:21.024Z"
+  },
+  "misses": [
+    {
+      "name": "Mountain",
+      "id": "e5339dcb-2544-4f19-acf3-86f83793301c",
+      "pool": "basic",
+      "got": "Lens Flare",
+      "dist": 177,
+      "conf": 0.38,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Lens Flare (d=177)",
+        "Double-Faced Substitute Card (d=185)",
+        "Riven Turnbull and Princess Lucrezia (d=186)"
+      ],
+      "i": 55,
+      "degradeIndex": 55,
+      "placement": "top-edge-clipped",
+      "rot": "upsidedown",
+      "occ": "fingers",
+      "ms": 3202,
+      "cv": "ready",
+      "tried": 105,
+      "dropped": 27,
+      "artBest": {
+        "name": "Lens Flare",
+        "inliers": 6,
+        "color": 100,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 6,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "artChecked": 36,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-top-edge--2-28-92-182",
+          "score": 60.44
+        },
+        {
+          "strategy": "isolate-top-edge--4-28-86-182",
+          "score": 52.11
+        },
+        {
+          "strategy": "isolate-top-edge--2-28-92-179",
+          "score": 50.57
+        },
+        {
+          "strategy": "isolate-top-edge-4-36-11-161",
+          "score": 49.64
+        },
+        {
+          "strategy": "isolate-top-edge-4-36-11-152",
+          "score": 47.12
+        },
+        {
+          "strategy": "isolate-top-edge--4-27-89-182",
+          "score": 41.59
+        },
+        {
+          "strategy": "isolate-top-edge-4-34-11-164",
+          "score": 41.16
+        },
+        {
+          "strategy": "isolate-top-edge--2-28-92-176",
+          "score": 40.27
+        },
+        {
+          "strategy": "isolate-top-edge--2-27-92-182",
+          "score": 40.13
+        },
+        {
+          "strategy": "isolate-top-edge--4-28-89-182",
+          "score": 40.03
+        },
+        {
+          "strategy": "isolate-top-edge--4-28-83-182",
+          "score": 40.02
+        },
+        {
+          "strategy": "isolate-top-edge-2-34-83-164",
+          "score": 39.13
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.034372635185718536,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.007369567174464464,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 181
+      },
+      "truthGeometry": null,
+      "stages": {
+        "prep": 417,
+        "rankSeeds": 357,
+        "earlyOrbProbe": 0,
+        "rankRefine": 779,
+        "isolatePrep": 625,
+        "isolateScore": 314,
+        "rank": 0,
+        "orb": 413,
+        "aiCrop": 181,
+        "total": 3088
+      }
+    },
+    {
+      "name": "Sneak Attack",
+      "id": "5b8c11ba-533d-48c9-821c-3fec846bca97",
+      "pool": "card",
+      "got": "The Karfell Rocker",
+      "dist": 200,
+      "conf": 0.21,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "The Karfell Rocker (d=200)",
+        "Phyrexian Cytoshaper (d=199)",
+        "Dark Impostor (d=222)"
+      ],
+      "i": 127,
+      "degradeIndex": 127,
+      "placement": "top-edge-clipped",
+      "rot": "upsidedown",
+      "occ": "fingers-dice",
+      "ms": 3687,
+      "cv": "ready",
+      "tried": 89,
+      "dropped": 25,
+      "artBest": {
+        "name": "The Karfell Rocker",
+        "inliers": 17,
+        "color": 83,
+        "weak": false,
+        "clickInside": null,
+        "clickInliers": 18,
+        "clickArtInliers": 17,
+        "clickTextInliers": 1
+      },
+      "artChecked": 36,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-portrait-6-53-89-92",
+          "score": 186.43
+        },
+        {
+          "strategy": "isolate-portrait-6-53-89-83",
+          "score": 140.69
+        },
+        {
+          "strategy": "isolate-portrait-4-53-86-92",
+          "score": 115.56
+        },
+        {
+          "strategy": "isolate-portrait-6-53-89-71",
+          "score": 113.37
+        },
+        {
+          "strategy": "isolate-portrait-4-53-86-83",
+          "score": 112.76
+        },
+        {
+          "strategy": "isolate-portrait-6-53-89-89",
+          "score": 109.86
+        },
+        {
+          "strategy": "isolate-portrait-6-51-89-86",
+          "score": 98.77
+        },
+        {
+          "strategy": "isolate-portrait-6-53-89-80",
+          "score": 95.52
+        },
+        {
+          "strategy": "isolate-portrait-6-53-89-74",
+          "score": 93.65
+        },
+        {
+          "strategy": "isolate-portrait-6-53-89-62",
+          "score": 92.08
+        },
+        {
+          "strategy": "isolate-portrait-6-51-89-92",
+          "score": 91.94
+        },
+        {
+          "strategy": "isolate-portrait-6-54-86-92",
+          "score": 89.36
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.028151197358965874,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.012526992708444595,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 178
+      },
+      "truthGeometry": null,
+      "stages": {
+        "prep": 408,
+        "rankSeeds": 384,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1038,
+        "isolatePrep": 597,
+        "isolateScore": 233,
+        "rank": 0,
+        "orb": 771,
+        "aiCrop": 178,
+        "total": 3612
+      }
+    },
+    {
+      "name": "Bankrupt in Blood",
+      "id": "e635c433-0398-442a-856e-1869f6bf2cfd",
+      "pool": "card",
+      "got": "Dreadwing Scavenger",
+      "dist": 205,
+      "conf": 0.18,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Dreadwing Scavenger (d=205)",
+        "Angelic Field Marshal (d=205)",
+        "Elderfang Disciple (d=209)"
+      ],
+      "i": 180,
+      "degradeIndex": 180,
+      "placement": "top-edge-clipped",
+      "rot": "upright",
+      "occ": "fingers",
+      "ms": 4127,
+      "cv": "ready",
+      "tried": 94,
+      "dropped": 23,
+      "artBest": {
+        "name": "Dreadwing Scavenger",
+        "inliers": 7,
+        "color": 58,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "artChecked": 36,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-portrait-6-51-50-92",
+          "score": 141.03
+        },
+        {
+          "strategy": "isolate-portrait-6-51-50-89",
+          "score": 133.53
+        },
+        {
+          "strategy": "isolate-portrait-6-53-50-89",
+          "score": 128.81
+        },
+        {
+          "strategy": "isolate-portrait-6-53-50-77",
+          "score": 126.36
+        },
+        {
+          "strategy": "isolate-portrait-6-53-50-92",
+          "score": 126.29
+        },
+        {
+          "strategy": "isolate-portrait-6-48-53-86",
+          "score": 120.53
+        },
+        {
+          "strategy": "isolate-portrait-6-51-50-80",
+          "score": 119.29
+        },
+        {
+          "strategy": "isolate-portrait-8-48-56-83",
+          "score": 118.18
+        },
+        {
+          "strategy": "isolate-portrait-6-53-50-86",
+          "score": 116.45
+        },
+        {
+          "strategy": "isolate-portrait-6-48-47-86",
+          "score": 114.18
+        },
+        {
+          "strategy": "isolate-portrait-8-48-56-86",
+          "score": 113.98
+        },
+        {
+          "strategy": "isolate-portrait-8-44-53-71",
+          "score": 111.71
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.04795718938112259,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.035906627774238586,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          }
+        ],
+        "ms": 181
+      },
+      "truthGeometry": null,
+      "stages": {
+        "prep": 467,
+        "rankSeeds": 455,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1167,
+        "isolatePrep": 651,
+        "isolateScore": 244,
+        "rank": 0,
+        "orb": 846,
+        "aiCrop": 181,
+        "total": 4012
+      }
+    }
+  ],
+  "errors": []
+}

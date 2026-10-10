@@ -1,0 +1,2358 @@
+{
+  "build": "ai-crop-prototype-1",
+  "suite": "smoke",
+  "sample": "frozen snaptest/cards.json",
+  "paired": true,
+  "completed": 20,
+  "summary": {
+    "baseline": {
+      "attempted": 20,
+      "correct": 16,
+      "errors": 0,
+      "medianMs": 7843,
+      "p90Ms": 12844,
+      "accepted": {
+        "n": 15,
+        "correct": 15
+      },
+      "byRotation": {
+        "upright": {
+          "n": 13,
+          "ok": 12
+        },
+        "tapped": {
+          "n": 7,
+          "ok": 4
+        }
+      },
+      "byLayout": {
+        "overlapping": {
+          "n": 20,
+          "ok": 16
+        }
+      },
+      "absentMisses": 4,
+      "firstHalf": 9,
+      "secondHalf": 7,
+      "wasmHeapMB": [
+        134,
+        134
+      ]
+    },
+    "ai": {
+      "attempted": 20,
+      "correct": 17,
+      "errors": 0,
+      "medianMs": 1421,
+      "p90Ms": 13141,
+      "accepted": {
+        "n": 16,
+        "correct": 16
+      },
+      "byRotation": {
+        "upright": {
+          "n": 13,
+          "ok": 13
+        },
+        "tapped": {
+          "n": 7,
+          "ok": 4
+        }
+      },
+      "byLayout": {
+        "overlapping": {
+          "n": 20,
+          "ok": 17
+        }
+      },
+      "absentMisses": 3,
+      "firstHalf": 9,
+      "secondHalf": 8,
+      "wasmHeapMB": [
+        134,
+        134
+      ]
+    },
+    "recovered": [
+      12
+    ],
+    "regressed": [],
+    "proposals": 16,
+    "fastHits": 11
+  },
+  "records": [
+    {
+      "id": "4cd54279-57f5-4cd9-b524-4f094bd2fc36",
+      "name": "Exquisite Blood",
+      "set": "avr",
+      "cn": "102",
+      "face": 0,
+      "point": {
+        "nx": 0.5,
+        "ny": 0.3856929478797292
+      },
+      "scene": 0,
+      "rotation": "upright",
+      "layout": "overlapping",
+      "coverage": 0.158,
+      "clipped": 0,
+      "i": 0,
+      "baseline": {
+        "ok": true,
+        "got": "Exquisite Blood",
+        "by": "art-match",
+        "strategy": "isolate-portrait--2-50-47-26",
+        "distance": 147,
+        "trueRank": 1,
+        "ms": 7267,
+        "stages": {
+          "prep": 996,
+          "rank": 5771,
+          "orb": 497,
+          "total": 7267
+        },
+        "aiCrop": {
+          "status": "off"
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Exquisite Blood",
+          "inliers": 35,
+          "color": 77,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Exquisite Blood",
+            "distance": 147
+          },
+          {
+            "name": "Idol of Oblivion",
+            "distance": 198
+          },
+          {
+            "name": "Plains",
+            "distance": 192
+          }
+        ]
+      },
+      "ai": {
+        "ok": true,
+        "got": "Exquisite Blood",
+        "by": "art-match",
+        "strategy": "ai-crop-2",
+        "distance": 163,
+        "trueRank": 1,
+        "ms": 1421,
+        "stages": {
+          "prep": 41,
+          "rank": 120,
+          "orb": 718,
+          "aiCrop": 528,
+          "aiAttempt": 881,
+          "total": 1420
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.04019404947757721,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.03424267843365669,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 528,
+          "fastMs": 881,
+          "fastHit": true
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Exquisite Blood",
+          "inliers": 21,
+          "color": 73,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Exquisite Blood",
+            "distance": 163
+          },
+          {
+            "name": "The Dilu Horse",
+            "distance": 186
+          },
+          {
+            "name": "Questing Cosplayer",
+            "distance": 191
+          }
+        ]
+      }
+    },
+    {
+      "id": "56d51b3c-24e9-41b6-b7cd-c70329e498ca",
+      "name": "Raze",
+      "set": "usg",
+      "cn": "207",
+      "face": 0,
+      "point": {
+        "nx": 0.5,
+        "ny": 0.46043302594514524
+      },
+      "scene": 0,
+      "rotation": "upright",
+      "layout": "overlapping",
+      "coverage": 0.23,
+      "clipped": 0,
+      "i": 1,
+      "ai": {
+        "ok": true,
+        "got": "Raze",
+        "by": "art-match",
+        "strategy": "outline-7",
+        "distance": 152,
+        "trueRank": 1,
+        "ms": 8668,
+        "stages": {
+          "prep": 998,
+          "rank": 5529,
+          "orb": 977,
+          "aiCrop": 222,
+          "aiAttempt": 940,
+          "total": 8668
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.022013666108250618,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.03615780919790268,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            }
+          ],
+          "ms": 222,
+          "fastMs": 940,
+          "fastHit": false
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Raze",
+          "inliers": 22,
+          "color": 28,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Raze",
+            "distance": 152
+          },
+          {
+            "name": "Soul's Attendant",
+            "distance": 204
+          },
+          {
+            "name": "Origin of Black Widow",
+            "distance": 175
+          }
+        ]
+      },
+      "baseline": {
+        "ok": true,
+        "got": "Raze",
+        "by": "art-match",
+        "strategy": "isolate-portrait-8-47-17-47",
+        "distance": 164,
+        "trueRank": 1,
+        "ms": 7843,
+        "stages": {
+          "prep": 941,
+          "rank": 5778,
+          "orb": 1120,
+          "total": 7843
+        },
+        "aiCrop": {
+          "status": "off"
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Raze",
+          "inliers": 25,
+          "color": 33,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Raze",
+            "distance": 164
+          },
+          {
+            "name": "Soul's Attendant",
+            "distance": 204
+          },
+          {
+            "name": "Origin of Black Widow",
+            "distance": 175
+          }
+        ]
+      }
+    },
+    {
+      "id": "3df35f1b-c19c-4faf-81f6-0ffd47054446",
+      "name": "Queue of Beetles",
+      "set": "cmb1",
+      "cn": "61",
+      "face": 0,
+      "point": {
+        "nx": 0.5,
+        "ny": 0.3975172305784969
+      },
+      "scene": 0,
+      "rotation": "upright",
+      "layout": "overlapping",
+      "coverage": 0.145,
+      "clipped": 0,
+      "i": 2,
+      "baseline": {
+        "ok": true,
+        "got": "Queue of Beetles",
+        "by": "art-match",
+        "strategy": "isolate-portrait--4-45-74-35",
+        "distance": 145,
+        "trueRank": 1,
+        "ms": 8055,
+        "stages": {
+          "prep": 940,
+          "rank": 5747,
+          "orb": 1366,
+          "total": 8055
+        },
+        "aiCrop": {
+          "status": "off"
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Queue of Beetles",
+          "inliers": 100,
+          "color": 95,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Queue of Beetles",
+            "distance": 145
+          },
+          {
+            "name": "Learned Learner",
+            "distance": 192
+          },
+          {
+            "name": "Witty Demon",
+            "distance": 188
+          }
+        ]
+      },
+      "ai": {
+        "ok": true,
+        "got": "Queue of Beetles",
+        "by": "art-match",
+        "strategy": "ai-crop-1",
+        "distance": 117,
+        "trueRank": 1,
+        "ms": 1027,
+        "stages": {
+          "prep": 15,
+          "rank": 55,
+          "orb": 731,
+          "aiCrop": 222,
+          "aiAttempt": 802,
+          "total": 1027
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.042143672704696655,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.056452617049217224,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 222,
+          "fastMs": 802,
+          "fastHit": true
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Queue of Beetles",
+          "inliers": 134,
+          "color": 96,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Queue of Beetles",
+            "distance": 117
+          },
+          {
+            "name": "Problematic Volcano",
+            "distance": 179
+          },
+          {
+            "name": "Mnemonic Wall",
+            "distance": 183
+          }
+        ]
+      }
+    },
+    {
+      "id": "815701df-3ed1-417a-bd9a-fdb9f4802c39",
+      "name": "Nissa's Expedition",
+      "set": "c21",
+      "cn": "200",
+      "face": 0,
+      "point": {
+        "nx": 0.5,
+        "ny": 0.32030048815079354
+      },
+      "scene": 0,
+      "rotation": "upright",
+      "layout": "overlapping",
+      "coverage": 0.073,
+      "clipped": 0,
+      "i": 3,
+      "ai": {
+        "ok": true,
+        "got": "Nissa's Expedition",
+        "by": "art-match",
+        "strategy": "ai-crop-1",
+        "distance": 160,
+        "trueRank": 1,
+        "ms": 900,
+        "stages": {
+          "prep": 16,
+          "rank": 61,
+          "orb": 597,
+          "aiCrop": 223,
+          "aiAttempt": 675,
+          "total": 900
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.056438591331243515,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.06839253753423691,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 223,
+          "fastMs": 675,
+          "fastHit": true
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Nissa's Expedition",
+          "inliers": 119,
+          "color": 91,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Nissa's Expedition",
+            "distance": 160
+          },
+          {
+            "name": "Crop Rotation",
+            "distance": 191
+          },
+          {
+            "name": "Refreshing Elixir",
+            "distance": 199
+          }
+        ]
+      },
+      "baseline": {
+        "ok": true,
+        "got": "Nissa's Expedition",
+        "by": "art-match",
+        "strategy": "isolate-portrait--4-47-77-14",
+        "distance": 93,
+        "trueRank": 1,
+        "ms": 8075,
+        "stages": {
+          "prep": 900,
+          "rank": 5757,
+          "orb": 1415,
+          "total": 8075
+        },
+        "aiCrop": {
+          "status": "off"
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Nissa's Expedition",
+          "inliers": 132,
+          "color": 89,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Nissa's Expedition",
+            "distance": 93
+          },
+          {
+            "name": "Lingering Souls",
+            "distance": 166
+          },
+          {
+            "name": "Life Goes On",
+            "distance": 197
+          }
+        ]
+      }
+    },
+    {
+      "id": "79aa0a78-80a2-44be-8a79-92bcba9c040f",
+      "name": "Mysterio's Phantasm",
+      "set": "spm",
+      "cn": "38",
+      "face": 0,
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "scene": 0,
+      "rotation": "tapped",
+      "layout": "overlapping",
+      "coverage": 0.267,
+      "clipped": 0,
+      "i": 4,
+      "baseline": {
+        "ok": false,
+        "got": "The Aetherspark",
+        "strategy": "outline-7",
+        "distance": 183,
+        "trueRank": null,
+        "ms": 14409,
+        "stages": {
+          "prep": 892,
+          "rank": 5721,
+          "orb": 1177,
+          "metadata": 405,
+          "ocr": 6617,
+          "total": 14409
+        },
+        "aiCrop": {
+          "status": "off"
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "The Aetherspark",
+          "inliers": 5,
+          "color": 65,
+          "weak": true
+        },
+        "top3": [
+          {
+            "name": "The Aetherspark",
+            "distance": 183
+          },
+          {
+            "name": "Vastwood Gorger",
+            "distance": 187
+          },
+          {
+            "name": "Selesnya Sanctuary",
+            "distance": 190
+          }
+        ]
+      },
+      "ai": {
+        "ok": false,
+        "got": "The Aetherspark",
+        "strategy": "outline-7",
+        "distance": 183,
+        "trueRank": null,
+        "ms": 14243,
+        "stages": {
+          "prep": 884,
+          "rank": 5595,
+          "orb": 1172,
+          "metadata": 402,
+          "ocr": 6365,
+          "aiCrop": 223,
+          "total": 14243
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.03301750123500824,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.047253891825675964,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            }
+          ],
+          "ms": 223
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "The Aetherspark",
+          "inliers": 5,
+          "color": 65,
+          "weak": true
+        },
+        "top3": [
+          {
+            "name": "The Aetherspark",
+            "distance": 183
+          },
+          {
+            "name": "Vastwood Gorger",
+            "distance": 187
+          },
+          {
+            "name": "Selesnya Sanctuary",
+            "distance": 190
+          }
+        ]
+      }
+    },
+    {
+      "id": "a2a86ee7-f953-4fa2-8f28-a0c28afd733b",
+      "name": "Shepherd of the Flock // Usher to Safety",
+      "set": "eld",
+      "cn": "278",
+      "face": 0,
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "scene": 0,
+      "rotation": "upright",
+      "layout": "overlapping",
+      "coverage": 0.139,
+      "clipped": 0,
+      "i": 5,
+      "ai": {
+        "ok": true,
+        "got": "Shepherd of the Flock // Usher to Safety",
+        "by": "art-match",
+        "strategy": "ai-crop-1",
+        "distance": 176,
+        "trueRank": 1,
+        "ms": 818,
+        "stages": {
+          "prep": 16,
+          "rank": 58,
+          "orb": 513,
+          "aiCrop": 228,
+          "aiAttempt": 588,
+          "total": 818
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.02541639283299446,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.025724586099386215,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 228,
+          "fastMs": 588,
+          "fastHit": true
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Shepherd of the Flock // Usher to Safety",
+          "inliers": 18,
+          "color": 87,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Shepherd of the Flock // Usher to Safety",
+            "distance": 176
+          },
+          {
+            "name": "Chrome Replicator",
+            "distance": 190
+          },
+          {
+            "name": "Arcane Savant",
+            "distance": 196
+          }
+        ]
+      },
+      "baseline": {
+        "ok": true,
+        "got": "Shepherd of the Flock // Usher to Safety",
+        "by": "art-match",
+        "strategy": "isolate-portrait--2-45-29-26",
+        "distance": 102,
+        "trueRank": 1,
+        "ms": 7095,
+        "stages": {
+          "prep": 868,
+          "rank": 5426,
+          "orb": 798,
+          "total": 7095
+        },
+        "aiCrop": {
+          "status": "off"
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Shepherd of the Flock // Usher to Safety",
+          "inliers": 28,
+          "color": 87,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Shepherd of the Flock // Usher to Safety",
+            "distance": 102
+          },
+          {
+            "name": "Foulmire Knight // Profane Insight",
+            "distance": 148
+          },
+          {
+            "name": "Island",
+            "distance": 155
+          }
+        ]
+      }
+    },
+    {
+      "id": "d1d7237b-6749-4d39-bc69-5185d01e24d4",
+      "name": "Orzhov Basilica",
+      "set": "2x2",
+      "cn": "327",
+      "face": 0,
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "scene": 0,
+      "rotation": "upright",
+      "layout": "overlapping",
+      "coverage": 0.164,
+      "clipped": 0,
+      "i": 6,
+      "baseline": {
+        "ok": true,
+        "got": "Orzhov Basilica",
+        "by": "art-match",
+        "strategy": "outline-6",
+        "distance": 190,
+        "trueRank": 1,
+        "ms": 7567,
+        "stages": {
+          "prep": 885,
+          "rank": 5538,
+          "orb": 1142,
+          "total": 7567
+        },
+        "aiCrop": {
+          "status": "off"
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Orzhov Basilica",
+          "inliers": 45,
+          "color": 88,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Orzhov Basilica",
+            "distance": 190
+          },
+          {
+            "name": "Base Race (cont'd)",
+            "distance": 197
+          },
+          {
+            "name": "The Five Stages of Grief",
+            "distance": 195
+          }
+        ]
+      },
+      "ai": {
+        "ok": true,
+        "got": "Orzhov Basilica",
+        "by": "art-match",
+        "strategy": "ai-crop-1",
+        "distance": 181,
+        "trueRank": 1,
+        "ms": 918,
+        "stages": {
+          "prep": 16,
+          "rank": 63,
+          "orb": 613,
+          "aiCrop": 223,
+          "aiAttempt": 692,
+          "total": 918
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.026776254177093506,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.03032376617193222,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 223,
+          "fastMs": 692,
+          "fastHit": true
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Orzhov Basilica",
+          "inliers": 35,
+          "color": 88,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Orzhov Basilica",
+            "distance": 181
+          },
+          {
+            "name": "Teysa, Opulent Oligarch",
+            "distance": 187
+          },
+          {
+            "name": "Massacre Wurm",
+            "distance": 203
+          }
+        ]
+      }
+    },
+    {
+      "id": "d010948a-d3f8-4ce3-9c9b-6e905a3f7087",
+      "name": "Cone of Cold",
+      "set": "clb",
+      "cn": "61",
+      "face": 0,
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "scene": 0,
+      "rotation": "upright",
+      "layout": "overlapping",
+      "coverage": 0.206,
+      "clipped": 0,
+      "i": 7,
+      "ai": {
+        "ok": true,
+        "got": "Cone of Cold",
+        "by": "art-match",
+        "strategy": "outline-5",
+        "distance": 174,
+        "trueRank": 1,
+        "ms": 8655,
+        "stages": {
+          "prep": 922,
+          "rank": 6197,
+          "orb": 530,
+          "aiCrop": 217,
+          "aiAttempt": 785,
+          "total": 8655
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.056934602558612823,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.03328627720475197,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 217,
+          "fastMs": 785,
+          "fastHit": false
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Cone of Cold",
+          "inliers": 92,
+          "color": 83,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Cone of Cold",
+            "distance": 174
+          },
+          {
+            "name": "Guul Draz Assassin",
+            "distance": 182
+          },
+          {
+            "name": "Kor Aeronaut",
+            "distance": 198
+          }
+        ]
+      },
+      "baseline": {
+        "ok": true,
+        "got": "Cone of Cold",
+        "by": "art-match",
+        "strategy": "outline-5",
+        "distance": 174,
+        "trueRank": 1,
+        "ms": 7379,
+        "stages": {
+          "prep": 871,
+          "rank": 5745,
+          "orb": 760,
+          "total": 7379
+        },
+        "aiCrop": {
+          "status": "off"
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Cone of Cold",
+          "inliers": 51,
+          "color": 83,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Cone of Cold",
+            "distance": 174
+          },
+          {
+            "name": "Guul Draz Assassin",
+            "distance": 181
+          },
+          {
+            "name": "Stonecoil Serpent",
+            "distance": 205
+          }
+        ]
+      }
+    },
+    {
+      "id": "c299243b-5ccf-44e8-82f7-fce496f237d1",
+      "name": "Trained Caracal",
+      "set": "j22",
+      "cn": "256",
+      "face": 0,
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5456780042980929
+      },
+      "scene": 0,
+      "rotation": "tapped",
+      "layout": "overlapping",
+      "coverage": 0.236,
+      "clipped": 0,
+      "i": 8,
+      "baseline": {
+        "ok": true,
+        "got": "Trained Caracal",
+        "by": "art-match",
+        "strategy": "isolate-sideways-rotated-102-47-56-35",
+        "distance": 136,
+        "trueRank": 1,
+        "ms": 8368,
+        "stages": {
+          "prep": 837,
+          "rank": 6406,
+          "orb": 1123,
+          "total": 8368
+        },
+        "aiCrop": {
+          "status": "off"
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Trained Caracal",
+          "inliers": 45,
+          "color": 91,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Trained Caracal",
+            "distance": 136
+          },
+          {
+            "name": "Kalonian Twingrove",
+            "distance": 180
+          },
+          {
+            "name": "Hogaak, Arisen Necropolis",
+            "distance": 180
+          }
+        ]
+      },
+      "ai": {
+        "ok": true,
+        "got": "Trained Caracal",
+        "by": "art-match",
+        "strategy": "isolate-sideways-rotated-102-47-56-35",
+        "distance": 136,
+        "trueRank": 1,
+        "ms": 8481,
+        "stages": {
+          "prep": 837,
+          "rank": 6279,
+          "orb": 1142,
+          "aiCrop": 219,
+          "total": 8481
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.027748242020606995,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.016395390033721924,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 219
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Trained Caracal",
+          "inliers": 45,
+          "color": 91,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Trained Caracal",
+            "distance": 136
+          },
+          {
+            "name": "Kalonian Twingrove",
+            "distance": 180
+          },
+          {
+            "name": "Hogaak, Arisen Necropolis",
+            "distance": 180
+          }
+        ]
+      }
+    },
+    {
+      "id": "6affd9c6-f7ab-488e-85fa-2a3a48383414",
+      "name": "Horizon Stone",
+      "set": "cmr",
+      "cn": "315",
+      "face": 0,
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "scene": 0,
+      "rotation": "upright",
+      "layout": "overlapping",
+      "coverage": 0,
+      "clipped": 0,
+      "i": 9,
+      "ai": {
+        "ok": true,
+        "got": "Horizon Stone",
+        "by": "art-match",
+        "strategy": "isolate-portrait-6-45-29-23",
+        "distance": 124,
+        "trueRank": 1,
+        "ms": 7201,
+        "stages": {
+          "prep": 823,
+          "rank": 5205,
+          "orb": 949,
+          "aiCrop": 221,
+          "total": 7201
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.02370987832546234,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.01557905599474907,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 221
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Horizon Stone",
+          "inliers": 33,
+          "color": 97,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Horizon Stone",
+            "distance": 124
+          },
+          {
+            "name": "Corpse Appraiser",
+            "distance": 179
+          },
+          {
+            "name": "Treasure Chest",
+            "distance": 186
+          }
+        ]
+      },
+      "baseline": {
+        "ok": true,
+        "got": "Horizon Stone",
+        "by": "art-match",
+        "strategy": "isolate-portrait-6-45-29-23",
+        "distance": 124,
+        "trueRank": 1,
+        "ms": 7278,
+        "stages": {
+          "prep": 836,
+          "rank": 5278,
+          "orb": 1162,
+          "total": 7278
+        },
+        "aiCrop": {
+          "status": "off"
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Horizon Stone",
+          "inliers": 33,
+          "color": 97,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Horizon Stone",
+            "distance": 124
+          },
+          {
+            "name": "Corpse Appraiser",
+            "distance": 179
+          },
+          {
+            "name": "Treasure Chest",
+            "distance": 186
+          }
+        ]
+      }
+    },
+    {
+      "id": "d4c45eda-9f00-4b40-b91d-0ed00151923c",
+      "name": "Culling Mark",
+      "set": "bng",
+      "cn": "120",
+      "face": 0,
+      "point": {
+        "nx": 0.5,
+        "ny": 0.27041390914403574
+      },
+      "scene": 1,
+      "rotation": "upright",
+      "layout": "overlapping",
+      "coverage": 0.121,
+      "clipped": 0,
+      "i": 10,
+      "baseline": {
+        "ok": true,
+        "got": "Culling Mark",
+        "by": "art-match",
+        "strategy": "isolate-portrait--6-53-38-20",
+        "distance": 114,
+        "trueRank": 1,
+        "ms": 7014,
+        "stages": {
+          "prep": 769,
+          "rank": 5595,
+          "orb": 647,
+          "total": 7014
+        },
+        "aiCrop": {
+          "status": "off"
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Culling Mark",
+          "inliers": 188,
+          "color": 80,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Culling Mark",
+            "distance": 114
+          },
+          {
+            "name": "Snake Umbra",
+            "distance": 183
+          },
+          {
+            "name": "Mulch",
+            "distance": 185
+          }
+        ]
+      },
+      "ai": {
+        "ok": true,
+        "got": "Culling Mark",
+        "by": "art-match",
+        "strategy": "ai-crop-2",
+        "distance": 128,
+        "trueRank": 1,
+        "ms": 1017,
+        "stages": {
+          "prep": 27,
+          "rank": 109,
+          "orb": 660,
+          "aiCrop": 218,
+          "aiAttempt": 797,
+          "total": 1017
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.06208803504705429,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.05764610320329666,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 218,
+          "fastMs": 797,
+          "fastHit": true
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Culling Mark",
+          "inliers": 145,
+          "color": 80,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Culling Mark",
+            "distance": 128
+          },
+          {
+            "name": "Death Wind",
+            "distance": 172
+          },
+          {
+            "name": "Mutavault",
+            "distance": 171
+          }
+        ]
+      }
+    },
+    {
+      "id": "49e0c5e5-b293-419e-aac5-3b81af4b6498",
+      "name": "Feral Throwback",
+      "set": "lgn",
+      "cn": "126",
+      "face": 0,
+      "point": {
+        "nx": 0.5,
+        "ny": 0.2535960078782082
+      },
+      "scene": 1,
+      "rotation": "upright",
+      "layout": "overlapping",
+      "coverage": 0.176,
+      "clipped": 0,
+      "i": 11,
+      "ai": {
+        "ok": true,
+        "got": "Feral Throwback",
+        "by": "art-match",
+        "strategy": "isolate-portrait-2-53-80-14",
+        "distance": 103,
+        "trueRank": 1,
+        "ms": 8903,
+        "stages": {
+          "prep": 889,
+          "rank": 5880,
+          "orb": 1282,
+          "aiCrop": 221,
+          "aiAttempt": 628,
+          "total": 8903
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.024875199422240257,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.04310021549463272,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 221,
+          "fastMs": 628,
+          "fastHit": false
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Feral Throwback",
+          "inliers": 134,
+          "color": 45,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Feral Throwback",
+            "distance": 103
+          },
+          {
+            "name": "Artistic Refusal",
+            "distance": 191
+          },
+          {
+            "name": "Beacon of Unrest",
+            "distance": 189
+          }
+        ]
+      },
+      "baseline": {
+        "ok": true,
+        "got": "Feral Throwback",
+        "by": "art-match",
+        "strategy": "isolate-portrait-2-53-80-14",
+        "distance": 103,
+        "trueRank": 1,
+        "ms": 7943,
+        "stages": {
+          "prep": 878,
+          "rank": 5728,
+          "orb": 1334,
+          "total": 7943
+        },
+        "aiCrop": {
+          "status": "off"
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Feral Throwback",
+          "inliers": 134,
+          "color": 45,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Feral Throwback",
+            "distance": 103
+          },
+          {
+            "name": "Worldslayer",
+            "distance": 189
+          },
+          {
+            "name": "Beacon of Unrest",
+            "distance": 189
+          }
+        ]
+      }
+    },
+    {
+      "id": "53de6c9a-b7af-45bc-b0f7-41ebd5910cf4",
+      "name": "Char",
+      "set": "gk1",
+      "cn": "28",
+      "face": 0,
+      "point": {
+        "nx": 0.5,
+        "ny": 0.42977532794105594
+      },
+      "scene": 1,
+      "rotation": "upright",
+      "layout": "overlapping",
+      "coverage": 0.182,
+      "clipped": 0,
+      "i": 12,
+      "baseline": {
+        "ok": false,
+        "got": "Tranquil Cove",
+        "strategy": "isolate-sideways-rotated-90-51-53-71",
+        "distance": 184,
+        "trueRank": null,
+        "ms": 12844,
+        "stages": {
+          "prep": 928,
+          "rank": 5554,
+          "orb": 1206,
+          "metadata": 244,
+          "ocr": 5153,
+          "total": 12844
+        },
+        "aiCrop": {
+          "status": "off"
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Tranquil Cove",
+          "inliers": 5,
+          "color": 66,
+          "weak": true
+        },
+        "top3": [
+          {
+            "name": "Tranquil Cove",
+            "distance": 184
+          },
+          {
+            "name": "Tendrils of Agony",
+            "distance": 189
+          },
+          {
+            "name": "Loxodon Eavesdropper",
+            "distance": 190
+          }
+        ]
+      },
+      "ai": {
+        "ok": true,
+        "got": "Char",
+        "by": "art-match",
+        "strategy": "ai-crop-2",
+        "distance": 144,
+        "trueRank": 1,
+        "ms": 962,
+        "stages": {
+          "prep": 28,
+          "rank": 111,
+          "orb": 601,
+          "aiCrop": 220,
+          "aiAttempt": 740,
+          "total": 962
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.04164319857954979,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.06568086892366409,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 220,
+          "fastMs": 740,
+          "fastHit": true
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Char",
+          "inliers": 118,
+          "color": 58,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Char",
+            "distance": 144
+          },
+          {
+            "name": "Hit // Run",
+            "distance": 197
+          },
+          {
+            "name": "Boros Garrison",
+            "distance": 185
+          }
+        ]
+      }
+    },
+    {
+      "id": "8fd4c73d-0e9a-4ffe-8062-f2f4d0e601fe",
+      "name": "Point the Way",
+      "set": "dft",
+      "cn": "175",
+      "face": 0,
+      "point": {
+        "nx": 0.5,
+        "ny": 0.3682235042131446
+      },
+      "scene": 1,
+      "rotation": "tapped",
+      "layout": "overlapping",
+      "coverage": 0,
+      "clipped": 0,
+      "i": 13,
+      "ai": {
+        "ok": true,
+        "got": "Point the Way",
+        "by": "art-match",
+        "strategy": "ai-crop-1",
+        "distance": 45,
+        "trueRank": 1,
+        "ms": 581,
+        "stages": {
+          "prep": 16,
+          "rank": 54,
+          "orb": 292,
+          "aiCrop": 217,
+          "aiAttempt": 362,
+          "total": 581
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.059103261679410934,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.06341364234685898,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 217,
+          "fastMs": 362,
+          "fastHit": true
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Point the Way",
+          "inliers": 128,
+          "color": 86,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Point the Way",
+            "distance": 45
+          },
+          {
+            "name": "Dulcet Sirens",
+            "distance": 169
+          },
+          {
+            "name": "Vanguard of the Rose",
+            "distance": 155
+          }
+        ]
+      },
+      "baseline": {
+        "ok": true,
+        "got": "Point the Way",
+        "by": "art-match",
+        "strategy": "outline-3",
+        "distance": 110,
+        "trueRank": 1,
+        "ms": 3847,
+        "stages": {
+          "prep": 828,
+          "rank": 2228,
+          "orb": 789,
+          "total": 3847
+        },
+        "aiCrop": {
+          "status": "off"
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Point the Way",
+          "inliers": 85,
+          "color": 82,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Point the Way",
+            "distance": 110
+          },
+          {
+            "name": "Flip the Switch",
+            "distance": 168
+          },
+          {
+            "name": "Nyla, Shirshu Sleuth",
+            "distance": 186
+          }
+        ]
+      }
+    },
+    {
+      "id": "8b3048ec-bcbf-4a69-b56f-83bbe82b68e5",
+      "name": "Muzzle",
+      "set": "mmq",
+      "cn": "30",
+      "face": 0,
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "scene": 1,
+      "rotation": "upright",
+      "layout": "overlapping",
+      "coverage": 0.2,
+      "clipped": 0,
+      "i": 14,
+      "baseline": {
+        "ok": true,
+        "got": "Muzzle",
+        "by": "art-match",
+        "strategy": "isolate-portrait--4-54-38-44",
+        "distance": 139,
+        "trueRank": 1,
+        "ms": 6964,
+        "stages": {
+          "prep": 861,
+          "rank": 5593,
+          "orb": 507,
+          "total": 6964
+        },
+        "aiCrop": {
+          "status": "off"
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Muzzle",
+          "inliers": 58,
+          "color": 83,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Muzzle",
+            "distance": 139
+          },
+          {
+            "name": "Soul's Attendant",
+            "distance": 184
+          },
+          {
+            "name": "Arcbound Fiend",
+            "distance": 186
+          }
+        ]
+      },
+      "ai": {
+        "ok": true,
+        "got": "Muzzle",
+        "by": "art-match",
+        "strategy": "ai-crop-1",
+        "distance": 140,
+        "trueRank": 1,
+        "ms": 825,
+        "stages": {
+          "prep": 15,
+          "rank": 54,
+          "orb": 532,
+          "aiCrop": 221,
+          "aiAttempt": 602,
+          "total": 825
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.04786182940006256,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.05753789469599724,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 221,
+          "fastMs": 602,
+          "fastHit": true
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Muzzle",
+          "inliers": 50,
+          "color": 85,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Muzzle",
+            "distance": 140
+          },
+          {
+            "name": "Brotherhood Regalia",
+            "distance": 185
+          },
+          {
+            "name": "Starstorm",
+            "distance": 190
+          }
+        ]
+      }
+    },
+    {
+      "id": "8126c100-5462-4757-8589-69669850be25",
+      "name": "Adéwalé, Breaker of Chains",
+      "set": "aacr",
+      "cn": "14",
+      "face": 0,
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "scene": 1,
+      "rotation": "tapped",
+      "layout": "overlapping",
+      "coverage": 0.394,
+      "clipped": 0,
+      "i": 15,
+      "ai": {
+        "ok": false,
+        "got": "Hallowed Haunting",
+        "strategy": "isolate-sideways-rotated-80-48-71-56",
+        "distance": 180,
+        "trueRank": null,
+        "ms": 12862,
+        "stages": {
+          "prep": 857,
+          "rank": 5795,
+          "orb": 1176,
+          "metadata": 143,
+          "ocr": 4813,
+          "aiCrop": 218,
+          "total": 12862
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.014323384501039982,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.02288120612502098,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            }
+          ],
+          "ms": 218
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Hallowed Haunting",
+          "inliers": 6,
+          "color": 78,
+          "weak": true
+        },
+        "top3": [
+          {
+            "name": "Hallowed Haunting",
+            "distance": 180
+          },
+          {
+            "name": "Lavinia, Azorius Renegade",
+            "distance": 189
+          },
+          {
+            "name": "Breathless Knight",
+            "distance": 190
+          }
+        ]
+      },
+      "baseline": {
+        "ok": false,
+        "got": "Hallowed Haunting",
+        "strategy": "isolate-sideways-rotated-80-48-71-56",
+        "distance": 180,
+        "trueRank": null,
+        "ms": 12613,
+        "stages": {
+          "prep": 879,
+          "rank": 5603,
+          "orb": 1288,
+          "metadata": 142,
+          "ocr": 4840,
+          "total": 12613
+        },
+        "aiCrop": {
+          "status": "off"
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Hallowed Haunting",
+          "inliers": 6,
+          "color": 78,
+          "weak": true
+        },
+        "top3": [
+          {
+            "name": "Hallowed Haunting",
+            "distance": 180
+          },
+          {
+            "name": "Lavinia, Azorius Renegade",
+            "distance": 189
+          },
+          {
+            "name": "Breathless Knight",
+            "distance": 190
+          }
+        ]
+      }
+    },
+    {
+      "id": "f654a0de-50aa-448d-9bad-0870b32a0a49",
+      "name": "Rushblade Commander",
+      "set": "bbd",
+      "cn": "77",
+      "face": 0,
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "scene": 1,
+      "rotation": "tapped",
+      "layout": "overlapping",
+      "coverage": 0.006,
+      "clipped": 0,
+      "i": 16,
+      "baseline": {
+        "ok": true,
+        "got": "Rushblade Commander",
+        "by": "art-match",
+        "strategy": "outline-5",
+        "distance": 107,
+        "trueRank": 1,
+        "ms": 4142,
+        "stages": {
+          "prep": 872,
+          "rank": 2679,
+          "orb": 588,
+          "total": 4142
+        },
+        "aiCrop": {
+          "status": "off"
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Rushblade Commander",
+          "inliers": 82,
+          "color": 61,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Rushblade Commander",
+            "distance": 107
+          },
+          {
+            "name": "Swords to Plowshares",
+            "distance": 206
+          },
+          {
+            "name": "Utopia Sprawl",
+            "distance": 212
+          }
+        ]
+      },
+      "ai": {
+        "ok": true,
+        "got": "Rushblade Commander",
+        "by": "art-match",
+        "strategy": "ai-crop-1",
+        "distance": 118,
+        "trueRank": 1,
+        "ms": 895,
+        "stages": {
+          "prep": 15,
+          "rank": 60,
+          "orb": 597,
+          "aiCrop": 220,
+          "aiAttempt": 672,
+          "total": 895
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.05590083450078964,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.056285034865140915,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            }
+          ],
+          "ms": 220,
+          "fastMs": 672,
+          "fastHit": true
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Rushblade Commander",
+          "inliers": 96,
+          "color": 61,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Rushblade Commander",
+            "distance": 118
+          },
+          {
+            "name": "Temple of Epiphany",
+            "distance": 154
+          },
+          {
+            "name": "Raccoon Rallier",
+            "distance": 172
+          }
+        ]
+      }
+    },
+    {
+      "id": "03ffa3c3-dd29-47eb-abf2-7951fadb5c37",
+      "name": "Leveler",
+      "set": "mrd",
+      "cn": "195",
+      "face": 0,
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5619536699497615
+      },
+      "scene": 1,
+      "rotation": "tapped",
+      "layout": "overlapping",
+      "coverage": 0.176,
+      "clipped": 0,
+      "i": 17,
+      "ai": {
+        "ok": false,
+        "got": "Rise of the Dread Marn",
+        "strategy": "outline-3",
+        "distance": 176,
+        "trueRank": null,
+        "ms": 13141,
+        "stages": {
+          "prep": 780,
+          "rank": 5924,
+          "orb": 1034,
+          "metadata": 137,
+          "ocr": 4681,
+          "aiCrop": 221,
+          "aiAttempt": 498,
+          "total": 13140
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.030612997710704803,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.030311686918139458,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            }
+          ],
+          "ms": 221,
+          "fastMs": 498,
+          "fastHit": false
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Rise of the Dread Marn",
+          "inliers": 5,
+          "color": 96,
+          "weak": true
+        },
+        "top3": [
+          {
+            "name": "Rise of the Dread Marn",
+            "distance": 176
+          },
+          {
+            "name": "Isshin, Two Heavens as One",
+            "distance": 177
+          },
+          {
+            "name": "Atsushi, the Blazing Sky",
+            "distance": 180
+          }
+        ]
+      },
+      "baseline": {
+        "ok": false,
+        "got": "Rise of the Dread Marn",
+        "strategy": "outline-3",
+        "distance": 176,
+        "trueRank": null,
+        "ms": 11822,
+        "stages": {
+          "prep": 759,
+          "rank": 5554,
+          "orb": 1057,
+          "metadata": 134,
+          "ocr": 4450,
+          "total": 11822
+        },
+        "aiCrop": {
+          "status": "off"
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Rise of the Dread Marn",
+          "inliers": 5,
+          "color": 96,
+          "weak": true
+        },
+        "top3": [
+          {
+            "name": "Rise of the Dread Marn",
+            "distance": 176
+          },
+          {
+            "name": "Isshin, Two Heavens as One",
+            "distance": 177
+          },
+          {
+            "name": "Atsushi, the Blazing Sky",
+            "distance": 180
+          }
+        ]
+      }
+    },
+    {
+      "id": "be77edac-9a8b-4b7f-a859-27df76b10aa6",
+      "name": "Enduring Renewal",
+      "set": "ice",
+      "cn": "23",
+      "face": 0,
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5661229279169971
+      },
+      "scene": 1,
+      "rotation": "upright",
+      "layout": "overlapping",
+      "coverage": 0.23,
+      "clipped": 0,
+      "i": 18,
+      "baseline": {
+        "ok": true,
+        "got": "Enduring Renewal",
+        "strategy": "isolate-portrait--8-51-17-50",
+        "distance": 185,
+        "trueRank": 1,
+        "ms": 7153,
+        "stages": {
+          "prep": 769,
+          "rank": 5336,
+          "orb": 1045,
+          "total": 7153
+        },
+        "aiCrop": {
+          "status": "off"
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Enduring Renewal",
+          "inliers": 15,
+          "color": 99,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Enduring Renewal",
+            "distance": 185
+          },
+          {
+            "name": "Forest",
+            "distance": 215
+          },
+          {
+            "name": "Gruesome Menagerie",
+            "distance": 216
+          }
+        ]
+      },
+      "ai": {
+        "ok": true,
+        "got": "Enduring Renewal",
+        "strategy": "isolate-portrait--8-51-17-50",
+        "distance": 185,
+        "trueRank": 1,
+        "ms": 8432,
+        "stages": {
+          "prep": 802,
+          "rank": 5693,
+          "orb": 883,
+          "aiCrop": 226,
+          "aiAttempt": 825,
+          "total": 8432
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.028682256117463112,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.0342920683324337,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 226,
+          "fastMs": 825,
+          "fastHit": false
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Enduring Renewal",
+          "inliers": 15,
+          "color": 99,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Enduring Renewal",
+            "distance": 185
+          },
+          {
+            "name": "Forest",
+            "distance": 215
+          },
+          {
+            "name": "Gruesome Menagerie",
+            "distance": 216
+          }
+        ]
+      }
+    },
+    {
+      "id": "38dcbad0-267e-411f-8e99-5d90b537bf9b",
+      "name": "Marrow Bats",
+      "set": "avr",
+      "cn": "113",
+      "face": 0,
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "scene": 1,
+      "rotation": "tapped",
+      "layout": "overlapping",
+      "coverage": 0,
+      "clipped": 0,
+      "i": 19,
+      "ai": {
+        "ok": true,
+        "got": "Marrow Bats",
+        "by": "art-match",
+        "strategy": "ai-crop-1",
+        "distance": 71,
+        "trueRank": 1,
+        "ms": 982,
+        "stages": {
+          "prep": 27,
+          "rank": 108,
+          "orb": 625,
+          "aiCrop": 218,
+          "aiAttempt": 762,
+          "total": 982
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.0657740980386734,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.060020897537469864,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 218,
+          "fastMs": 762,
+          "fastHit": true
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Marrow Bats",
+          "inliers": 109,
+          "color": 81,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Marrow Bats",
+            "distance": 71
+          },
+          {
+            "name": "Catacomb Slug",
+            "distance": 148
+          },
+          {
+            "name": "Skeletal Vampire",
+            "distance": 145
+          }
+        ]
+      },
+      "baseline": {
+        "ok": true,
+        "got": "Marrow Bats",
+        "by": "art-match",
+        "strategy": "isolate-sideways-rotated-88-53-26-14",
+        "distance": 71,
+        "trueRank": 1,
+        "ms": 8049,
+        "stages": {
+          "prep": 934,
+          "rank": 5861,
+          "orb": 1250,
+          "total": 8049
+        },
+        "aiCrop": {
+          "status": "off"
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Marrow Bats",
+          "inliers": 87,
+          "color": 81,
+          "weak": false
+        },
+        "top3": [
+          {
+            "name": "Marrow Bats",
+            "distance": 71
+          },
+          {
+            "name": "Phylactery Lich",
+            "distance": 148
+          },
+          {
+            "name": "Lethal Scheme",
+            "distance": 152
+          }
+        ]
+      }
+    }
+  ]
+}

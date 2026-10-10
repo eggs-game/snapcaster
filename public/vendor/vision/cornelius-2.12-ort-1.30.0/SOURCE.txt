@@ -1,0 +1,9 @@
+Unmodified Cornelius 2.12 corner detector by HanClinto, distributed under AGPL-3.0.
+Model: https://huggingface.co/HanClinto/cornelius/tree/42e9b8dca7ecb09edd13039332ef82620973d238
+SHA256: 650da3cc3e9ac778c6951de631f824ec1e63bdabf3aaa39a35d7435af625612e
+Upstream source: https://github.com/HanClinto/CollectorVision/tree/8b295ab80a997766afc00c640a616c1f2716df21
+Source archive: https://github.com/HanClinto/CollectorVision/archive/8b295ab80a997766afc00c640a616c1f2716df21.tar.gz
+Snapcast integration source: https://github.com/eggs-game/snapcaster/tree/main/src/recognition
+ONNX Runtime Web 1.30.0 (MIT): https://github.com/microsoft/onnxruntime/tree/v1.30.0
+Runtime archive SHA256: d2228df7e4616bc3348bf504ee888f3bec43789a273f0a63f3e68d203ce3bf71
+No card image is sent to an AI service. Inference runs in the browser.

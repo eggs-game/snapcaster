@@ -7,7 +7,7 @@ import re
 ROOT = Path(__file__).resolve().parents[1]
 MIGRATIONS = sorted((ROOT / "supabase" / "migrations").glob("*.sql"))
 SQL = "\n".join(path.read_text() for path in MIGRATIONS)
-SOURCE_FILES = sorted(path for path in (ROOT / "src").glob("**/*") if path.is_file())
+SOURCE_FILES = sorted(path for path in (ROOT / "src").glob("**/*") if path.is_file() and path.name != ".DS_Store")
 SRC = "\n".join(path.read_text() for path in SOURCE_FILES)
 DECK_API = (ROOT / "api" / "decks.js").read_text()
 DECK_IMPORT_SURFACE = "\n".join((

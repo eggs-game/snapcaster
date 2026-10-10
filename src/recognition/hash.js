@@ -143,12 +143,25 @@ export function queryVariants(gray) {
   return variants;
 }
 
-// Hamming distances of one query vec against packed index (N x 64 bytes)
+// Bit-exact word distance helpers, duplicated in the classic worker.
+const POPCOUNT16 = new Uint8Array(65536);
+for (let i = 1; i < POPCOUNT16.length; i++) POPCOUNT16[i] = (i & 1) + POPCOUNT16[i >>> 1];
+function hashWords(vector) {
+  if (vector.byteOffset % 4) vector = vector.slice();
+  return new Uint32Array(vector.buffer, vector.byteOffset, vector.byteLength / 4);
+}
+function wordDistance(query, index, offset) {
+  let distance = 0;
+  for (let b = 0; b < 16; b++) {
+    const value = query[b] ^ index[offset + b];
+    distance += POPCOUNT16[value & 65535] + POPCOUNT16[value >>> 16];
+  }
+  return distance;
+}
 export function hammingSearch(query, index, nCards, distsOut) {
+  const q = hashWords(query), words = hashWords(index);
   for (let i = 0; i < nCards; i++) {
-    const off = i * VEC_BYTES;
-    let d = 0;
-    for (let b = 0; b < VEC_BYTES; b++) d += POPCOUNT[index[off + b] ^ query[b]];
+    const d = wordDistance(q, words, i * 16);
     if (d < distsOut[i]) distsOut[i] = d;
   }
 }

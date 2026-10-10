@@ -1,0 +1,1425 @@
+{
+  "build": "speed-cuts-4 (early ORB exit measured net-negative, off)",
+  "aiCropEnabled": false,
+  "mode": "realLife",
+  "summary": {
+    "n": 200,
+    "accuracy": 0.81,
+    "byOcclusion": {
+      "clear": {
+        "n": 187,
+        "ok": 156,
+        "acc": 0.834
+      },
+      "overlapped": {
+        "n": 10,
+        "ok": 4,
+        "acc": 0.4
+      },
+      "edge": {
+        "n": 3,
+        "ok": 2,
+        "acc": 0.667
+      }
+    },
+    "byPool": {
+      "card": {
+        "n": 149,
+        "ok": 123,
+        "acc": 0.826
+      },
+      "token": {
+        "n": 44,
+        "ok": 35,
+        "acc": 0.795
+      },
+      "basic": {
+        "n": 7,
+        "ok": 4,
+        "acc": 0.571
+      }
+    },
+    "byCoverage": {
+      "0 (clear)": {
+        "n": 184,
+        "ok": 154,
+        "acc": 0.837
+      },
+      "0-15%": {
+        "n": 11,
+        "ok": 8,
+        "acc": 0.727
+      },
+      "15-30%": {
+        "n": 3,
+        "ok": 0,
+        "acc": 0
+      },
+      "30%+": {
+        "n": 2,
+        "ok": 0,
+        "acc": 0
+      }
+    },
+    "byClipped": {
+      "0-5% (whole)": {
+        "n": 197,
+        "ok": 160,
+        "acc": 0.812
+      },
+      "5-15%": {
+        "n": 3,
+        "ok": 2,
+        "acc": 0.667
+      }
+    },
+    "avgMs": 3720,
+    "neighbourMisses": [],
+    "attempted": 200,
+    "correct": 162,
+    "errors": 0,
+    "medianMs": 3844,
+    "p90Ms": 4407,
+    "accepted": {
+      "n": 160,
+      "correct": 156
+    },
+    "byPathway": {
+      "art-match": {
+        "n": 160,
+        "ok": 156,
+        "acc": 0.975
+      },
+      "(no match)": {
+        "n": 40,
+        "ok": 6,
+        "acc": 0.15
+      }
+    },
+    "byRotation": {
+      "upright": {
+        "n": 109,
+        "ok": 87,
+        "acc": 0.798
+      },
+      "tapped": {
+        "n": 55,
+        "ok": 45,
+        "acc": 0.818
+      },
+      "upsidedown": {
+        "n": 36,
+        "ok": 30,
+        "acc": 0.833
+      }
+    },
+    "byLayout": {
+      "side-by-side": {
+        "n": 120,
+        "ok": 98,
+        "acc": 0.817
+      },
+      "spaced": {
+        "n": 60,
+        "ok": 52,
+        "acc": 0.867
+      },
+      "overlapping": {
+        "n": 20,
+        "ok": 12,
+        "acc": 0.6
+      }
+    },
+    "absentMisses": 35,
+    "firstHalf": 80,
+    "secondHalf": 82,
+    "wasmHeapMB": [
+      134,
+      134
+    ],
+    "perfectCropControl": {
+      "n": 38,
+      "ok": 15,
+      "acc": 0.395
+    },
+    "wasmHeapStartMB": 134,
+    "wasmHeapEndMB": 134,
+    "firstHalfAcc": 0.8,
+    "secondHalfAcc": 0.82
+  },
+  "misses": [
+    {
+      "name": "Mortuary Mire",
+      "id": "44082a22-406f-4050-b1be-de4f3e0fde5e",
+      "i": 16,
+      "scene": 1,
+      "rot": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Blank Card",
+      "by": "art-match",
+      "trueRank": 2,
+      "artBest": {
+        "name": "Blank Card",
+        "inliers": 27,
+        "color": 94,
+        "weak": false
+      },
+      "stages": {
+        "prep": 626,
+        "rankSeeds": 727,
+        "earlyOrbProbe": 0,
+        "rankRefine": 669,
+        "isolatePrep": 688,
+        "isolateScore": 361,
+        "rank": 0,
+        "orb": 753
+      },
+      "ms": 3826,
+      "perfectControl": {
+        "ok": false,
+        "got": "Find the Assassin (cont'd)",
+        "dist": 146
+      }
+    },
+    {
+      "name": "Valakut, the Molten Pinnacle",
+      "id": "c2d07eea-b165-4976-9088-d283ab7cfe72",
+      "i": 26,
+      "scene": 2,
+      "rot": "upright",
+      "layout": "spaced",
+      "coverage": 0,
+      "got": "Blank Card",
+      "trueRank": null,
+      "artBest": {
+        "name": "Blank Card",
+        "inliers": 0,
+        "color": 96,
+        "weak": true
+      },
+      "stages": {
+        "prep": 588,
+        "rankSeeds": 711,
+        "earlyOrbProbe": 0,
+        "rankRefine": 494,
+        "isolatePrep": 660,
+        "isolateScore": 390,
+        "rank": 0,
+        "orb": 501
+      },
+      "ms": 3345,
+      "perfectControl": {
+        "ok": false,
+        "got": "Guildmark",
+        "dist": 149
+      }
+    },
+    {
+      "name": "Mines of Moria",
+      "id": "679335e5-f425-4dc2-bcb2-03cc328ac664",
+      "i": 37,
+      "scene": 3,
+      "rot": "tapped",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Blank Card",
+      "trueRank": 2,
+      "artBest": {
+        "name": "Blank Card",
+        "inliers": 19,
+        "color": 84,
+        "weak": false
+      },
+      "stages": {
+        "prep": 512,
+        "rankSeeds": 668,
+        "earlyOrbProbe": 0,
+        "rankRefine": 610,
+        "isolatePrep": 705,
+        "isolateScore": 328,
+        "rank": 0,
+        "orb": 1122
+      },
+      "ms": 3947,
+      "perfectControl": {
+        "ok": false,
+        "got": "Riven Turnbull and Princess Lucrezia",
+        "dist": 179
+      }
+    },
+    {
+      "name": "Curiosity",
+      "id": "5c353b2d-ba5c-4e5d-8936-c8bff002c713",
+      "i": 42,
+      "scene": 4,
+      "rot": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Swamp",
+      "trueRank": null,
+      "artBest": {
+        "name": "Swamp",
+        "inliers": 4,
+        "color": 66,
+        "weak": true
+      },
+      "stages": {
+        "prep": 708,
+        "rankSeeds": 758,
+        "earlyOrbProbe": 0,
+        "rankRefine": 707,
+        "isolatePrep": 735,
+        "isolateScore": 314,
+        "rank": 0,
+        "orb": 1084
+      },
+      "ms": 4307,
+      "perfectControl": {
+        "ok": false,
+        "got": "Dynaheir, Invoker Adept",
+        "dist": 190
+      }
+    },
+    {
+      "name": "Savage Lands",
+      "id": "428df1ff-e13e-48a3-bcc9-301bdc9470fb",
+      "i": 45,
+      "scene": 4,
+      "rot": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Tidal Kraken",
+      "trueRank": null,
+      "artBest": {
+        "name": "Tidal Kraken",
+        "inliers": 4,
+        "color": 83,
+        "weak": true
+      },
+      "stages": {
+        "prep": 634,
+        "rankSeeds": 743,
+        "earlyOrbProbe": 0,
+        "rankRefine": 576,
+        "isolatePrep": 706,
+        "isolateScore": 344,
+        "rank": 0,
+        "orb": 1285
+      },
+      "ms": 4289,
+      "perfectControl": {
+        "ok": false,
+        "got": "The Disciple of Vess",
+        "dist": 189
+      }
+    },
+    {
+      "name": "Consecrated Sphinx",
+      "id": "2fddeced-9d04-4b4c-bf3f-e9add96f4f5a",
+      "i": 47,
+      "scene": 4,
+      "rot": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Ojer Pakpatiq, Deepest Epoch",
+      "trueRank": null,
+      "artBest": {
+        "name": "Ojer Pakpatiq, Deepest Epoch",
+        "inliers": 7,
+        "color": 68,
+        "weak": true
+      },
+      "stages": {
+        "prep": 605,
+        "rankSeeds": 725,
+        "earlyOrbProbe": 0,
+        "rankRefine": 844,
+        "isolatePrep": 759,
+        "isolateScore": 291,
+        "rank": 0,
+        "orb": 1277
+      },
+      "ms": 4502,
+      "perfectControl": {
+        "ok": true,
+        "got": "Consecrated Sphinx",
+        "by": "art-match",
+        "dist": 106
+      }
+    },
+    {
+      "name": "Deathrite Shaman",
+      "id": "dd4341f7-c455-463e-9064-f0c215152ba9",
+      "i": 48,
+      "scene": 4,
+      "rot": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Blank Card",
+      "by": "art-match",
+      "trueRank": null,
+      "artBest": {
+        "name": "Blank Card",
+        "inliers": 20,
+        "color": 96,
+        "weak": false
+      },
+      "stages": {
+        "prep": 628,
+        "rankSeeds": 703,
+        "earlyOrbProbe": 0,
+        "rankRefine": 428,
+        "isolatePrep": 723,
+        "isolateScore": 375,
+        "rank": 0,
+        "orb": 808
+      },
+      "ms": 3667,
+      "perfectControl": {
+        "ok": true,
+        "got": "Deathrite Shaman",
+        "by": "art-match",
+        "dist": 179
+      }
+    },
+    {
+      "name": "Pyretic Ritual",
+      "id": "cb425ed1-d428-495a-a56f-07b81e97dcd3",
+      "i": 51,
+      "scene": 5,
+      "rot": "upright",
+      "layout": "spaced",
+      "coverage": 0,
+      "got": "March of Progress",
+      "trueRank": null,
+      "artBest": {
+        "name": "March of Progress",
+        "inliers": 12,
+        "color": 56,
+        "weak": false
+      },
+      "stages": {
+        "prep": 729,
+        "rankSeeds": 753,
+        "earlyOrbProbe": 0,
+        "rankRefine": 826,
+        "isolatePrep": 908,
+        "isolateScore": 375,
+        "rank": 0,
+        "orb": 1031
+      },
+      "ms": 4623,
+      "perfectControl": {
+        "ok": true,
+        "got": "Pyretic Ritual",
+        "by": "visual-exact",
+        "dist": 90
+      }
+    },
+    {
+      "name": "Tortured Existence",
+      "id": "1754b92b-d6f9-4503-af01-dee03f72a048",
+      "i": 53,
+      "scene": 5,
+      "rot": "upright",
+      "layout": "spaced",
+      "coverage": 0,
+      "got": "Will-o'-the-Wisp",
+      "trueRank": null,
+      "artBest": {
+        "name": "Will-o'-the-Wisp",
+        "inliers": 12,
+        "color": 66,
+        "weak": false
+      },
+      "stages": {
+        "prep": 632,
+        "rankSeeds": 717,
+        "earlyOrbProbe": 0,
+        "rankRefine": 783,
+        "isolatePrep": 787,
+        "isolateScore": 286,
+        "rank": 0,
+        "orb": 1254
+      },
+      "ms": 4459,
+      "perfectControl": {
+        "ok": true,
+        "got": "Tortured Existence",
+        "by": "art-match",
+        "dist": 99
+      }
+    },
+    {
+      "name": "Path to Exile",
+      "id": "eea53df7-0a86-464a-873e-9a7e57b1d8e9",
+      "i": 55,
+      "scene": 5,
+      "rot": "tapped",
+      "layout": "spaced",
+      "coverage": 0,
+      "got": "Patrician Geist",
+      "trueRank": null,
+      "artBest": {
+        "name": "Patrician Geist",
+        "inliers": 0,
+        "color": 86,
+        "weak": true
+      },
+      "stages": {
+        "prep": 625,
+        "rankSeeds": 714,
+        "earlyOrbProbe": 0,
+        "rankRefine": 391,
+        "isolatePrep": 845,
+        "isolateScore": 366,
+        "rank": 0,
+        "orb": 763
+      },
+      "ms": 3705,
+      "perfectControl": {
+        "ok": false,
+        "got": "Double-Faced Substitute Card",
+        "dist": 163
+      }
+    },
+    {
+      "name": "Birds of Paradise",
+      "id": "75a4cad2-4367-4084-8fe5-f85e49ca828d",
+      "i": 76,
+      "scene": 7,
+      "rot": "tapped",
+      "layout": "spaced",
+      "coverage": 0,
+      "got": "Crypt Ripper",
+      "trueRank": null,
+      "artBest": {
+        "name": "Crypt Ripper",
+        "inliers": 7,
+        "color": 92,
+        "weak": true
+      },
+      "stages": {
+        "prep": 624,
+        "rankSeeds": 756,
+        "earlyOrbProbe": 0,
+        "rankRefine": 845,
+        "isolatePrep": 696,
+        "isolateScore": 296,
+        "rank": 0,
+        "orb": 938
+      },
+      "ms": 4157,
+      "perfectControl": {
+        "ok": false,
+        "got": "Gravepurge",
+        "dist": 198
+      }
+    },
+    {
+      "name": "As Foretold",
+      "id": "c634fb14-49a1-4642-9a22-bce99279cb88",
+      "i": 83,
+      "scene": 8,
+      "rot": "tapped",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Blank Card",
+      "trueRank": null,
+      "artBest": {
+        "name": "Blank Card",
+        "inliers": 13,
+        "color": 92,
+        "weak": false
+      },
+      "stages": {
+        "prep": 597,
+        "rankSeeds": 700,
+        "earlyOrbProbe": 0,
+        "rankRefine": 620,
+        "isolatePrep": 702,
+        "isolateScore": 277,
+        "rank": 0,
+        "orb": 863
+      },
+      "ms": 3761,
+      "perfectControl": {
+        "ok": false,
+        "got": "Bicycle Rack",
+        "dist": 177
+      }
+    },
+    {
+      "name": "Foretell",
+      "id": "207b3d62-2541-4a51-8152-3c54218ab6f7",
+      "i": 85,
+      "scene": 8,
+      "rot": "tapped",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "How to Keep an Izzet Mage Busy",
+      "trueRank": null,
+      "artBest": {
+        "name": "How to Keep an Izzet Mage Busy",
+        "inliers": 6,
+        "color": 92,
+        "weak": true
+      },
+      "stages": {
+        "prep": 519,
+        "rankSeeds": 566,
+        "earlyOrbProbe": 0,
+        "rankRefine": 206,
+        "isolatePrep": 693,
+        "isolateScore": 268,
+        "rank": 0,
+        "orb": 670
+      },
+      "ms": 2924,
+      "perfectControl": {
+        "ok": false,
+        "got": "Lancer Sliver",
+        "dist": 178
+      }
+    },
+    {
+      "name": "Malcolm, Alluring Scoundrel",
+      "id": "b3ed6341-59f4-44f3-99c9-80f636fa484d",
+      "i": 86,
+      "scene": 8,
+      "rot": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Unbounded Potential",
+      "trueRank": null,
+      "artBest": {
+        "name": "Unbounded Potential",
+        "inliers": 0,
+        "color": 100,
+        "weak": true
+      },
+      "stages": {
+        "prep": 421,
+        "rankSeeds": 629,
+        "earlyOrbProbe": 0,
+        "rankRefine": 413,
+        "isolatePrep": 719,
+        "isolateScore": 459,
+        "rank": 0,
+        "orb": 747
+      },
+      "ms": 3391,
+      "perfectControl": {
+        "ok": false,
+        "got": "Barry's Land",
+        "dist": 172
+      }
+    },
+    {
+      "name": "Sacred Foundry",
+      "id": "b7b598d0-535d-477d-a33d-d6a10ff5439a",
+      "i": 92,
+      "scene": 9,
+      "rot": "upright",
+      "layout": "overlapping",
+      "coverage": 0.218,
+      "got": "Beast Walkers",
+      "trueRank": null,
+      "artBest": {
+        "name": "Beast Walkers",
+        "inliers": 6,
+        "color": 87,
+        "weak": true
+      },
+      "stages": {
+        "prep": 639,
+        "rankSeeds": 704,
+        "earlyOrbProbe": 0,
+        "rankRefine": 811,
+        "isolatePrep": 744,
+        "isolateScore": 294,
+        "rank": 0,
+        "orb": 1011
+      },
+      "ms": 4206,
+      "perfectControl": {
+        "ok": false,
+        "got": "Nightveil Sprite",
+        "dist": 175
+      }
+    },
+    {
+      "name": "Binding the Old Gods",
+      "id": "a0297fc9-9070-41cc-83fd-0dea2a65c263",
+      "i": 93,
+      "scene": 9,
+      "rot": "upright",
+      "layout": "overlapping",
+      "coverage": 0.036,
+      "got": "Tamiyo Meets the Story Circle",
+      "trueRank": null,
+      "artBest": {
+        "name": "Tamiyo Meets the Story Circle",
+        "inliers": 7,
+        "color": 71,
+        "weak": true
+      },
+      "stages": {
+        "prep": 513,
+        "rankSeeds": 653,
+        "earlyOrbProbe": 0,
+        "rankRefine": 551,
+        "isolatePrep": 740,
+        "isolateScore": 359,
+        "rank": 0,
+        "orb": 1035
+      },
+      "ms": 3853,
+      "perfectControl": {
+        "ok": true,
+        "got": "Binding the Old Gods",
+        "by": "art-match",
+        "dist": 99
+      }
+    },
+    {
+      "name": "Bat",
+      "id": "00841e4b-0995-4fb5-93d6-e177beba4934",
+      "i": 94,
+      "scene": 9,
+      "rot": "upright",
+      "layout": "overlapping",
+      "coverage": 0.242,
+      "got": "Filigree Familiar",
+      "trueRank": null,
+      "artBest": {
+        "name": "Filigree Familiar",
+        "inliers": 13,
+        "color": 85,
+        "weak": false
+      },
+      "stages": {
+        "prep": 557,
+        "rankSeeds": 681,
+        "earlyOrbProbe": 0,
+        "rankRefine": 820,
+        "isolatePrep": 734,
+        "isolateScore": 327,
+        "rank": 0,
+        "orb": 1018
+      },
+      "ms": 4139,
+      "perfectControl": {
+        "ok": true,
+        "got": "Bat",
+        "by": "art-match",
+        "dist": 184
+      }
+    },
+    {
+      "name": "High Market",
+      "id": "7ab4104c-7826-410c-b250-4000f7dc86eb",
+      "i": 95,
+      "scene": 9,
+      "rot": "upright",
+      "layout": "overlapping",
+      "coverage": 0.303,
+      "got": "Strangling Spores",
+      "trueRank": null,
+      "artBest": {
+        "name": "Strangling Spores",
+        "inliers": 15,
+        "color": 88,
+        "weak": false
+      },
+      "stages": {
+        "prep": 747,
+        "rankSeeds": 730,
+        "earlyOrbProbe": 0,
+        "rankRefine": 810,
+        "isolatePrep": 747,
+        "isolateScore": 341,
+        "rank": 0,
+        "orb": 1142
+      },
+      "ms": 4520,
+      "perfectControl": {
+        "ok": false,
+        "got": "Torens, Fist of the Angels",
+        "dist": 191
+      }
+    },
+    {
+      "name": "Exsanguinate",
+      "id": "f11d7311-4066-4a5d-ba28-9857fa707a0b",
+      "i": 96,
+      "scene": 9,
+      "rot": "upright",
+      "layout": "overlapping",
+      "coverage": 0.109,
+      "got": "Mortician Beetle",
+      "trueRank": null,
+      "artBest": {
+        "name": "Mortician Beetle",
+        "inliers": 7,
+        "color": 89,
+        "weak": true
+      },
+      "stages": {
+        "prep": 638,
+        "rankSeeds": 710,
+        "earlyOrbProbe": 0,
+        "rankRefine": 808,
+        "isolatePrep": 736,
+        "isolateScore": 377,
+        "rank": 0,
+        "orb": 979
+      },
+      "ms": 4250,
+      "perfectControl": {
+        "ok": false,
+        "got": "Organic Extinction",
+        "dist": 173
+      }
+    },
+    {
+      "name": "Arasta of the Endless Web",
+      "id": "e905a310-02d5-4a86-bb58-2bb3502edba2",
+      "i": 98,
+      "scene": 9,
+      "rot": "upright",
+      "layout": "overlapping",
+      "coverage": 0.206,
+      "got": "Tangle Mantis",
+      "trueRank": null,
+      "artBest": {
+        "name": "Tangle Mantis",
+        "inliers": 7,
+        "color": 87,
+        "weak": true
+      },
+      "stages": {
+        "prep": 643,
+        "rankSeeds": 743,
+        "earlyOrbProbe": 0,
+        "rankRefine": 722,
+        "isolatePrep": 749,
+        "isolateScore": 303,
+        "rank": 0,
+        "orb": 1068
+      },
+      "ms": 4230,
+      "perfectControl": {
+        "ok": true,
+        "got": "Arasta of the Endless Web",
+        "by": "art-match",
+        "dist": 160
+      }
+    },
+    {
+      "name": "Cat",
+      "id": "07b58d5f-8a9f-4fd6-83d6-efe3a92e89b2",
+      "i": 100,
+      "scene": 10,
+      "rot": "tapped",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Blank Card",
+      "trueRank": null,
+      "artBest": {
+        "name": "Blank Card",
+        "inliers": 9,
+        "color": 94,
+        "weak": true
+      },
+      "stages": {
+        "prep": 504,
+        "rankSeeds": 658,
+        "earlyOrbProbe": 0,
+        "rankRefine": 172,
+        "isolatePrep": 828,
+        "isolateScore": 348,
+        "rank": 0,
+        "orb": 616
+      },
+      "ms": 3128,
+      "perfectControl": {
+        "ok": false,
+        "got": "Find the Assassin (cont'd)",
+        "dist": 150
+      }
+    },
+    {
+      "name": "The Fire Crystal",
+      "id": "daceda7c-db1d-4847-9c80-13fdfe4d2135",
+      "i": 104,
+      "scene": 10,
+      "rot": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Blank Card",
+      "by": "art-match",
+      "trueRank": null,
+      "artBest": {
+        "name": "Blank Card",
+        "inliers": 24,
+        "color": 94,
+        "weak": false
+      },
+      "stages": {
+        "prep": 459,
+        "rankSeeds": 631,
+        "earlyOrbProbe": 0,
+        "rankRefine": 400,
+        "isolatePrep": 810,
+        "isolateScore": 369,
+        "rank": 0,
+        "orb": 421
+      },
+      "ms": 3091,
+      "perfectControl": {
+        "ok": false,
+        "got": "Double-Faced Substitute Card",
+        "dist": 160
+      }
+    },
+    {
+      "name": "Cyclonic Rift",
+      "id": "ee3bd03a-f296-479a-bd92-af7c55e594c4",
+      "i": 115,
+      "scene": 11,
+      "rot": "upsidedown",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Defensive Stance",
+      "trueRank": null,
+      "artBest": {
+        "name": "Defensive Stance",
+        "inliers": 7,
+        "color": 81,
+        "weak": true
+      },
+      "stages": {
+        "prep": 677,
+        "rankSeeds": 752,
+        "earlyOrbProbe": 0,
+        "rankRefine": 621,
+        "isolatePrep": 721,
+        "isolateScore": 359,
+        "rank": 0,
+        "orb": 1049
+      },
+      "ms": 4181,
+      "perfectControl": {
+        "ok": true,
+        "got": "Cyclonic Rift",
+        "by": "art-match",
+        "dist": 111
+      }
+    },
+    {
+      "name": "Snow-Covered Mountain",
+      "id": "685a9d6d-497b-44a1-963f-501d61ea7f66",
+      "i": 116,
+      "scene": 11,
+      "rot": "upsidedown",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Swamp",
+      "trueRank": null,
+      "artBest": {
+        "name": "Swamp",
+        "inliers": 12,
+        "color": 85,
+        "weak": false
+      },
+      "stages": {
+        "prep": 603,
+        "rankSeeds": 731,
+        "earlyOrbProbe": 0,
+        "rankRefine": 811,
+        "isolatePrep": 738,
+        "isolateScore": 385,
+        "rank": 0,
+        "orb": 864
+      },
+      "ms": 4134,
+      "perfectControl": {
+        "ok": true,
+        "got": "Snow-Covered Mountain",
+        "by": "art-match",
+        "dist": 159
+      }
+    },
+    {
+      "name": "Anger",
+      "id": "c82ca741-cf8e-4f53-bb71-dcf80f149346",
+      "i": 119,
+      "scene": 11,
+      "rot": "upsidedown",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Blank Card",
+      "by": "art-match",
+      "trueRank": 2,
+      "artBest": {
+        "name": "Blank Card",
+        "inliers": 29,
+        "color": 94,
+        "weak": false
+      },
+      "stages": {
+        "prep": 525,
+        "rankSeeds": 692,
+        "earlyOrbProbe": 0,
+        "rankRefine": 416,
+        "isolatePrep": 608,
+        "isolateScore": 415,
+        "rank": 0,
+        "orb": 322
+      },
+      "ms": 2980,
+      "perfectControl": {
+        "ok": false,
+        "got": "Bone Rattler",
+        "dist": 181
+      }
+    },
+    {
+      "name": "Ferrous Lake",
+      "id": "8a752279-4973-4824-bb79-8dac890c548e",
+      "i": 137,
+      "scene": 13,
+      "rot": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Herd Migration",
+      "trueRank": null,
+      "artBest": {
+        "name": "Herd Migration",
+        "inliers": 7,
+        "color": 85,
+        "weak": true
+      },
+      "stages": {
+        "prep": 608,
+        "rankSeeds": 707,
+        "earlyOrbProbe": 0,
+        "rankRefine": 846,
+        "isolatePrep": 710,
+        "isolateScore": 333,
+        "rank": 0,
+        "orb": 1186
+      },
+      "ms": 4392,
+      "perfectControl": {
+        "ok": true,
+        "got": "Ferrous Lake",
+        "by": "art-match",
+        "dist": 122
+      }
+    },
+    {
+      "name": "Goblin",
+      "id": "b72fe493-f712-45b3-9af2-7f96a31cad85",
+      "i": 150,
+      "scene": 15,
+      "rot": "tapped",
+      "layout": "spaced",
+      "coverage": 0,
+      "got": "Cuombajj Witches",
+      "trueRank": null,
+      "artBest": {
+        "name": "Cuombajj Witches",
+        "inliers": 12,
+        "color": 67,
+        "weak": false
+      },
+      "stages": {
+        "prep": 670,
+        "rankSeeds": 714,
+        "earlyOrbProbe": 0,
+        "rankRefine": 827,
+        "isolatePrep": 716,
+        "isolateScore": 269,
+        "rank": 0,
+        "orb": 1147
+      },
+      "ms": 4345,
+      "perfectControl": {
+        "ok": false,
+        "got": "Wardscale Crocodile",
+        "dist": 180
+      }
+    },
+    {
+      "name": "Walls",
+      "id": "cef6812d-5f8d-40c8-8935-e5f01a808301",
+      "i": 156,
+      "scene": 15,
+      "rot": "tapped",
+      "layout": "spaced",
+      "coverage": 0,
+      "got": "Manakin and Millikin",
+      "trueRank": null,
+      "artBest": {
+        "name": "Manakin and Millikin",
+        "inliers": 2,
+        "color": 100,
+        "weak": true
+      },
+      "stages": {
+        "prep": 665,
+        "rankSeeds": 740,
+        "earlyOrbProbe": 0,
+        "rankRefine": 511,
+        "isolatePrep": 822,
+        "isolateScore": 374,
+        "rank": 0,
+        "orb": 491
+      },
+      "ms": 3604,
+      "perfectControl": {
+        "ok": true,
+        "got": "Walls",
+        "by": "art-match",
+        "dist": 122
+      }
+    },
+    {
+      "name": "Wastes",
+      "id": "837edd3f-5380-4c1c-8323-0e61dac385e5",
+      "i": 158,
+      "scene": 15,
+      "rot": "upsidedown",
+      "layout": "spaced",
+      "coverage": 0,
+      "got": "Astor, Bearer of Blades",
+      "trueRank": null,
+      "artBest": {
+        "name": "Astor, Bearer of Blades",
+        "inliers": 5,
+        "color": 100,
+        "weak": true
+      },
+      "stages": {
+        "prep": 557,
+        "rankSeeds": 674,
+        "earlyOrbProbe": 0,
+        "rankRefine": 352,
+        "isolatePrep": 658,
+        "isolateScore": 348,
+        "rank": 0,
+        "orb": 499
+      },
+      "ms": 3089,
+      "perfectControl": {
+        "ok": false,
+        "got": "Consume Spirit",
+        "dist": 178
+      }
+    },
+    {
+      "name": "Mistrise Village",
+      "id": "52f7e36c-87fb-4145-a5ca-6df7f55b3f1e",
+      "i": 163,
+      "scene": 16,
+      "rot": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Double-Faced Substitute Card",
+      "trueRank": null,
+      "artBest": {
+        "name": "Double-Faced Substitute Card",
+        "inliers": 5,
+        "color": 99,
+        "weak": true
+      },
+      "stages": {
+        "prep": 617,
+        "rankSeeds": 701,
+        "earlyOrbProbe": 0,
+        "rankRefine": 556,
+        "isolatePrep": 648,
+        "isolateScore": 356,
+        "rank": 0,
+        "orb": 705
+      },
+      "ms": 3585,
+      "perfectControl": {
+        "ok": false,
+        "got": "Artisan of Forms",
+        "dist": 175
+      }
+    },
+    {
+      "name": "Ogre",
+      "id": "efaa37e5-302e-4b4b-bb2d-6a0f9f80cd3f",
+      "i": 165,
+      "scene": 16,
+      "rot": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Garruk, Cursed Huntsman Emblem",
+      "trueRank": null,
+      "artBest": {
+        "name": "Garruk, Cursed Huntsman Emblem",
+        "inliers": 4,
+        "color": 90,
+        "weak": true
+      },
+      "stages": {
+        "prep": 672,
+        "rankSeeds": 721,
+        "earlyOrbProbe": 0,
+        "rankRefine": 867,
+        "isolatePrep": 876,
+        "isolateScore": 379,
+        "rank": 0,
+        "orb": 1166
+      },
+      "ms": 4683,
+      "perfectControl": {
+        "ok": false,
+        "got": "Tsabo's Web",
+        "dist": 184
+      }
+    },
+    {
+      "name": "Mox Diamond",
+      "id": "28028830-83ed-45e2-b495-3b9ad9d3e988",
+      "i": 167,
+      "scene": 16,
+      "rot": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Seal of the Guildpact",
+      "trueRank": null,
+      "artBest": {
+        "name": "Seal of the Guildpact",
+        "inliers": 7,
+        "color": 88,
+        "weak": true
+      },
+      "stages": {
+        "prep": 649,
+        "rankSeeds": 727,
+        "earlyOrbProbe": 0,
+        "rankRefine": 731,
+        "isolatePrep": 735,
+        "isolateScore": 319,
+        "rank": 0,
+        "orb": 1579
+      },
+      "ms": 4741,
+      "perfectControl": {
+        "ok": true,
+        "got": "Mox Diamond",
+        "by": "art-match",
+        "dist": 117
+      }
+    },
+    {
+      "name": "Ghalta, Stampede Tyrant",
+      "id": "2e751853-b0ee-42ab-a7be-8d192599b8f6",
+      "i": 180,
+      "scene": 18,
+      "rot": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Moonrage Brute",
+      "trueRank": null,
+      "artBest": {
+        "name": "Moonrage Brute",
+        "inliers": 7,
+        "color": 95,
+        "weak": true
+      },
+      "stages": {
+        "prep": 667,
+        "rankSeeds": 709,
+        "earlyOrbProbe": 0,
+        "rankRefine": 688,
+        "isolatePrep": 668,
+        "isolateScore": 264,
+        "rank": 0,
+        "orb": 1015
+      },
+      "ms": 4014,
+      "perfectControl": {
+        "ok": true,
+        "got": "Ghalta, Stampede Tyrant",
+        "dist": 130
+      }
+    },
+    {
+      "name": "Corrupted Conviction",
+      "id": "ce133ad5-8748-4a3d-ae8c-7b2a5938927d",
+      "i": 181,
+      "scene": 18,
+      "rot": "tapped",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Bicycle Rack",
+      "trueRank": null,
+      "artBest": {
+        "name": "Bicycle Rack",
+        "inliers": 5,
+        "color": 99,
+        "weak": true
+      },
+      "stages": {
+        "prep": 542,
+        "rankSeeds": 685,
+        "earlyOrbProbe": 0,
+        "rankRefine": 781,
+        "isolatePrep": 684,
+        "isolateScore": 371,
+        "rank": 0,
+        "orb": 962
+      },
+      "ms": 4027,
+      "perfectControl": {
+        "ok": true,
+        "got": "Corrupted Conviction",
+        "by": "art-match",
+        "dist": 130
+      }
+    },
+    {
+      "name": "Snow-Covered Plains",
+      "id": "e0ed0c75-0ec3-4f06-8c37-750fefb8136d",
+      "i": 187,
+      "scene": 18,
+      "rot": "tapped",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Hunter's Prowess",
+      "trueRank": null,
+      "artBest": {
+        "name": "Hunter's Prowess",
+        "inliers": 7,
+        "color": 92,
+        "weak": true
+      },
+      "stages": {
+        "prep": 624,
+        "rankSeeds": 730,
+        "earlyOrbProbe": 0,
+        "rankRefine": 777,
+        "isolatePrep": 718,
+        "isolateScore": 353,
+        "rank": 0,
+        "orb": 1147
+      },
+      "ms": 4350,
+      "perfectControl": {
+        "ok": false,
+        "got": "Elder Gargaroth",
+        "dist": 221
+      }
+    },
+    {
+      "name": "Geier Reach Sanitarium",
+      "id": "8d80ec47-0e47-49e3-9c43-1c126d8523e1",
+      "i": 188,
+      "scene": 18,
+      "rot": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Blank Card",
+      "trueRank": null,
+      "artBest": {
+        "name": "Blank Card",
+        "inliers": 0,
+        "color": 93,
+        "weak": true
+      },
+      "stages": {
+        "prep": 632,
+        "rankSeeds": 749,
+        "earlyOrbProbe": 0,
+        "rankRefine": 674,
+        "isolatePrep": 636,
+        "isolateScore": 380,
+        "rank": 0,
+        "orb": 542
+      },
+      "ms": 3615,
+      "perfectControl": {
+        "ok": false,
+        "got": "Blank Card",
+        "dist": 161
+      }
+    },
+    {
+      "name": "Dinosaur Cat",
+      "id": "cb87f3e1-f4ba-459d-9bb9-6651fe073a0a",
+      "i": 192,
+      "scene": 19,
+      "rot": "upsidedown",
+      "layout": "overlapping",
+      "coverage": 0.036,
+      "got": "Storm Cauldron",
+      "trueRank": null,
+      "artBest": {
+        "name": "Storm Cauldron",
+        "inliers": 6,
+        "color": 82,
+        "weak": true
+      },
+      "stages": {
+        "prep": 799,
+        "rankSeeds": 730,
+        "earlyOrbProbe": 0,
+        "rankRefine": 799,
+        "isolatePrep": 873,
+        "isolateScore": 363,
+        "rank": 0,
+        "orb": 982
+      },
+      "ms": 4549,
+      "perfectControl": {
+        "ok": true,
+        "got": "Dinosaur Cat",
+        "by": "art-match",
+        "dist": 133
+      }
+    },
+    {
+      "name": "Kai Budde Bio",
+      "id": "9ed2329f-d055-4a60-955b-384722504278",
+      "i": 195,
+      "scene": 19,
+      "rot": "upsidedown",
+      "layout": "overlapping",
+      "coverage": 0.321,
+      "got": "Ash Barrens",
+      "trueRank": null,
+      "artBest": {
+        "name": "Ash Barrens",
+        "inliers": 7,
+        "color": 96,
+        "weak": true
+      },
+      "stages": {
+        "prep": 711,
+        "rankSeeds": 742,
+        "earlyOrbProbe": 0,
+        "rankRefine": 798,
+        "isolatePrep": 715,
+        "isolateScore": 342,
+        "rank": 0,
+        "orb": 1264
+      },
+      "ms": 4574,
+      "perfectControl": {
+        "ok": false,
+        "got": "Halana and Alena and Gisa and Geralf",
+        "dist": 219
+      }
+    }
+  ],
+  "errors": []
+}

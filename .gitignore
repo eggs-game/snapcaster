@@ -2,6 +2,7 @@ node_modules/
 dist/
 public/mock-data.local.json
 .cache/
+public/experimental/
 .env
 .env.local
 .DS_Store

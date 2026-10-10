@@ -3,6 +3,18 @@
 Written 2026-08-04, after a day of measuring the current pipeline stage by
 stage. Every number below was measured on the Real life suite unless stated.
 
+**2026-10-10 update:** the rejected custom detector remains disabled. A separate
+pretrained Cornelius 2.12 model now proposes full-frame and click-local corners,
+with the existing hash/ORB verifier deciding identity. The final paired 200-card
+production test replaced the full pipeline on 133 scans, all correct; median
+fell from 3.844s to 0.858s and accuracy rose from 81% to 84.5%, with no individual
+regressions. The p90 increased from 4.407s to 5.700s when the fast attempt needed
+the full fallback. This supports this particular detector integration rather
+than overturning the earlier custom-model experiments. No embeddings or paid
+per-scan API are involved. Full evidence and remaining limitations are in
+[the October results](../snaptest/results.md). The original plan below is kept
+as the measured history of the earlier approach.
+
 The current architecture reached **~3280ms and ~83%** after four accuracy-neutral
 speed cuts and one structural change. It will not reach 2000ms, and this
 explains why, what to build instead, and what could go wrong.

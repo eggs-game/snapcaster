@@ -1,0 +1,83 @@
+{
+  "source": "Frozen public snaptest/cards.json, buildScene scene 9 at 1920x1080, production capture geometry",
+  "fixtures": [
+    {
+      "name": "Dementia Bat",
+      "id": "72ae22c3-2dea-463e-894a-188657849909",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "rotation": "upright",
+      "coverage": 0.079,
+      "file": "dementia-bat-crowded.jpg"
+    },
+    {
+      "name": "Champion's Drake",
+      "id": "7585316f-ba3d-4472-9a7e-7db6f6dd9d15",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "rotation": "upright",
+      "coverage": 0.248,
+      "file": "champions-drake-crowded.jpg"
+    },
+    {
+      "name": "Mortuary Mire",
+      "id": "44082a22-406f-4050-b1be-de4f3e0fde5e",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "rotation": "upright",
+      "coverage": 0,
+      "file": "mortuary-mire-template.jpg",
+      "source": "authoritative Real life sampler seed 20260803",
+      "scene": 1,
+      "index": 6
+    },
+    {
+      "name": "Horizon of Progress",
+      "id": "5ae3a9c8-194e-421b-b77d-9c8784442651",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.6697831452505646
+      },
+      "rotation": "upright",
+      "coverage": 0,
+      "file": "fallback-67.jpg",
+      "source": "authoritative Real life sampler seed 20260803",
+      "scene": 6,
+      "index": 7
+    },
+    {
+      "name": "Grand Arbiter Augustin IV",
+      "id": "c99bb21a-c346-440c-8c82-6e8c2de4b5f5",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "rotation": "upright",
+      "coverage": 0,
+      "file": "fallback-146.jpg",
+      "source": "authoritative Real life sampler seed 20260803",
+      "scene": 14,
+      "index": 6
+    },
+    {
+      "name": "Key to the City",
+      "id": "66154969-5c69-40ce-8bc9-c9bc5e280d4c",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "rotation": "upsidedown",
+      "coverage": 0,
+      "file": "fallback-155.jpg",
+      "source": "authoritative Real life sampler seed 20260803",
+      "scene": 15,
+      "index": 5
+    }
+  ]
+}

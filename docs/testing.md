@@ -230,6 +230,63 @@ mode. Each fallback records the framing strategy and stage timings so a future
 crop change cannot quietly move repeated scans back onto the expensive full
 path.
 
+## Local AI crop A/B
+
+Prepare local assets with `python3 scripts/setup_ai_crop.py`, start Vite, then
+run `node scripts/benchmark_ai_crop.mjs --suite=smoke`. Set `--chrome=/absolute/path/to/chrome`
+if Playwright's own Chromium is unavailable. `--url` selects the development
+server (default `http://127.0.0.1:5173`); `--output` selects the JSON destination.
+
+The paired runner uses frozen `public/snaptest/cards.json` selections and the
+actual scene/capture functions, giving both arms identical JPEGs and clicks.
+Each arm has a fresh, separate browser context and recognition worker; scan
+order alternates to balance external fetch timing. Ordinary recognition runs
+with `{ aiCrop: false }`, the AI arm with `{ aiCrop: true }`.
+Per-call `false` supplies the control arm; `?aiCrop=0` disables inference for a whole page.
+
+Available suites are `tableau` (100), `vegas` (200), `dice` (100), `overlap`
+(100 forced-overlap), and `arcane` (200 supplied captures, `--severity=light|medium|heavy`).
+`smoke` is 20 forced-overlap cards on the Vegas playmat and is not a release
+gate. Output records every paired result, proposal diagnostics, recoveries,
+regressions, accepted-pathway precision, rotations/layouts, latency, half-run
+accuracy, and WASM heap. Model warmup completes before scanning. Older prototype records included cold start on their first scan.
+The frozen samples are targeted experiments, not the randomized EDH release
+scores; releasing a recognition change requires the complete normal release
+matrix above and separately captured real-camera examples.
+
+For a production A/B, serve unchanged current main and the candidate separately,
+and serve the candidate source with `python3 scripts/serve_preview.py 8877`.
+Run the paired primary suite with:
+
+```sh
+node scripts/benchmark_ai_crop.mjs --suite=realLife --production=1 \
+  --url=http://127.0.0.1:4183 --baselineUrl=http://127.0.0.1:4184 \
+  --generatorUrl=http://127.0.0.1:8877 --output=.cache/paired-real-life-200.json \
+  --releaseOutput=.cache/recognition-release/final \
+  --controlOutput=.cache/recognition-release/current-main-control
+```
+
+The sampler and mode constants are extracted from the actual `SnapTest.jsx`,
+then the actual scene and capture functions generate each JPEG once. Both
+production engines receive that same capture and click, alternating order.
+The primary suite runs all 200 cards with perfect-crop controls for misses,
+records every result, and reports neighbour recoveries and fast-path precision.
+Each engine has a fresh context; the driver brings its page to the foreground
+before each scan and refuses to time a hidden page. It runs in headless Chrome
+with background worker throttling disabled. These timings describe this
+controlled desktop-browser run, not camera transfer or phone performance.
+
+Run the other suites with
+`node scripts/benchmark_recognition_release.mjs --url=http://127.0.0.1:4183
+--modes=tableauEdh10,tableauVegasEdh20,tableauEdhDice10,random200,edh200,recentHint20,arcaneMedium
+--output=.cache/recognition-release/final`. Each suite opens a fresh context
+and writes its exact Copy results payload. `--ai=0` disables model inference
+for an entire control page. Validate with
+`node scripts/check_recognition_release.mjs .cache/recognition-release/final
+.cache/recognition-release/current-main-control`, then inspect breakdowns and
+card-for-card regressions. Production assets must include the pinned model,
+runtime and source/license package under `dist/vendor/vision`.
+
 ## Fast local policy checks
 
 These do not replace SNAPTEST, but catch contracts that do not require pixels:
@@ -237,6 +294,7 @@ These do not replace SNAPTEST, but catch contracts that do not require pixels:
 ```sh
 node scripts/test_recognition_hints.mjs
 node scripts/test_recognition_queue.mjs
+node scripts/test_ai_crop.mjs
 node scripts/test_video_quality.mjs
 node scripts/test_card_search_cache.mjs
 node scripts/test_metadata_evidence.mjs

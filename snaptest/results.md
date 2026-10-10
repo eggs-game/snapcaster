@@ -9,6 +9,205 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-10-10 — `click-match-4` — local vision and clicked-card verification
+
+The first complete current-main comparison found a specific integration failure:
+weak AI seeds could change the ordinary fallback shortlist and displace its
+verification images. This regressed Horizon of Progress, Grand Arbiter Augustin
+IV and Key to the City. Saved exact captures now pass with AI both off and on.
+The ordinary retrieval and six-query verification budget now remain independent;
+at most twelve extra printing candidates and two query images supplement them.
+Supplemental candidates can change identity only through the existing decisive
+artwork gates, and must reverify rather than carry stale trial scores forward.
+Source-space negative click proof rejects a fast completion even if the full
+fallback needs to retain off-centre single-card recovery.
+
+Shared frame detail cannot establish identity. Keypoint scores require artwork
+support or substantial title/rules content (35+ total inliers with at least
+eight in those interior regions). The latter preserves cards such as Horizon
+whose artwork is covered by a die and glare; raw border-only counts stay below
+the confidence threshold. A code-policy test and frozen JPEGs verify both sides.
+
+Excluded names now carry through title OCR and the legacy visual re-search,
+so a later stage cannot reintroduce a proven neighbour. Integration tests
+exercise both paths. Strong interior text follows the same source-space click
+proof as artwork, while shared-frame/text coincidences remain below the gate.
+
+The complete, frozen production-bundle comparison against deployed current main
+(`ad1c672`, `speed-cuts-4`) finished with **7 recovered and 0 regressed** on
+identical captures. This exceeds the documented four-card noise band at 200.
+
+| Real life, paired 200 | Current main | Local vision |
+| --- | --- | --- |
+| Correct | 162/200 (81%) | 169/200 (84.5%) |
+| Confident artwork/exact reads | 156/160 correct | 161/161 correct |
+| Median | 3.844s | 0.858s |
+| Mean | 3.720s | 2.190s |
+| p90 | 4.407s | 5.700s |
+| Upright | 87/109 | 91/109 |
+| Tapped | 45/55 | 47/55 |
+| Upside-down | 30/36 | 31/36 |
+| Overlapping layout | 12/20 | 13/20 |
+
+The local-model fast path completed **133/200**, all correct. Recoveries were
+Mortuary Mire, Mines of Moria, Curiosity, Consecrated Sphinx, Pyretic Ritual,
+Mystic Gate and Dinosaur Cat. The last is a specific crowded-scene recovery;
+one extra success in twenty overlapping-layout scans does not establish a
+general overlap accuracy gain. Neither arm had a wrong selected-scene neighbour
+in this draw. The source-space neighbour exclusion is supported by the targeted
+geometry/identity tests and saved Champion's Drake scene, rather than a claimed
+production neighbour recovery in this paired suite.
+
+Both engines had zero scan errors and flat 134MB OpenCV heaps. First/second-half
+accuracy was 80%/82% for control and 85%/84% for the candidate. Every miss received
+a perfect-crop control; 11/31 remaining candidate misses identify when perfectly
+framed. A targeted Ferrous Lake trace found the identity absent from both AI
+trial shortlists despite a successful perfect crop, so the remaining miss is
+localization, not a dropped supplemental candidate. The slow tail **increased**
+because failed AI trials still need the full pipeline. These are warmed desktop
+browser timings; they exclude camera transfer and do not predict phone latency.
+
+The normal UI release matrix ran in separate fresh browser contexts with the
+production security headers. All established gates passed:
+
+| Suite | Correct | Confident artwork/exact reads | Median | p90 |
+| --- | --- | --- | --- | --- |
+| Tableau EDH | 94/100 | 90/90 | 0.707s | 4.315s |
+| Tableau Vegas EDH | 184/200 | 180/180 | 0.732s | 4.319s |
+| Tableau EDH dice | 90/100 | 88/88 | 0.675s | 3.779s |
+| Random | 190/200 | 187/187 | 0.817s | 3.484s |
+| EDH | 197/200 | 194/194 | 0.844s | 3.388s |
+| Recent hints | 20/20 | all hints verified | 0.165s | 0.210s |
+| Arcane medium, additional supplied images | 157/200 | 154/156 | 3.576s | 5.600s |
+
+Vegas clear cards were 173/185; upright 105/114, tapped 48/53, inverted 31/33.
+All sixteen Vegas misses have perfect-crop controls, thirteen successful.
+Tableau EDH's overlapping scene scored 5/10, dice 6/10. Their second-half drops
+(98%→90% and 96%→84%) coincide with the late overlap scene; all suites had zero
+errors and flat OpenCV heaps, including 93%/91% halves in the larger Vegas draw.
+Recent hints retained 20/20 hits, no full-crop fallbacks and a 4.71x mean speedup.
+
+The separate Arcane result is reported without correcting its supplied labels.
+Inspection of its two confident misses found a visible Arlinn Kord front face
+labelled Arlinn, Embraced by the Moon (both engines return Arlinn Kord), and
+Instill Energy with a shared "Localized Image Not Available" graphic. That
+graphic produces a false confident Pirate Ship read on the AI path; current
+main also misses it, returning a weak Fog result. This remains a common-overlay
+limitation, not a verified card identity. Saved private camera failures were
+unavailable through the inactive Supabase project, so they were not validated.
+
+All twelve frozen AI-on/off regression scans passed on the final build. Fast
+policy, hash parity/duplication, index metadata, production build and
+accessibility checks passed. Raw evidence: [paired primary](runs/2026-10-10-click-match-4/realLife-paired.json),
+[current-main control](runs/2026-10-10-click-match-4/realLife-current-main.json),
+[final Real life payload](runs/2026-10-10-click-match-4/realLife.json),
+[complete suite payloads](runs/2026-10-10-click-match-4/),
+[frozen regressions](runs/2026-10-10-click-match-4/frozen-regressions.json), and
+[Arcane targeted control](runs/2026-10-10-click-match-4/arcane-targeted-control.json).
+
+## 2026-10-10 — `click-match-1` — clicked-card registration (release candidate)
+
+The previous prototype confidently chose Global Ruin while the click belonged
+to the overlapping Champion's Drake. Source-space artwork registration now
+maps the click into each plausible reference and can suppress the neighbouring
+card when strong evidence also locates the clicked card. Strong clicked-card
+registration finishes before isolation. The weak evidence gates retain OCR;
+Dementia Bat is an explicit regression check because an earlier experiment
+incorrectly let weak global keypoints suppress its text fallback.
+
+A repeat of the frozen final Tableau scene identifies **8/10** in both arms,
+including Champion's Drake and Dementia Bat; accepted pathways are **6/6**
+precise. Butterbur (40% covered) and Iron Verdict (tapped, 15.8% covered)
+remain absent. The AI arm has only two fast completions in this deliberately
+hard scene; median is 8.256s versus 7.312s with local AI disabled. This is a
+specific wrong-neighbour fix, not a general accuracy gain from ten cards and
+not a claim that all crowded cards are instant. Three extra AI zooms were
+rejected because they added no recoveries and made the fallback slower.
+
+The distance loop now uses exact 16-bit popcounts over packed 32-bit words;
+parity and duplication checks preserve the hash/index contract. Warmup and
+scans serialize access to the retained model worker. The model/runtime and
+source/license attribution package are versioned static assets.
+
+Raw targeted run: [crowded paired 10](runs/2026-10-10-click-matching-crowded-paired-10.json).
+The local checkout was behind current main (`ad1c672`). The first 97/100 EDH
+run and partial Vegas run therefore describe the older scene/pipeline, not the
+release. Those results are not being used as gates. The task was integrated
+onto current main in an isolated worktree, retaining its speed cuts, four-query
+rotation path, detector experiments, and corrected scene generator. The two
+saved older crowded regressions also pass on unchanged current main; they
+protect known behaviour but do not establish a current production recovery.
+
+The final ownership gate excludes all printings of a proven neighbour from
+ordinary ranking as well as confident acceptance. Duplicate copies of the
+clicked card stay eligible, and weak/template-only or lone above-click proof
+cannot veto an answer. Policy, word-distance parity, hash compatibility,
+metadata and production accessibility checks pass.
+
+The complete release matrix uses production security headers. Its primary
+suite compares unchanged current main against the candidate on 200 identical
+captures from the authoritative Real life sampler and scene functions, in
+fresh contexts and alternating order. Saved real-camera failure reports were
+unavailable because the connected Supabase project was inactive and its
+database connection timed out. Separately supplied Arcane captures remain in
+the validation plan. The complete first comparison finished at **162/200 → 167/200**, median
+**4.600s → 1.151s**, p90 **5.247s → 6.495s**, and accepted precision
+**156/160 → 154/154**. Eight cards recovered, three regressed; the latter
+motivated the independent fallback above. Tapped: 45/55 → 47/55; inverted:
+30/36 in both; overlapping layout: 12/20 → 13/20. Both OpenCV heaps stayed
+134→134MB. None of the missed results named another selected scene card;
+this suite demonstrates shared-frame false positives and crowded retrieval,
+not a measured wrong-neighbour recovery. These are candidate-development
+results, not release approval. Raw [paired 200](runs/2026-10-10-click-match-1-real-life-paired-200.json).
+
+## 2026-10-10 — `ai-crop-prototype-1` — local corner-detector experiment
+
+Development-only evaluation of Cornelius 2.12 in ONNX Runtime WASM. A
+learned card boundary feeds the existing printing index and artwork verifier;
+strong reads skip contour/crop enumeration and click-local isolation. Weak
+reads retain the full matcher. No inference API, key, or per-scan fee is used.
+Downloaded weights/runtime are ignored and excluded from production builds.
+
+The paired runner supplied identical rendered JPEGs and click positions to
+separate fresh browser contexts, alternating arm order. Both cores warmed
+before scanning; the first AI scan includes model cold start. Measurements
+are recognition time on the development Mac (Apple M2 Max/Chrome), excluding
+WebRTC capture/transfer. These frozen index samples are targeted A/B evidence,
+not randomized EDH release scores or measurements on phones/real cameras.
+
+**Forced overlap on the Vegas playmat (20):** median **7.843s → 1.421s**,
+p90 **12.844s → 13.141s**, correct **16/20 → 17/20**, zero errors.
+The fast trial settled 11/20 scans; accepted pathways were 15/15 precise in
+the control and 16/16 in the experiment. Char was recovered with no correct
+control result regressed. Upright was 12/13 → 13/13; tapped stayed 4/7.
+OpenCV WASM remained 134→134MB in each arm. This is a speed signal and one
+specific recovery, not evidence of a general accuracy gain from twenty cards.
+The p90 makes the remaining slow fallback problem explicit.
+
+**Tableau (100 frozen cards):** median **2.170s → 0.705s**, p90
+**6.881s → 4.292s**, correct **96/100 in both arms**, zero errors.
+The experiment settled 88 scans on its fast trial, all 88 correct; 82 total
+reads were under one second versus none in the control. Side-by-side was
+60/60, spaced 29/30, and overlapping 7/10 in both arms. Rotation stayed
+53/55 upright, 30/31 tapped, and 13/14 upside-down. Both halves were
+50/50 then 46/50; OpenCV WASM stayed 134→134MB. No cards were recovered
+or regressed. Warm model inference for the two windows was roughly 220ms.
+
+**Accepted-pathway precision does not pass the release gate:** control was
+93/94 and experiment 94/95. Both confidently returned Global Ruin for the
+overlapped Champion's Drake, with 51 ORB inliers. The AI detector rejected
+its proposals on that capture, so this error came from the existing full
+fallback, not an AI fast acceptance. Think Tank was a low-ranked inverted
+miss in both arms; Butterbur and Iron Verdict remained absent. This identifies
+a separate click/neighbor verification problem and prevents interpreting the
+speed result as a validated accuracy improvement or production approval.
+OpenCV heap measurements do not include the ONNX runtime's memory.
+
+Raw paired records:
+[overlap/Vegas 20](runs/2026-10-10-ai-crop-smoke-paired-20.json),
+[Tableau 100](runs/2026-10-10-ai-crop-tableau-paired-100.json).
+Production promotion still requires a suitable model/licensing choice, the
+complete recognition release matrix, and separate real-camera validation.
 ## 2026-08-09 — multi-proposal ceiling test — **the localisation bet does not pay**
 
 Before spending a retrain on a real top-k head, the cheap version of the same

@@ -1,0 +1,1276 @@
+{
+  "build": "ai-crop-prototype-1",
+  "suite": "tableau",
+  "sample": "frozen snaptest/cards.json",
+  "paired": true,
+  "completed": 10,
+  "summary": {
+    "baseline": {
+      "attempted": 10,
+      "correct": 8,
+      "errors": 0,
+      "medianMs": 7312,
+      "p90Ms": 13886,
+      "accepted": {
+        "n": 6,
+        "correct": 6
+      },
+      "byRotation": {
+        "upright": {
+          "n": 8,
+          "ok": 7
+        },
+        "tapped": {
+          "n": 2,
+          "ok": 1
+        }
+      },
+      "byLayout": {
+        "overlapping": {
+          "n": 10,
+          "ok": 8
+        }
+      },
+      "absentMisses": 2,
+      "firstHalf": 4,
+      "secondHalf": 4,
+      "wasmHeapMB": [
+        134,
+        134
+      ]
+    },
+    "ai": {
+      "attempted": 10,
+      "correct": 8,
+      "errors": 0,
+      "medianMs": 8256,
+      "p90Ms": 15089,
+      "accepted": {
+        "n": 6,
+        "correct": 6
+      },
+      "byRotation": {
+        "upright": {
+          "n": 8,
+          "ok": 7
+        },
+        "tapped": {
+          "n": 2,
+          "ok": 1
+        }
+      },
+      "byLayout": {
+        "overlapping": {
+          "n": 10,
+          "ok": 8
+        }
+      },
+      "absentMisses": 2,
+      "firstHalf": 4,
+      "secondHalf": 4,
+      "wasmHeapMB": [
+        134,
+        134
+      ]
+    },
+    "recovered": [],
+    "regressed": [],
+    "proposals": 7,
+    "fastHits": 2
+  },
+  "records": [
+    {
+      "id": "4f6a4a8c-0b3e-4acf-8345-6ca73f3b675f",
+      "name": "Seer's Sundial",
+      "set": "c13",
+      "cn": "256",
+      "face": 0,
+      "point": {
+        "nx": 0.5,
+        "ny": 0.3110787544917168
+      },
+      "scene": 9,
+      "rotation": "upright",
+      "layout": "overlapping",
+      "coverage": 0.085,
+      "clipped": 0,
+      "i": 0,
+      "baseline": {
+        "ok": true,
+        "got": "Seer's Sundial",
+        "strategy": "isolate-portrait--2-47-68-14",
+        "distance": 137,
+        "trueRank": 1,
+        "ms": 7312,
+        "stages": {
+          "prep": 748,
+          "rank": 5620,
+          "orb": 941,
+          "total": 7312
+        },
+        "aiCrop": {
+          "status": "off"
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Seer's Sundial",
+          "inliers": 14,
+          "color": 75,
+          "weak": false,
+          "clickInside": null,
+          "clickInliers": 7,
+          "clickArtInliers": 1
+        },
+        "top3": [
+          {
+            "name": "Seer's Sundial",
+            "distance": 137
+          },
+          {
+            "name": "Trepanation Blade",
+            "distance": 190
+          },
+          {
+            "name": "Thirsting Axe",
+            "distance": 188
+          }
+        ]
+      },
+      "ai": {
+        "ok": true,
+        "got": "Seer's Sundial",
+        "strategy": "isolate-portrait--2-47-68-14",
+        "distance": 137,
+        "trueRank": 1,
+        "ms": 8519,
+        "stages": {
+          "prep": 726,
+          "rank": 5409,
+          "orb": 961,
+          "aiCrop": 536,
+          "aiAttempt": 874,
+          "total": 8519
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.05865386500954628,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.033096492290496826,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 536,
+          "fastMs": 874,
+          "fastHit": false
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Seer's Sundial",
+          "inliers": 14,
+          "color": 75,
+          "weak": false,
+          "clickInside": null,
+          "clickInliers": 7,
+          "clickArtInliers": 1
+        },
+        "top3": [
+          {
+            "name": "Seer's Sundial",
+            "distance": 137
+          },
+          {
+            "name": "Trepanation Blade",
+            "distance": 190
+          },
+          {
+            "name": "Thirsting Axe",
+            "distance": 188
+          }
+        ]
+      }
+    },
+    {
+      "id": "1bf5843a-a01f-4d1c-b8fe-c586d5160f6e",
+      "name": "Sizzling Barrage",
+      "set": "znr",
+      "cn": "162",
+      "face": 0,
+      "point": {
+        "nx": 0.5,
+        "ny": 0.4307773470286027
+      },
+      "scene": 9,
+      "rotation": "upright",
+      "layout": "overlapping",
+      "coverage": 0.224,
+      "clipped": 0,
+      "i": 1,
+      "ai": {
+        "ok": true,
+        "got": "Sizzling Barrage",
+        "by": "art-match",
+        "strategy": "outline-5",
+        "distance": 157,
+        "trueRank": 1,
+        "ms": 4281,
+        "stages": {
+          "prep": 790,
+          "rank": 2426,
+          "orb": 8,
+          "aiCrop": 226,
+          "aiAttempt": 829,
+          "total": 4281
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.045699119567871094,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.058144260197877884,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 226,
+          "fastMs": 829,
+          "fastHit": false
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Sizzling Barrage",
+          "inliers": 82,
+          "color": 58,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 69,
+          "clickArtInliers": 63
+        },
+        "top3": [
+          {
+            "name": "Sizzling Barrage",
+            "distance": 157
+          },
+          {
+            "name": "Conservator",
+            "distance": 184
+          },
+          {
+            "name": "Okaun, Eye of Chaos",
+            "distance": 204
+          }
+        ]
+      },
+      "baseline": {
+        "ok": true,
+        "got": "Sizzling Barrage",
+        "by": "art-match",
+        "strategy": "outline-5",
+        "distance": 157,
+        "trueRank": 1,
+        "ms": 4551,
+        "stages": {
+          "prep": 779,
+          "rank": 3761,
+          "orb": 8,
+          "total": 4551
+        },
+        "aiCrop": {
+          "status": "off"
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Sizzling Barrage",
+          "inliers": 82,
+          "color": 58,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 69,
+          "clickArtInliers": 63
+        },
+        "top3": [
+          {
+            "name": "Sizzling Barrage",
+            "distance": 157
+          },
+          {
+            "name": "Conservator",
+            "distance": 184
+          },
+          {
+            "name": "Iron Mastiff",
+            "distance": 210
+          }
+        ]
+      }
+    },
+    {
+      "id": "f3fd9ff1-278b-4e6a-b30b-90250d8b5762",
+      "name": "Butterbur, Bree Innkeeper",
+      "set": "ltr",
+      "cn": "197",
+      "face": 0,
+      "point": {
+        "nx": 0.5,
+        "ny": 0.4025953192490697
+      },
+      "scene": 9,
+      "rotation": "upright",
+      "layout": "overlapping",
+      "coverage": 0.4,
+      "clipped": 0,
+      "i": 2,
+      "baseline": {
+        "ok": false,
+        "got": "Goblin Grenade",
+        "strategy": "isolate-sideways-raw-2-44-86-41",
+        "distance": 185,
+        "trueRank": null,
+        "ms": 13886,
+        "stages": {
+          "prep": 716,
+          "rank": 6227,
+          "orb": 1344,
+          "metadata": 232,
+          "ocr": 5597,
+          "total": 13886
+        },
+        "aiCrop": {
+          "status": "off"
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Goblin Grenade",
+          "inliers": 6,
+          "color": 71,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 6,
+          "clickArtInliers": 4
+        },
+        "top3": [
+          {
+            "name": "Goblin Grenade",
+            "distance": 185
+          },
+          {
+            "name": "Zombie",
+            "distance": 186
+          },
+          {
+            "name": "Crosstown Courier",
+            "distance": 190
+          }
+        ]
+      },
+      "ai": {
+        "ok": false,
+        "got": "Goblin Grenade",
+        "strategy": "isolate-sideways-raw-2-44-86-41",
+        "distance": 185,
+        "trueRank": null,
+        "ms": 15089,
+        "stages": {
+          "prep": 738,
+          "rank": 6512,
+          "orb": 1318,
+          "metadata": 231,
+          "ocr": 5362,
+          "aiCrop": 226,
+          "aiAttempt": 931,
+          "total": 15089
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.02651955932378769,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.0399184450507164,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 226,
+          "fastMs": 931,
+          "fastHit": false
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Goblin Grenade",
+          "inliers": 7,
+          "color": 71,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 6,
+          "clickArtInliers": 4
+        },
+        "top3": [
+          {
+            "name": "Goblin Grenade",
+            "distance": 185
+          },
+          {
+            "name": "Zombie",
+            "distance": 186
+          },
+          {
+            "name": "Crosstown Courier",
+            "distance": 190
+          }
+        ]
+      }
+    },
+    {
+      "id": "446579ab-5e36-44e2-84d7-cfa537619146",
+      "name": "Jousting Lance",
+      "set": "dom",
+      "cn": "221",
+      "face": 0,
+      "point": {
+        "nx": 0.5,
+        "ny": 0.4762030969284212
+      },
+      "scene": 9,
+      "rotation": "tapped",
+      "layout": "overlapping",
+      "coverage": 0.03,
+      "clipped": 0,
+      "i": 3,
+      "ai": {
+        "ok": true,
+        "got": "Jousting Lance",
+        "by": "art-match",
+        "strategy": "ai-crop-1",
+        "distance": 64,
+        "trueRank": 1,
+        "ms": 1235,
+        "stages": {
+          "prep": 28,
+          "rank": 97,
+          "orb": 880,
+          "aiCrop": 229,
+          "aiAttempt": 1005,
+          "total": 1235
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.0578407421708107,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.06204621493816376,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 229,
+          "fastMs": 1005,
+          "fastHit": true
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Jousting Lance",
+          "inliers": 139,
+          "color": 91,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 139,
+          "clickArtInliers": 55
+        },
+        "top3": [
+          {
+            "name": "Jousting Lance",
+            "distance": 64
+          },
+          {
+            "name": "Zephyr Boots",
+            "distance": 155
+          },
+          {
+            "name": "Inventor's Goggles",
+            "distance": 149
+          }
+        ]
+      },
+      "baseline": {
+        "ok": true,
+        "got": "Jousting Lance",
+        "by": "art-match",
+        "strategy": "outline-5",
+        "distance": 161,
+        "trueRank": 1,
+        "ms": 3520,
+        "stages": {
+          "prep": 667,
+          "rank": 2844,
+          "orb": 8,
+          "total": 3520
+        },
+        "aiCrop": {
+          "status": "off"
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Jousting Lance",
+          "inliers": 139,
+          "color": 91,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 139,
+          "clickArtInliers": 55
+        },
+        "top3": [
+          {
+            "name": "Jousting Lance",
+            "distance": 161
+          },
+          {
+            "name": "Wicker Picker",
+            "distance": 210
+          },
+          {
+            "name": "Drover Grizzly",
+            "distance": 208
+          }
+        ]
+      }
+    },
+    {
+      "id": "336474b4-2cf5-44c0-b72c-f75f1a7ed928",
+      "name": "Global Ruin",
+      "set": "inv",
+      "cn": "18",
+      "face": 0,
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "scene": 9,
+      "rotation": "upright",
+      "layout": "overlapping",
+      "coverage": 0.212,
+      "clipped": 0,
+      "i": 4,
+      "baseline": {
+        "ok": true,
+        "got": "Global Ruin",
+        "by": "art-match",
+        "strategy": "outline-4",
+        "distance": 171,
+        "trueRank": 1,
+        "ms": 4061,
+        "stages": {
+          "prep": 767,
+          "rank": 3284,
+          "orb": 8,
+          "total": 4061
+        },
+        "aiCrop": {
+          "status": "off"
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Global Ruin",
+          "inliers": 80,
+          "color": 65,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 80,
+          "clickArtInliers": 68
+        },
+        "top3": [
+          {
+            "name": "Global Ruin",
+            "distance": 171
+          },
+          {
+            "name": "Nekrataal",
+            "distance": 212
+          },
+          {
+            "name": "Sphinx Summoner",
+            "distance": 220
+          }
+        ]
+      },
+      "ai": {
+        "ok": true,
+        "got": "Global Ruin",
+        "by": "art-match",
+        "strategy": "outline-4",
+        "distance": 171,
+        "trueRank": 1,
+        "ms": 5394,
+        "stages": {
+          "prep": 768,
+          "rank": 3365,
+          "orb": 2,
+          "aiCrop": 220,
+          "aiAttempt": 1037,
+          "total": 5394
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.028921781107783318,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.055799342691898346,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 220,
+          "fastMs": 1037,
+          "fastHit": false
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Global Ruin",
+          "inliers": 80,
+          "color": 65,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 80,
+          "clickArtInliers": 68
+        },
+        "top3": [
+          {
+            "name": "Global Ruin",
+            "distance": 171
+          },
+          {
+            "name": "Sphinx Summoner",
+            "distance": 192
+          },
+          {
+            "name": "Mavinda, Students' Advocate",
+            "distance": 196
+          }
+        ]
+      }
+    },
+    {
+      "id": "41adcf82-1cb2-4b38-8607-c6229e9948cb",
+      "name": "Blessed Spirits",
+      "set": "j22",
+      "cn": "158",
+      "face": 0,
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "scene": 9,
+      "rotation": "upright",
+      "layout": "overlapping",
+      "coverage": 0.115,
+      "clipped": 0,
+      "i": 5,
+      "ai": {
+        "ok": true,
+        "got": "Blessed Spirits",
+        "by": "art-match",
+        "strategy": "outline-4",
+        "distance": 121,
+        "trueRank": 1,
+        "ms": 4179,
+        "stages": {
+          "prep": 764,
+          "rank": 3183,
+          "orb": 8,
+          "aiCrop": 221,
+          "total": 4178
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.02357560396194458,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.018845034763216972,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 221
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Blessed Spirits",
+          "inliers": 63,
+          "color": 92,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 50,
+          "clickArtInliers": 49
+        },
+        "top3": [
+          {
+            "name": "Blessed Spirits",
+            "distance": 121
+          },
+          {
+            "name": "Sheoldred's Edict",
+            "distance": 193
+          },
+          {
+            "name": "Vampire Interloper",
+            "distance": 197
+          }
+        ]
+      },
+      "baseline": {
+        "ok": true,
+        "got": "Blessed Spirits",
+        "by": "art-match",
+        "strategy": "outline-4",
+        "distance": 121,
+        "trueRank": 1,
+        "ms": 4207,
+        "stages": {
+          "prep": 772,
+          "rank": 3424,
+          "orb": 8,
+          "total": 4207
+        },
+        "aiCrop": {
+          "status": "off"
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Blessed Spirits",
+          "inliers": 63,
+          "color": 92,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 50,
+          "clickArtInliers": 49
+        },
+        "top3": [
+          {
+            "name": "Blessed Spirits",
+            "distance": 121
+          },
+          {
+            "name": "Sheoldred's Edict",
+            "distance": 193
+          },
+          {
+            "name": "Vampire Interloper",
+            "distance": 197
+          }
+        ]
+      }
+    },
+    {
+      "id": "72ae22c3-2dea-463e-894a-188657849909",
+      "name": "Dementia Bat",
+      "set": "nph",
+      "cn": "55",
+      "face": 0,
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "scene": 9,
+      "rotation": "upright",
+      "layout": "overlapping",
+      "coverage": 0.079,
+      "clipped": 0,
+      "i": 6,
+      "baseline": {
+        "ok": true,
+        "got": "Dementia Bat",
+        "strategy": "isolate-portrait--4-45-74-50",
+        "distance": 157,
+        "trueRank": 1,
+        "ms": 12551,
+        "stages": {
+          "prep": 689,
+          "rank": 5958,
+          "orb": 956,
+          "metadata": 179,
+          "ocr": 4946,
+          "total": 12551
+        },
+        "aiCrop": {
+          "status": "off"
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Dementia Bat",
+          "inliers": 8,
+          "color": 82,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 9,
+          "clickArtInliers": 6
+        },
+        "top3": [
+          {
+            "name": "Dementia Bat",
+            "distance": 157
+          },
+          {
+            "name": "Blood on the Snow",
+            "distance": 171
+          },
+          {
+            "name": "Belltower Sphinx",
+            "distance": 178
+          }
+        ]
+      },
+      "ai": {
+        "ok": true,
+        "got": "Dementia Bat",
+        "strategy": "ai-crop-2",
+        "distance": 147,
+        "trueRank": 1,
+        "ms": 8256,
+        "stages": {
+          "prep": 736,
+          "rank": 5506,
+          "orb": 956,
+          "aiCrop": 222,
+          "aiAttempt": 834,
+          "total": 8256
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.022825881838798523,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.05302805453538895,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 222,
+          "fastMs": 834,
+          "fastHit": false
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Dementia Bat",
+          "inliers": 9,
+          "color": 81,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 9,
+          "clickArtInliers": 6
+        },
+        "top3": [
+          {
+            "name": "Dementia Bat",
+            "distance": 147
+          },
+          {
+            "name": "Blood on the Snow",
+            "distance": 167
+          },
+          {
+            "name": "Belltower Sphinx",
+            "distance": 178
+          }
+        ]
+      }
+    },
+    {
+      "id": "7585316f-ba3d-4472-9a7e-7db6f6dd9d15",
+      "name": "Champion's Drake",
+      "set": "roe",
+      "cn": "56",
+      "face": 0,
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "scene": 9,
+      "rotation": "upright",
+      "layout": "overlapping",
+      "coverage": 0.248,
+      "clipped": 0,
+      "i": 7,
+      "ai": {
+        "ok": true,
+        "got": "Champion's Drake",
+        "by": "art-match",
+        "strategy": "isolate-portrait-6-51-50-17",
+        "distance": 148,
+        "trueRank": 1,
+        "ms": 8324,
+        "stages": {
+          "prep": 892,
+          "rank": 6680,
+          "orb": 528,
+          "aiCrop": 221,
+          "total": 8324
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.021391188725829124,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.02963656559586525,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            }
+          ],
+          "ms": 221
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Champion's Drake",
+          "inliers": 20,
+          "color": 84,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 22,
+          "clickArtInliers": 17
+        },
+        "top3": [
+          {
+            "name": "Champion's Drake",
+            "distance": 148
+          },
+          {
+            "name": "Bird",
+            "distance": 192
+          },
+          {
+            "name": "Kozilek, Butcher of Truth",
+            "distance": 190
+          }
+        ]
+      },
+      "baseline": {
+        "ok": true,
+        "got": "Champion's Drake",
+        "by": "art-match",
+        "strategy": "isolate-portrait-6-51-50-17",
+        "distance": 148,
+        "trueRank": 1,
+        "ms": 8244,
+        "stages": {
+          "prep": 896,
+          "rank": 6824,
+          "orb": 522,
+          "total": 8244
+        },
+        "aiCrop": {
+          "status": "off"
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Champion's Drake",
+          "inliers": 20,
+          "color": 84,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 22,
+          "clickArtInliers": 17
+        },
+        "top3": [
+          {
+            "name": "Champion's Drake",
+            "distance": 148
+          },
+          {
+            "name": "Bird",
+            "distance": 192
+          },
+          {
+            "name": "Kozilek, Butcher of Truth",
+            "distance": 190
+          }
+        ]
+      }
+    },
+    {
+      "id": "2fb38f5b-a2c2-4b06-8c9c-9615475a43e7",
+      "name": "Iron Verdict",
+      "set": "khm",
+      "cn": "17",
+      "face": 0,
+      "point": {
+        "nx": 0.5,
+        "ny": 0.632184782180503
+      },
+      "scene": 9,
+      "rotation": "tapped",
+      "layout": "overlapping",
+      "coverage": 0.158,
+      "clipped": 0,
+      "i": 8,
+      "baseline": {
+        "ok": false,
+        "got": "Righteousness",
+        "strategy": "tilt-40@60",
+        "distance": 193,
+        "trueRank": null,
+        "ms": 13295,
+        "stages": {
+          "prep": 780,
+          "rank": 5950,
+          "orb": 1024,
+          "metadata": 86,
+          "ocr": 5540,
+          "total": 13295
+        },
+        "aiCrop": {
+          "status": "off"
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Righteousness",
+          "inliers": 4,
+          "color": 83,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 4,
+          "clickArtInliers": 0
+        },
+        "top3": [
+          {
+            "name": "Righteousness",
+            "distance": 193
+          },
+          {
+            "name": "Icy Manipulator",
+            "distance": 193
+          },
+          {
+            "name": "Komainu Battle Armor",
+            "distance": 194
+          }
+        ]
+      },
+      "ai": {
+        "ok": false,
+        "got": "Righteousness",
+        "strategy": "tilt-40@60",
+        "distance": 193,
+        "trueRank": null,
+        "ms": 13524,
+        "stages": {
+          "prep": 808,
+          "rank": 5924,
+          "orb": 1042,
+          "metadata": 89,
+          "ocr": 5523,
+          "aiCrop": 223,
+          "total": 13523
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.06259717792272568,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.041937071830034256,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            }
+          ],
+          "ms": 223
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Righteousness",
+          "inliers": 4,
+          "color": 83,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 4,
+          "clickArtInliers": 0
+        },
+        "top3": [
+          {
+            "name": "Righteousness",
+            "distance": 193
+          },
+          {
+            "name": "Icy Manipulator",
+            "distance": 193
+          },
+          {
+            "name": "Komainu Battle Armor",
+            "distance": 194
+          }
+        ]
+      }
+    },
+    {
+      "id": "b7305cd4-a9f1-4801-bdfe-b07869ed5b56",
+      "name": "Sandblast",
+      "set": "frf",
+      "cn": "24",
+      "face": 0,
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "scene": 9,
+      "rotation": "upright",
+      "layout": "overlapping",
+      "coverage": 0,
+      "clipped": 0,
+      "i": 9,
+      "ai": {
+        "ok": true,
+        "got": "Sandblast",
+        "by": "art-match",
+        "strategy": "ai-crop-1",
+        "distance": 64,
+        "trueRank": 1,
+        "ms": 759,
+        "stages": {
+          "prep": 28,
+          "rank": 96,
+          "orb": 410,
+          "aiCrop": 222,
+          "aiAttempt": 534,
+          "total": 758
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.06483016908168793,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.0589735247194767,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 222,
+          "fastMs": 534,
+          "fastHit": true
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Sandblast",
+          "inliers": 117,
+          "color": 80,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 117,
+          "clickArtInliers": 32
+        },
+        "top3": [
+          {
+            "name": "Sandblast",
+            "distance": 64
+          },
+          {
+            "name": "Remorseful Cleric",
+            "distance": 151
+          },
+          {
+            "name": "Paleontologist's Pick-Axe",
+            "distance": 159
+          }
+        ]
+      },
+      "baseline": {
+        "ok": true,
+        "got": "Sandblast",
+        "by": "art-match",
+        "strategy": "outline-5",
+        "distance": 120,
+        "trueRank": 1,
+        "ms": 3253,
+        "stages": {
+          "prep": 698,
+          "rank": 1771,
+          "orb": 782,
+          "total": 3253
+        },
+        "aiCrop": {
+          "status": "off"
+        },
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Sandblast",
+          "inliers": 117,
+          "color": 80,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 117,
+          "clickArtInliers": 32
+        },
+        "top3": [
+          {
+            "name": "Sandblast",
+            "distance": 120
+          },
+          {
+            "name": "Hop to It",
+            "distance": 175
+          },
+          {
+            "name": "White Sun's Zenith",
+            "distance": 178
+          }
+        ]
+      }
+    }
+  ]
+}

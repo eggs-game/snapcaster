@@ -1,13 +1,69 @@
 # How Snapcast identifies cards quickly
 
-One click, ~1.8s median, against 110,592 printings — without a server and
-without a trained model.
+One click, ~1.8s median, against 110,592 printings — without a recognition
+server or a per-scan inference charge.
 
-**There is no machine learning here.** No weights, no training, nothing to
-fine-tune. It is perceptual hashing against a precomputed index, plus
-geometric keypoint verification. That matters when reading the rest of this:
-"improving recognition" means improving *crops, ranking and gates*, never
-"training on more data".
+The `click-match-1` release candidate adds a local learned corner detector to
+perceptual hashing and geometric artwork verification. Tesseract remains the
+optional text fallback. No recognition API, API key, or per-scan inference
+charge is involved; camera captures stay in the browser.
+
+### Local AI-assisted cropping
+
+Cornelius 2.12 runs in a separate worker with ONNX Runtime WASM and one thread.
+Recognition warmup loads and exercises the model before the first click.
+Browsers without worker/canvas/bitmap support use the established matcher;
+`?aiCrop=0` is a troubleshooting switch that disables model inference.
+
+Pinned, SHA256-verified assets are tracked under
+`public/vendor/vision/cornelius-2.12-ort-1.30.0/`. The unmodified model carries
+its AGPL-3.0 license and upstream source link; the runtime carries its MIT
+license and third-party notices. `python3 scripts/setup_ai_crop.py` reproduces
+the model/runtime files and preserves that attribution package.
+
+The detector sees the complete capture and one bounded click-local zoom. Its
+ImageNet-normalized 384×384 inputs produce corners and a sharpness value. The
+adapter accepts at most two distinct convex card-like quadrilaterals containing
+the click. A dominant neighbouring card is rejected. This single-card model
+has not been trained to choose a clicked card in a crowded tableau; measuring
+that limitation is part of the experiment.
+
+Accepted proposals are perspective-rectified at source resolution. For a scan
+without room hints, an initial pass ranks only these crops and runs the existing
+artwork verification. An exact visual match (distance ≤90) or decisive ORB match
+returns immediately unless source-space registration proves the match lies
+outside the click, skipping contour enumeration, ordinary crop generation,
+and click-local isolation. An uncertain proposal falls through to the full
+pipeline. Its ordinary seeds, ranking and six verification queries remain
+independent of AI proposals. Up to twelve additional printing candidates from
+the trial and two rectified query images supplement artwork verification;
+these candidates may change the answer only with the existing decisive artwork
+gates. Weak AI candidates cannot displace the established fallback. Identity
+still comes from the existing hashes,
+artwork verification, and OCR gates. No model confidence is treated as card
+identity. Scans with recent-card hints skip model inference to preserve the
+cheaper verified hint prepass. Diagnostics include
+`ai_crop` (model, status, proposal count, sharpness/gate outcomes, time) and
+`stage_ms.aiCrop`, plus `fastHit`/`fastMs` and `stage_ms.aiAttempt`. A missing,
+failed, or stalled runtime falls back to the normal matcher and disables the
+model for that page; timeout is 15 seconds.
+
+Crowded scans additionally verify candidate artwork against the original
+capture. Strong interior text follows the same source-space ownership gates
+as artwork. The homography maps the actual click into the reference card. When
+strong artwork evidence locates both the clicked card and a neighbour, the
+neighbour cannot win on its stronger crop alone. Shared-frame coincidences cannot
+invent a decisive identity or suppress OCR: ordinary keypoint scores need
+artwork support, or substantial title/rules content when artwork is covered. A sufficiently strong registration
+of the clicked card can finish before enumerating isolation candidates.
+The excluded names carry through printing selection, title OCR and the legacy
+visual re-search; those paths cannot reintroduce a proven neighbour. Lone
+off-centre cards retain the existing recovery behaviour.
+
+Full-index Hamming search uses 32-bit words and a 16-bit popcount table. The
+packed 64-byte hashes and index format are unchanged; parity tests cover every
+rotation, existing distance minima and unaligned input buffers. The worker and
+standalone helper remain checked for duplication.
 
 ## The core problem
 

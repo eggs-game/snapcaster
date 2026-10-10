@@ -104,6 +104,17 @@ export default function Terms() {
         services, content, transactions, or changes.
       </p>
 
+      <h2>Recognition components</h2>
+      <p>
+        Local card recognition uses the Cornelius 2.12 corner model (AGPL-3.0)
+        and ONNX Runtime (MIT). The{' '}
+        <a href="/vendor/vision/cornelius-2.12-ort-1.30.0/SOURCE.txt">source links and attribution</a>,{' '}
+        <a href="/vendor/vision/cornelius-2.12-ort-1.30.0/AGPL-3.0.txt">model license</a>, and{' '}
+        <a href="/vendor/vision/cornelius-2.12-ort-1.30.0/ONNX-Runtime-LICENSE.txt">runtime license</a>{' '}
+        are available with the distributed components. Camera captures stay in your browser
+        during this inference.
+      </p>
+
       <h2>Your content</h2>
       <p>
         “Your Content” includes information you submit or make available through Snapcast,

@@ -1,0 +1,103 @@
+[
+  {
+    "arm": "control",
+    "i": 34,
+    "expected": "Arlinn, Embraced by the Moon",
+    "build": "speed-cuts-4 (early ORB exit measured net-negative, off)",
+    "got": "Arlinn Kord",
+    "by": "art-match",
+    "art": {
+      "name": "Arlinn Kord",
+      "inliers": 41,
+      "color": 47,
+      "weak": false
+    }
+  },
+  {
+    "arm": "control",
+    "i": 96,
+    "expected": "Instill Energy",
+    "build": "speed-cuts-4 (early ORB exit measured net-negative, off)",
+    "got": "Fog",
+    "art": {
+      "name": "Fog",
+      "inliers": 63,
+      "color": 57,
+      "weak": false
+    }
+  },
+  {
+    "arm": "candidate",
+    "i": 34,
+    "expected": "Arlinn, Embraced by the Moon",
+    "build": "click-match-4 (local vision)",
+    "got": "Arlinn Kord",
+    "by": "art-match",
+    "art": {
+      "name": "Arlinn Kord",
+      "inliers": 41,
+      "color": 47,
+      "weak": false,
+      "clickInside": null,
+      "clickInliers": 42,
+      "clickArtInliers": 25,
+      "clickTextInliers": 17
+    },
+    "ai": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 0,
+      "probes": [
+        {
+          "sharpness": 0.022644180804491043,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        },
+        {
+          "sharpness": 0.008314557373523712,
+          "accepted": false,
+          "reason": "weak"
+        }
+      ],
+      "ms": 413
+    }
+  },
+  {
+    "arm": "candidate",
+    "i": 96,
+    "expected": "Instill Energy",
+    "build": "click-match-4 (local vision)",
+    "got": "Pirate Ship",
+    "by": "art-match",
+    "art": {
+      "name": "Pirate Ship",
+      "inliers": 53,
+      "color": 75,
+      "weak": false,
+      "clickInside": true,
+      "clickInliers": 53,
+      "clickArtInliers": 53,
+      "clickTextInliers": 0
+    },
+    "ai": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 1,
+      "probes": [
+        {
+          "sharpness": 0.03386909142136574,
+          "accepted": true,
+          "reason": "accepted"
+        },
+        {
+          "sharpness": 0.019814491271972656,
+          "accepted": false,
+          "reason": "weak"
+        }
+      ],
+      "ms": 176,
+      "fastMs": 438,
+      "fastHit": true
+    }
+  }
+]

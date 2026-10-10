@@ -30,6 +30,7 @@ function excludeLocalMockData() {
     apply: "build",
     async closeBundle() {
       await rm(new URL("./dist/mock-data.local.json", import.meta.url), { force: true });
+      await rm(new URL("./dist/experimental", import.meta.url), { recursive: true, force: true });
     },
   };
 }

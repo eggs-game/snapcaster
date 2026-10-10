@@ -24,7 +24,7 @@ WORKER_JS = os.path.join(ROOT, "src", "recognition", "recognizer.js")
 
 SHARED = [
     "toGray", "areaResize", "computeHashes",
-    "contrastStretch", "rotate90", "queryVariants", "hammingSearch",
+    "contrastStretch", "rotate90", "queryVariants", "hashWords", "wordDistance", "hammingSearch",
 ]
 
 

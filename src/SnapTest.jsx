@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { identify as identifyCard, preload } from "./recognition/matcher.js";
+import { aiCropEnabled } from "./recognition/aiCrop.js";
 import { degrade, loadImage, perspectiveDegrade, scryfallImageUrl, summarize } from "./snaptest/degrade.js";
 import { buildScene, cropScene, perfectCrop, releaseScene } from "./snaptest/scene.js";
 
@@ -129,6 +130,7 @@ function captureDiagnostics(rec, data, trueName) {
   rec.gateDist = top ? top.distance : null;
   rec.gateInliers = data.art_best ? (data.art_best.inliers || 0) : 0;
   rec.gateArtDecisive = !!data.art_decisive;
+  rec.aiCrop = data.ai_crop || null;
 }
 
 // Accuracy grouped by an arbitrary key, for the summary breakdowns.
@@ -151,6 +153,7 @@ function groupAcc(list, keyFn) {
 function buildResultPayload(mode, summary, results) {
   return {
     build: window.__SNAP_BUILD || "unknown",
+    aiCropEnabled: aiCropEnabled(),
     mode,
     summary,
     misses: results.filter((r) => !r.ok && !r.err).map((r) => ({
@@ -167,6 +170,7 @@ function buildResultPayload(mode, summary, results) {
       metadataConflictAll: r.metadataConflictAll, metadataError: r.metadataError,
       perfectControl: r.perfectControl || null,
       isolationDebug: r.isolationDebug || null,
+      aiCrop: r.aiCrop,
       truthGeometry: r.truthGeometry || null,
       stages: r.stages,
       ...(r.scene !== undefined ? {

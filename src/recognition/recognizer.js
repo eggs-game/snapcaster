@@ -247,66 +247,35 @@ const ART_SHIFT_STRATEGIES = new Set([
   "full-frame", "content-box", "outline-1", "outline-2", "outline-3",
   "outline-4", "outline-5", "art-50", "art-65",
 ]);
+// Popcounting two 16-bit halves at once preserves every bit of the existing
+// hash/index contract while avoiding 64 separate byte lookups per distance.
+const POPCOUNT16 = new Uint8Array(65536);
+for (let i = 1; i < POPCOUNT16.length; i++) POPCOUNT16[i] = (i & 1) + POPCOUNT16[i >>> 1];
+function hashWords(vector) {
+  if (vector.byteOffset % 4) vector = vector.slice();
+  return new Uint32Array(vector.buffer, vector.byteOffset, vector.byteLength / 4);
+}
+function wordDistance(query, index, offset) {
+  let distance = 0;
+  for (let b = 0; b < 16; b++) {
+    const value = query[b] ^ index[offset + b];
+    distance += POPCOUNT16[value & 65535] + POPCOUNT16[value >>> 16];
+  }
+  return distance;
+}
 function hammingSearch(query, index, nCards, distsOut) {
+  const q = hashWords(query), words = hashWords(index);
   for (let i = 0; i < nCards; i++) {
-    const off = i * VEC_BYTES;
-    let d = 0;
-    for (let b = 0; b < VEC_BYTES; b++) d += POPCOUNT[index[off + b] ^ query[b]];
+    const d = wordDistance(q, words, i * 16);
     if (d < distsOut[i]) distsOut[i] = d;
   }
 }
-
-// Exact crops always have eight variants (raw + contrast-stretched at four
-// rotations). Walking the 7MB index once per variant rereads it eight times.
-// Score all variants while each printing vector is hot instead. The minimum is
-// bit-for-bit identical to eight hammingSearch calls; only traversal order
-// changes.
 function hammingSearchVariants(queries, index, nCards, distsOut) {
-  // Four-query single pass, for crops whose orientation is fixed by
-  // construction and so carry 2 contrast levels x {0, 180} instead of x4.
-  // Without this they fell back to four separate hammingSearch calls, rereading
-  // the 7MB table each time — which measured +172ms and cancelled most of the
-  // saving that halving their variants produced. Same argument, and same fix,
-  // as the eight-query path below.
-  if (queries.length === 4) {
-    const [r0, r1, r2, r3] = queries;
-    for (let i = 0; i < nCards; i++) {
-      const off = i * VEC_BYTES;
-      let d0 = 0, d1 = 0, d2 = 0, d3 = 0;
-      for (let b = 0; b < VEC_BYTES; b++) {
-        const value = index[off + b];
-        d0 += POPCOUNT[value ^ r0[b]];
-        d1 += POPCOUNT[value ^ r1[b]];
-        d2 += POPCOUNT[value ^ r2[b]];
-        d3 += POPCOUNT[value ^ r3[b]];
-      }
-      const best = Math.min(d0, d1, d2, d3);
-      if (best < distsOut[i]) distsOut[i] = best;
-    }
-    return;
-  }
-  if (queries.length !== 8) {
-    for (const query of queries) hammingSearch(query, index, nCards, distsOut);
-    return;
-  }
-  const [q0, q1, q2, q3, q4, q5, q6, q7] = queries;
+  const q = queries.map(hashWords), words = hashWords(index);
   for (let i = 0; i < nCards; i++) {
-    const off = i * VEC_BYTES;
-    let d0 = 0, d1 = 0, d2 = 0, d3 = 0;
-    let d4 = 0, d5 = 0, d6 = 0, d7 = 0;
-    for (let b = 0; b < VEC_BYTES; b++) {
-      const value = index[off + b];
-      d0 += POPCOUNT[value ^ q0[b]];
-      d1 += POPCOUNT[value ^ q1[b]];
-      d2 += POPCOUNT[value ^ q2[b]];
-      d3 += POPCOUNT[value ^ q3[b]];
-      d4 += POPCOUNT[value ^ q4[b]];
-      d5 += POPCOUNT[value ^ q5[b]];
-      d6 += POPCOUNT[value ^ q6[b]];
-      d7 += POPCOUNT[value ^ q7[b]];
-    }
-    const best = Math.min(d0, d1, d2, d3, d4, d5, d6, d7);
-    if (best < distsOut[i]) distsOut[i] = best;
+    let best = distsOut[i];
+    for (const query of q) best = Math.min(best, wordDistance(query, words, i * 16));
+    distsOut[i] = best;
   }
 }
 
@@ -586,6 +555,7 @@ function cardShapedStrategy(strategy) {
   return value === "full-frame"
     || value === "content-box"
     || value.startsWith("outline-")
+    || value.startsWith("ai-crop-")
     || value.startsWith("art-")
     || value.startsWith("artf-")
     || value.startsWith("title-")
@@ -596,7 +566,7 @@ function cardShapedStrategy(strategy) {
 // against every prepared crop, then accept it only at the same near-exact hash
 // gate as ordinary recognition or after a decisive ORB art match. A stale hint
 // therefore adds a small bounded check and falls through to the full index.
-async function matchRecentHints(prepared, hints) {
+async function matchRecentHints(prepared, hints, source, click) {
   if (!index || !cards || !prepared.length || !Array.isArray(hints) || !hints.length) return null;
   ensurePrintingIndex();
   const wanted = new Set();
@@ -619,9 +589,8 @@ async function matchRecentHints(prepared, hints) {
     let bestPrepared = null;
     for (const p of prepared) {
       let distance = 0xffff;
-      for (const query of p.variants) {
-        let current = 0;
-        for (let b = 0; b < VEC_BYTES; b++) current += POPCOUNT[index[off + b] ^ query[b]];
+      for (const query of p.words) {
+        const current = wordDistance(query, hashWords(index), off / 4);
         if (current < distance) distance = current;
       }
       if (distance < bestDistance) {
@@ -670,7 +639,7 @@ async function matchRecentHints(prepared, hints) {
   const verified = await verifyTopMatches(
     printingMatches.slice(0, 12),
     queryImages,
-    cardShapedStrategy(bestPrepared.candidate.strategy),
+    cardShapedStrategy(bestPrepared.candidate.strategy), source, click,
   );
   if (!verified.artDecisive) return null;
   return {
@@ -1744,7 +1713,7 @@ function waitForCV(ms) {
   });
 }
 
-async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
+async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads = [], aiOnly = false, aiCandidates = []) {
   await loadIndex();
   // Prefer the accurate OpenCV pipeline, but don't hang the first scan forever
   // if it's still compiling — fall back to center-crop this once; the diagnostic
@@ -1794,7 +1763,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
     prepTiming.gray += t2 - t1;
     prepTiming.variants += performance.now() - t2;
     const prepared = {
-      candidate, wbImage, gray, variants, detail: detailScore(gray),
+      candidate, wbImage, gray, variants, words: variants.map(hashWords), detail: detailScore(gray),
       frame: candidate.isolationScore || 0,
     };
     preparedCache.set(candidate, prepared);
@@ -1854,7 +1823,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
     });
     const hintPrepared = hintCandidates.map(prepareCandidate);
     mark("hintPrep");
-    const recent = await matchRecentHints(hintPrepared, hints);
+    const recent = await matchRecentHints(hintPrepared, hints, getSourceImageData(), click);
     mark("hint");
     if (recent) return recentResult(recent, hintPrepared);
 
@@ -1879,7 +1848,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
         }
         const outlinePrepared = hintedOutlineCandidates.map(prepareCandidate);
         mark("hintPrep");
-        const outlineRecent = await matchRecentHints(outlinePrepared, hints);
+        const outlineRecent = await matchRecentHints(outlinePrepared, hints, getSourceImageData(), click);
         mark("hint");
         if (outlineRecent) return recentResult(outlineRecent, outlinePrepared);
       } catch (e) {
@@ -1891,7 +1860,25 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
   }
 
   let clickInsideCardLikeQuad = false;
-  if (cvReady) {
+  // The local-only detector supplies hypotheses, never card identities. Keep
+  // its budget additive so tapped/inverted seeds cannot be displaced. Recheck
+  // the click and geometry here before giving a proposal any retrieval power.
+  if (cvReady && Array.isArray(aiQuads)) {
+    for (const points of aiQuads.slice(0, 2)) {
+      if (!Array.isArray(points) || points.length !== 4 || points.some((p) => (
+        !Number.isFinite(p?.x) || !Number.isFinite(p?.y)
+        || p.x < -bmp.width * 0.03 || p.x > bmp.width * 1.03
+        || p.y < -bmp.height * 0.03 || p.y > bmp.height * 1.03
+      ))) continue;
+      const geometry = quadGeometry(points, bmp.width, bmp.height, 1, click);
+      if (!geometry.valid || !geometry.containsClick || geometry.aspect < 1.1 || geometry.aspect > 2.4) continue;
+      const quad = geometry.corners;
+      try {
+        candidates.push({ image: rectifyCard(getSourceImageData(), quad), strategy: `ai-crop-${candidates.length + 1}` });
+      } catch (error) { console.warn("[snapcast worker] AI crop rectification failed", error); }
+    }
+  }
+  if (!aiOnly && cvReady) {
     try {
       const srcImageData = getSourceImageData();
       // If the input already has card-like proportions (for example the debug
@@ -1917,78 +1904,80 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
       console.warn("[snapcast worker] outline detection failed", e);
     }
   }
-  const contentBox = contentBoxCropImageData(getSourceImageData());
-  if (contentBox) candidates.push({ image: contentBox, strategy: "content-box" });
-  // Always include click-centered crops at several sizes. One often
-  // approximates the card border even when no closed contour is available.
-  // The small scales matter for hand-held and playmat cards: a card ~1/8 of
-  // the frame needs a tight crop or the hash/color see mostly background.
-  for (const scale of [0.9, 0.75, 0.6, 0.45, 0.35, 0.27, 0.2]) {
-    candidates.push({
-      image: centerCropImageData(bmp, scale, normalizedPoint),
-      strategy: `center-${Math.round(scale * 100)}`,
-    });
-  }
-  // Counter-rotated crops rescue tilted cards (hand-held at ~20°, or lying at
-  // ~20-40° on the playmat) when no contour quad isolated it. 90° steps are
-  // already covered by the hash rotations, so ±20/±40 fills the gaps between.
-  for (const [angle, scale] of [[20, 0.6], [-20, 0.6], [20, 0.35], [-20, 0.35], [40, 0.6], [-40, 0.6]]) {
-    candidates.push({
-      image: tiltCropImageData(bmp, angle, scale, normalizedPoint),
-      strategy: `tilt${angle}@${Math.round(scale * 100)}`,
-    });
-  }
-  // Clicks frequently land below or beside the card (debug captures show the
-  // card pushed to the top of a centered crop, framed by forehead/hand). Offset
-  // crops re-center on where the card actually is — the up-bias is strongest
-  // since a card held to the forehead sits above the natural click.
-  for (const [dx, dy] of [[0, -0.11], [0, -0.06], [-0.08, -0.04], [0.08, -0.04], [0, 0.07]]) {
-    const p = { nx: normalizedPoint.nx + dx, ny: normalizedPoint.ny + dy };
-    candidates.push({ image: centerCropImageData(bmp, 0.4, p), strategy: `off${Math.round(dx * 100)},${Math.round(dy * 100)}` });
-  }
-  // Deep up-offsets: a card held to the forehead sits 15-30% of the frame
-  // above the click, beyond the reach of the mild offsets above. Real scans
-  // regressed on exactly this while every crop stayed centered on the click.
-  candidates.push({ image: centerCropImageData(bmp, 0.45, { nx: normalizedPoint.nx, ny: normalizedPoint.ny - 0.18 }), strategy: "off0,-18" });
-  candidates.push({ image: centerCropImageData(bmp, 0.5, { nx: normalizedPoint.nx, ny: normalizedPoint.ny - 0.26 }), strategy: "off0,-26" });
-  // Art-anchored crops: put the click a third of the way down the crop, where
-  // the artwork actually is. Every crop above centres the card on the click, so
-  // when a player clicks the art (the natural target) the card is framed too
-  // high and no candidate matches the index framing. Several scales because we
-  // cannot know how much of the frame the card occupies.
-  for (const scale of [0.8, 0.65, 0.5, 0.38, 0.28]) {
-    candidates.push({
-      image: anchoredCropImageData(bmp, scale, normalizedPoint, ART_CLICK_V),
-      strategy: `art-${Math.round(scale * 100)}`,
-    });
-  }
-  // The player opposite (or a flipped tile) sends cards rotated 180, which puts
-  // the artwork in the LOWER third of the card as it appears in frame. The
-  // anchors above then frame such a card wrongly, and because they are seeds
-  // they crowded out the generic crops that used to catch it — upside-down
-  // accuracy fell from 58% to 33% when they landed. Mirror the anchor.
-  for (const scale of [0.65, 0.5, 0.38]) {
-    candidates.push({
-      image: anchoredCropImageData(bmp, scale, normalizedPoint, 1 - ART_CLICK_V),
-      strategy: `artf-${Math.round(scale * 100)}`,
-    });
-  }
-  // Title-anchored: some players click the name bar instead of the art.
-  for (const scale of [0.65, 0.45]) {
-    candidates.push({
-      image: anchoredCropImageData(bmp, scale, normalizedPoint, 0.08),
-      strategy: `title-${Math.round(scale * 100)}`,
-    });
-  }
-  // Tapped (sideways) cards need a landscape cut. The art sits a third along
-  // the card's long axis, which is now horizontal — and which end depends on
-  // whether the card was turned clockwise or anticlockwise, so probe both.
-  for (const scale of [0.5, 0.38]) {
-    for (const [side, anchorH] of [["l", 1 / 3], ["r", 2 / 3]]) {
+  if (!aiOnly) {
+    const contentBox = contentBoxCropImageData(getSourceImageData());
+    if (contentBox) candidates.push({ image: contentBox, strategy: "content-box" });
+    // Always include click-centered crops at several sizes. One often
+    // approximates the card border even when no closed contour is available.
+    // The small scales matter for hand-held and playmat cards: a card ~1/8 of
+    // the frame needs a tight crop or the hash/color see mostly background.
+    for (const scale of [0.9, 0.75, 0.6, 0.45, 0.35, 0.27, 0.2]) {
       candidates.push({
-        image: anchoredCropImageData(bmp, scale, normalizedPoint, 0.5, anchorH, true),
-        strategy: `tap-${Math.round(scale * 100)}${side}`,
+        image: centerCropImageData(bmp, scale, normalizedPoint),
+        strategy: `center-${Math.round(scale * 100)}`,
       });
+    }
+    // Counter-rotated crops rescue tilted cards (hand-held at ~20°, or lying at
+    // ~20-40° on the playmat) when no contour quad isolated it. 90° steps are
+    // already covered by the hash rotations, so ±20/±40 fills the gaps between.
+    for (const [angle, scale] of [[20, 0.6], [-20, 0.6], [20, 0.35], [-20, 0.35], [40, 0.6], [-40, 0.6]]) {
+      candidates.push({
+        image: tiltCropImageData(bmp, angle, scale, normalizedPoint),
+        strategy: `tilt${angle}@${Math.round(scale * 100)}`,
+      });
+    }
+    // Clicks frequently land below or beside the card (debug captures show the
+    // card pushed to the top of a centered crop, framed by forehead/hand). Offset
+    // crops re-center on where the card actually is — the up-bias is strongest
+    // since a card held to the forehead sits above the natural click.
+    for (const [dx, dy] of [[0, -0.11], [0, -0.06], [-0.08, -0.04], [0.08, -0.04], [0, 0.07]]) {
+      const p = { nx: normalizedPoint.nx + dx, ny: normalizedPoint.ny + dy };
+      candidates.push({ image: centerCropImageData(bmp, 0.4, p), strategy: `off${Math.round(dx * 100)},${Math.round(dy * 100)}` });
+    }
+    // Deep up-offsets: a card held to the forehead sits 15-30% of the frame
+    // above the click, beyond the reach of the mild offsets above. Real scans
+    // regressed on exactly this while every crop stayed centered on the click.
+    candidates.push({ image: centerCropImageData(bmp, 0.45, { nx: normalizedPoint.nx, ny: normalizedPoint.ny - 0.18 }), strategy: "off0,-18" });
+    candidates.push({ image: centerCropImageData(bmp, 0.5, { nx: normalizedPoint.nx, ny: normalizedPoint.ny - 0.26 }), strategy: "off0,-26" });
+    // Art-anchored crops: put the click a third of the way down the crop, where
+    // the artwork actually is. Every crop above centres the card on the click, so
+    // when a player clicks the art (the natural target) the card is framed too
+    // high and no candidate matches the index framing. Several scales because we
+    // cannot know how much of the frame the card occupies.
+    for (const scale of [0.8, 0.65, 0.5, 0.38, 0.28]) {
+      candidates.push({
+        image: anchoredCropImageData(bmp, scale, normalizedPoint, ART_CLICK_V),
+        strategy: `art-${Math.round(scale * 100)}`,
+      });
+    }
+    // The player opposite (or a flipped tile) sends cards rotated 180, which puts
+    // the artwork in the LOWER third of the card as it appears in frame. The
+    // anchors above then frame such a card wrongly, and because they are seeds
+    // they crowded out the generic crops that used to catch it — upside-down
+    // accuracy fell from 58% to 33% when they landed. Mirror the anchor.
+    for (const scale of [0.65, 0.5, 0.38]) {
+      candidates.push({
+        image: anchoredCropImageData(bmp, scale, normalizedPoint, 1 - ART_CLICK_V),
+        strategy: `artf-${Math.round(scale * 100)}`,
+      });
+    }
+    // Title-anchored: some players click the name bar instead of the art.
+    for (const scale of [0.65, 0.45]) {
+      candidates.push({
+        image: anchoredCropImageData(bmp, scale, normalizedPoint, 0.08),
+        strategy: `title-${Math.round(scale * 100)}`,
+      });
+    }
+    // Tapped (sideways) cards need a landscape cut. The art sits a third along
+    // the card's long axis, which is now horizontal — and which end depends on
+    // whether the card was turned clockwise or anticlockwise, so probe both.
+    for (const scale of [0.5, 0.38]) {
+      for (const [side, anchorH] of [["l", 1 / 3], ["r", 2 / 3]]) {
+        candidates.push({
+          image: anchoredCropImageData(bmp, scale, normalizedPoint, 0.5, anchorH, true),
+          strategy: `tap-${Math.round(scale * 100)}${side}`,
+        });
+      }
     }
   }
   if (bmp.close) bmp.close();
@@ -1999,6 +1988,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
   if (shardedIndex && !index) {
     try { await loadGlobalIndex(); } catch (e) { console.warn("[snapcast worker] global index unavailable", e); }
   }
+  const indexWords = index ? hashWords(index) : null;
   const n = cards?.length || 0;
   const dists = new Uint16Array(n).fill(0xffff);
   const useV3 = n > 0 && (colorIndex || artIndex);
@@ -2031,6 +2021,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
   let bestAboveClickImage = null;
   let bestAboveClickDistance = 0xffff;
   let isolationDebug = null;
+  let earlyVerified = null;
   let isolationCandidates = 0;
   // Reported per scan so a run can say how often the prediction was tried and
   // how often it saved the sweep, rather than leaving that to inference.
@@ -2063,7 +2054,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
   // Prepare every candidate's hashes (cheap). The expensive full-index scans
   // below are limited to a few diverse SEED crops; scoring all ~27 crops
   // against 110k cards (8 hash variants each) was the dominant per-scan cost.
-  const preparedAll = candidates.map(prepareCandidate);
+  const preparedAll = candidates.filter((candidate) => aiOnly || !candidate.strategy.startsWith("ai-crop-")).map(prepareCandidate);
   // Drop crops that contain no card — just wall, skin, or playmat. A
   // featureless crop hashes closest to a FEATURELESS INDEX ENTRY, which is why
   // "Blank Card", "Double-Faced Substitute Card" and "Find the Assassin
@@ -2097,7 +2088,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
   mark("prep");
 
   if (Array.isArray(hints) && hints.length) {
-    const recent = await matchRecentHints(prepared, hints);
+    const recent = await matchRecentHints(prepared, hints, getSourceImageData(), click);
     mark("hint");
     if (recent) {
       return {
@@ -2196,6 +2187,11 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
     // outline-3 and the two art-anchored crops are the additions worth paying
     // for. Widening this again needs evidence, not intuition.
     if (seedIdx.size >= seedBudget) break;
+  }
+  // These must get full-index scans: refining the ordinary shortlist would
+  // leave the framing misses this experiment targets permanently absent.
+  for (let i = 0; i < prepared.length; i++) {
+    if (prepared[i].candidate.strategy.startsWith("ai-crop-")) seedIdx.add(i);
   }
   for (let i = 0; i < prepared.length && seedIdx.size < 5; i++) seedIdx.add(i);
 
@@ -2343,9 +2339,8 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
         for (const idx of shortlist) {
           let d = 0xffff;
           const off = idx * VEC_BYTES;
-          for (const q of p.variants) {
-            let dd = 0;
-            for (let b = 0; b < VEC_BYTES; b++) dd += POPCOUNT[index[off + b] ^ q[b]];
+          for (const q of p.words) {
+            const dd = wordDistance(q, indexWords, off / 4);
             if (dd < d) d = dd;
           }
           if (d < candidateBest) candidateBest = d;
@@ -2362,7 +2357,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
     // Escalation: a few diverse non-seed crops get a full scan when the normal
     // path found nothing plausible. Scanning every leftover crop sent Arcane
     // p90 into the tens of seconds without adding useful late candidates.
-    if (bestCandidateDistance > 165) {
+    if (!aiOnly && bestCandidateDistance > 165) {
       const ESCALATE_BUDGET = 5;
       const priority = [
         // Preserve both landscape orientations before spending the bounded
@@ -2392,6 +2387,30 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
         }
       }
     }
+    // Before enumerating thousands of rectangles, try the shallow printing
+    // pool against the actual capture. A strong alignment owning the click
+    // can settle a partly covered card even when every hash crop is loose.
+    if (!aiOnly && cvReady && bestCandidateDistance > 120 && bestCandidateImage) {
+      const ranked = Array.from({ length: n }, (_, i) => i)
+        .sort((a, b) => (rank || dists)[a] - (rank || dists)[b]).slice(0, 28);
+      if (artGlobal) {
+        for (const i of Array.from({ length: n }, (_, i) => i)
+          .sort((a, b) => artGlobal[a] - artGlobal[b]).slice(0, 12)) {
+          if (!ranked.includes(i)) ranked.push(i);
+        }
+      }
+      const pool = ranked.map((i) => ({ ...cardMeta(i, dists[i]), strategy: strategies[i] }));
+      const images = [bestCandidateImage,
+        ...prepared.filter((p) => p.candidate.strategy.startsWith("outline-")).slice(0, 2).map((p) => p.candidate.image),
+        prepared.find((p) => p.candidate.strategy === "art-50")?.candidate.image,
+      ].filter((image, i, all) => image && all.indexOf(image) === i);
+      try {
+        const verified = await verifyTopMatches(pool, images, cardShapedStrategy(bestCandidateStrategy), getSourceImageData(), click);
+        const best = verified.matches[0];
+        if (verified.artDecisive && best?.click_inside === true
+          && best.click_inliers >= 24 && hasClickProof(best)) earlyVerified = verified;
+      } catch (error) { console.warn("[snapcast worker] click registration failed", error); }
+    }
     // When all ordinary crops remain weak, generate click-local proposals that
     // are independent of contours. This is deliberately deferred: normal
     // scans keep their existing fast path, while a busy printed playmat earns
@@ -2402,7 +2421,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
     // paid its cost and skipped nothing. `decisive 25, skippedIsolation 0` on a
     // Vegas run is what surfaced it — a metric only worth having because it can
     // contradict itself.
-    if (!earlyOrb.ran && await runEarlyOrb("refine")) {
+    if (!aiOnly && !earlyOrb.ran && await runEarlyOrb("refine")) {
       earlyOrb.skipped = 1;
       skipIsolation = true;
     }
@@ -2411,7 +2430,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
     // and the only cost is the forward pass. Deliberately gated on the same
     // distance the sweep itself is gated on, so a scan that was already going
     // well pays nothing.
-    if (bestCandidateDistance > 120 && detectorEnabled) {
+    if (!aiOnly && !earlyVerified && bestCandidateDistance > 120 && detectorEnabled) {
       const guess = detectorProposal(getSourceImageData(), normalizedPoint);
       if (guess) {
         // A single predicted rectangle measured +1 card end-to-end while
@@ -2447,7 +2466,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
       }
       mark("detector");
     }
-    if (bestCandidateDistance > 120 && !skipIsolation) {
+    if (!aiOnly && !earlyVerified && bestCandidateDistance > 120 && !skipIsolation) {
       const isolation = localCardIsolationCandidates(getSourceImageData(), normalizedPoint, {
         allowAboveClick: !clickInsideCardLikeQuad,
       })
@@ -2488,9 +2507,8 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
         for (const idx of approx) {
           let d = 0xffff;
           const off = idx * VEC_BYTES;
-          for (const q of p.variants) {
-            let dd = 0;
-            for (let b = 0; b < VEC_BYTES; b++) dd += POPCOUNT[index[off + b] ^ q[b]];
+          for (const q of p.words) {
+            const dd = wordDistance(q, indexWords, off / 4);
             if (dd < d) d = dd;
           }
           if (d < candidateBest) candidateBest = d;
@@ -2570,10 +2588,11 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
   // v2/grayscale fallback, or duplicate art candidates, may leave spare ORB
   // slots. Fill them from the deeper combined pool without name deduplication.
   for (const match of printingMatches.slice(24)) addVerification(match);
+  const verificationPool = extendAiVerification(verificationCandidates, aiOnly ? [] : aiCandidates);
   // Stage C: verify the top hash guesses against the real card images by
   // matching art keypoints. A decisive art match settles identity outright.
   let matchesOut = matches;
-  let artBest = null, artChecked = 0, artDecisive = false;
+  let artBest = null, artChecked = 0, artDecisive = false, blockedNames = [];
   if (cvReady && verificationCandidates.length && bestCandidateImage) {
     try {
       // Feed ORB a DIVERSE crop set. Outline rectifications exclude the
@@ -2588,6 +2607,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
       const cardShaped = bestCandidateStrategy === "full-frame"
         || bestCandidateStrategy === "content-box"
         || bestCandidateStrategy.startsWith("outline-")
+        || bestCandidateStrategy.startsWith("ai-crop-")
         || bestCandidateStrategy.startsWith("art-")
         || bestCandidateStrategy.startsWith("artf-")
         || bestCandidateStrategy.startsWith("title-")
@@ -2610,7 +2630,10 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
         kept.find((c) => c.strategy === "off0,-11")?.image,
         kept.find((c) => c.strategy === "center-45")?.image,
       ].filter((img, i, arr) => img && arr.indexOf(img) === i).slice(0, 6);
-      const verified = await verifyTopMatches(verificationCandidates, queryImages, cardShaped);
+      if (!aiOnly) for (const candidate of candidates.filter(c => c.strategy.startsWith("ai-crop-")).slice(0, 2)) {
+        if (!queryImages.includes(candidate.image)) queryImages.push(candidate.image);
+      }
+      const verified = earlyVerified || await verifyTopMatches(verificationPool, queryImages, cardShaped, getSourceImageData(), click, verificationPool.length - verificationCandidates.length);
       // Keep the result UI compact after printing-level verification. The best
       // verified treatment wins for each name, and a decisive exact artwork
       // remains first.
@@ -2623,6 +2646,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
       artBest = verified.artBest;
       artChecked = verified.artChecked;
       artDecisive = verified.artDecisive;
+      blockedNames = verified.blockedNames || [];
     } catch (e) {
       console.warn("[snapcast worker] art verification failed", e);
     }
@@ -2642,6 +2666,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
       strategy: bestCandidateStrategy || strategies[top[0]?.i] || "visual-best",
     });
   }
+  preferredTitleCandidates.push(...candidates.filter(c => c.strategy.startsWith("ai-crop-")).slice(0, 2));
   return {
     matches: matchesOut, printingMatches, queryCandidates,
     titleSource: preferredTitleCandidates,
@@ -2655,7 +2680,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
     prepTiming: { ...prepTiming },
     orbTiming: { ...orbTiming },
     earlyOrb: { ...earlyOrb },
-    artBest, artChecked, artDecisive, stageMs: stage.ms,
+    artBest, artChecked, artDecisive, blockedNames, stageMs: stage.ms,
     // OpenCV's WASM heap is invisible to performance.memory, which is why a
     // 1000-card run reported 52MB of JS heap while the tab held 1.5GB.
     wasmHeapMB: self.cv && self.cv.HEAPU8 ? Math.round(self.cv.HEAPU8.length / 1e6) : null,
@@ -2723,15 +2748,15 @@ function orbFeatures(imageData, nfeatures) {
   } finally {
     src.delete(); gray.delete(); mask.delete(); orb.delete();
   }
-  return { kp, desc };
+  return { kp, desc, width: imageData.width, height: imageData.height };
 }
 
-function orbScore(query, ref) {
+function orbAlignment(query, ref, click = null) {
   const cv = self.cv;
-  if (!query.desc.rows || !ref.desc.rows) return 0;
+  if (!query.desc.rows || !ref.desc.rows) return { inliers: 0, inside: null, artInliers: 0 };
   const bf = new cv.BFMatcher(cv.NORM_HAMMING, false);
   const knn = new cv.DMatchVectorVector();
-  let inliers = 0;
+  let inliers = 0, inside = null, artInliers = 0, textInliers = 0, sourceCorners = null;
   try {
     bf.knnMatch(query.desc, ref.desc, knn, 2);
     const qPts = [], rPts = [];
@@ -2767,7 +2792,27 @@ function orbScore(query, ref) {
         rm = cv.matFromArray(good, 1, cv.CV_32FC2, rPts);
         hmask = new cv.Mat();
         H = cv.findHomography(qm, rm, cv.RANSAC, 5, hmask);
-        for (let i = 0; i < hmask.rows; i++) inliers += hmask.data[i];
+        for (let i = 0; i < hmask.rows; i++) {
+          if (!hmask.data[i]) continue;
+          inliers++;
+          const rx = rPts[i * 2] / CARD_W, ry = rPts[i * 2 + 1] / CARD_H;
+          if (rx > 0.12 && rx < 0.88 && ry > 0.14 && ry < 0.56) artInliers++;
+          if (rx > 0.12 && rx < 0.88 && ((ry > 0.04 && ry < 0.13) || (ry > 0.58 && ry < 0.9))) textInliers++;
+        }
+        if (click && inliers >= 12 && contentSupportsIdentity({inliers,artInliers,textInliers}) && H?.rows === 3) {
+          const corners = homographySourceQuad(H.data64F, CARD_W, CARD_H);
+          const geometry = corners && quadGeometry(corners, query.width, query.height, 1, click);
+          if (geometry?.valid && geometry.aspect >= 0.9 && geometry.aspect <= 2.5) {
+            const area = Math.abs(corners.reduce((sum, p, i) => {
+              const next = corners[(i + 1) % 4];
+              return sum + p.x * next.y - next.x * p.y;
+            }, 0)) / 2;
+            if (area >= query.width * query.height * 0.01 && area <= query.width * query.height * 1.2) {
+              inside = homographyContainsClick(H.data64F, click, CARD_W, CARD_H);
+              sourceCorners = geometry.corners;
+            }
+          }
+        }
       } finally {
         if (qm) qm.delete();
         if (rm) rm.delete();
@@ -2780,7 +2825,80 @@ function orbScore(query, ref) {
   } finally {
     bf.delete(); knn.delete();
   }
-  return inliers;
+  return { inliers, inside, artInliers, textInliers, corners: sourceCorners };
+}
+
+// Shared borders, rules text and symbols can produce a plausible homography
+// for an unrelated blank/template printing. Strong printed content can also
+// identify cards whose artwork is hidden by a die or glare.
+function contentSupportsIdentity(alignment, minimumArt = 4) {
+  return alignment.artInliers >= minimumArt || (alignment.inliers >= 35 && alignment.textInliers >= 8);
+}
+function artworkInlierScore(alignment) {
+  return contentSupportsIdentity(alignment) ? alignment.inliers : Math.min(alignment.inliers, 11);
+}
+function hasClickProof(match) {
+  return match.click_inliers >= 16 && contentSupportsIdentity({
+    inliers: match.click_inliers, artInliers: match.click_art_inliers, textInliers: match.click_text_inliers,
+  }, 8);
+}
+function orbScore(query, ref) { return artworkInlierScore(orbAlignment(query, ref)); }
+
+function extendAiVerification(base, proposals) {
+  const result = [...base];
+  const keys = new Set(base.map(m => `${m.scryfall_id}:${m.face || 0}`));
+  for (const match of Array.isArray(proposals) ? proposals : []) {
+    if (result.length >= base.length + 12) break;
+    const key = `${match.scryfall_id}:${match.face || 0}`;
+    if (!match.scryfall_id || !match.name || keys.has(key)) continue;
+    keys.add(key);
+    result.push({ ...match, ai_supplement: true, identified_by: undefined,
+      art_inliers: 0, color_sim: 0, ring_sim: undefined, click_inside: null,
+      click_inliers: 0, click_art_inliers: 0, click_text_inliers: 0, click_blocked: false });
+  }
+  return result;
+}
+
+function homographySourceQuad(h, width, height) {
+  if (!h || h.length !== 9 || Array.from(h).some((v) => !Number.isFinite(v))) return null;
+  const [a,b,c,d,e,f,g,i,j] = h;
+  const inverse = [e*j-f*i,c*i-b*j,b*f-c*e,f*g-d*j,a*j-c*g,c*d-a*f,d*i-e*g,b*g-a*i,a*e-b*d];
+  const determinant = a*inverse[0] + b*inverse[3] + c*inverse[6];
+  if (Math.abs(determinant) < 1e-10) return null;
+  const points = [[0,0],[width,0],[width,height],[0,height]].map(([x,y]) => {
+    const w = inverse[6]*x + inverse[7]*y + inverse[8];
+    return { x: (inverse[0]*x+inverse[1]*y+inverse[2])/w,
+      y: (inverse[3]*x+inverse[4]*y+inverse[5])/w };
+  });
+  return points.every((p) => Number.isFinite(p.x) && Number.isFinite(p.y)) ? points : null;
+}
+
+// H maps source-camera coordinates into the reference printing. Artwork
+// agreement elsewhere in the frame cannot establish the card under the click.
+function homographyContainsClick(h, click, width, height) {
+  if (!h || h.length !== 9 || Array.from(h).some((v) => !Number.isFinite(v))) return null;
+  const w = h[6] * click.x + h[7] * click.y + h[8];
+  if (!Number.isFinite(w) || Math.abs(w) < 1e-8) return null;
+  const x = (h[0] * click.x + h[1] * click.y + h[2]) / w;
+  const y = (h[3] * click.x + h[4] * click.y + h[5]) / w;
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+  // Small reprojection tolerance, never a wide margin that admits neighbours.
+  return x >= -width * 0.01 && x <= width * 1.01 && y >= -height * 0.01 && y <= height * 1.01;
+}
+
+// Negative click proof applies across a neighbour's printings. A lower-ranked
+// printing must not revive that answer. Matching duplicate copies of the card
+// under the click stay eligible. No positive proof means no veto, preserving
+// the established above-click single-card recovery.
+function excludeProvenNeighbours(matches, probes) {
+  const clickedNames = new Set(probes.filter((m) => m.click_inside === true && hasClickProof(m)).map((m) => m.name));
+  const neighbours = new Set(probes.filter((m) => clickedNames.size
+    && m.click_inside === false && hasClickProof(m)
+    && !clickedNames.has(m.name)).map((m) => m.name));
+  for (const match of matches) {
+    match.click_blocked = neighbours.has(match.name);
+    if (match.click_blocked) match.art_inliers = 0;
+  }
 }
 
 // Gray-world white balance. The index is built from neutral Scryfall scans,
@@ -2875,10 +2993,11 @@ function ringSignature(imageData) {
   return hist;
 }
 
-async function verifyTopMatches(matches, queryImages, queryIsCardShaped) {
+async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source = null, click = null, extraBudget = 0) {
   // The first 24 entries come from combined ranking; the remaining bounded
   // slots are pure-art rescues that the old 24-item slice silently discarded.
-  const shortlist = matches.slice(0, ORB_SHORTLIST);
+  const limit = ORB_SHORTLIST + Math.min(12, Math.max(0, extraBudget));
+  const shortlist = matches.slice(0, limit);
   orbTiming.fetch = 0; orbTiming.queryFeat = 0; orbTiming.refFeat = 0;
   orbTiming.match = 0; orbTiming.refs = shortlist.length;
   const tFetch = performance.now();
@@ -2918,8 +3037,44 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped) {
     }
   } finally {
     for (const qf of queryFeats) { qf.kp.delete(); qf.desc.delete(); }
+
   }
-  const maxInliers = Math.max(...shortlist.map((m) => m.art_inliers || 0), 0);
+  if (source && click) {
+    // Inspect only the plausible leaders, not every downloaded reference.
+    // The extra proof must not erase the sub-second local crop fast path.
+    const probes = [...shortlist].sort((a, b) => (b.art_inliers || 0) - (a.art_inliers || 0)).slice(0, 3);
+    for (const item of [...shortlist].sort((a, b) => a.distance - b.distance).slice(0, 3)) {
+      if (!probes.includes(item)) probes.push(item);
+    }
+    const full = orbFeatures(source, 1600);
+    try {
+      for (const item of probes) {
+        const ref = refs[shortlist.indexOf(item)];
+        if (!ref) continue;
+        const rf = orbFeatures(ref, 300);
+        try {
+          const alignment = orbAlignment(full, rf, click);
+          item.click_inliers = alignment.inliers;
+          item.click_art_inliers = alignment.artInliers;
+          item.click_text_inliers = alignment.textInliers;
+          item.click_inside = alignment.inside;
+          // Moderate template coincidences must not invent an artwork lead
+          // or skip OCR. Genuine source-space rescues need stronger evidence.
+          if (alignment.inside === true && alignment.inliers >= 24 && contentSupportsIdentity(alignment, 8)) {
+            item.art_inliers = Math.max(item.art_inliers || 0, alignment.inliers);
+            if (alignment.corners) {
+              const framed = whiteBalance(rectifyCard(source, alignment.corners));
+              item.color_sim = colorSimilarity(colorSignature(framed), colorSignature(ref));
+              item.ring_sim = colorSimilarity(ringSignature(framed), ringSignature(ref));
+            }
+          }
+          if (alignment.inside === true && alignment.inliers >= 16 && contentSupportsIdentity(alignment, 8)) break;
+        } finally { rf.kp.delete(); rf.desc.delete(); }
+      }
+      excludeProvenNeighbours(shortlist, probes);
+    } finally { full.kp.delete(); full.desc.delete(); }
+  }
+  let eligible = shortlist.filter((match) => !match.click_blocked);
   // Coarse color agreement bands: same color identity, plausible, or clashing.
   const colorBand = (m) => ((m.color_sim || 0) >= 0.45 ? 2 : (m.color_sim || 0) >= 0.22 ? 1 : 0);
   // Border-frame agreement: 1 = frames plausibly match, 0 = frame clash
@@ -2929,17 +3084,24 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped) {
   const isDecisiveLead = (match, rival) => {
     const inliers = match?.art_inliers || 0;
     if (inliers < 16 || (match?.color_sim || 0) < 0.22) return false;
+    if (match?.click_blocked) return false;
     if (inliers < 1.5 * ((rival?.art_inliers || 0) + 1)) return false;
     // Mid-strength ORB collisions at implausible gray distance have produced
     // confident wrong answers. Genuine distance-poor rescues clear 35+.
     if (inliers < 35 && (match?.distance ?? 999) > 180) return false;
     return true;
   };
+  // Weak AI retrieval must not reorder the established fallback. Supplements
+  // enter only when artwork beats every competing card by the normal margin.
+  const allEligible = eligible;
+  eligible = eligible.filter(match => !match.ai_supplement || isDecisiveLead(match,
+    [...allEligible].filter(other => other.name !== match.name).sort((a,b) => (b.art_inliers || 0)-(a.art_inliers || 0))[0]));
+  const maxInliers = Math.max(...eligible.map(m => m.art_inliers || 0), 0);
   let ranked;
   if (maxInliers >= 12) {
     // Keypoints carry real signal — rank by them, color as tiebreak, and let a
     // color clash veto a thin keypoint lead.
-    ranked = [...shortlist].sort((a, b) => (b.art_inliers || 0) - (a.art_inliers || 0)
+    ranked = [...eligible].sort((a, b) => (b.art_inliers || 0) - (a.art_inliers || 0)
       || (b.color_sim || 0) - (a.color_sim || 0) || a.distance - b.distance);
     if (ranked.length > 1 && colorBand(ranked[0]) === 0 && colorBand(ranked[1]) > 0
       && (ranked[0].art_inliers || 0) < 1.5 * (ranked[1].art_inliers || 0)) {
@@ -2962,7 +3124,7 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped) {
     // Do NOT reorder by them — rank by frame agreement, then color agreement,
     // then hash distance, so a red-framed reference can never surface for a
     // white-bordered card.
-    ranked = [...shortlist].sort((a, b) => ringBand(b) - ringBand(a)
+    ranked = [...eligible].sort((a, b) => ringBand(b) - ringBand(a)
       || colorBand(b) - colorBand(a) || a.distance - b.distance);
   }
   const best = ranked[0];
@@ -2980,13 +3142,16 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped) {
     best.confidence = Math.max(best.confidence || 0, Math.min(1, best.art_inliers / 40));
   }
   return {
-    matches: [...ranked, ...matches.slice(36)],
+    matches: [...ranked, ...matches.slice(limit).filter((match) => !shortlist.some((candidate) => candidate.click_blocked && candidate.name === match.name))],
     artBest: best ? {
       name: best.name,
       inliers: best.art_inliers || 0,
       color: Math.round((best.color_sim || 0) * 100),
       weak: maxInliers < 12,
+      clickInside: best.click_inside ?? null, clickInliers: best.click_inliers || 0,
+      clickArtInliers: best.click_art_inliers || 0, clickTextInliers: best.click_text_inliers || 0,
     } : null,
+    blockedNames: [...new Set(shortlist.filter(m => m.click_blocked).map(m => m.name))],
     artChecked: shortlist.length,
     artDecisive: decisive,
   };
@@ -3052,7 +3217,7 @@ loadCV().catch(() => {});
 let lastTitleSource = { scanId: null, candidates: [] };
 
 self.onmessage = async (e) => {
-  const { id, type, bmp, point, hints, queryCandidates, scanId, enabled } = e.data || {};
+  const { id, type, bmp, point, hints, aiQuads, aiOnly, aiCandidates, queryCandidates, scanId, enabled } = e.data || {};
   if (type === "set-early-orb-probe") {
     EARLY_ORB_PROBE = e.data.enabled === true;
     self.postMessage({ id, earlyOrbProbe: EARLY_ORB_PROBE });
@@ -3112,7 +3277,7 @@ self.onmessage = async (e) => {
     }
   } else if (type === "identify") {
     try {
-      const res = await identify(bmp, point, hints);
+      const res = await identify(bmp, point, hints, aiQuads, aiOnly, aiCandidates);
       lastTitleSource = { scanId: id, candidates: res.titleSource || [] };
       delete res.titleSource; // ImageData payloads stay in-worker
       self.postMessage({ id, ...res });

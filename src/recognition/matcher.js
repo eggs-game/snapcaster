@@ -6,6 +6,7 @@
 import { VEC_BYTES } from "./hash.js";
 import { evaluateMetadataEvidence, primaryTypes } from "./metadataEvidence.js";
 import { loadCardNames } from "../cardNameIndex.js";
+import { aiCropEnabled, preloadAiCrop, proposeAiCrops } from "./aiCrop.js";
 
 let cards = null;
 let cardNames = null;
@@ -115,7 +116,7 @@ export function preload() {
   if (preloadPromise) return preloadPromise;
   const startedAt = performance.now();
   globalThis.__SNAP_RECOGNITION_WARMUP = { status: "warming", startedAt: Date.now() };
-  preloadPromise = Promise.all([loadIndex(), runCorePreload()])
+  preloadPromise = Promise.all([loadIndex(), runCorePreload(), preloadAiCrop()])
     .then(([count, core]) => {
       if (!core.preloaded || !core.indexReady || core.cvStatus !== "ready") {
         throw new Error("Recognition core did not finish warming.");
@@ -162,7 +163,7 @@ function getWorker() {
         id, matches, printingMatches, titleCandidates, metadataStrips, titleCount, queryCandidates,
         shardedIndex, cardFound, cvStatus, candidatesTried, cropsDropped, artBest, artChecked,
         artDecisive, isolationDebug, isolationCandidates, detectorUsed, detectorState, detectorDistance, isolationTiming, scoreFullTiming, prepTiming, orbTiming, earlyOrb,
-        stageMs, wasmHeapMB,
+        stageMs, wasmHeapMB, blockedNames,
         hintHit, preloaded, indexReady, indexCount, workerMs, error,
       } = e.data || {};
       const p = pending.get(id);
@@ -179,8 +180,9 @@ function getWorker() {
       });
       else if (p.kind === "title-strips") p.resolve(titleCandidates || []);
       else if (p.kind === "metadata-strips") p.resolve(metadataStrips || null);
-      else p.resolve({
+      else p.resolve(withoutBlockedNeighbours({
         scan_id: id,
+        blocked_names: Array.isArray(blockedNames) ? blockedNames : [],
         matches: matches || [],
         printing_matches: printingMatches || [],
         title_count: titleCount || 0,
@@ -206,7 +208,7 @@ function getWorker() {
         hint_hit: !!hintHit,
         stage_ms: stageMs || {},
         wasm_heap_mb: typeof wasmHeapMB === "number" ? wasmHeapMB : null,
-      });
+      }));
     };
     worker.onerror = (e) => {
       const err = new Error(e.message || "recognition worker crashed");
@@ -218,6 +220,15 @@ function getWorker() {
     };
   }
   return worker;
+}
+
+function withoutBlockedNeighbours(result) {
+  const blocked = new Set(result.blocked_names || []);
+  if (!blocked.size) return result;
+  return { ...result,
+    matches: (result.matches || []).filter(m => !blocked.has(m.name)),
+    printing_matches: (result.printing_matches || []).filter(m => !blocked.has(m.name)),
+  };
 }
 
 async function sourceToBitmap(source) {
@@ -512,6 +523,7 @@ function suppressUnsafeVisualFallback(result) {
 }
 
 async function applyVisualFallback(result) {
+  result = withoutBlockedNeighbours(result);
   // The worker now ranks every candidate (outline, center, tilt) against the
   // full printing index, so a populated list is already the best available —
   // the legacy re-search below only samples a subset of candidates.
@@ -519,11 +531,11 @@ async function applyVisualFallback(result) {
   if (!result.sharded_index || !result.card_found) return suppressUnsafeVisualFallback(result);
   try {
     const fallback = await runVisualFallback(result.query_candidates);
-    const merged = {
+    const merged = withoutBlockedNeighbours({
       ...result,
       matches: fallback.matches,
       printing_matches: fallback.printing_matches,
-    };
+    });
     return (merged.matches?.[0]?.distance ?? Infinity) <= VISUAL_KEEP
       ? merged
       : { ...merged, matches: [] };
@@ -607,7 +619,8 @@ async function applyTitleOCRUnlocked(result) {
     let bestRead = null;
     const reads = [];
     const evaluateRead = (data, attempt) => {
-      const title = bestIndexedTitle(data.text);
+      const indexedTitle = bestIndexedTitle(data.text);
+      const title = (result.blocked_names || []).includes(indexedTitle?.name) ? null : indexedTitle;
       const read = {
         title,
         text: String(data.text || "").trim(),
@@ -764,7 +777,7 @@ function applyTitleOCR(result) {
   return withOCRLock(() => applyTitleOCRUnlocked(result));
 }
 
-function runOnWorker(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
+function runOnWorker(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads = [], aiOnly = false, aiCandidates = []) {
   const w = getWorker();
   const id = ++seq;
   return new Promise((resolve, reject) => {
@@ -773,7 +786,7 @@ function runOnWorker(bmp, point = { nx: 0.5, ny: 0.5 }, hints = []) {
       reject(new Error("Card recognition timed out. Please try again."));
     }, IDENTIFY_TIMEOUT_MS);
     pending.set(id, { resolve, reject, timer });
-    w.postMessage({ type: "identify", id, bmp, point, hints: Array.isArray(hints) ? hints.slice(0, 12) : [] }, [bmp]);
+    w.postMessage({ type: "identify", id, bmp, point, hints: Array.isArray(hints) ? hints.slice(0, 12) : [], aiQuads, aiOnly, aiCandidates }, [bmp]);
   });
 }
 
@@ -890,10 +903,35 @@ async function finishIdentify(result) {
   return out;
 }
 
-async function performIdentify(source, point, hints) {
+async function performIdentify(source, point, hints, aiCrop) {
   const t0 = performance.now();
   const bmp = await sourceToBitmap(source);
-  const out = await finishIdentify(await runOnWorker(bmp, point, hints));
+  // Verified recent-card hints already have a cheaper local prepass. Do not
+  // charge those scans model inference before they can use it.
+  const ai = aiCrop && !hints?.length ? await proposeAiCrops(bmp, point)
+    : { quads: [], diagnostic: { status: aiCrop ? "skipped-hints" : "off" } };
+  let raw, fast;
+  // A good learned crop should bypass contour enumeration and thousands of
+  // isolation windows. Try only the two proposals, with the SAME identity
+  // gates. Weak reads still receive the complete established pipeline.
+  if (ai.quads.length && !hints?.length) {
+    const fastStarted = performance.now();
+    try { fast = await runOnWorker(await createImageBitmap(bmp), point, [], ai.quads, true); }
+    catch (error) { ai.diagnostic.fastError = String(error?.message || error); }
+    ai.diagnostic.fastMs = (ai.diagnostic.fastMs || 0) + Math.round(performance.now() - fastStarted);
+    ai.diagnostic.fastHit = fast?.art_best?.clickInside !== false && (
+      (fast?.art_decisive && fast?.matches[0]?.identified_by === "art-match")
+      || (fast?.matches[0]?.distance ?? Infinity) <= VISUAL_EXACT_DISTANCE);
+    if (ai.diagnostic.fastHit) {
+      bmp.close();
+      raw = fast;
+    }
+  }
+  if (!raw) raw = await runOnWorker(bmp, point, hints, ai.quads, false, fast?.printing_matches || []);
+  const out = await finishIdentify(raw);
+  out.ai_crop = ai.diagnostic;
+  if (aiCrop) out.stage_ms = { ...(out.stage_ms || {}), aiCrop: ai.diagnostic.ms || 0 };
+  if (ai.diagnostic.fastMs) out.stage_ms.aiAttempt = ai.diagnostic.fastMs;
   out.stage_ms = { ...(out.stage_ms || {}), total: Math.round(performance.now() - t0) };
   return out;
 }
@@ -910,7 +948,7 @@ function supersededRecognitionError() {
 function startIdentifyJob(job) {
   identifyActive = true;
   globalThis.__SNAP_RECOGNITION_QUEUE = { active: true, waiting: !!queuedIdentify };
-  performIdentify(job.source, job.point, job.hints)
+  performIdentify(job.source, job.point, job.hints, job.aiCrop)
     .then(job.resolve, job.reject)
     .finally(() => {
       identifyActive = false;
@@ -924,12 +962,13 @@ function startIdentifyJob(job) {
 // Recognition is intentionally latest-only. The worker cannot interrupt a
 // synchronous scan already in progress, but it should never make the newest
 // click wait behind an arbitrary backlog of obsolete scans.
-export function identify(source, point, { hints = [] } = {}) {
+export function identify(source, point, { hints = [], aiCrop = aiCropEnabled() } = {}) {
   return new Promise((resolve, reject) => {
     const job = {
       source,
       point,
       hints: Array.isArray(hints) ? hints.slice(0, 12) : [],
+      aiCrop: !!aiCrop && aiCropEnabled(),
       resolve,
       reject,
     };
@@ -946,16 +985,8 @@ export function identify(source, point, { hints = [] } = {}) {
 // Console debug hook: `await window.__scIdentifyUrl("<card image url>")`
 // runs a full recognition on a fetched image (no camera needed).
 if (typeof window !== "undefined") {
-  window.__scIdentifyUrl = async (url, point = { nx: 0.5, ny: 0.5 }, hints = []) => {
-    const img = await new Promise((res, rej) => {
-      const i = new Image();
-      i.crossOrigin = "anonymous";
-      i.onload = () => res(i);
-      i.onerror = rej;
-      i.src = url;
-    });
-    const bmp = await createImageBitmap(img);
-    const r = await finishIdentify(await runOnWorker(bmp, point, hints));
+  window.__scIdentifyUrl = async (url, point = { nx: 0.5, ny: 0.5 }, hints = [], options = {}) => {
+    const r = await identify(url, point, { hints, aiCrop: options.aiCrop ?? aiCropEnabled() });
     console.log("[snapcast] __scIdentifyUrl top matches:", r.matches.map((m) => `${m.name} (d=${m.distance}, conf=${m.confidence.toFixed(2)})`));
     return r;
   };
