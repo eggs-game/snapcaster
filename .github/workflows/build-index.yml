@@ -7,13 +7,8 @@ on:
       - "scripts/build_index.py"
       - ".github/workflows/build-index.yml"
   workflow_dispatch:
-    inputs:
-      scope:
-        description: "Scryfall scope: 'bulk' for every printing, or a search query like set:otj"
-        default: "bulk"
-        required: true
   schedule:
-    - cron: "0 5 1 * *" # monthly refresh for new sets
+    - cron: "37 23 * * *" # daily, after Scryfall's usual bulk snapshot
 
 concurrency:
   group: card-index
@@ -31,19 +26,29 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - run: pip install numpy opencv-python-headless pillow requests
-      - name: Build index
+      - name: Verify updater and hash contract
         run: |
-          SCOPE="${{ github.event.inputs.scope || 'bulk' }}"
-          if [ "$SCOPE" = "bulk" ]; then
-            python scripts/build_index.py --bulk default_cards --workers 8
-          else
-            python scripts/build_index.py --query "$SCOPE" --workers 8
-          fi
+          python scripts/test_bulk_index.py
+          python scripts/test_index_metadata.py
+          python scripts/test_hash_compat.py
+          python scripts/check_hash_duplication.py
+      - name: Build index
+        run: python scripts/build_index.py --bulk default_cards --workers 8
+      - name: Verify complete output tables
+        run: python scripts/verify_card_index.py
       - name: Commit index
         run: |
           git config user.name "github-actions"
           git config user.email "actions@users.noreply.github.com"
           git add -f public/carddata
-          git commit -m "Update card index" || echo "No changes"
+          if git diff --cached --quiet; then
+            echo "No changes"
+            exit 0
+          fi
+          git commit -m "Update card index"
+          git pull --rebase origin main
           git push

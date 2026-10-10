@@ -28,6 +28,10 @@ jobs:
         run: python3 scripts/check_hash_duplication.py
       - name: Verify card metadata schema and visual reuse
         run: python3 scripts/test_index_metadata.py
+      - name: Verify current and legacy Scryfall bulk formats
+        run: python3 scripts/test_bulk_index.py
+      - name: Verify published card index alignment
+        run: python3 scripts/verify_card_index.py
       - name: Verify metadata analysis
         run: python3 scripts/test_metadata_analysis.py
       - name: Verify metadata evidence gates

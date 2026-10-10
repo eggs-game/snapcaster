@@ -235,8 +235,15 @@ without record, timing, commander, recent-game, or matchup data.
 ## The card index
 
 Built by `scripts/build_index.py`, run by the **Build card index** GitHub
-Action (monthly, or manually), which commits the result to `main`. Version 4,
-currently **110,592 printings / 35,052 names / 256 shards**.
+Action (daily, or manually), which commits the result to `main`. Version 4,
+with 256 shards. The exact printing/name counts and source snapshot date are
+published in `public/carddata/manifest.json`.
+
+The updater accepts Scryfall's compressed JSONL bulk snapshots and legacy JSON
+arrays. It reuses existing visual hashes, refreshes Oracle metadata, and hashes
+new paper-card faces. The manifest records the upstream bulk type, snapshot
+timestamp, download URL and format. A failed image download fails the build
+before replacing any index files, so a partial catalog is never published.
 
 | File | Size | Loaded by | Purpose |
 | --- | --- | --- | --- |
@@ -252,8 +259,10 @@ The worker loads the four bulk files once and keeps them resident. The main
 thread loads only `names.json` — it used to pull `hashes.bin` + `cards.json`
 (15 MB) because a version check read `=== 2` against a v3 manifest.
 
-`/carddata/*` is served with a week of caching plus a month of
-`stale-while-revalidate`; it changes monthly.
+`/carddata/*` requires cache revalidation, and browser index requests use
+`cache: "no-cache"`. Valid ETag responses can still reuse downloaded bytes,
+while a new session picks up daily catalog changes rather than keeping a
+month-old index. The browser retains a loaded index for its current session.
 
 Version 4 appends `mana_cost`, `type_line`, and `oracle_text` to every shard
 row. They are face-specific for independently imaged double-faced cards and

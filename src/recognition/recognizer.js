@@ -444,7 +444,7 @@ function lshCandidates(variants) {
 function loadIndex() {
   if (indexPromise) return indexPromise;
   indexPromise = (async () => {
-    const manifestResponse = await fetch("/carddata/manifest.json");
+    const manifestResponse = await fetch("/carddata/manifest.json", { cache: "no-cache" });
     if (manifestResponse.ok) {
       manifest = await manifestResponse.json();
       if (manifest.version >= 2) {
@@ -452,7 +452,7 @@ function loadIndex() {
         return manifest.count;
       }
     }
-    const [h, c] = await Promise.all([fetch("/carddata/hashes.bin"), fetch("/carddata/cards.json")]);
+    const [h, c] = await Promise.all([fetch("/carddata/hashes.bin", { cache: "no-cache" }), fetch("/carddata/cards.json", { cache: "no-cache" })]);
     if (!h.ok || !c.ok) throw new Error("Card index not found");
     index = new Uint8Array(await h.arrayBuffer());
     cards = await c.json();
@@ -485,8 +485,8 @@ function loadGlobalIndex() {
   globalIndexPromise = (async () => {
     if (!index || !cards) {
       const [hashResponse, cardsResponse] = await Promise.all([
-        fetch("/carddata/hashes.bin"),
-        fetch("/carddata/cards.json"),
+        fetch("/carddata/hashes.bin", { cache: "no-cache" }),
+        fetch("/carddata/cards.json", { cache: "no-cache" }),
       ]);
       if (!hashResponse.ok || !cardsResponse.ok) throw new Error("Global fallback index not found");
       index = new Uint8Array(await hashResponse.arrayBuffer());
@@ -500,8 +500,8 @@ function loadGlobalIndex() {
     // full production core is ready.
     if ((manifest?.version || 0) >= 3 && (!colorIndex || !artIndex)) {
       const [colorResp, artResp] = await Promise.all([
-        fetch("/carddata/colors.bin"),
-        fetch("/carddata/arthashes.bin"),
+        fetch("/carddata/colors.bin", { cache: "no-cache" }),
+        fetch("/carddata/arthashes.bin", { cache: "no-cache" }),
       ]);
       if (!colorResp.ok || !artResp.ok) throw new Error("Companion visual indexes not found");
       const colorTable = new Uint8Array(await colorResp.arrayBuffer());

@@ -13,7 +13,7 @@ function normalize(value) {
 
 export function loadCardNames() {
   if (namesPromise) return namesPromise;
-  namesPromise = fetch("/carddata/names.json")
+  namesPromise = fetch("/carddata/names.json", { cache: "no-cache" })
     .then((response) => {
       if (!response.ok) throw new Error("Card name index is missing.");
       return response.json();

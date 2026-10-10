@@ -1,0 +1,73 @@
+{
+  "manifest": {
+    "version": 4,
+    "count": 113263,
+    "names": 35648,
+    "shards": 256,
+    "cards_fields": [
+      "name",
+      "set",
+      "collector_number",
+      "scryfall_id",
+      "face"
+    ],
+    "shard_fields": [
+      "name",
+      "set",
+      "collector_number",
+      "scryfall_id",
+      "face",
+      "hash",
+      "color",
+      "art_hash",
+      "mana_cost",
+      "type_line",
+      "oracle_text"
+    ],
+    "generated_at": "2026-10-10T22:53:10Z",
+    "source": {
+      "provider": "scryfall",
+      "bulk_type": "default_cards",
+      "updated_at": "2026-10-10T21:06:04.155+00:00",
+      "download_uri": "https://data.scryfall.io/default-cards/default-cards-20261010210604.jsonl.gz",
+      "format": "jsonl"
+    }
+  },
+  "eligibleFaces": 113263,
+  "missingFaces": 0,
+  "existingVisualRowsUnchanged": 110592,
+  "newFaces": 2671,
+  "newNames": 596,
+  "newSets": [
+    "amkm",
+    "fdc",
+    "fra",
+    "frc",
+    "hob",
+    "hoc",
+    "lmar",
+    "mbc",
+    "mdc",
+    "mdd",
+    "neo",
+    "pbig",
+    "pf26",
+    "pf27",
+    "pfra",
+    "plst",
+    "pmei",
+    "sch",
+    "sld",
+    "slp",
+    "slz",
+    "spg",
+    "tfdc",
+    "tfra",
+    "tfrc",
+    "thob",
+    "tnau",
+    "trc",
+    "trk",
+    "unk"
+  ]
+}

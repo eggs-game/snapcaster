@@ -9,6 +9,46 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-10-10 — card catalog refresh — October 10 Scryfall snapshot
+
+Production had remained on the July 24 catalog: the August, September and
+October scheduled builds failed. The current Scryfall bulk endpoint supplies
+`jsonl_download_uri` and `compressed_size`; the old importer requires the
+removed `download_uri` and `size` fields. The importer now supports compressed
+JSONL and legacy JSON, caches by the complete snapshot timestamp, and records
+upstream provenance in the manifest. Interrupted downloads remain partial
+cache files; any failed image/hash task fails before replacing the index.
+
+The October 10 `default_cards` snapshot (`2026-10-10T21:06:04.155+00:00`) produces
+**113,263 eligible paper printing/face rows and 35,648 names**, adding **2,671
+faces and 596 names**. A direct set comparison with every eligible image face
+in the bulk file finds **zero missing or extra faces**. All 110,592 previous
+rows retain identical gray, color and artwork bytes after their new positions
+are mapped by printing ID and face. All shards, compact card rows, names and
+binary tables pass alignment checks. Oracle metadata is refreshed from the
+new snapshot rather than retained with the cached visual rows.
+
+The complete production browser pipeline identifies **20/20 newly added face
+references**, including four independently imaged backs, and passes **12/12
+saved regression scans** with local AI both disabled and enabled. These
+isolated references prove catalog/face coverage, not crowded-camera accuracy;
+no recognition algorithm or confidence threshold changed. Hash compatibility,
+duplicated-helper checks, updater format/cache/publication tests, a deliberate
+binary-corruption rejection test, all fast policy checks, the production build
+and accessibility checks pass.
+
+The existing GitHub updater now refreshes **daily** and always builds the full
+catalog; a manual single-set input can no longer replace it with a partial
+index. It verifies updater/hash contracts and output alignment before committing
+and rebases its generated commit onto current main before pushing. Card-data
+responses require revalidation, and browser fetches explicitly revalidate old
+cached URLs. Loaded sessions retain their index until reload. BUILD is
+`card-index-2026-10 (local vision)`.
+
+Raw evidence: [catalog completeness and visual preservation](runs/2026-10-10-card-index/catalog.json),
+[new faces and frozen regressions](runs/2026-10-10-card-index/browser-local.json),
+[reference cases](runs/2026-10-10-card-index/cases.json).
+
 ## 2026-10-10 — `click-match-4` — local vision and clicked-card verification
 
 The first complete current-main comparison found a specific integration failure:

@@ -25,6 +25,7 @@ reused.
 import argparse
 import base64
 import concurrent.futures
+import gzip
 import io
 import json
 import os
@@ -139,21 +140,46 @@ def iter_query_cards(query):
         time.sleep(0.1)
 
 
-def iter_bulk_cards(bulk_type, cache_dir):
+def iter_bulk_cards(bulk_type, cache_dir, source_info=None):
     response = requests.get(f"{API}/bulk-data", headers=HEADERS, timeout=30)
     response.raise_for_status()
     entry = next(item for item in response.json()["data"] if item["type"] == bulk_type)
     os.makedirs(cache_dir, exist_ok=True)
-    path = os.path.join(cache_dir, f"{bulk_type}-{entry['updated_at'][:10]}.json")
+    url = entry.get("jsonl_download_uri") or entry.get("download_uri")
+    if not url:
+        raise ValueError(f"No supported download URL for Scryfall {bulk_type}")
+    jsonl = bool(entry.get("jsonl_download_uri"))
+    stamp = entry['updated_at'].replace(':', '').replace('+', '')
+    extension = '.jsonl.gz' if jsonl else '.json'
+    path = os.path.join(cache_dir, f"{bulk_type}-{stamp}{extension}")
+    if source_info is not None:
+        source_info.update({
+            'provider': 'scryfall', 'bulk_type': bulk_type,
+            'updated_at': entry['updated_at'], 'download_uri': url,
+            'format': 'jsonl' if jsonl else 'json',
+        })
     if not os.path.exists(path):
-        print(f"Downloading bulk metadata ({entry['size'] / 1e6:.0f} MB)...", flush=True)
-        with requests.get(entry["download_uri"], headers=HEADERS, stream=True, timeout=180) as download:
+        size = entry.get('compressed_size', entry.get('size'))
+        label = f" ({size / 1e6:.0f} MB)" if size is not None else ''
+        print(f"Downloading bulk metadata{label}...", flush=True)
+        with requests.get(url, headers=HEADERS, stream=True, timeout=180) as download:
             download.raise_for_status()
-            with open(path, "wb") as output:
+            with open(path + '.part', "wb") as output:
                 for chunk in download.iter_content(1 << 20):
                     output.write(chunk)
-    with open(path, encoding="utf-8") as source:
-        yield from json.load(source)
+        os.replace(path + '.part', path)
+    # Some HTTP clients decompress Content-Encoding automatically; inspect
+    # the bytes rather than assume a .gz URL still contains compressed data.
+    with open(path, 'rb') as probe:
+        compressed = probe.read(2) == b'\x1f\x8b'
+    opener = gzip.open if compressed else open
+    with opener(path, 'rt', encoding="utf-8") as source:
+        if jsonl:
+            for line in source:
+                if line.strip():
+                    yield json.loads(line)
+        else:
+            yield from json.load(source)
 
 
 def faces(card):
@@ -264,7 +290,7 @@ def fetch_and_hash(task, limiter):
             time.sleep(2 ** attempt)
 
 
-def write_index(rows, out_dir):
+def write_index(rows, out_dir, source_info=None):
     shards = {f"{index:02x}": [] for index in range(SHARD_COUNT)}
     for row in rows:
         shards[shard_key(row[0])].append(row)
@@ -295,6 +321,7 @@ def write_index(rows, out_dir):
             "cards_fields": CARD_FIELDS,
             "shard_fields": SHARD_FIELDS,
             "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            **({'source': source_info} if source_info else {}),
         }, output, separators=(",", ":"))
 
     # Lazy visual fallback for cards whose title treatment is not OCR-friendly
@@ -330,7 +357,8 @@ def main():
         args.bulk = "default_cards"
 
     existing = load_existing(args.out)
-    cards_iter = iter_query_cards(args.query) if args.query else iter_bulk_cards(args.bulk, args.cache)
+    source_info = {}
+    cards_iter = iter_query_cards(args.query) if args.query else iter_bulk_cards(args.bulk, args.cache, source_info)
     tasks, reused = [], []
     card_count = 0
     for card in cards_iter:
@@ -368,9 +396,11 @@ def main():
                 print(f"  {index}/{len(tasks)} new faces ({rate:.1f}/s), {failures} failures", flush=True)
 
     rows = reused + added
+    if failures:
+        sys.exit(f"Refusing to replace the index: {failures} card faces could not be downloaded/hashed.")
     if not rows:
         sys.exit("No card faces indexed.")
-    write_index(rows, args.out)
+    write_index(rows, args.out, source_info)
     print(f"Done: {len(rows)} faces, {len({row[0] for row in rows})} names, "
           f"{failures} failures -> {args.out}", flush=True)
 

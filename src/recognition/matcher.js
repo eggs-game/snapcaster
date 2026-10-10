@@ -17,7 +17,7 @@ let loadPromise = null;
 export function loadIndex() {
   if (loadPromise) return loadPromise;
   loadPromise = (async () => {
-    const manifestResponse = await fetch("/carddata/manifest.json");
+    const manifestResponse = await fetch("/carddata/manifest.json", { cache: "no-cache" });
     if (manifestResponse.ok) {
       manifest = await manifestResponse.json();
       // Any sharded index (v2 and up) serves names from names.json. This said
@@ -30,7 +30,7 @@ export function loadIndex() {
         return manifest.count;
       }
     }
-    const [hRes, cRes] = await Promise.all([fetch("/carddata/hashes.bin"), fetch("/carddata/cards.json")]);
+    const [hRes, cRes] = await Promise.all([fetch("/carddata/hashes.bin", { cache: "no-cache" }), fetch("/carddata/cards.json", { cache: "no-cache" })]);
     if (!hRes.ok || !cRes.ok) throw new Error("Card index not found — run the 'Build card index' GitHub Action, then redeploy.");
     const indexData = new Uint8Array(await hRes.arrayBuffer());
     cards = await cRes.json();
@@ -399,7 +399,7 @@ function decodeHash(value) {
 async function loadShard(name) {
   const key = shardKey(name);
   if (!shardCache.has(key)) {
-    shardCache.set(key, fetch(`/carddata/shards/${key}.json`).then((response) => {
+    shardCache.set(key, fetch(`/carddata/shards/${key}.json`, { cache: "no-cache" }).then((response) => {
       if (!response.ok) throw new Error(`Card shard ${key} is missing.`);
       return response.json();
     }));
