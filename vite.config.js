@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { rm } from "node:fs/promises";
 import { gzipSync } from "node:zlib";
+import path from "node:path";
 
 const INITIAL_JS_GZIP_BUDGET = 80 * 1024;
 
@@ -25,12 +26,16 @@ function enforceInitialBundleBudget() {
 }
 
 function excludeLocalMockData() {
+  let outputDirectory;
   return {
     name: "exclude-local-mock-data",
     apply: "build",
+    configResolved(config) {
+      outputDirectory = path.resolve(config.root, config.build.outDir);
+    },
     async closeBundle() {
-      await rm(new URL("./dist/mock-data.local.json", import.meta.url), { force: true });
-      await rm(new URL("./dist/experimental", import.meta.url), { recursive: true, force: true });
+      await rm(path.join(outputDirectory, "mock-data.local.json"), { force: true });
+      await rm(path.join(outputDirectory, "experimental"), { recursive: true, force: true });
     },
   };
 }

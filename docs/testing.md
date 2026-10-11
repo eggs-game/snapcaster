@@ -1,5 +1,21 @@
 # How we know it works
 
+## Non-recognition UI regression checks
+
+[The four-player practice table](ui-simulation.md) runs the real game interface
+with three simulated opponents on one computer. Use it for settings, chat,
+whispers, counters, dice, readiness, player controls and game management.
+Its browser driver checks desktop/mobile layouts and both themes while blocking
+external writes. Run `npm run test:ui:simulation` after `npm run check`.
+
+`npm run test:ui:sidebar` separately verifies card-result presentation, Chat
+unread/scroll behavior, IME composition and whisper recipients with the actual
+sidebar component. `npm run test:ui:pages` covers account settings, decks,
+notifications, friends and shared header menus against a loopback source
+preview (`--url=http://127.0.0.1:5184`). Reports/screenshots are in
+`.cache/`; review screenshots as well as assertions. Fixtures cannot establish
+real OAuth, physical media, WebRTC/TURN or durable server-write correctness.
+
 **SNAPTEST** is the benchmark, at
 **[snapcast.app/snaptest](https://snapcast.app/snaptest)**.
 Pick a sample, press Run, read the results, paste the JSON.

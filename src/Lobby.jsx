@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { lazy, Suspense, useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   AudioLines,
@@ -25,7 +25,7 @@ import SiteHeader from "./SiteHeader.jsx";
 import { accountDisplayName } from "./accountIdentity.js";
 import { resolveInitialLobbyModal } from "./authIntent.js";
 import { getLocalMockGame } from "./localMock.js";
-import GamePreview from "./GamePreview.jsx";
+const GamePreview = lazy(() => import("./GamePreview.jsx"));
 import AppDropdown from "./AppDropdown.jsx";
 
 const HOME_FEATURES = [
@@ -465,7 +465,14 @@ export default function Lobby({
         </div>
       </section>
 
-      <GamePreview />
+      <Suspense fallback={(
+        <section className="home-game-showcase" aria-hidden="true">
+          <header className="home-game-showcase-head"><h2>The whole table, right where it belongs.</h2></header>
+          <div className="home-game-preview home-game-preview-exact" />
+        </section>
+      )}>
+        <GamePreview />
+      </Suspense>
 
       <HomeFeatures />
 

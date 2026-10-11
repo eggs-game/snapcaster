@@ -64,6 +64,7 @@ try {
       return route.fulfill({ headers, json: { access_token: accessToken, refresh_token: "test-only-refresh", token_type: "bearer", expires_in: 3600, expires_at: expiresAt, user } });
     }
     if (url.pathname === "/auth/v1/user") return route.fulfill({ headers, json: user });
+    if (url.pathname === "/auth/v1/logout") return route.fulfill({ status: 400, headers, json: { message: "Server could not revoke all sessions" } });
     const records = {
       "/rest/v1/profiles": { id: userId, display_name: "OAuth test", avatar_url: "" },
       "/rest/v1/account_preferences": { user_id: userId, theme: "dark" },
@@ -86,7 +87,19 @@ try {
   assert.equal(new URL(page.url()).searchParams.has("code"), false, "consumed callback codes must be removed");
   assert.equal(exchanges, 1, "the callback must be exchanged exactly once");
   assert.equal(await page.getByRole("dialog").count(), 0);
-  console.log("OAuth callback survives lazy account loading, exchanges once, signs in, and cleans up without opening a game dialog.");
+  if (!baseline) {
+    await page.getByRole("button", { name: "OAuth test", exact: true }).click();
+    await page.getByRole("button", { name: "Sign out", exact: true }).click();
+    try {
+      await page.getByRole("alert").filter({ hasText: "Server could not revoke all sessions" }).waitFor({ timeout: 15_000 });
+    } catch (error) {
+      throw new Error(`Rejected sign-out did not show its error: ${(await page.locator(".site-account").innerText()).slice(0, 800)}`, { cause: error });
+    }
+    await page.getByRole("button", { name: "Sign in with Discord", exact: true }).waitFor();
+    assert.equal(await page.getByRole("alert").filter({ hasText: "Server could not revoke all sessions" }).count(), 1,
+      "server revocation failures must remain visible once the SDK clears the local session");
+  }
+  console.log("OAuth callback exchanges once and cleans up without a game dialog; failed server sign-out is shown once after local session cleanup.");
 } finally {
   releaseExchange?.();
   await browser?.close();

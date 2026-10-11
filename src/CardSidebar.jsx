@@ -5,6 +5,7 @@ import {
   LogOut, PanelLeft, Play, RefreshCw, Search, Settings, Shuffle, Sparkles, Square, Swords, ThumbsDown, UserMinus, UserPlus, UsersRound, Video, VideoOff, X,
 } from "lucide-react";
 import { fetchCardByName, suggestCardNames } from "./cardSearch.js";
+import { isDecisiveCardMatch } from "./cardPresentation.js";
 import {
   parseChatDraft, selectWhisperRecipient, whisperCommandMatches, whisperRecipientMatches,
 } from "./chatCommands.js";
@@ -219,6 +220,7 @@ export default function CardSidebar({
   const invite = view === "invite";
   const dice = view === "dice";
   const management = view === "management";
+  const chatVisible = view === "lookup" && lookupTab === "chat" && !collapsed;
   const recentCards = [...(lookups || [])].reverse();
   const safeChatRecipients = chatRecipients || [];
   const chatCommandSuggestions = whisperCommandMatches(chatDraft);
@@ -246,12 +248,12 @@ export default function CardSidebar({
 
   useEffect(() => {
     const latestId = chatMessages?.[chatMessages.length - 1]?.id || "";
-    if (latestId && latestId !== lastChatMessageIdRef.current && lookupTab !== "chat") {
+    if (latestId && latestId !== lastChatMessageIdRef.current && !chatVisible) {
       setHasUnreadChat(true);
     }
     lastChatMessageIdRef.current = latestId;
-    if (lookupTab === "chat") setHasUnreadChat(false);
-  }, [chatMessages, lookupTab]);
+    if (chatVisible) setHasUnreadChat(false);
+  }, [chatMessages, chatVisible]);
 
   const scrollChatToLatest = () => {
     const messages = chatMessagesRef.current;
@@ -259,10 +261,10 @@ export default function CardSidebar({
   };
 
   useEffect(() => {
-    if (lookupTab !== "chat") return undefined;
+    if (!chatVisible) return undefined;
     const frame = requestAnimationFrame(scrollChatToLatest);
     return () => cancelAnimationFrame(frame);
-  }, [lookupTab]);
+  }, [chatVisible]);
 
   // A video-card click opens the outer lookup view before recognition starts.
   // Follow that loading state into the Cards tab so the panel cannot remain
@@ -274,12 +276,12 @@ export default function CardSidebar({
   // Keep a message the local player just sent in view without pulling someone
   // reading older room activity away from their place for incoming messages.
   useEffect(() => {
-    if (lookupTab !== "chat") return undefined;
+    if (!chatVisible) return undefined;
     const latest = chatMessages?.[chatMessages.length - 1];
     if (!latest || latest.from !== currentUserId || latest.kind) return undefined;
     const frame = requestAnimationFrame(scrollChatToLatest);
     return () => cancelAnimationFrame(frame);
-  }, [chatMessages, currentUserId, lookupTab]);
+  }, [chatMessages, currentUserId, chatVisible]);
 
   const openCard = (card) => {
     if (!card) return;
@@ -509,14 +511,12 @@ export default function CardSidebar({
   // scans can score around 190 even when the correct printing is ranked first,
   // so show those as a clearly labeled possible match.
   const top = best && (
-    best.identified_by === "ocr-title"
-    || best.identified_by === "art-match"
-    || best.identified_by === "search"
+    isDecisiveCardMatch(best)
     || best.distance <= 195
   ) ? best : null;
   // A decisive identification (art keypoints, title read, or manual search).
   // Anything else is a ranked guess and must say so.
-  const decisive = !!top && ["ocr-title", "art-match", "search", "visual-exact"].includes(top.identified_by);
+  const decisive = isDecisiveCardMatch(top);
   const identifying = Boolean(current?.loading || searching);
   const debugMode = typeof window !== "undefined"
     && new URLSearchParams(window.location.search).has("debug");
@@ -567,7 +567,7 @@ export default function CardSidebar({
         dice ? "dice-view" : "",
         management ? "management-view" : "",
         collapsed ? "collapsed" : "",
-        !settings && !management && lookupTab === "chat" ? "chat-view" : "",
+        view === "lookup" && lookupTab === "chat" ? "chat-view" : "",
         entering && !closing ? "slide-in" : "",
         closing ? "slide-out" : "",
       ].filter(Boolean).join(" ")}
@@ -585,7 +585,7 @@ export default function CardSidebar({
         }
       }}
       >
-      <nav className="sidebar-rail" aria-label="Sidebar navigation">
+      <nav className="sidebar-rail" aria-label="Sidebar navigation" tabIndex={0}>
         <button
           type="button"
           className="drawer-toggle panel-toggle"
@@ -719,7 +719,7 @@ export default function CardSidebar({
         )}
       </nav>
 
-      <div className="sidebar-content" aria-hidden={collapsed}>
+      <div className="sidebar-content" aria-hidden={collapsed} tabIndex={collapsed ? -1 : 0}>
       <div className="sidebar-head">
         {(settings || counters || invite || dice || management) && (
           <span className="logo">{settings ? "Settings" : counters ? "Commander damage" : invite ? "Invite" : dice ? "Dice & counters" : "Game management"}</span>
@@ -955,6 +955,7 @@ export default function CardSidebar({
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               onKeyDown={(event) => {
+                if (event.nativeEvent.isComposing || event.keyCode === 229) return;
                 if (event.key === "Escape") {
                   setSuggestions([]);
                   return;
@@ -1363,6 +1364,7 @@ export default function CardSidebar({
                       }
                     }}
                     onKeyDown={(event) => {
+                      if (event.nativeEvent.isComposing || event.keyCode === 229) return;
                       if (chatSuggestions.length && (event.key === "ArrowDown" || event.key === "ArrowUp")) {
                         event.preventDefault();
                         const direction = event.key === "ArrowDown" ? 1 : -1;

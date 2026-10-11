@@ -20,7 +20,8 @@ function persistSessionMock(data) {
 }
 
 export function isLoopbackHost() {
-  return ["127.0.0.1", "localhost", "::1"].includes(window.location.hostname);
+  return typeof window !== "undefined"
+    && ["127.0.0.1", "localhost", "::1", "[::1]"].includes(window.location.hostname);
 }
 
 export async function getLocalMockData() {
@@ -99,6 +100,9 @@ export async function makeLocalMockGameSession(game, displayName, role) {
     lives: { ...(game.mock_state?.lives || {}), ...(safeRole === "player" ? { [localId]: 40 } : {}) },
     poison: { ...(game.mock_state?.poison || {}) },
     commanderDamage: { ...(game.mock_state?.commander_damage || {}) },
+    eliminations: { ...(game.mock_state?.eliminations || {}) },
+    videoCounters: structuredClone(game.mock_state?.video_counters || {}),
+    simulation: structuredClone(game.mock_simulation || null),
     activePlayerId: game.mock_state?.active_player_id || seededRoster.find((member) => member.role === "player")?.id || "",
     chat: [...(game.mock_state?.chat || [])],
   };

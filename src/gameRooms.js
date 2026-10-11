@@ -2,8 +2,10 @@ import { getSupabase, isSupabaseConfigured } from "./supabase.js";
 import {
   getLocalMockData,
   getLocalMockGame,
+  isLoopbackHost,
   makeLocalMockGameSession,
 } from "./localMock.js";
+import { isCommanderCard, isValidCommanderPartner } from "./commanderRules.js";
 
 const ROOM_CAPABILITIES_KEY = "sc-room-capabilities";
 
@@ -206,12 +208,38 @@ export async function validateGameCommanderSelection({
   partnerName = null,
   partnerScryfallId = null,
 }) {
-  if (String(participantToken || "").startsWith("mock-participant-")) {
+  if (isLoopbackHost() && String(participantToken || "").startsWith("mock-participant-")) {
+    const code = String(participantToken).slice("mock-participant-".length);
+    const mock = await getLocalMockData();
+    const localMockEnabled = Boolean(mock?.enabled);
+    const room = localMockEnabled ? await getLocalMockGame(code) : null;
+    let active;
+    try { active = JSON.parse(sessionStorage.getItem("snapcast-active-room") || "null"); } catch { /* no active practice participant */ }
+    const roster = Array.isArray(active?.mockGame?.roster) ? active.mockGame.roster : [];
+    const participant = roster.find((member) => (
+      member.id === active.mockGame.localId && member.membershipId === membershipId && member.role === "player"
+    ));
+    if (!room || active?.code !== room.code || active?.participantToken !== participantToken
+      || active?.membershipId !== membershipId || !participant) {
+      throw new Error("Join a local practice game as a player before choosing a Commander.");
+    }
+    const name = String(commanderName || "").trim();
+    const partner = String(partnerName || "").trim();
+    if (!name || name.length > 120 || partner.length > 120) throw new Error("Choose a valid Commander card");
+    const { fetchCardByName } = await import("./cardSearch.js");
+    const [commanderCard, partnerCard] = await Promise.all([
+      fetchCardByName(name),
+      partner ? fetchCardByName(partner) : Promise.resolve(null),
+    ]);
+    if (!commanderCard || (partner && !partnerCard)) throw new Error("That card was not found");
+    if (!isCommanderCard(commanderCard)) throw new Error(`${commanderCard.name} cannot be a Commander`);
+    if (partnerCard && !isValidCommanderPartner(commanderCard, partnerCard)) {
+      throw new Error(`${partnerCard.name} is not a legal partner for ${commanderCard.name}`);
+    }
+    const describeCard = (card) => ({ name: card.name, scryfallId: card.id, typeLine: card.type_line || "" });
     return {
-      commander: { name: String(commanderName || "").trim(), scryfallId: commanderScryfallId, typeLine: "" },
-      partner: partnerName
-        ? { name: String(partnerName).trim(), scryfallId: partnerScryfallId, typeLine: "" }
-        : null,
+      commander: describeCard(commanderCard),
+      partner: partnerCard ? describeCard(partnerCard) : null,
     };
   }
   const supabase = requireConfigured();

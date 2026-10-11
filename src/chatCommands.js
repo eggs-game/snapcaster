@@ -46,10 +46,16 @@ export function parseChatDraft(draft, recipients, preferredTargetId = "") {
     const mention = `@${cleanName(recipient.name)}`.toLocaleLowerCase();
     return lower.startsWith(mention) && (rest.length === mention.length || /\s/.test(rest[mention.length]));
   });
-  const target = preferred && matches.some((recipient) => recipient.id === preferred.id)
+  // A longer exact mention wins over a shorter name prefix (for example,
+  // @Ann Marie when both Ann and Ann Marie are seated). Only identical full
+  // names need autocomplete's stable participant ID to disambiguate them.
+  const longestNameLength = matches.length ? cleanName(matches[0].name).length : 0;
+  const exactMatches = matches.filter((recipient) => cleanName(recipient.name).length === longestNameLength);
+  const preferredMatches = preferred && exactMatches.some((recipient) => recipient.id === preferred.id);
+  const target = preferredMatches
     ? preferred
-    : matches.length === 1 ? matches[0] : null;
-  if (!preferred && matches.length > 1) {
+    : exactMatches.length === 1 ? exactMatches[0] : null;
+  if (!preferredMatches && exactMatches.length > 1) {
     return { error: "That name is shared by multiple people. Select the recipient from autocomplete." };
   }
   if (!target) return { error: "Choose a current player or visitor before sending." };

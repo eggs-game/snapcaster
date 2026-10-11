@@ -1368,6 +1368,23 @@ export class GameConnection {
     });
   }
 
+  resetTableState() {
+    if (this.role === "visitor") return;
+    const attackerIds = Object.keys(this.commanderDamage || {});
+    const counterIds = (this.videoCounters || []).map((counter) => counter.id);
+    this.commanderDamage = {};
+    this.videoCounters = [];
+    this.setLife(40);
+    this.setPoison(0);
+    this.setCommander("");
+    this.setCommanderPartner("");
+    this.setElimination("");
+    this.setActivePlayer(this.roster.find((member) => member.role !== "visitor")?.id || "");
+    attackerIds.forEach((attackerId) => this.room?.send({ type: "commander-damage", attackerId, value: 0 }));
+    counterIds.forEach((counterId) => this.room?.send({ type: "video-counter-remove", counterId }));
+    this._persistPlayerState();
+  }
+
   setLife(life) {
     if (this.role === "visitor") return;
     this.life = Math.max(0, Number(life) || 0);

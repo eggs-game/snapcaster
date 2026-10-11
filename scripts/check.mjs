@@ -7,6 +7,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const node = process.execPath;
 const python = process.env.SNAPCAST_PYTHON || "python3";
 const checks = [
+  [node, "scripts/test_build_output_isolation.mjs"],
   [node, "scripts/test_metadata_evidence.mjs"],
   [node, "scripts/test_video_quality.mjs"],
   [node, "scripts/test_card_search_cache.mjs"],
@@ -18,6 +19,13 @@ const checks = [
   [node, "scripts/test_anonymous_retention.mjs"],
   [node, "scripts/test_realtime_epoch_rotation.mjs"],
   [node, "scripts/test_game_rejoin_contract.mjs"],
+  [node, "scripts/test_game_controls.mjs"],
+  [node, "scripts/test_local_commander_selection.mjs"],
+  [node, "scripts/test_game_connection_reset.mjs"],
+  [node, "scripts/test_video_counter_contrast.mjs"],
+  [node, "scripts/test_card_presentation.mjs"],
+  [node, "scripts/test_chat_commands.mjs"],
+  [node, "scripts/test_local_game_simulation.mjs"],
   [node, "scripts/test_recognition_hints.mjs"],
   [node, "scripts/test_recognition_queue.mjs"],
   [node, "scripts/test_ai_crop.mjs"],

@@ -1,0 +1,62 @@
+#!/usr/bin/env node
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { createFourPlayerFixture } from "./fixtures/four_player_simulation.mjs";
+
+globalThis.window = { location: { hostname: "127.0.0.1" } };
+const { default: LocalMockGameConnection } = await import("../src/LocalMockGameConnection.js");
+const fixture = createFourPlayerFixture(JSON.parse(await readFile("scripts/fixtures/accessibility-mock-data.json", "utf8")));
+const table = fixture.games[0];
+assert.equal(table.mock_roster.length, 3);
+assert.equal(table.seat_limit, 4);
+assert.equal(table.mock_owner, true);
+for (const card of table.mock_simulation.cards) await readFile(`public${card.url}`);
+const session = {
+  localId: "mock-local-player", roster: [...table.mock_roster, { id: "mock-local-player", name: "Zach", role: "player" }],
+  lives: { ...table.mock_state.lives, "mock-local-player": 40 }, poison: {}, commanderDamage: {}, colors: {}, videoCounters: {}, simulation: table.mock_simulation,
+};
+const received = [];
+const handlers = Object.fromEntries(["onRoster", "onChat", "onLife", "onPoison", "onCommanderDamage", "onVideoCounter", "onReadyCheckResponse", "onPeerReconnecting"].map((name) => [name, (...args) => received.push([name, ...args])]));
+const conn = new LocalMockGameConnection(handlers, session);
+await conn.join("TEST04", "Zach");
+assert.equal(window.__scLocalGame.snapshot().roster.length, 4);
+assert.equal(conn.sendWhisper("mock-maya", "Private test"), true);
+assert.equal(conn.sendWhisper("unknown-peer", "Private test"), false);
+assert.equal(conn.receive("unknown-peer", "life", { value: 5 }), false);
+assert.equal(conn.receive("mock-maya", "life", { value: 37 }), true);
+assert.equal(conn.receive("mock-drew", "poison", { value: 4 }), true);
+assert.equal(conn.receive("mock-sam", "commander-damage", { attackerId: "mock-maya", value: 6 }), true);
+assert.equal(conn.receive("mock-sam", "commander-damage", { attackerId: "p:mock-maya", value: 4 }), true);
+assert.equal(conn.receive("mock-sam", "commander-damage", { attackerId: "p:unknown-peer", value: 4 }), false);
+assert.equal(conn.receive("mock-sam", "video-counter", { counter: { id: "test-counter", type: "plus-one", value: 3, x: .4, y: .5 } }), true);
+conn.disconnect("mock-maya");
+conn.reconnect("mock-maya");
+conn.startReadyCheck("ready-test", Date.now() + 5000);
+await new Promise((resolve) => setTimeout(resolve, 1000));
+assert.equal(received.filter(([name]) => name === "onReadyCheckResponse").length, 3);
+assert.ok(received.some(([name, message]) => name === "onChat" && message.whisper));
+assert.equal(conn.state.lives["mock-maya"], 37);
+assert.equal(conn.state.commanderDamage["mock-sam"]["mock-maya"], 6);
+assert.equal(conn.state.commanderDamage["mock-sam"]["p:mock-maya"], 4);
+assert.equal(conn.state.videoCounters["mock-sam"][0].value, 3);
+conn.receive("mock-drew", "elimination", { reason: "concede" });
+assert.equal(conn.state.eliminations["mock-drew"], "concede");
+conn.setVideoCounter({ id: "own-counter", type: "plus-one", value: 3, x: .5, y: .5 });
+conn.resetTableState();
+assert.equal(conn.state.lives["mock-maya"], 40);
+assert.deepEqual(conn.state.commanderDamage, {});
+assert.deepEqual(conn.state.videoCounters, {});
+assert.equal(conn.readyCheckId, "");
+assert.equal(conn.removePeer("mock-sam"), true);
+assert.equal(conn.receive("mock-sam", "life", { value: 10 }), false);
+assert.equal(conn.sendWhisper("mock-sam", "Removed player"), false);
+conn.close();
+assert.equal(window.__scLocalGame, undefined);
+assert.equal(conn.receive("mock-maya", "life", { value: 0 }), false);
+await assert.rejects(conn.join("TEST04", "Zach"), /has closed/);
+window.location.hostname = "snapcast.app";
+assert.throws(() => new LocalMockGameConnection({}, session), /only on loopback/);
+window.location.hostname = "[::1]";
+const ipv6 = new LocalMockGameConnection({}, session);
+ipv6.close();
+process.stdout.write("Four-player local transport passed: fixture images, events, whispers, three ready responses, reconnect indicators, cleanup and loopback isolation.\n");

@@ -59,8 +59,14 @@ export function getCounterTextColor(color) {
   const red = Number.parseInt(normalized.slice(0, 2), 16);
   const green = Number.parseInt(normalized.slice(2, 4), 16);
   const blue = Number.parseInt(normalized.slice(4, 6), 16);
-  const luminance = (red * 0.2126 + green * 0.7152 + blue * 0.0722) / 255;
-  return luminance > 0.56 ? "#18170f" : "#fff";
+  const linear = (channel) => {
+    const value = channel / 255;
+    return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+  };
+  const luminance = linear(red) * 0.2126 + linear(green) * 0.7152 + linear(blue) * 0.0722;
+  // Choose the stronger WCAG contrast, rather than perceived RGB brightness.
+  // Black/white guarantee at least 4.5:1 even for mid-tone tile colors.
+  return (luminance + 0.05) / 0.05 >= 1.05 / (luminance + 0.05) ? "#000" : "#fff";
 }
 
 export function normalizeVideoCounter(counter) {

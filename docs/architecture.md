@@ -33,6 +33,10 @@ data layer. Recognition remains in the browser.
 | OCR | tesseract.js | Title reading, main thread, heavily gated (see below) |
 | Hosting | Vercel | Auto-deploys `main`; static files plus narrowly scoped stateless serverless routes |
 
+The landing-page game illustration loads in a separate JavaScript chunk, with
+a reserved loading area. UI fixes must continue to satisfy the 80 KiB initial
+JavaScript gzip budget rather than pulling account/game code into the entry.
+
 Dependencies are deliberately few: `react`, `react-dom`, `@supabase/supabase-js`,
 `tesseract.js`, `lucide-react`. OpenCV loads at runtime from `docs.opencv.org`.
 
@@ -96,6 +100,12 @@ happen, then reconciled with the host's final snapshot. My Profile can
 therefore filter and summarize locally loaded history without parsing display
 strings or making opponent history public. The function remains
 authenticated-only and scopes rows to `auth.uid()`.
+
+Durable commander-damage snapshots accept one integer per opponent membership.
+Live state tracks both creature commanders separately; history saves the higher
+single-commander total so partner damage is retained without summing two
+creatures toward the 21-damage loss condition. Separate partner totals are not
+represented by the existing history contract.
 
 Foreign-key columns used by the durable account/game schema have covering
 indexes, and owner RLS policies cache `auth.uid()` through scalar subqueries.
@@ -376,6 +386,10 @@ the main thread — an early bug that made the lobby unresponsive.
   the same seat and republishes the restored state. Lifecycle heartbeat and
   navigation evidence classify recovery as a refresh, connectivity loss,
   likely crash, or generic session resume.
+  Restarting the table clears both rendered counters and persisted transport
+  state before publishing resets, preventing old damage or stickers from
+  returning after a refresh. Pending life announcements, readiness and dice
+  overlays are also discarded.
 - **Recognition latency is observable without storing card content.** The
   latest 50 scans remain available in the scanning browser at
   `window.__SNAP_RECOGNITION_TIMINGS`. A bounded copy is also submitted

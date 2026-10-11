@@ -14,6 +14,8 @@ export default function SiteHeader({
   onSignOut,
 }) {
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [accountActionError, setAccountActionError] = useState("");
+  const [accountActionWorking, setAccountActionWorking] = useState(false);
   const [scrolled, setScrolled] = useState(() => window.scrollY > 8);
 
   useEffect(() => {
@@ -22,6 +24,37 @@ export default function SiteHeader({
     window.addEventListener("scroll", updateScrolled, { passive: true });
     return () => window.removeEventListener("scroll", updateScrolled);
   }, []);
+
+  useEffect(() => {
+    if (!accountMenuOpen) return undefined;
+    const dismiss = (event) => {
+      if (event.type === "keydown" && event.key === "Escape") {
+        setAccountMenuOpen(false);
+        document.querySelector(".site-account-button")?.focus();
+      } else if (event.type === "pointerdown" && !event.target.closest?.(".site-account")) {
+        setAccountMenuOpen(false);
+      }
+    };
+    document.addEventListener("pointerdown", dismiss);
+    document.addEventListener("keydown", dismiss);
+    return () => {
+      document.removeEventListener("pointerdown", dismiss);
+      document.removeEventListener("keydown", dismiss);
+    };
+  }, [accountMenuOpen]);
+
+  const runAccountAction = async (action) => {
+    if (accountActionWorking) return;
+    setAccountActionError("");
+    setAccountActionWorking(true);
+    try {
+      await action?.();
+    } catch (error) {
+      setAccountActionError(String(error?.message || "Please try again."));
+    } finally {
+      setAccountActionWorking(false);
+    }
+  };
 
   return (
     <header className={`site-header${scrolled ? " is-scrolled" : ""}`}>
@@ -56,7 +89,7 @@ export default function SiteHeader({
                   <span>Notifications</span>
                   {notificationCount > 0 && <strong>{notificationCount > 9 ? "9+" : notificationCount}</strong>}
                 </a>
-                <button type="button" onClick={() => onSignOut?.()}>
+                <button type="button" disabled={accountActionWorking} onClick={() => runAccountAction(onSignOut)}>
                   <LogOut size={16} />
                   Sign out
                 </button>
@@ -65,15 +98,16 @@ export default function SiteHeader({
           </>
         ) : accountReady ? (
           <>
-            <button className="site-discord-button" type="button" onClick={onSignIn} aria-label="Sign in with Discord">
+            <button className="site-discord-button" type="button" disabled={accountActionWorking} onClick={() => runAccountAction(onSignIn)} aria-label="Sign in with Discord">
               <DiscordMark size={18} />
               <span>Sign in with Discord</span>
             </button>
-            {accountError && (
+            {accountError && !accountActionError && (
               <p className="site-account-error" role="alert">{accountError}</p>
             )}
           </>
         ) : null}
+        {accountActionError && <p className="site-account-error" role="alert">{accountActionError}</p>}
       </div>
     </header>
   );

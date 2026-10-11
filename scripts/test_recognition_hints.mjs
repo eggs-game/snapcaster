@@ -31,6 +31,15 @@ assert.equal(nearbyRecognitionHints(cache, "player-1", 0.42, 0.59, now + 1000).l
 assert.equal(nearbyRecognitionHints(cache, "player-1", 0.9, 0.1, now + 1000).length, 0);
 assert.equal(nearbyRecognitionHints(cache, "player-2", 0.42, 0.59, now + 1000).length, 0);
 
+const ttl = 4 * 60 * 60 * 1000;
+assert.equal(nearbyRecognitionHints([solRing], "player-1", 0.4, 0.6, now + ttl - 1).length, 1);
+assert.equal(normalizeRecognitionHint(solRing, now + ttl), null, "expired hints must not become fresh during normalization");
+assert.equal(nearbyRecognitionHints([solRing], "player-1", 0.4, 0.6, now + ttl).length, 0);
+assert.equal(nearbyRecognitionHints([solRing], "player-1", 0.4, 0.6, now + ttl + 1000).length, 0);
+assert.equal(rememberRecognitionHint([solRing], { ...solRing, nx: 0.8, at: now + ttl }, now + ttl).length, 1,
+  "remembering a fresh hint must evict the expired old position");
+assert.equal(rememberRecognitionHint([], solRing, now + ttl).length, 0, "an expired incoming hint must not enter the cache");
+
 assert.equal(isReusableRecognitionMatch({ scryfall_id: solRing.card.scryfall_id, distance: 90 }), true);
 assert.equal(isReusableRecognitionMatch({ scryfall_id: solRing.card.scryfall_id, distance: 170 }), false);
 assert.equal(isReusableRecognitionMatch({
@@ -39,4 +48,4 @@ assert.equal(isReusableRecognitionMatch({
   identified_by: "art-match",
 }), true);
 
-console.log("OK: recognition hints are bounded, spatial, sanitized, and confidence-gated");
+console.log("OK: recognition hints are bounded, spatial, sanitized, expire after four hours, and are confidence-gated");

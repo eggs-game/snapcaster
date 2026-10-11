@@ -30,6 +30,7 @@ import { isCommanderCard, isValidCommanderPartner } from "./cardSearch.js";
 import { detectDeckImportInput, parseMoxfieldExport, summarizeDeckCards } from "./deckImport.js";
 import DiscordMark from "./DiscordMark.jsx";
 import AppDropdown from "./AppDropdown.jsx";
+import AppToast from "./AppToast.jsx";
 import { useConfirmDialog } from "./ConfirmDialog.jsx";
 import { accountDiscordName } from "./accountIdentity.js";
 import { roomCapability, submitGameCorrection } from "./gameRooms.js";
@@ -159,6 +160,9 @@ export default function AccountProfile({
   const [showRecentGames, setShowRecentGames] = useState(account?.preferences?.show_recent_games !== false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [status, setStatus] = useState("");
+  const [busyFriendId, setBusyFriendId] = useState(null);
+  const dismissStatus = useCallback(() => setStatus(""), []);
   const [activeProfileTab, setActiveProfileTab] = useState("decks");
   const [deckView, setDeckView] = useState(() => {
     try {
@@ -443,6 +447,7 @@ export default function AccountProfile({
     event.preventDefault();
     if (view !== "settings") return;
     setError("");
+    setStatus("");
     setSaving(true);
     try {
       await onSave({
@@ -453,6 +458,7 @@ export default function AccountProfile({
         appearOffline,
         showRecentGames,
       });
+      setStatus("Settings saved.");
       onClose?.();
     } catch (saveError) {
       setError(String(saveError?.message || "Could not save your profile."));
@@ -868,6 +874,7 @@ export default function AccountProfile({
                     aria-label="Grid view"
                     aria-pressed={deckView === "grid"}
                     data-tooltip="Grid view"
+                    data-tooltip-pos="right-top"
                     onClick={() => selectDeckView("grid")}
                   >
                     <LayoutGrid size={17} aria-hidden="true" />
@@ -877,6 +884,7 @@ export default function AccountProfile({
                     aria-label="List view"
                     aria-pressed={deckView === "list"}
                     data-tooltip="List view"
+                    data-tooltip-pos="right-top"
                     onClick={() => selectDeckView("list")}
                   >
                     <List size={18} aria-hidden="true" />
@@ -1158,15 +1166,24 @@ export default function AccountProfile({
                   <span className={`friend-presence ${friend.status}`} />
                   <a href={`/profile?id=${encodeURIComponent(friend.id)}`}>{friend.display_name}</a>
                   <small>{friend.status === "in_game" ? "In a game" : friend.status === "online" ? "Online" : "Offline"}</small>
-                  <button type="button" onClick={async () => {
+                  <button type="button" disabled={busyFriendId === friend.id} onClick={async () => {
                     if (!(await confirmAction({
                       title: `Remove ${friend.display_name}?`,
                       description: "They will no longer be able to see your friends-only stats or game history.",
                       confirmLabel: "Remove friend",
                       tone: "danger",
                     }))) return;
-                    await removeFriend(friend.id);
-                    refreshSocial();
+                    setBusyFriendId(friend.id);
+                    setError("");
+                    try {
+                      await removeFriend(friend.id);
+                      await refreshSocial();
+                      setStatus(`${friend.display_name} removed from friends.`);
+                    } catch (removeError) {
+                      setError(String(removeError?.message || "Could not remove this friend."));
+                    } finally {
+                      setBusyFriendId(null);
+                    }
                   }}>Remove</button>
                 </div>
               )) : <p className="account-profile-help">Friends you add will appear here with privacy-aware presence.</p>}
@@ -1566,6 +1583,7 @@ export default function AccountProfile({
           )}
 
           {error && !showDeckForm && !showDeckImport && <p className="modal-error" role="alert">{error}</p>}
+          <AppToast message={status} onDismiss={dismissStatus} />
           {view === "settings" && !page && <footer className="modal-actions">
             {!page && <button type="button" onClick={onClose}>Cancel</button>}
             <button className="primary" type="submit" disabled={saving}>

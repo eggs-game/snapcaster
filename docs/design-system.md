@@ -106,6 +106,35 @@ or activity object never rests against the panel edge. Chat is the exception:
 its outer panel keeps the composer at the normal bottom inset, while the
 scrolling message list carries that same 60px trailing clearance.
 
+At widths up to 900px, sidebar navigation becomes a horizontal **48px** rail.
+The open panel occupies at most **40dvh**, with its own scrolling content;
+collapsing it leaves only the rail so the board immediately regains the space.
+The rail scrolls horizontally if its controls exceed the available width.
+Panel content must use a `minmax(0, 1fr)` track and `min-height: 0` so long
+Settings forms remain reachable without overflowing onto the table.
+Both scrollable rail and panel accept keyboard focus. The landing-page miniature
+retains its desktop arrangement at every size and does not inherit this mobile
+game layout.
+The illustration's loading shell uses the same heading and preview dimensions,
+so its separate code download does not invent a second responsive size scale.
+Modal close controls remain absolutely anchored to the shell's upper-right
+corner even when they carry the shared tooltip attribute; tooltip positioning
+must not change the control's layout position.
+Space keeps its native action on focused controls and scrollable panels; the
+background turn shortcut applies only when no control or modal owns that key.
+Dropping or canceling a counter drag consumes its synthesized release click,
+so moving a sticker does not open card lookup or change the active panel.
+Non-submit controls inside Commander forms declare `type="button"`; pressing
+Enter submits the selection without toggling a camera, microphone or menu.
+The live game's elimination action takes its own 34px row above the video grid.
+It stays in normal flow so shuffling seats or changing layouts cannot cover a
+player's camera, microphone or options controls.
+
+Small on-camera counter text chooses black or white using linearized sRGB
+relative luminance and the stronger contrast ratio. This guarantees 4.5:1 on
+every valid tile color, including medium blue and gray that appear bright in RGB
+but are insufficiently contrasted with white text.
+
 ## Tiny icon buttons
 
 The standard for small, icon-only buttons (video tile controls, card
@@ -391,6 +420,25 @@ button, and dismisses after four seconds. Its entrance animation respects
 reduced-motion preferences. Action errors remain persistent inline alerts so
 recovery guidance cannot disappear before the player reads it.
 
+In-game recoverable action errors use the same fixed toast shell with a danger
+icon, an assertive alert and explicit dismissal. They stay visible until dismissed
+or the table restarts; failed commander validation or history recording must not
+replace the ongoing game. Connection and membership failures retain the full-page
+recovery view.
+
+Small account/deck metadata, settings help, friend actions and notification
+details use `--text-secondary` so supporting text and controls remain readable
+in both themes. Reserve `--text-tertiary` for nonessential decoration; hierarchy
+must not make actionable or explanatory copy fail contrast checks.
+
+Deck hero artwork clips horizontally at the full-width shell while its vertical
+fade remains visible. Decorative overflow must never widen the document.
+
+The shared account menu dismisses on outside clicks and Escape. Escape returns
+focus to its trigger; authentication failures remain visible in the header and
+the relevant action disables while it is running. This keeps the account controls
+usable with keyboard navigation and prevents a failed action leaving a menu stuck.
+
 Deck list and Analysis & hand are peer views, so they use the shared underlined
 text-tab treatment. Analysis keeps the same four summary metrics, then uses
 two-column 14px surface panels for a mana-value histogram, type quantities,
@@ -673,7 +721,7 @@ Passing the turn keeps the established player order but skips any seat whose
 life total is 0 or whose player has marked themselves eliminated. If no active
 player remains, the turn does not move.
 
-The sidebar navigation is a dedicated 48px left rail on the app background;
+On desktop, sidebar navigation is a dedicated 48px left rail on the app background;
 the glass panel begins at the scrollable content column without a separator.
 Rail actions stay vertically aligned, with a subtle divider separating the
 Settings gear from the game actions. Closing the panel collapses only the

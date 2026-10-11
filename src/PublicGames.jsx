@@ -154,6 +154,7 @@ function PublicGameArtwork({ cards, openSeats = 0 }) {
         <span
           key={`open-seat-${index}`}
           className="public-game-empty-card"
+          role="img"
           aria-label="Open player seat"
         />
       ))}

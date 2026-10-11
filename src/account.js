@@ -890,7 +890,29 @@ export async function finalizeAccountDeletion(account) {
 }
 
 export async function respondGameInvitation(invitationId, accept) {
-  if (await getLocalMockData()) return { accepted: Boolean(accept), code: null };
+  const mock = await getLocalMockData();
+  if (mock) {
+    const notification = (mock.social?.notifications || []).find((item) => (
+      item.kind === "game_invitation" && item.reference_id === invitationId
+    ));
+    if (!notification) throw new Error("Invitation unavailable.");
+    const game = (mock.games || []).find((item) => (
+      notification.game_id && item.game_id === notification.game_id
+    ) || (
+      notification.game_code && item.code === notification.game_code
+    ));
+    if (accept && (!game || !["lobby", "live"].includes(game.status))) {
+      throw new Error("Invitation expired.");
+    }
+    await updateLocalMock((data) => {
+      data.social.notifications = (data.social.notifications || []).filter((item) => item.id !== notification.id);
+    });
+    return {
+      accepted: Boolean(accept),
+      code: accept ? game.code : null,
+      role: game?.status === "live" ? "visitor" : "player",
+    };
+  }
   const { data, error } = await getSupabase().rpc("respond_game_invitation", {
     target_invitation_id: invitationId,
     accept_invitation: Boolean(accept),

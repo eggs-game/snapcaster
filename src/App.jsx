@@ -97,6 +97,7 @@ export default function App() {
           return;
         }
         setAccount(nextAccount);
+        setAccountError("");
         setAccountReady(true);
         if (nextAccount) setAccountPromptDismissed(true);
       });
@@ -104,6 +105,7 @@ export default function App() {
         const nextAccount = await accountApi.getAccountSession();
         if (!active) return;
         setAccount(nextAccount);
+        setAccountError("");
         if (nextAccount) {
           const pending = accountApi.takePendingGame();
           if (pending) {
@@ -242,6 +244,7 @@ export default function App() {
       await signOutAccount();
     } catch (error) {
       setAccountError(String(error?.message || "Could not sign out."));
+      throw error;
     }
   };
 

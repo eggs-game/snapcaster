@@ -88,8 +88,8 @@ function groupSort(left, right, groupBy) {
   if (groupBy === "cmc") {
     if (left.label === "Lands") return 1;
     if (right.label === "Lands") return -1;
-    const a = Number(left.label.replace(/\D/g, ""));
-    const b = Number(right.label.replace(/\D/g, ""));
+    const a = Number(left.label.replace(/^Mana value /, ""));
+    const b = Number(right.label.replace(/^Mana value /, ""));
     return (Number.isFinite(a) ? a : 999) - (Number.isFinite(b) ? b : 999);
   }
   if (groupBy === "tag") {
@@ -144,6 +144,7 @@ export default function DeckPage({ deckId }) {
   const [status, setStatus] = useState("");
   const cancelDeckNameRef = useRef(false);
   const deckNameSaveRef = useRef(false);
+  const artRequestRef = useRef(0);
   const dismissStatus = useCallback(() => setStatus(""), []);
 
   useEffect(() => {
@@ -229,10 +230,7 @@ export default function DeckPage({ deckId }) {
 
   const textGroupColumns = useMemo(() => {
     const columns = Array.from({ length: 3 }, () => ({ groups: [], weight: 0 }));
-    const textGroups = groups.map((group) => ({
-      ...group,
-      cards: group.cards.filter((card) => card.board !== "commander"),
-    })).filter((group) => group.cards.length);
+    const textGroups = groups.filter((group) => group.cards.length);
     const addToColumn = (group, column) => {
       column.groups.push(group);
       column.weight += group.cards.length + 1;
@@ -241,7 +239,7 @@ export default function DeckPage({ deckId }) {
       candidate.weight < lightest.weight ? candidate : lightest
     ));
     if (groupBy === "type") {
-      const anchors = [["Planeswalkers", 0], ["Creatures", 0], ["Sorceries", 1], ["Instants", 1], ["Lands", 2]];
+      const anchors = [["Commander", 0], ["Planeswalkers", 0], ["Creatures", 0], ["Sorceries", 1], ["Instants", 1], ["Lands", 2]];
       const anchoredKeys = new Set(anchors.map(([key]) => key));
       for (const [key, columnIndex] of anchors) {
         const group = textGroups.find((candidate) => candidate.key === key);
@@ -270,9 +268,11 @@ export default function DeckPage({ deckId }) {
   }, [cards, dealHand]);
 
   useEffect(() => {
+    artRequestRef.current += 1;
     setArtPickerOpen(false);
+    setArtLoading(false);
     setPrintings([]);
-  }, [selectedCardId]);
+  }, [selectedCard?.id]);
 
   const applyCardResult = (result) => {
     if (!result?.card && !result?.removedId) return;
@@ -411,19 +411,25 @@ export default function DeckPage({ deckId }) {
   const toggleArtPicker = async () => {
     if (!selectedCard) return;
     if (artPickerOpen) {
+      artRequestRef.current += 1;
       setArtPickerOpen(false);
+      setArtLoading(false);
       return;
     }
+    const requestId = ++artRequestRef.current;
     setArtPickerOpen(true);
     setArtLoading(true);
     setError("");
     try {
-      setPrintings(await fetchCardPrintings(selectedCard));
+      const nextPrintings = await fetchCardPrintings(selectedCard);
+      if (artRequestRef.current !== requestId) return;
+      setPrintings(nextPrintings);
     } catch {
+      if (artRequestRef.current !== requestId) return;
       setError("Card artwork could not be loaded.");
       setPrintings([]);
     } finally {
-      setArtLoading(false);
+      if (artRequestRef.current === requestId) setArtLoading(false);
     }
   };
 
@@ -505,7 +511,7 @@ export default function DeckPage({ deckId }) {
             {pageView === "deck" ? (
               <>
             <section className="deck-builder-toolbar" aria-label="Deck controls">
-              <label className="deck-builder-search"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find cards in this deck" /></label>
+              <label className="deck-builder-search"><Search size={16} /><input aria-label="Find cards in this deck" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find cards in this deck" /></label>
               <div className="deck-builder-select"><span>Group</span><AppDropdown label="Group cards" value={groupBy} onChange={setGroupBy} options={[{ value: "tag", label: "Tag" }, { value: "type", label: "Type" }, { value: "cmc", label: "Mana value" }, { value: "board", label: "Section" }]} /></div>
               <div className="deck-builder-select"><span>Sort</span><AppDropdown label="Sort cards" value={sortBy} onChange={setSortBy} options={[{ value: "name", label: "Name" }, { value: "cmc", label: "Mana value" }]} /></div>
               <details className="deck-toolbar-actions">
@@ -618,7 +624,7 @@ export default function DeckPage({ deckId }) {
                           <div className="deck-card-list">
                             {group.cards.map((card) => (
                               <button type="button" className={`deck-card-row${card.id === selectedCard?.id ? " selected" : ""}`} key={card.id} onClick={() => setSelectedCardId(card.id)}>
-                                <span className="deck-card-row-copy"><strong>{card.name}</strong>{!!(card.tags || []).length && <small>{card.tags.join(" · ")}</small>}</span>
+                                <span className="deck-card-row-copy"><strong>{card.quantity > 1 ? `${card.quantity}× ` : ""}{card.name}</strong>{!!(card.tags || []).length && <small>{card.tags.join(" · ")}</small>}</span>
                               </button>
                             ))}
                           </div>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Bell, MessageSquareText, Star, UserPlus, X } from "lucide-react";
 import SiteFooter from "./SiteFooter.jsx";
 import SiteHeader from "./SiteHeader.jsx";
@@ -37,6 +37,8 @@ export default function NotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("friend-requests");
+  const [busyNotifications, setBusyNotifications] = useState(new Set());
+  const notificationActionsRef = useRef(new Set());
 
   const refreshNotifications = async () => setSocial(await getSocialDashboard());
 
@@ -65,26 +67,42 @@ export default function NotificationsPage() {
     return () => { active = false; };
   }, []);
 
-  const handleFriendRequest = async (notification, accept) => {
+  const runNotificationAction = async (notification, action, fallbackMessage) => {
+    if (notificationActionsRef.current.has(notification.id)) return;
+    notificationActionsRef.current.add(notification.id);
+    setBusyNotifications(new Set(notificationActionsRef.current));
+    setError("");
     try {
-      await respondFriendRequest(notification.reference_id, accept);
-      await refreshNotifications();
-    } catch (requestError) {
-      setError(String(requestError?.message || "Could not respond to this friend request."));
+      await action();
+    } catch (actionError) {
+      setError(String(actionError?.message || fallbackMessage));
+    } finally {
+      notificationActionsRef.current.delete(notification.id);
+      setBusyNotifications(new Set(notificationActionsRef.current));
     }
   };
 
-  const dismiss = async (notification) => {
-    try {
-      await dismissNotification(notification.id);
-      setSocial((current) => ({
-        ...current,
-        notifications: current.notifications.filter((item) => item.id !== notification.id),
-      }));
-    } catch (dismissError) {
-      setError(String(dismissError?.message || "Could not dismiss this notification."));
+  const handleFriendRequest = (notification, accept) => runNotificationAction(notification, async () => {
+    await respondFriendRequest(notification.reference_id, accept);
+    await refreshNotifications();
+  }, "Could not respond to this friend request.");
+
+  const handleInvitation = (notification, accept) => runNotificationAction(notification, async () => {
+    const invitation = await respondGameInvitation(notification.reference_id, accept);
+    if (invitation?.accepted && invitation.code) {
+      window.location.href = "/?code=" + encodeURIComponent(invitation.code) + (invitation.role === "visitor" ? "&visitor=1" : "");
+      return;
     }
-  };
+    await refreshNotifications();
+  }, "Could not respond to this game invitation.");
+
+  const dismiss = (notification) => runNotificationAction(notification, async () => {
+    await dismissNotification(notification.id);
+    setSocial((current) => ({
+      ...current,
+      notifications: current.notifications.filter((item) => item.id !== notification.id),
+    }));
+  }, "Could not dismiss this notification.");
 
   return (
     <main className="profile-page notifications-page">
@@ -181,26 +199,16 @@ export default function NotificationsPage() {
                         </div>
                         {notification.kind === "friend_request" ? (
                           <div className="notification-row-actions">
-                            <button type="button" onClick={() => handleFriendRequest(notification, false)}>Decline</button>
-                            <button className="primary" type="button" onClick={() => handleFriendRequest(notification, true)}>Accept</button>
+                            <button type="button" disabled={busyNotifications.has(notification.id)} onClick={() => handleFriendRequest(notification, false)}>Decline</button>
+                            <button className="primary" type="button" disabled={busyNotifications.has(notification.id)} onClick={() => handleFriendRequest(notification, true)}>Accept</button>
                           </div>
                         ) : notification.kind === "game_invitation" ? (
                           <div className="notification-row-actions">
-                            <button type="button" onClick={async () => {
-                              await respondGameInvitation(notification.reference_id, false);
-                              refreshNotifications();
-                            }}>Decline</button>
-                            <button className="primary" type="button" onClick={async () => {
-                              const invitation = await respondGameInvitation(notification.reference_id, true);
-                              if (invitation?.accepted && invitation.code) {
-                                window.location.href = "/?code=" + encodeURIComponent(invitation.code) + (invitation.role === "visitor" ? "&visitor=1" : "");
-                              } else {
-                                refreshNotifications();
-                              }
-                            }}>Join</button>
+                            <button type="button" disabled={busyNotifications.has(notification.id)} onClick={() => handleInvitation(notification, false)}>Decline</button>
+                            <button className="primary" type="button" disabled={busyNotifications.has(notification.id)} onClick={() => handleInvitation(notification, true)}>Join</button>
                           </div>
                         ) : (
-                          <button className="notification-icon-button" type="button" onClick={() => dismiss(notification)} aria-label="Dismiss notification">
+                          <button className="notification-icon-button" type="button" disabled={busyNotifications.has(notification.id)} onClick={() => dismiss(notification)} aria-label="Dismiss notification">
                             <X size={15} />
                           </button>
                         )}

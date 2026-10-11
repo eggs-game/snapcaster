@@ -101,7 +101,7 @@ assert re.search(
 ), "history turn_count must count the whole game instead of only the viewer's turns"
 assert "'my_turn_count'" in GAME_METRICS
 assert '.rpc("record_game_elimination"' in SRC
-assert "attackerMembershipId" in SRC, (
+assert "serializeCommanderDamage(commanderDamage[victimId], roster)" in SRC, (
     "durable Commander-damage snapshots must use membership IDs instead of ephemeral peer IDs"
 )
 assert "with (security_invoker = true)" in DECK_SORT_METADATA, (

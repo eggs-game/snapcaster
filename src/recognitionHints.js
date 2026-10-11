@@ -21,6 +21,9 @@ export function normalizeRecognitionHint(value, now = Date.now()) {
   const scryfallId = String(card.scryfall_id || "").toLowerCase();
   if (!ownerId || nx == null || ny == null || !UUID_RE.test(scryfallId)) return null;
   const atValue = Number(value?.at);
+  // Expiration must survive normalization. Replacing an old timestamp with
+  // `now` would keep a stale board position alive every time the cache is read.
+  if (Number.isFinite(atValue) && atValue > 0 && atValue <= now - HINT_TTL_MS) return null;
   const at = Number.isFinite(atValue) && atValue > now - HINT_TTL_MS && atValue < now + 60000
     ? atValue
     : now;

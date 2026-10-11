@@ -25,6 +25,8 @@ import {
 } from "./recognitionHints.js";
 import CardSidebar, { cardFromScryfall, formatDiceResult, formatDiceSides } from "./CardSidebar.jsx";
 import AppDropdown from "./AppDropdown.jsx";
+import AppToast from "./AppToast.jsx";
+import { isPlainSpaceShortcut, serializeCommanderDamage, suppressDragReleaseClick } from "./gameControls.js";
 import { useConfirmDialog } from "./ConfirmDialog.jsx";
 import { getSoundEffect, playChatNotification, playSoundEffect, playTurnNotification } from "./soundEffects.js";
 import { getCounterTextColor, getVideoCounterType, normalizeVideoCounter } from "./videoCounters.js";
@@ -142,6 +144,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
   const [localStream, setLocalStream] = useState(null);
   const [lobbyName, setLobbyName] = useState(() => session.lobbyName || "");
   const [error, setError] = useState(null);
+  const [actionError, setActionError] = useState("");
   const [micOn, setMicOn] = useState(!session.startMuted);
   const [camOn, setCamOn] = useState(true);
   const [lookups, setLookups] = useState([]);
@@ -230,6 +233,18 @@ export default function Game({ session, account, onLeave, themePreference, onThe
   const [membershipRefreshNonce, setMembershipRefreshNonce] = useState(0);
 
   const resetTableState = () => {
+    pendingLifeChatsRef.current.forEach((pending) => window.clearTimeout(pending.timer));
+    pendingLifeChatsRef.current.clear();
+    readyCheckRef.current = null;
+    setReadyCheck(null);
+    window.clearTimeout(diceOverlayTimerRef.current);
+    diceOverlayTimerRef.current = null;
+    setDiceOverlay(null);
+    setVideoCounters({});
+    setCounterDraft(null);
+    setCounterPointerDrag(null);
+    setVideoCounterDragPreview(null);
+    setActionError("");
     const playerIds = rosterRef.current.filter((member) => member.role !== "visitor").map((member) => member.id);
     const resetLives = Object.fromEntries(playerIds.map((id) => [id, 40]));
     setLives(resetLives);
@@ -248,11 +263,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
     setGameStartedAt("");
     setGameStatus("lobby");
     gameStatusRef.current = "lobby";
-    connRef.current?.setLife(40);
-    connRef.current?.setPoison(0);
-    connRef.current?.setCommander("");
-    connRef.current?.setCommanderPartner("");
-    connRef.current?.setElimination("");
+    connRef.current?.resetTableState();
   };
 
   useEffect(() => {
@@ -826,6 +837,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
   }, []);
 
   const persistRecognitionTiming = useCallback((timing, subjectId) => {
+    if (isLocalMock) return;
     // This upload is deliberately detached from the lookup result. Telemetry
     // must never make a player wait longer for a card or turn a successful
     // local recognition into a visible Supabase error.
@@ -844,7 +856,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
       // Timing telemetry is diagnostic-only and may be unavailable when the
       // browser is offline or before its database migration has been applied.
     });
-  }, [myId, outgoingVideoQuality, session.code, session.role]);
+  }, [isLocalMock, myId, outgoingVideoQuality, session.code, session.role]);
 
   // Flipped tiles pass reflected coordinates for capture while the click flash
   // stays where the player actually clicked.
@@ -1185,8 +1197,9 @@ export default function Game({ session, account, onLeave, themePreference, onThe
       else setVideoCounterDragPreview(null);
     };
     const finish = (event) => {
+      suppressDragReleaseClick();
       const point = dropPointAt(event);
-      if (point) placeOwnVideoCounter(counterPointerDrag, point.x, point.y);
+      if (point && event.type !== "pointercancel") placeOwnVideoCounter(counterPointerDrag, point.x, point.y);
       setCounterPointerDrag(null);
       setVideoCounterDragPreview(null);
     };
@@ -1261,30 +1274,24 @@ export default function Game({ session, account, onLeave, themePreference, onThe
     }
     if (!nextId) return;
     const nextMembershipId = roster.find((member) => member.id === nextId)?.membershipId;
-    if (durableSessionId && nextMembershipId) {
+    if (!isLocalMock && durableSessionId && nextMembershipId) {
       recordGameTurn({
         sessionId: durableSessionId,
         membershipId: session.membershipId,
         participantToken: session.participantToken,
         nextMembershipId,
       }).catch((turnError) => {
-        setError(String(turnError?.message || "This turn timing could not be recorded."));
+        setActionError(String(turnError?.message || "This turn timing could not be recorded."));
       });
     }
     activePlayerIdRef.current = nextId;
     setActivePlayerId(nextId);
     connRef.current?.setActivePlayer(nextId);
-  }, [activePlayerId, durableSessionId, isVisitor, myId, roster, session.membershipId, session.participantToken]);
+  }, [activePlayerId, durableSessionId, isLocalMock, isVisitor, myId, roster, session.membershipId, session.participantToken]);
 
   useEffect(() => {
     const onKeyDown = (event) => {
-      if ((event.code !== "Space" && event.key !== " ") || event.repeat) return;
-      if (event.metaKey || event.ctrlKey || event.altKey) return;
-      const target = event.target;
-      if (
-        target instanceof HTMLElement
-        && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))
-      ) return;
+      if (!isPlainSpaceShortcut(event)) return;
       const playerIds = roster.filter((member) => member.role !== "visitor").map((member) => member.id);
       const currentId = activePlayerId || playerIds[0];
       if (isVisitor || !myId || currentId !== myId) return;
@@ -1305,6 +1312,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
 
   const chooseCommander = async (commander, partner = "") => {
     if (isVisitor) return;
+    setActionError("");
     try {
       const selection = await validateGameCommanderSelection({
         membershipId: session.membershipId,
@@ -1322,12 +1330,13 @@ export default function Game({ session, account, onLeave, themePreference, onThe
       connRef.current?.setCommanderPartner(partnerName, partnerTypeLine);
       connRef.current?.requestMembershipRefresh();
     } catch (selectionError) {
-      setError(String(selectionError?.message || "Commander selection could not be validated."));
+      setActionError(String(selectionError?.message || "Commander selection could not be validated."));
     }
   };
 
   const chooseCommanderPartner = async (partner) => {
     if (isVisitor) return;
+    setActionError("");
     const name = String(partner || "").trim();
     if (!name) return;
     try {
@@ -1347,7 +1356,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
       connRef.current?.setCommanderPartner(partnerName, typeLine);
       connRef.current?.requestMembershipRefresh();
     } catch (selectionError) {
-      setError(String(selectionError?.message || "Commander partner could not be validated."));
+      setActionError(String(selectionError?.message || "Commander partner could not be validated."));
     }
   };
 
@@ -1654,12 +1663,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
     gameStatusRef.current = "live";
   };
 
-  const durableCommanderDamage = (victimId) => Object.fromEntries(
-    Object.entries(commanderDamage[victimId] || {}).flatMap(([attackerId, value]) => {
-      const attackerMembershipId = roster.find((member) => member.id === attackerId)?.membershipId;
-      return attackerMembershipId ? [[attackerMembershipId, value]] : [];
-    }),
-  );
+  const durableCommanderDamage = (victimId) => serializeCommanderDamage(commanderDamage[victimId], roster);
 
   const persistMyElimination = (reason) => {
     if (isLocalMock || !durableSessionId || !session.membershipId || !myId) return;
@@ -1672,7 +1676,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
       finalPoison: poisonCounters[myId] ?? 0,
       finalCommanderDamage: durableCommanderDamage(myId),
     }).catch((eliminationError) => {
-      setError(String(eliminationError?.message || "Your elimination details could not be recorded."));
+      setActionError(String(eliminationError?.message || "Your elimination details could not be recorded."));
     });
   };
 
@@ -1680,6 +1684,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
     if (!participant.membershipId) throw new Error("That participant is still connecting.");
     if (isLocalMock) {
       if (action === "remove") {
+        connRef.current?.removePeer?.(participant.id);
         setRoster((members) => members.filter((member) => member.membershipId !== participant.membershipId));
       } else {
         setRoomMutedMemberships((values) => ({
@@ -1903,6 +1908,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
 
   return (
     <div className="game">
+      <AppToast message={actionError} kind="error" duration={0} onDismiss={() => setActionError("")} />
       {visitors
         .filter((visitor) => visitor.id !== myId && streams[visitor.id])
         .map((visitor) => (
@@ -1938,7 +1944,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
             onPick={(m) => setCurrent({
               // A card chosen from chat is an explicit user selection, not a
               // recognizer guess, so it should always render in the Cards tab.
-              matches: [{ ...m, identified_by: m.identified_by || "search", distance: m.distance ?? 0 }],
+              matches: [{ ...m, identified_by: "search", distance: m.distance ?? 0 }],
             })}
             onShareCard={shareCard}
             onSearch={(cardOrError) => {
@@ -2634,6 +2640,7 @@ function TileMenu({ profileId, flipped, onToggleFlip, canPassTurn, onPassTurn, c
         {showMediaControls ? (
           <>
           <button
+            type="button"
             className={camOn ? "menu-btn" : "menu-btn menu-btn-danger"}
             onClick={() => onToggleCam?.()}
             aria-label={camOn ? "Turn camera off" : "Turn camera on"}
@@ -2643,6 +2650,7 @@ function TileMenu({ profileId, flipped, onToggleFlip, canPassTurn, onPassTurn, c
             {camOn ? <Video size={16} /> : <VideoOff size={16} />}
           </button>
           <button
+            type="button"
             className={micOn ? "menu-btn" : "menu-btn menu-btn-danger"}
             onClick={() => onToggleMic?.()}
             aria-label={micOn ? "Mute" : "Unmute"}
@@ -2676,6 +2684,7 @@ function TileMenu({ profileId, flipped, onToggleFlip, canPassTurn, onPassTurn, c
         )}
       </>
       <button
+        type="button"
         className="menu-btn"
         onClick={() => setOpen((o) => !o)}
         aria-label="Player options"
@@ -2849,6 +2858,8 @@ function CommanderBanner({ tile, onChoose, onChoosePartner, savedCommanderDecks 
         <a
           className="banner-player banner-player-link"
           href={`/profile?id=${encodeURIComponent(tile.profileId)}`}
+          target="_blank"
+          rel="noreferrer"
           onClick={(event) => event.stopPropagation()}
         >
           {playerLabel}
@@ -3065,7 +3076,7 @@ function CommanderBanner({ tile, onChoose, onChoosePartner, savedCommanderDecks 
           autoFocus
         />
         {!draft.trim() && savedCommanderDecks.length > 0 && (
-          <ul className="commander-suggest saved-commander-suggest">
+          <ul className={`commander-suggest saved-commander-suggest${atBottom ? " menu-up" : ""}`}>
             {savedCommanderDecks.map((deck) => (
               <li
                 key={deck.id}
