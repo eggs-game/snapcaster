@@ -13,6 +13,7 @@ const checks = [
   [node, "scripts/test_deck_import.mjs"],
   [node, "scripts/test_deck_analysis.mjs"],
   [node, "scripts/test_auth_intent.mjs"],
+  [node, "scripts/test_account_origins.mjs"],
   [node, "scripts/test_anonymous_retention.mjs"],
   [node, "scripts/test_realtime_epoch_rotation.mjs"],
   [node, "scripts/test_game_rejoin_contract.mjs"],

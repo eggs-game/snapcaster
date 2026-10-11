@@ -448,6 +448,12 @@ Full history with per-run analysis: [`snaptest/results.md`](../snaptest/results.
 
 ## Automated checks
 
+`scripts/test_account_origins.mjs` exercises the real account API handlers with
+no auth token: both production hostnames must reach the 401 authentication
+boundary, while unrelated, spoofed, insecure and nonstandard-port origins
+remain rejected with 403. It runs in the fast policy set without contacting
+Supabase or modifying account data.
+
 CI (`.github/workflows/ci.yml`) runs on every push:
 
 - **`test_hash_compat.py`** — JS and Python must hash bit-identically, or the

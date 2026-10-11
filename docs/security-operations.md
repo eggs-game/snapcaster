@@ -12,6 +12,7 @@ turns them on and verifies the deployed system.
 3. Run `scripts/test_account_security.py` and the production build in CI.
 4. Configure Discord in Supabase with only `identify email`, add the Supabase
    callback to Discord, and allow exact `https://snapcast.app`,
+   `https://www.snapcast.app` (the current canonical production origin),
    `https://snapcaster.vercel.app`, their `/moderation` callback paths, and
    intended local redirect origins.
 5. Enable Supabase Anonymous Sign-Ins for guest room authorization. Keep the
@@ -87,6 +88,21 @@ Use two normal accounts, one moderator account, and a guest browser:
 Record results and Supabase Security Advisor output with the release.
 
 ## Monitoring and alerts
+
+If Discord sign-in opens a browser DNS error for the configured Supabase
+hostname, check the project's status before changing OAuth code. A paused
+Free plan project can lose its public endpoint. Resume the existing project
+from Supabase, wait for `ACTIVE_HEALTHY`, then verify the Auth endpoint redirects
+to Discord and the database accepts a read-only health query. Restoring keeps
+the existing database and provider configuration; do not create a replacement
+project or change keys to work around a pause. Supabase can automatically pause
+Free projects with insufficient activity over seven days. Check project
+availability when the app has been quiet; a frontend redeploy cannot resume it.
+
+The account API origin allowlists include both the apex and `www` production
+origins. Keep these aligned with the deployed domain redirect and the Supabase
+OAuth redirect allowlist so an account can use the app after returning from
+Discord.
 
 Alert on repeated authorization errors, rate-limit spikes, public-room creation
 bursts, invitation/review/report spikes, maintenance failures, and growing due
