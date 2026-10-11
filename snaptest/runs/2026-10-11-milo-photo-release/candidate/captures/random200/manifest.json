@@ -1,0 +1,658 @@
+[
+  {
+    "file": "000.jpg",
+    "name": "Captain's Hook",
+    "id": "c67d1402-6026-4aad-9f89-6c5828f8bde0",
+    "got": "Double-Faced Substitute Card",
+    "dist": 187,
+    "conf": 0.31,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Double-Faced Substitute Card (d=187)",
+      "Morphic Pool (d=190)",
+      "Guildmark (d=192)"
+    ],
+    "i": 55,
+    "degradeIndex": 55,
+    "placement": "top-edge-clipped",
+    "rot": "upsidedown",
+    "occ": "fingers",
+    "ms": 3289,
+    "cv": "ready",
+    "tried": 121,
+    "dropped": 24,
+    "artBest": {
+      "name": "Double-Faced Substitute Card",
+      "inliers": 0,
+      "color": 100,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 6,
+      "clickArtInliers": 0,
+      "clickTextInliers": 0,
+      "clickHalfInliers": [
+        0,
+        0
+      ]
+    },
+    "artChecked": 36,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-top-edge--2-28-92-182",
+        "score": 145.58
+      },
+      {
+        "strategy": "isolate-top-edge--2-28-92-179",
+        "score": 120.43
+      },
+      {
+        "strategy": "isolate-top-edge--4-28-86-182",
+        "score": 115.07
+      },
+      {
+        "strategy": "isolate-top-edge--2-28-92-176",
+        "score": 97.05
+      },
+      {
+        "strategy": "isolate-top-edge--2-28-92-170",
+        "score": 94.49
+      },
+      {
+        "strategy": "isolate-top-edge--4-28-86-176",
+        "score": 93.66
+      },
+      {
+        "strategy": "isolate-top-edge--4-28-86-179",
+        "score": 90.13
+      },
+      {
+        "strategy": "isolate-top-edge-tapped-2-22-68-213",
+        "score": 85.21
+      },
+      {
+        "strategy": "isolate-top-edge--2-30-89-179",
+        "score": 83.25
+      },
+      {
+        "strategy": "isolate-top-edge--2-30-89-170",
+        "score": 82.51
+      },
+      {
+        "strategy": "isolate-top-edge--4-28-86-170",
+        "score": 78.36
+      },
+      {
+        "strategy": "isolate-top-edge--2-30-89-176",
+        "score": 78.25
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 0,
+      "probes": [
+        {
+          "sharpness": 0.01705031841993332,
+          "accepted": false,
+          "reason": "weak"
+        },
+        {
+          "sharpness": 0.007724252995103598,
+          "accepted": false,
+          "reason": "weak"
+        }
+      ],
+      "ms": 182,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.007862680591642857,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.019064711406826973,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.007239953614771366,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.007257245015352964,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 355
+      },
+      "retryMs": 355
+    },
+    "truthGeometry": null,
+    "capturePoint": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "stages": {
+      "prep": 391,
+      "rankSeeds": 269,
+      "earlyOrbProbe": 0,
+      "rankRefine": 621,
+      "isolatePrep": 806,
+      "isolateScore": 432,
+      "rank": 0,
+      "orb": 166,
+      "aiCrop": 182,
+      "aiRetry": 355,
+      "total": 3225
+    },
+    "point": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "pointNote": "Exact normalized point supplied to identifyCard."
+  },
+  {
+    "file": "001.jpg",
+    "name": "Fiery Justice",
+    "id": "144668d6-cab6-45e6-8498-ab7cd927f9df",
+    "got": "Educated Detective",
+    "dist": 181,
+    "conf": 0.35,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Educated Detective (d=181)",
+      "Elemental, My Dear (d=182)",
+      "Mana Conference (d=183)"
+    ],
+    "i": 119,
+    "degradeIndex": 119,
+    "placement": "top-edge-clipped",
+    "rot": "upsidedown",
+    "occ": "fingers",
+    "ms": 3605,
+    "cv": "ready",
+    "tried": 86,
+    "dropped": 26,
+    "artBest": {
+      "name": "Educated Detective",
+      "inliers": 7,
+      "color": 95,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 9,
+      "clickArtInliers": 7,
+      "clickTextInliers": 2,
+      "clickHalfInliers": [
+        7,
+        2
+      ]
+    },
+    "artChecked": 36,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-portrait--2-42-20-89",
+        "score": 184.67
+      },
+      {
+        "strategy": "isolate-portrait--2-42-23-89",
+        "score": 170.21
+      },
+      {
+        "strategy": "isolate-portrait--2-44-23-86",
+        "score": 169.3
+      },
+      {
+        "strategy": "isolate-portrait--2-44-23-80",
+        "score": 167.78
+      },
+      {
+        "strategy": "isolate-portrait-0-41-23-86",
+        "score": 140.57
+      },
+      {
+        "strategy": "isolate-portrait--2-42-23-83",
+        "score": 137.74
+      },
+      {
+        "strategy": "isolate-portrait--2-42-20-83",
+        "score": 133.7
+      },
+      {
+        "strategy": "isolate-portrait--2-41-20-92",
+        "score": 133.39
+      },
+      {
+        "strategy": "isolate-portrait--2-41-20-86",
+        "score": 131.02
+      },
+      {
+        "strategy": "isolate-portrait--2-41-23-86",
+        "score": 123.5
+      },
+      {
+        "strategy": "isolate-portrait--2-41-23-92",
+        "score": 116.93
+      },
+      {
+        "strategy": "isolate-portrait--2-44-23-92",
+        "score": 115.75
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 0,
+      "probes": [
+        {
+          "sharpness": 0.03490791469812393,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        },
+        {
+          "sharpness": 0.025408852845430374,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        }
+      ],
+      "ms": 177,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.008110948838293552,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.036809880286455154,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.028493953868746758,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.0174311101436615,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 350
+      },
+      "retryMs": 350
+    },
+    "truthGeometry": null,
+    "capturePoint": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "stages": {
+      "prep": 380,
+      "rankSeeds": 590,
+      "earlyOrbProbe": 0,
+      "rankRefine": 759,
+      "isolatePrep": 601,
+      "isolateScore": 246,
+      "rank": 0,
+      "orb": 436,
+      "aiCrop": 177,
+      "aiRetry": 350,
+      "total": 3540
+    },
+    "point": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "pointNote": "Exact normalized point supplied to identifyCard."
+  },
+  {
+    "file": "002.jpg",
+    "name": "Magma Vein",
+    "id": "69ed2b52-2862-423c-8ce3-6c8232d9d92c",
+    "got": "Phyrexian Incubator",
+    "dist": 177,
+    "conf": 0.38,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Phyrexian Incubator (d=177)",
+      "Pursuit of Knowledge (d=180)",
+      "Patron of the Moon (d=181)"
+    ],
+    "i": 121,
+    "degradeIndex": 121,
+    "placement": "top-edge-clipped",
+    "rot": "tilt",
+    "occ": "dice",
+    "ms": 3943,
+    "cv": "ready",
+    "tried": 120,
+    "dropped": 23,
+    "artBest": {
+      "name": "Phyrexian Incubator",
+      "inliers": 5,
+      "color": 56,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 15,
+      "clickArtInliers": 0,
+      "clickTextInliers": 15,
+      "clickHalfInliers": [
+        0,
+        15
+      ]
+    },
+    "artChecked": 36,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-top-edge-4-45-53-121",
+        "score": 253.86
+      },
+      {
+        "strategy": "isolate-top-edge-4-45-41-121",
+        "score": 253.78
+      },
+      {
+        "strategy": "isolate-top-edge-2-48-41-118",
+        "score": 249.65
+      },
+      {
+        "strategy": "isolate-top-edge-tapped-4-26-47-204",
+        "score": 248.38
+      },
+      {
+        "strategy": "isolate-top-edge-4-42-56-121",
+        "score": 247.94
+      },
+      {
+        "strategy": "isolate-top-edge-tapped-4-26-47-213",
+        "score": 247.15
+      },
+      {
+        "strategy": "isolate-top-edge-tapped-4-26-47-210",
+        "score": 247.04
+      },
+      {
+        "strategy": "isolate-top-edge-tapped-4-26-47-207",
+        "score": 246.03
+      },
+      {
+        "strategy": "isolate-top-edge-4-51-47-111",
+        "score": 243.54
+      },
+      {
+        "strategy": "isolate-top-edge-4-51-47-105",
+        "score": 243.19
+      },
+      {
+        "strategy": "isolate-top-edge-4-51-47-114",
+        "score": 240.79
+      },
+      {
+        "strategy": "isolate-top-edge-4-51-47-108",
+        "score": 237.99
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 0,
+      "probes": [
+        {
+          "sharpness": 0.06347066164016724,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        },
+        {
+          "sharpness": 0.035699713975191116,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        }
+      ],
+      "ms": 185,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.00930850114673376,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.06314409524202347,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.028433186933398247,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.025939352810382843,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          }
+        ],
+        "ms": 353
+      },
+      "retryMs": 354
+    },
+    "truthGeometry": null,
+    "capturePoint": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "stages": {
+      "prep": 431,
+      "rankSeeds": 451,
+      "earlyOrbProbe": 0,
+      "rankRefine": 687,
+      "isolatePrep": 915,
+      "isolateScore": 447,
+      "rank": 0,
+      "orb": 294,
+      "aiCrop": 185,
+      "aiRetry": 354,
+      "total": 3771
+    },
+    "point": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "pointNote": "Exact normalized point supplied to identifyCard."
+  },
+  {
+    "file": "003.jpg",
+    "name": "Wurmcoil Broodmother",
+    "id": "d123e95c-2738-4bab-9fdf-62d6855788fe",
+    "got": "Princess Snowfall",
+    "dist": 167,
+    "conf": 0.45,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Princess Snowfall (d=167)",
+      "The Knight of Commentary (d=177)",
+      "Kevin, Questing Dragon (d=183)"
+    ],
+    "i": 180,
+    "degradeIndex": 180,
+    "placement": "top-edge-clipped",
+    "rot": "upright",
+    "occ": "fingers",
+    "ms": 4149,
+    "cv": "ready",
+    "tried": 90,
+    "dropped": 22,
+    "artBest": {
+      "name": "Princess Snowfall",
+      "inliers": 25,
+      "color": 89,
+      "weak": false,
+      "clickInside": null,
+      "clickInliers": 31,
+      "clickArtInliers": 28,
+      "clickTextInliers": 3,
+      "clickHalfInliers": [
+        28,
+        3
+      ]
+    },
+    "artChecked": 36,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-portrait-6-51-50-86",
+        "score": 97.69
+      },
+      {
+        "strategy": "isolate-portrait-4-53-47-92",
+        "score": 96.05
+      },
+      {
+        "strategy": "isolate-portrait-6-51-50-89",
+        "score": 95.73
+      },
+      {
+        "strategy": "isolate-portrait-6-51-50-80",
+        "score": 95.57
+      },
+      {
+        "strategy": "isolate-portrait-4-51-47-86",
+        "score": 94.87
+      },
+      {
+        "strategy": "isolate-portrait-6-50-53-92",
+        "score": 94.84
+      },
+      {
+        "strategy": "isolate-portrait-4-50-50-86",
+        "score": 94.25
+      },
+      {
+        "strategy": "isolate-portrait-6-53-50-80",
+        "score": 94.12
+      },
+      {
+        "strategy": "isolate-portrait-6-50-53-86",
+        "score": 94.04
+      },
+      {
+        "strategy": "isolate-portrait-4-50-44-92",
+        "score": 94.03
+      },
+      {
+        "strategy": "isolate-portrait-6-53-50-89",
+        "score": 93.95
+      },
+      {
+        "strategy": "isolate-portrait-6-53-50-92",
+        "score": 93.89
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 0,
+      "probes": [
+        {
+          "sharpness": 0.052459344267845154,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        },
+        {
+          "sharpness": 0.012444914318621159,
+          "accepted": false,
+          "reason": "weak"
+        }
+      ],
+      "ms": 178,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.008065923117101192,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.05054330825805664,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.013254047371447086,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.011807141825556755,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 353
+      },
+      "retryMs": 353
+    },
+    "truthGeometry": null,
+    "capturePoint": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "stages": {
+      "prep": 429,
+      "rankSeeds": 482,
+      "earlyOrbProbe": 0,
+      "rankRefine": 1144,
+      "isolatePrep": 551,
+      "isolateScore": 232,
+      "rank": 0,
+      "orb": 712,
+      "aiCrop": 178,
+      "aiRetry": 353,
+      "total": 4083
+    },
+    "point": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "pointNote": "Exact normalized point supplied to identifyCard."
+  }
+]

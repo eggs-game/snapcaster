@@ -1,0 +1,589 @@
+[
+  {
+    "file": "000.jpg",
+    "name": "Corpse Connoisseur",
+    "id": "4c26ff33-4f9c-48e9-be0e-b23384708c28",
+    "pool": "card",
+    "got": "Double-Faced Substitute Card",
+    "dist": 130,
+    "conf": 0.71,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Double-Faced Substitute Card (d=130)",
+      "Find the Assassin (cont'd) (d=140)",
+      "Guildmark (d=152)"
+    ],
+    "rot": "upright",
+    "occ": "clear",
+    "ms": 8090,
+    "cv": "ready",
+    "tried": 121,
+    "dropped": 30,
+    "artBest": {
+      "name": "Double-Faced Substitute Card",
+      "inliers": 4,
+      "color": 100,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 5,
+      "clickArtInliers": 1,
+      "clickTextInliers": 4,
+      "clickHalfInliers": [
+        2,
+        3
+      ]
+    },
+    "artChecked": 58,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-portrait--10-47-62-35",
+        "score": 70.44
+      },
+      {
+        "strategy": "isolate-top-edge--10-36-41-155",
+        "score": 69.41
+      },
+      {
+        "strategy": "isolate-portrait--8-47-62-35",
+        "score": 67.29
+      },
+      {
+        "strategy": "isolate-top-edge-tapped-14-22-11-264",
+        "score": 63.73
+      },
+      {
+        "strategy": "isolate-portrait--8-51-65-38",
+        "score": 62.96
+      },
+      {
+        "strategy": "isolate-top-edge-tapped-12-20-8-276",
+        "score": 62.11
+      },
+      {
+        "strategy": "isolate-portrait--10-41-56-41",
+        "score": 60.89
+      },
+      {
+        "strategy": "isolate-top-edge-tapped-6-22-83-243",
+        "score": 60.82
+      },
+      {
+        "strategy": "isolate-top-edge-6-39-92-143",
+        "score": 59.48
+      },
+      {
+        "strategy": "isolate-portrait--8-44-59-44",
+        "score": 59.44
+      },
+      {
+        "strategy": "isolate-top-edge-tapped-6-22-83-246",
+        "score": 59.41
+      },
+      {
+        "strategy": "isolate-top-edge--8-34-44-158",
+        "score": 59.12
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 2,
+      "probes": [
+        {
+          "sharpness": 0.0582299567759037,
+          "accepted": true,
+          "reason": "accepted"
+        },
+        {
+          "sharpness": 0.052352480590343475,
+          "accepted": true,
+          "reason": "accepted"
+        }
+      ],
+      "ms": 175,
+      "fastMs": 383,
+      "fastHit": false,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.054101020097732544,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.04121735319495201,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.05352870374917984,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.05214188992977142,
+            "accepted": false,
+            "reason": "duplicate"
+          }
+        ],
+        "ms": 356,
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 10,
+          "inferenceMs": 540,
+          "searchMs": 91,
+          "ms": 637
+        }
+      },
+      "retryMs": 2356
+    },
+    "truthGeometry": {
+      "angle": -9.03,
+      "center": {
+        "x": 0.458,
+        "y": 0.558
+      },
+      "card": {
+        "w": 0.334,
+        "h": 0.467
+      }
+    },
+    "capturePoint": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "stages": {
+      "prep": 551,
+      "rankSeeds": 341,
+      "earlyOrbProbe": 0,
+      "rankRefine": 639,
+      "isolatePrep": 850,
+      "isolateScore": 542,
+      "rank": 0,
+      "orb": 637,
+      "aiCrop": 175,
+      "aiAttempt": 383,
+      "milo": 1609,
+      "aiRetry": 2356,
+      "total": 8086
+    },
+    "scene": 2,
+    "coverage": 0,
+    "clipped": 0,
+    "click": {
+      "u": 0.65,
+      "v": 0.39,
+      "covered": false
+    },
+    "layout": "spaced",
+    "diceColor": null,
+    "diceFace": null,
+    "diceCoverage": 0,
+    "point": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "pointNote": "Exact normalized point supplied to identifyCard."
+  },
+  {
+    "file": "001.jpg",
+    "name": "Myr Galvanizer",
+    "id": "e55ca835-b7f3-497c-b0bc-50a182cabecf",
+    "pool": "card",
+    "got": "Double-Faced Substitute Card",
+    "dist": 182,
+    "conf": 0.34,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Double-Faced Substitute Card (d=182)",
+      "Second Harvest (d=185)",
+      "Find the Assassin (cont'd) (d=185)"
+    ],
+    "rot": "tapped",
+    "occ": "overlapped",
+    "ms": 10148,
+    "cv": "ready",
+    "tried": 151,
+    "dropped": 0,
+    "artBest": {
+      "name": "Double-Faced Substitute Card",
+      "inliers": 8,
+      "color": 96,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 14,
+      "clickArtInliers": 13,
+      "clickTextInliers": 1,
+      "clickHalfInliers": [
+        14,
+        0
+      ]
+    },
+    "artChecked": 55,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-sideways-rotated-98-47-41-50",
+        "score": 121.69
+      },
+      {
+        "strategy": "isolate-sideways-raw--10-41-86-41",
+        "score": 118.59
+      },
+      {
+        "strategy": "isolate-sideways-rotated-86-53-41-14",
+        "score": 118.49
+      },
+      {
+        "strategy": "isolate-sideways-raw--10-39-86-41",
+        "score": 118.04
+      },
+      {
+        "strategy": "isolate-sideways-raw--6-41-86-38",
+        "score": 117.12
+      },
+      {
+        "strategy": "isolate-sideways-raw-8-33-50-44",
+        "score": 116.62
+      },
+      {
+        "strategy": "isolate-sideways-raw--2-39-86-41",
+        "score": 115.62
+      },
+      {
+        "strategy": "isolate-sideways-rotated-96-44-38-47",
+        "score": 114.62
+      },
+      {
+        "strategy": "isolate-sideways-rotated-100-48-41-53",
+        "score": 114.29
+      },
+      {
+        "strategy": "isolate-sideways-raw--4-38-86-41",
+        "score": 114.06
+      },
+      {
+        "strategy": "isolate-sideways-rotated-86-56-35-14",
+        "score": 113.93
+      },
+      {
+        "strategy": "isolate-sideways-raw--4-36-59-38",
+        "score": 113.54
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 1,
+      "probes": [
+        {
+          "sharpness": 0.01814132183790207,
+          "accepted": false,
+          "reason": "weak"
+        },
+        {
+          "sharpness": 0.03971506282687187,
+          "accepted": true,
+          "reason": "accepted"
+        }
+      ],
+      "ms": 177,
+      "fastMs": 616,
+      "fastHit": false,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.03563018888235092,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.04632066190242767,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.03805813938379288,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.049820676445961,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 357,
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 7,
+          "inferenceMs": 536,
+          "searchMs": 90,
+          "ms": 630
+        }
+      },
+      "retryMs": 2841
+    },
+    "truthGeometry": {
+      "angle": 98.12,
+      "center": {
+        "x": 0.5,
+        "y": 0.483
+      },
+      "card": {
+        "w": 0.357,
+        "h": 0.498
+      }
+    },
+    "capturePoint": {
+      "nx": 0.5,
+      "ny": 0.44576912608878816
+    },
+    "stages": {
+      "prep": 635,
+      "rankSeeds": 651,
+      "earlyOrbProbe": 0,
+      "rankRefine": 1306,
+      "isolatePrep": 889,
+      "isolateScore": 467,
+      "rank": 0,
+      "orb": 1454,
+      "aiCrop": 177,
+      "aiAttempt": 616,
+      "milo": 1103,
+      "aiRetry": 2841,
+      "total": 10144
+    },
+    "scene": 9,
+    "coverage": 0.418,
+    "clipped": 0,
+    "click": {
+      "u": 0.4,
+      "v": 0.51,
+      "covered": false
+    },
+    "layout": "overlapping",
+    "diceColor": null,
+    "diceFace": null,
+    "diceCoverage": 0,
+    "point": {
+      "nx": 0.5,
+      "ny": 0.44576912608878816
+    },
+    "pointNote": "Exact normalized point supplied to identifyCard."
+  },
+  {
+    "file": "002.jpg",
+    "name": "Tyranid Gargoyle",
+    "id": "20171707-0670-42dd-a6c4-f0aa56fc0cd1",
+    "pool": "token",
+    "got": "Nimble Obstructionist",
+    "dist": 201,
+    "conf": 0.21,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Nimble Obstructionist (d=201)",
+      "Spider Spawning (d=202)",
+      "Barad-dûr (d=202)"
+    ],
+    "rot": "tapped",
+    "occ": "overlapped",
+    "ms": 8271,
+    "cv": "ready",
+    "tried": 117,
+    "dropped": 2,
+    "artBest": {
+      "name": "Nimble Obstructionist",
+      "inliers": 7,
+      "color": 93,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 5,
+      "clickArtInliers": 1,
+      "clickTextInliers": 4,
+      "clickHalfInliers": [
+        2,
+        3
+      ]
+    },
+    "artChecked": 36,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-sideways-rotated-98-42-86-92",
+        "score": 136.14
+      },
+      {
+        "strategy": "isolate-sideways-rotated-98-44-92-89",
+        "score": 130.99
+      },
+      {
+        "strategy": "isolate-sideways-raw-8-30-8-86",
+        "score": 129.14
+      },
+      {
+        "strategy": "isolate-sideways-rotated-98-44-83-89",
+        "score": 129
+      },
+      {
+        "strategy": "isolate-sideways-rotated-98-42-86-86",
+        "score": 128.8
+      },
+      {
+        "strategy": "isolate-sideways-rotated-86-54-50-38",
+        "score": 124.16
+      },
+      {
+        "strategy": "isolate-sideways-rotated-98-45-89-86",
+        "score": 123.57
+      },
+      {
+        "strategy": "isolate-sideways-raw--2-39-62-50",
+        "score": 119.43
+      },
+      {
+        "strategy": "isolate-sideways-raw--4-39-62-50",
+        "score": 118.33
+      },
+      {
+        "strategy": "isolate-sideways-rotated-98-47-86-83",
+        "score": 114.76
+      },
+      {
+        "strategy": "isolate-sideways-raw-8-28-8-86",
+        "score": 113.83
+      },
+      {
+        "strategy": "isolate-sideways-raw-8-42-35-62",
+        "score": 113.26
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 0,
+      "probes": [
+        {
+          "sharpness": 0.03100438416004181,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        },
+        {
+          "sharpness": 0.03767529875040054,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        }
+      ],
+      "ms": 175,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.02001066692173481,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.02794496901333332,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.057324692606925964,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.03696148470044136,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 349,
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 12,
+          "inferenceMs": 547,
+          "searchMs": 91,
+          "ms": 643
+        }
+      },
+      "retryMs": 3777
+    },
+    "truthGeometry": {
+      "angle": 85.7,
+      "center": {
+        "x": 0.377,
+        "y": 0.474
+      },
+      "card": {
+        "w": 0.357,
+        "h": 0.498
+      }
+    },
+    "capturePoint": {
+      "nx": 0.5,
+      "ny": 0.4775608496753319
+    },
+    "stages": {
+      "prep": 645,
+      "rankSeeds": 633,
+      "earlyOrbProbe": 0,
+      "rankRefine": 1285,
+      "isolatePrep": 700,
+      "isolateScore": 229,
+      "rank": 0,
+      "orb": 819,
+      "aiCrop": 175,
+      "aiRetry": 3777,
+      "total": 8267
+    },
+    "scene": 9,
+    "coverage": 0.206,
+    "clipped": 0,
+    "click": {
+      "u": 0.54,
+      "v": 0.25,
+      "covered": false
+    },
+    "layout": "overlapping",
+    "diceColor": null,
+    "diceFace": null,
+    "diceCoverage": 0,
+    "point": {
+      "nx": 0.5,
+      "ny": 0.4775608496753319
+    },
+    "pointNote": "Exact normalized point supplied to identifyCard."
+  }
+]

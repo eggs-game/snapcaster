@@ -1,0 +1,61 @@
+{
+  "id": 1,
+  "parity": [
+    {
+      "width": 244,
+      "height": 340,
+      "contrast": false,
+      "equal": true,
+      "sameObject": true,
+      "keypoints": 291
+    },
+    {
+      "width": 244,
+      "height": 340,
+      "contrast": true,
+      "equal": true,
+      "sameObject": true,
+      "keypoints": 292
+    },
+    {
+      "width": 244,
+      "height": 340,
+      "contrast": false,
+      "equal": true,
+      "sameObject": true,
+      "keypoints": 290
+    },
+    {
+      "width": 244,
+      "height": 340,
+      "contrast": true,
+      "equal": true,
+      "sameObject": true,
+      "keypoints": 290
+    },
+    {
+      "width": 400,
+      "height": 557,
+      "contrast": false,
+      "equal": true,
+      "sameObject": true,
+      "keypoints": 300
+    },
+    {
+      "width": 400,
+      "height": 557,
+      "contrast": true,
+      "equal": true,
+      "sameObject": true,
+      "keypoints": 300
+    }
+  ],
+  "heaps": [
+    134217728,
+    134217728,
+    134217728,
+    134217728
+  ],
+  "afterEvictionEqual": true,
+  "entries": 60
+}

@@ -1,0 +1,19 @@
+[
+  {
+    "name": "Geier Reach Sanitarium",
+    "pool": "card",
+    "id": "8d80ec47-0e47-49e3-9c43-1c126d8523e1",
+    "occ": "clear",
+    "point": {
+      "nx": 0.5,
+      "ny": 0.5695828081357073
+    },
+    "scene": 18,
+    "rotation": "upright",
+    "layout": "side-by-side",
+    "coverage": 0,
+    "clipped": 0,
+    "file": "188.jpg",
+    "i": 188
+  }
+]

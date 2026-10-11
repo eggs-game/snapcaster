@@ -9,6 +9,143 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-10-11 — `milo-photo-27` — faster supplied photos with stronger verification
+
+Tightly framed photographs try their original frame before corner inference,
+shifted retries and isolation enumeration. Their full frame remains a retrieval
+hypothesis, never independent regional proof. Milo's first four retrieved
+printings can use a larger 400 × 557 reference alongside both unchanged
+244 × 340 views. The larger view is decoded lazily from the same downloaded
+normal JPEG. Small queries skip its allocation. Registration uses the actual
+reference dimensions, and registered color compares consistent raw/raw and
+white-balanced/white-balanced images. A clipped full-frame hypothesis can
+extrapolate a footprint up to 1.8 times the source area only with at least 35
+inliers, eight interior artwork points and eight printed-text points; ordinary
+queries retain the 1.2 limit. Outside-click, shared-art and weak-match guards
+remain in force. This adds no paid inference call or capture upload.
+
+Top-edge isolation also adds a separately bounded landscape family for tapped
+cards. It uses the physical short side for height, permits the supplied click
+below a clipped card and hashes all four orientations. Its sixteen-crop quota
+and two full-index scans cannot displace another orientation family. These
+crops introduce retrieval candidates without independent regional proof;
+strong matches outside the real click remain tentative.
+
+Both final paired runs compare frozen current main
+`b569d01c75d2d46ea77696a563a4ebfe65a31f03` (`milo-adaptive-16`) with
+the final compiled candidate, with Milo enabled in both arms, alternating order
+and separate fresh warmed browser contexts. Photos retain their original pixels
+and manifest order. Real life uses the authoritative production JPEG sampler
+and exact normalized clicks, seed 20260803.
+
+| Supplied Arcane Medium, all 200 photos | Current main | Final candidate |
+| --- | --- | --- |
+| Correct identity | 160/200 (80%) | **198/200 (99%)** |
+| Confident artwork answers | 119/119 correct | **196/196 correct** |
+| Median | 4847ms | **746ms** |
+| Average | 4822ms | **992ms** |
+| p90 | 8563ms | **1438ms** |
+| Correct identity in under one second | 22/200 | **139/200** |
+| Slowest photo | 11755ms | 6743ms |
+| First / second half | 83/100, 77/100 | **100/100, 98/100** |
+| OpenCV WASM at start / end | 134/134 MB | 134/134 MB |
+
+There are **38 recoveries and zero individual losses**. All 143 fast-frame
+hits are correct; 51 verified Milo rescues retain the identity gates. The two
+remaining misses are **The Hive** (strong illustration correspondence but an
+unsettled footprint and no distinguishing printed-text points) and **Seven
+Dwarves** (only 17 illustration inliers, inadequate for its poor whole-card
+hash). Milo retrieves the true identity in both cases, but neither receives a
+confident label. Flight, Barrin and other fallback cases still take multiple
+seconds. This is not 200/200 each in under one second, nor an all-Magic accuracy
+guarantee; these are warmed desktop browser measurements excluding first-visit
+downloads and camera transport.
+
+The Arcane Arlinn fixture previously named the reverse face even though all
+three severity images show **Arlinn Kord**. The light photo has its readable
+title; all three retain front-face art and rules. The correction is applied to
+both engines and changes no image, printing ID, order or inference catalog.
+It accounts for **159 → 160** in the historical current-main control independently
+of algorithm gains. Supporting face metadata and image hashes are saved in
+[fixture-correction.json](runs/2026-10-11-milo-photo-release/fixture-correction.json).
+
+| Paired Real life, all 200 crowded-table clicks | Current main | Final candidate |
+| --- | --- | --- |
+| Correct identity | 189/200 | **189/200** |
+| Confident artwork answers | 186/186 correct | **186/186 correct** |
+| Median / p90 | 790ms / 2441ms | 770ms / 2417ms |
+| Average / slowest click | 1465ms / 10343ms | 1480ms / 10607ms |
+| Correct identity in under one second | 133/200 | 131/200 |
+| Upright / tapped / inverted | 103/109, 53/55, 33/36 | 103/109, 53/55, 33/36 |
+| Side by side / spaced / overlapping | 116/120, 57/60, 16/20 | 116/120, 57/60, 16/20 |
+| Clear / overlapped / clipped edge | 180/187, 6/10, 3/3 | 180/187, 6/10, 3/3 |
+| First / second half | 94/100, 95/100 | 94/100, 95/100 |
+| Correct perfect-crop controls for 11 misses | 1/11 | 3/11 |
+| OpenCV WASM at start / end | 134/134 MB | 134/134 MB |
+
+Every previously correct crowded-table identity is retained. Camera latency
+changes and the small subsecond movement do not establish a new camera
+performance gain. Prototype 21's 196/200 photo gain was rejected because it
+lost Geier Reach Sanitarium: replacing the legacy normal-image downsample with
+the enlarged reference discarded its useful correspondence. The final build
+retains both views. The exact saved Geier JPEG and click pass three replays and
+the full paired run (4593ms control, 4788ms candidate). Keeping both reference
+scales also settles Long-Finned Skywhale and The Reality Chip in the final photo
+run without loosening acceptance thresholds.
+
+Prototype 23 reproduced the 198/200 photo result and all 189 primary identities,
+but failed the required Random 200 gate at 188/200. Its first broad matrix and
+actual failed pixels are retained. Frozen current main reproduced all 28 saved
+table/dice/random/Commander misses, establishing that those captures exposed
+existing limitations. The final landscape edge family recovers **Aven Tactician,
+Wolfbitten Captive and Crimson Muckwader** from that original random draw, plus
+**Shipwreck Dowser** from the original Commander draw. All four retain negative
+click proof and stay tentative; no confidence threshold changes. Prototype 24
+introduced the family but inherited the portrait-only hash orientations and
+recovered none; prototype 25 restores its quarter-turn variants. The paired
+replay records and the final fresh full matrix are both preserved. The three
+random recoveries do not establish a population-wide three-card accuracy gain
+from a fresh draw; they reproduce concrete fixes on identical pixels.
+
+Prototype 25 then passed Random 200 at 193/200, but its Commander run
+confidently named Event: Bebop's Rampage for a signed Bebop Art Series print.
+The exact capture reproduces the wrong confident answer three times on frozen
+main and three times on prototype 25. Its counterpart never reached the query
+shortlist. The final build challenges artwork leaders without eight printed-text
+points using at most two different catalog names within 32/256 art-hash bits,
+then requires actual bidirectional reference-art registration before applying
+the existing shared-art text gate. These catalog challengers cannot seed an
+answer. The final exact capture passes three times with the correct Bebop
+identity; the rejected run and both replay exports are retained.
+
+Prototype 26 caught a second preexisting confidence error: Royal // Virtuous
+was named Monster // Virtuous from correspondence confined to their shared
+Virtuous half. Frozen main also gives the wrong confident answer in three
+exact replays. The final build requires at least eight registered interior
+points in each half for composite identities whose half is reused by another
+catalog name, while retaining the existing near-exact whole-card hash path.
+A partial match cannot own the click or exclude the real identity. The exact
+Royal capture passes three times, with 46 upper-half and 64 lower-half points;
+the failed run and both replay exports are retained.
+
+| Final broad release suite | Correct identity | Confident correct | Median | p90 |
+| --- | --- | --- | --- | --- |
+| Tableau 10 | 97/100 | 96/96 | 667ms | 2004ms |
+| Tableau 20 | 192/200 | 188/188 | 648ms | 2140ms |
+| Dice 10 | 95/100 | 95/95 | 640ms | 2713ms |
+| Random 200 | 196/200 | 128/128 | 782ms | 3942ms |
+| Commander 200 | 191/200 | 128/128 | 787ms | 3806ms |
+| Recent-card hints | 20/20 | 20/20 | 168ms | 199ms |
+
+All broad release gates pass. Random placement gives 196/200, including 50/50
+sideways cards; this fresh draw is separate from the exact saved-failure replays.
+Recent-card hints retain 20/20 hits across twenty scans,
+without full-index fallback. OpenCV WASM stays 134 MB across every suite.
+
+Complete paired records, release suites, saved failed pixels, source fingerprints
+and separate native-memory/rotation/regression checks are in
+[the release artifacts](runs/2026-10-11-milo-photo-release/).
+
 ## 2026-10-11 — `milo-adaptive-16` — stronger local AI rescues and less repeated work
 
 Local contrast recovery and a bounded shifted-crop retry recover five more

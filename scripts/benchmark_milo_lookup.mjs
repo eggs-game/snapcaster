@@ -20,6 +20,7 @@ const browser = await chromium.launch({
   args: ["--disable-background-timer-throttling", "--disable-renderer-backgrounding"],
 });
 const records = [];
+const captures = [];
 const arms = {};
 let generator;
 const workerMemory = {};
@@ -130,6 +131,15 @@ try {
     }, { scene, suite, severity: flags.severity || "heavy" });
     for (const [itemIndex, item] of items.entries()) {
       if (flags.indices && !flags.indices.split(",").map(Number).includes(itemIndex)) continue;
+      if (flags.captureOutput) {
+        const pixels = /^data:image\/(jpeg|png);base64,(.*)$/.exec(item.source);
+        if (!pixels) throw new Error("Capture export requires the actual generated image bytes");
+        await mkdir(flags.captureOutput, {recursive:true});
+        const file = `${String(scene * 10 + itemIndex).padStart(3,"0")}.${pixels[1] === "jpeg" ? "jpg" : "png"}`;
+        await writeFile(path.join(flags.captureOutput,file),Buffer.from(pixels[2],"base64"));
+        captures.push({...item,source:undefined,perfectSource:undefined,file,i:scene*10+itemIndex});
+        await writeFile(path.join(flags.captureOutput,"manifest.json"),JSON.stringify(captures,null,2)+"\n");
+      }
       const rec = { ...item, source: undefined, perfectSource: undefined, i: records.length };
       const order = records.length % 2 ? ["ai", "baseline"] : ["baseline", "ai"];
       for (const name of order) {
@@ -155,7 +165,7 @@ try {
             return { build: window.__SNAP_BUILD, perfectControl, ok: best?.name === item.name, got: best?.name, by: best?.identified_by,
               strategy: best?.strategy, distance: best?.distance, trueRank: rank < 0 ? null : rank + 1,
               ms, stages: result.stage_ms,
-              aiCrop: result.ai_crop, milo: result.milo, regionalProof: !!best?.regional_proof, wasmHeapMB: result.wasm_heap_mb,
+              aiCrop: result.ai_crop, milo: result.milo, miloVerification: result.milo_verification, regionalProof: !!best?.regional_proof, wasmHeapMB: result.wasm_heap_mb,
               artBest: result.art_best, blockedNames: result.blocked_names, top3: result.matches.slice(0, 3).map((m) => ({ name: m.name, distance: m.distance })) };
           } catch (error) { return { ok: false, ms: Math.round(performance.now() - start), error: String(error?.message || error) }; }
         }, { item, milo: name === "ai" || baselineMilo, production: !!flags.production });
@@ -183,6 +193,8 @@ function summary(name) {
   const accepted = samples.filter((r) => ["art-match", "visual-exact"].includes(r.by));
   return { n: samples.length, accuracy: +(samples.filter(r => r.ok).length / (samples.length || 1)).toFixed(3), byOcclusion: group("occ"), byPool: group("pool"), byCoverage: group("coverage", value => value == null ? null : value === 0 ? "0 (clear)" : value < .15 ? "0-15%" : value < .3 ? "15-30%" : "30%+"), byClipped: group("clipped", value => value == null ? null : value < .05 ? "0-5% (whole)" : value < .15 ? "5-15%" : value < .3 ? "15-30%" : "30%+"), avgMs: Math.round(samples.reduce((sum,r)=>sum+r.ms,0)/(samples.length||1)), neighbourMisses: records.filter(r=>!r[name].ok && records.some(other=>other.scene===r.scene && other.name===r[name].got && other.name!==r.name)).map(r=>r.i), attempted: samples.length, correct: samples.filter((r) => r.ok).length,
     errors: samples.filter((r) => r.error).length, medianMs: times[Math.floor(times.length / 2)],
+    correctUnder1s: samples.filter(r => r.ok && r.ms < 1000).length,
+    maxMs: times.at(-1),
     p90Ms: times[Math.min(times.length - 1, Math.floor(times.length * 0.9))],
     accepted: { n: accepted.length, correct: accepted.filter((r) => r.ok).length },
     byPathway: Object.fromEntries([...new Set(samples.map(r => r.by || "(no match)"))].map(key => { const rows = samples.filter(r => (r.by || "(no match)") === key); return [key, { n: rows.length, ok: rows.filter(r => r.ok).length, acc: +(rows.filter(r => r.ok).length / rows.length).toFixed(3) }]; })),
@@ -196,7 +208,7 @@ function summary(name) {
 async function save(log = true) {
   await mkdir(path.dirname(path.resolve(output)), { recursive: true });
   const payload = { build: records[0]?.ai?.build || "unknown", suite, severity: flags.severity,
-    sample: suite === "realLife" ? "authoritative SNAPTEST realLife sampler, seed 20260803, identical production captures" : "frozen snaptest/cards.json", paired: true, completed: records.length,
+    sample: suite === "realLife" ? "authoritative SNAPTEST realLife sampler, seed 20260803, identical production captures" : suite === "arcane" ? `supplied Arcane ${flags.severity || "heavy"} photos, unchanged manifest order and source pixels` : "frozen snaptest/cards.json", paired: true, completed: records.length,
     baselineMilo, workerMemory, summary: { baseline: summary("baseline"), ai: summary("ai"),
       recovered: records.filter((r) => !r.baseline.ok && r.ai.ok).map((r) => r.i),
       regressed: records.filter((r) => r.baseline.ok && !r.ai.ok).map((r) => r.i),
@@ -207,7 +219,8 @@ async function save(log = true) {
       recoveredNeighbours: records.filter(r=>!r.baseline.ok && r.ai.ok && records.some(other=>other.scene===r.scene && other.name===r.baseline.got && other.name!==r.name)).map(r=>r.i),
       fastPrecision: { n:records.filter(r=>r.ai.aiCrop?.fastHit).length, correct:records.filter(r=>r.ai.aiCrop?.fastHit && r.ai.ok).length } }, records };
   await writeFile(output, JSON.stringify(payload, null, 2) + "\n");
-  if (suite === "realLife" && records.length === 200) {
+  if (["realLife", "arcane"].includes(suite) && records.length === 200) {
+    const mode = suite === "realLife" ? suite : `arcane${(flags.severity || "heavy").replace(/^./, c => c.toUpperCase())}`;
     for (const [arm, directory] of [["ai", flags.releaseOutput], ["baseline", flags.controlOutput]]) {
       if (!directory) continue;
       const summary = payload.summary[arm];
@@ -216,7 +229,7 @@ async function save(log = true) {
       summary.wasmHeapStartMB = summary.wasmHeapMB[0]; summary.wasmHeapEndMB = summary.wasmHeapMB[1];
       summary.firstHalfAcc = summary.firstHalf / 100; summary.secondHalfAcc = summary.secondHalf / 100;
       await mkdir(directory, {recursive:true});
-      await writeFile(path.join(directory,"realLife.json"), JSON.stringify({build:records[0][arm].build, aiCropEnabled:true, miloEnabled:arm === "ai" || baselineMilo, mode:"realLife", summary,
+      await writeFile(path.join(directory, mode + ".json"), JSON.stringify({build:records[0][arm].build, aiCropEnabled:true, miloEnabled:arm === "ai" || baselineMilo, mode, summary,
         misses:records.filter(r=>!r[arm].ok && !r[arm].error).map(r=>({name:r.name,id:r.id,i:r.i,scene:r.scene,rot:r.rotation,layout:r.layout,coverage:r.coverage,got:r[arm].got,by:r[arm].by,trueRank:r[arm].trueRank,artBest:r[arm].artBest,aiCrop:r[arm].aiCrop,stages:r[arm].stages,ms:r[arm].ms,perfectControl:r[arm].perfectControl})),
         errors:records.filter(r=>r[arm].error).map(r=>({i:r.i,name:r.name,error:r[arm].error}))}, null, 2)+"\n");
     }

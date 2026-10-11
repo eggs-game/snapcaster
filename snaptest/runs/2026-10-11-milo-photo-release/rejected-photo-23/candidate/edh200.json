@@ -1,0 +1,753 @@
+{
+  "build": "milo-photo-23 (local vision)",
+  "aiCropEnabled": true,
+  "mode": "edh200",
+  "summary": {
+    "n": 200,
+    "errors": 0,
+    "accuracy": 0.98,
+    "avgMs": 1471,
+    "medianMs": 774,
+    "byRotation": {
+      "upright": {
+        "n": 50,
+        "ok": 49,
+        "acc": 0.98
+      },
+      "tilt": {
+        "n": 50,
+        "ok": 50,
+        "acc": 1
+      },
+      "sideways": {
+        "n": 50,
+        "ok": 49,
+        "acc": 0.98
+      },
+      "upsidedown": {
+        "n": 50,
+        "ok": 48,
+        "acc": 0.96
+      }
+    },
+    "byOcclusion": {
+      "none": {
+        "n": 52,
+        "ok": 51,
+        "acc": 0.981
+      },
+      "fingers": {
+        "n": 52,
+        "ok": 49,
+        "acc": 0.942
+      },
+      "dice": {
+        "n": 48,
+        "ok": 48,
+        "acc": 1
+      },
+      "fingers-dice": {
+        "n": 48,
+        "ok": 48,
+        "acc": 1
+      }
+    },
+    "firstHalfAcc": 0.98,
+    "secondHalfAcc": 0.98,
+    "peakHeapMB": 21,
+    "wasmHeapStartMB": 134,
+    "wasmHeapEndMB": 134,
+    "wasmHeapPeakMB": 134,
+    "errorsByStage": {},
+    "stageAvgMs": {
+      "prep": 168,
+      "rank": 0,
+      "orb": 394,
+      "total": 1392
+    },
+    "p90Ms": 3474,
+    "maxMs": 5086,
+    "byPathway": {
+      "art-match": {
+        "n": 130,
+        "ok": 130,
+        "acc": 1
+      },
+      "(no match)": {
+        "n": 70,
+        "ok": 66,
+        "acc": 0.943
+      }
+    },
+    "byPlacement": {
+      "mild-centered-a": {
+        "n": 56,
+        "ok": 56,
+        "acc": 1
+      },
+      "above-click": {
+        "n": 48,
+        "ok": 48,
+        "acc": 1
+      },
+      "mild-centered-b": {
+        "n": 48,
+        "ok": 48,
+        "acc": 1
+      },
+      "top-edge-clipped": {
+        "n": 48,
+        "ok": 44,
+        "acc": 0.917
+      }
+    },
+    "byPool": {
+      "card": {
+        "n": 140,
+        "ok": 137,
+        "acc": 0.979
+      },
+      "token": {
+        "n": 51,
+        "ok": 50,
+        "acc": 0.98
+      },
+      "basic": {
+        "n": 9,
+        "ok": 9,
+        "acc": 1
+      }
+    },
+    "missTrueRank": {
+      "rank 2": 0,
+      "rank 3-5": 0,
+      "rank 6+": 0,
+      "absent": 4
+    },
+    "missAvgDist": 191,
+    "ranAt": "2026-10-11T17:21:58.996Z"
+  },
+  "misses": [
+    {
+      "name": "Spinerock Tyrant",
+      "id": "10808193-6ddc-4d53-a3fa-32d7ba80a04f",
+      "pool": "card",
+      "got": "Fissure",
+      "dist": 204,
+      "conf": 0.19,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Fissure (d=204)",
+        "Avacyn, the Purifier (d=212)",
+        "Honored Hydra (d=213)"
+      ],
+      "i": 51,
+      "degradeIndex": 51,
+      "placement": "top-edge-clipped",
+      "rot": "upsidedown",
+      "occ": "none",
+      "ms": 3474,
+      "cv": "ready",
+      "tried": 104,
+      "dropped": 27,
+      "artBest": {
+        "name": "Fissure",
+        "inliers": 3,
+        "color": 48,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "artChecked": 36,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-top-edge-6-28-65-179",
+          "score": 77.58
+        },
+        {
+          "strategy": "isolate-top-edge-6-30-62-173",
+          "score": 75.69
+        },
+        {
+          "strategy": "isolate-top-edge-6-28-47-179",
+          "score": 73.85
+        },
+        {
+          "strategy": "isolate-top-edge-6-27-68-182",
+          "score": 73.49
+        },
+        {
+          "strategy": "isolate-top-edge-8-28-71-179",
+          "score": 72.74
+        },
+        {
+          "strategy": "isolate-top-edge-4-28-59-179",
+          "score": 72.5
+        },
+        {
+          "strategy": "isolate-top-edge-6-30-50-176",
+          "score": 72.44
+        },
+        {
+          "strategy": "isolate-top-edge-6-28-65-176",
+          "score": 72.43
+        },
+        {
+          "strategy": "isolate-top-edge-6-30-50-173",
+          "score": 71.63
+        },
+        {
+          "strategy": "isolate-top-edge-6-27-68-179",
+          "score": 70.49
+        },
+        {
+          "strategy": "isolate-top-edge-2-30-38-173",
+          "score": 70.15
+        },
+        {
+          "strategy": "isolate-top-edge-8-30-68-173",
+          "score": 70
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.043524906039237976,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.009971481747925282,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 176,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.0077950237318873405,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.036575961858034134,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.008834985084831715,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.008021702989935875,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 348
+        },
+        "retryMs": 348
+      },
+      "truthGeometry": null,
+      "capturePoint": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "stages": {
+        "prep": 420,
+        "rankSeeds": 438,
+        "earlyOrbProbe": 0,
+        "rankRefine": 735,
+        "isolatePrep": 676,
+        "isolateScore": 300,
+        "rank": 0,
+        "orb": 322,
+        "aiCrop": 176,
+        "aiRetry": 348,
+        "total": 3417
+      }
+    },
+    {
+      "name": "Memory Lapse",
+      "id": "bf9c4e40-ff50-4837-ae11-1670d637bcfb",
+      "pool": "card",
+      "got": "Double-Faced Substitute Card",
+      "dist": 185,
+      "conf": 0.32,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Double-Faced Substitute Card (d=185)",
+        "Guildmark (d=192)",
+        "Zhalfirin Void (d=193)"
+      ],
+      "i": 55,
+      "degradeIndex": 55,
+      "placement": "top-edge-clipped",
+      "rot": "upsidedown",
+      "occ": "fingers",
+      "ms": 3255,
+      "cv": "ready",
+      "tried": 105,
+      "dropped": 27,
+      "artBest": {
+        "name": "Double-Faced Substitute Card",
+        "inliers": 7,
+        "color": 100,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 6,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "artChecked": 36,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-top-edge--2-28-92-179",
+          "score": 45.96
+        },
+        {
+          "strategy": "isolate-top-edge--2-28-92-176",
+          "score": 44.13
+        },
+        {
+          "strategy": "isolate-top-edge--2-30-89-179",
+          "score": 41.85
+        },
+        {
+          "strategy": "isolate-top-edge--2-28-92-182",
+          "score": 40.87
+        },
+        {
+          "strategy": "isolate-top-edge--2-30-89-182",
+          "score": 40.17
+        },
+        {
+          "strategy": "isolate-top-edge--2-30-89-176",
+          "score": 40.03
+        },
+        {
+          "strategy": "isolate-top-edge--2-28-92-173",
+          "score": 39.93
+        },
+        {
+          "strategy": "isolate-top-edge--2-27-89-182",
+          "score": 39.78
+        },
+        {
+          "strategy": "isolate-top-edge--2-30-89-170",
+          "score": 37.37
+        },
+        {
+          "strategy": "isolate-top-edge--6-28-77-176",
+          "score": 36.12
+        },
+        {
+          "strategy": "isolate-top-edge--4-28-83-182",
+          "score": 36.03
+        },
+        {
+          "strategy": "isolate-top-edge--4-28-83-173",
+          "score": 35.41
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.044615767896175385,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.007549920119345188,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 180,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.007862680591642857,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.03953411430120468,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.007243999280035496,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.0074850511737167835,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 350
+        },
+        "retryMs": 351
+      },
+      "truthGeometry": null,
+      "capturePoint": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "stages": {
+        "prep": 426,
+        "rankSeeds": 362,
+        "earlyOrbProbe": 0,
+        "rankRefine": 672,
+        "isolatePrep": 649,
+        "isolateScore": 311,
+        "rank": 0,
+        "orb": 181,
+        "aiCrop": 180,
+        "aiRetry": 351,
+        "total": 3135
+      }
+    },
+    {
+      "name": "Event: Shredder's Challenge",
+      "id": "8b673d4b-0188-4225-9067-dc61386a18fd",
+      "pool": "token",
+      "got": "Sunglasses of Urza",
+      "dist": 190,
+      "conf": 0.29,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Sunglasses of Urza (d=190)",
+        "Find the Assassin (cont'd) (d=192)",
+        "Windfall (d=193)"
+      ],
+      "i": 180,
+      "degradeIndex": 180,
+      "placement": "top-edge-clipped",
+      "rot": "upright",
+      "occ": "fingers",
+      "ms": 3817,
+      "cv": "ready",
+      "tried": 97,
+      "dropped": 20,
+      "artBest": {
+        "name": "Sunglasses of Urza",
+        "inliers": 6,
+        "color": 52,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 7,
+        "clickArtInliers": 1,
+        "clickTextInliers": 6
+      },
+      "artChecked": 36,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-portrait-6-51-50-89",
+          "score": 123.87
+        },
+        {
+          "strategy": "isolate-portrait-6-53-50-86",
+          "score": 121.7
+        },
+        {
+          "strategy": "isolate-portrait-6-53-50-92",
+          "score": 119.44
+        },
+        {
+          "strategy": "isolate-portrait-6-53-50-89",
+          "score": 114.79
+        },
+        {
+          "strategy": "isolate-portrait-6-51-50-92",
+          "score": 111
+        },
+        {
+          "strategy": "isolate-portrait-6-51-50-86",
+          "score": 109.08
+        },
+        {
+          "strategy": "isolate-portrait-6-51-50-83",
+          "score": 105.48
+        },
+        {
+          "strategy": "isolate-portrait-6-50-53-92",
+          "score": 105.17
+        },
+        {
+          "strategy": "isolate-portrait-6-53-50-83",
+          "score": 104.08
+        },
+        {
+          "strategy": "isolate-portrait-6-50-53-89",
+          "score": 103.11
+        },
+        {
+          "strategy": "isolate-portrait-6-48-44-65",
+          "score": 101.14
+        },
+        {
+          "strategy": "isolate-portrait-6-42-38-74",
+          "score": 99.63
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.039181917905807495,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.01382202748209238,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 185,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.00917754229158163,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.03804323449730873,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.013040444813668728,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.014675512909889221,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 353
+        },
+        "retryMs": 354
+      },
+      "truthGeometry": null,
+      "capturePoint": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "stages": {
+        "prep": 466,
+        "rankSeeds": 520,
+        "earlyOrbProbe": 0,
+        "rankRefine": 894,
+        "isolatePrep": 603,
+        "isolateScore": 231,
+        "rank": 0,
+        "orb": 449,
+        "aiCrop": 185,
+        "aiRetry": 354,
+        "total": 3704
+      }
+    },
+    {
+      "name": "Shipwreck Dowser",
+      "id": "17625c3f-ed32-4475-8012-e64cbccc35b1",
+      "pool": "card",
+      "got": "Double-Faced Substitute Card",
+      "dist": 185,
+      "conf": 0.32,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Double-Faced Substitute Card (d=185)",
+        "Blank Card (d=186)",
+        "Sharp Eraser (d=189)"
+      ],
+      "i": 182,
+      "degradeIndex": 182,
+      "placement": "top-edge-clipped",
+      "rot": "sideways",
+      "occ": "fingers",
+      "ms": 3368,
+      "cv": "ready",
+      "tried": 100,
+      "dropped": 27,
+      "artBest": {
+        "name": "Double-Faced Substitute Card",
+        "inliers": 6,
+        "color": 57,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 8,
+        "clickArtInliers": 6,
+        "clickTextInliers": 2
+      },
+      "artChecked": 36,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-top-edge--2-28-35-176",
+          "score": 105.4
+        },
+        {
+          "strategy": "isolate-top-edge--4-28-29-176",
+          "score": 98.48
+        },
+        {
+          "strategy": "isolate-top-edge--2-48-20-121",
+          "score": 88.66
+        },
+        {
+          "strategy": "isolate-top-edge--4-30-14-179",
+          "score": 87.92
+        },
+        {
+          "strategy": "isolate-top-edge--4-30-26-179",
+          "score": 86.33
+        },
+        {
+          "strategy": "isolate-top-edge--2-28-23-176",
+          "score": 85.54
+        },
+        {
+          "strategy": "isolate-top-edge--2-48-20-118",
+          "score": 84.83
+        },
+        {
+          "strategy": "isolate-top-edge--4-28-29-179",
+          "score": 82.4
+        },
+        {
+          "strategy": "isolate-top-edge--2-28-35-182",
+          "score": 82.38
+        },
+        {
+          "strategy": "isolate-top-edge--4-30-26-182",
+          "score": 82.22
+        },
+        {
+          "strategy": "isolate-top-edge--2-28-35-179",
+          "score": 81.92
+        },
+        {
+          "strategy": "isolate-top-edge--2-36-17-158",
+          "score": 81.68
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.056320447474718094,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.007477282080799341,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 178,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.007682192139327526,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.025357330217957497,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.007976564578711987,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.007489997427910566,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 350
+        },
+        "retryMs": 350
+      },
+      "truthGeometry": null,
+      "capturePoint": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "stages": {
+        "prep": 416,
+        "rankSeeds": 374,
+        "earlyOrbProbe": 0,
+        "rankRefine": 605,
+        "isolatePrep": 643,
+        "isolateScore": 307,
+        "rank": 0,
+        "orb": 433,
+        "aiCrop": 178,
+        "aiRetry": 350,
+        "total": 3309
+      }
+    }
+  ],
+  "errors": []
+}

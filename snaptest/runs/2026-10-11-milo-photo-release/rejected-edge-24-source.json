@@ -1,0 +1,15 @@
+{
+  "src/main.jsx": "dd7b2004da016b6f07799156b6054970d96abbb50401c0d571246cafd1d4090a",
+  "src/SnapTest.jsx": "d03090798f4c8832341051253fd7ed6c6d327a037ea9eee841fcf2f00297cac6",
+  "src/snaptest/scene.js": "c3aed501c5787dea50b752ba35d959b5e71caf93f617eb7b24790e86ab62e345",
+  "src/snaptest/degrade.js": "ef006310323143b974fe29847c48d7dd3ed3cb077bc41683cbce8203eaf675d2",
+  "src/recognition/matcher.js": "d79aca8d6b0dd9d18793104c0687cffcbaccb4647d5214c738d8d0e101d85e93",
+  "src/recognition/recognizer.js": "5b5adf402fb33f4c325364c2246ff0c3e36ceb1d441ad432baf7723b5005123c",
+  "src/recognition/aiCropWorker.js": "ad5aecaf05ba3ef91c770a77f23476fa1d9d13b1486ec56d59750a0bd921ba87",
+  "src/recognition/aiCropGeometry.js": "a9153c763e917e15703a1d5fe8a80714e4722c6f73948e61a733170c064343cb",
+  "src/recognition/miloLookup.js": "f61d901f0d300f12dacb1d7860eee94ab1b66ba065347bcc450f1952de177a2f",
+  "public/carddata/cards.json": "79f0775b3b84f509edc614170e325607bd0f7245b9c9006f029e8adc6553cadc",
+  "public/carddata/milo/manifest.json": "dd2c83e7bd3654944d9b92142ebb2300004f95170f96ea762703afb44d6305bc",
+  "public/vendor/vision/milo1/model.onnx": "bd13d8d60383c69da04dce261f32e93fdaeaa8fd618fbc991e7385f71b3d45df",
+  "public/snaptest/arcane/manifest.json": "beef48b2d4aed723d49e80980adeca3f68716e4529e32765c14c7a0dc96f6197"
+}

@@ -5,9 +5,43 @@ import path from "node:path";
 const directory = process.argv[2] || ".cache/recognition-release/click-match-1";
 const gates = { realLife: [200, 0], tableauEdh10: [100, .92], tableauVegasEdh20: [200, .83], tableauEdhDice10: [100, .90], random200: [200, .95], edh200: [200, .93] };
 const primaryOnly=process.argv.includes("--primary");
-for (const [mode, [n, accuracy]] of Object.entries(primaryOnly ? {realLife:gates.realLife} : gates)) {
+const broadOnly=process.argv.includes("--broad");
+assert.ok(!(primaryOnly && broadOnly),"choose one partial check scope");
+let candidateBuild;
+const photoEvidencePath=process.argv.find(arg=>arg.startsWith("--photo-improvement="))?.slice("--photo-improvement=".length);
+let photoPair;
+if (photoEvidencePath) {
+  // A photo-targeted release must prove its improvement on unchanged supplied
+  // pixels, while retaining the primary crowded-table baseline below.
+  const pair=JSON.parse(readFileSync(photoEvidencePath));
+  photoPair=pair;
+  const manifest=JSON.parse(readFileSync(new URL("../public/snaptest/arcane/manifest.json",import.meta.url))).medium;
+  assert.equal(pair.suite,"arcane"); assert.equal(pair.severity,"medium");
+  assert.equal(pair.paired,true); assert.equal(pair.baselineMilo,true);
+  assert.equal(pair.completed,200); assert.equal(pair.records.length,200);
+  for (const [i,row] of pair.records.entries()) {
+    assert.equal(row.id,manifest[i].id,"same supplied photo identity and order");
+    assert.equal(row.file,manifest[i].file,"same supplied source pixels");
+    assert.equal(row.name,manifest[i].name,"unchanged photo ground truth");
+    assert.equal(row.ai.build,pair.build,"one candidate build throughout");
+    assert.equal(row.baseline.build,pair.records[0].baseline.build,"one frozen main throughout");
+    assert.ok(!row.ai.error && !row.baseline.error,"photo scans have no errors");
+  }
+  const count=arm=>pair.records.filter(r=>r[arm].ok).length;
+  const accepted=pair.records.filter(r=>["art-match","visual-exact"].includes(r.ai.by));
+  assert.ok(accepted.every(r=>r.ai.ok),"photo: every confident result is correct");
+  assert.ok(count("ai")-count("baseline")>4,"photo: gain exceeds the documented noise band");
+  assert.ok(pair.records.every(r=>!r.baseline.ok || r.ai.ok),"photo: no individually regressed identity");
+  assert.ok(pair.summary.ai.medianMs < pair.summary.baseline.medianMs*.8,"photo: material median speedup");
+  assert.ok(pair.summary.ai.p90Ms < pair.summary.baseline.p90Ms,"photo: tail latency improves too");
+  assert.ok(pair.records.filter(r=>r.ai.ok && r.ai.ms<1000).length > pair.records.filter(r=>r.baseline.ok && r.baseline.ms<1000).length+4,"photo: more correct subsecond scans");
+  console.log(`Supplied photos: ${count("baseline")}/200 -> ${count("ai")}/200; every confident result correct`);
+}
+for (const [mode, [n, accuracy]] of Object.entries(primaryOnly ? {realLife:gates.realLife} : broadOnly ? Object.fromEntries(Object.entries(gates).filter(([mode])=>mode!=="realLife")) : gates)) {
   const result = JSON.parse(readFileSync(path.join(directory, mode + ".json")));
   const s = result.summary;
+  candidateBuild ??= result.build;
+  assert.equal(result.build,candidateBuild,"one candidate build across the checked release suites");
   assert.equal(s.n, n, `${mode}: complete all cards`);
   assert.equal(s.errors, 0, `${mode}: no scan errors`);
   assert.ok(s.accuracy >= accuracy, `${mode}: accuracy ${s.accuracy} < ${accuracy}`);
@@ -25,19 +59,26 @@ for (const [mode, [n, accuracy]] of Object.entries(primaryOnly ? {realLife:gates
     assert.ok(result.misses.every(m => m.perfectControl), "Real life: every miss has a perfect-crop control");
     if (process.argv[3]) {
       const control = JSON.parse(readFileSync(path.join(process.argv[3], "realLife.json")));
+      if (photoPair) {
+        assert.equal(result.build,photoPair.build,"same candidate in photo and crowded-table suites");
+        assert.equal(control.build,photoPair.records[0].baseline.build,"same current-main control in both suites");
+      }
       assert.equal(control.summary.n, 200); assert.equal(control.summary.errors, 0);
       assert.ok(s.accuracy >= control.summary.accuracy, "Real life: no regression against current-main control");
-      assert.ok(control.misses.length - result.misses.length > 4, "Real life: improvement must exceed the documented two-card-per-100 noise band");
+      if (!photoEvidencePath) assert.ok(control.misses.length - result.misses.length > 4, "Real life: improvement must exceed the documented two-card-per-100 noise band");
       const oldMisses = new Map(control.misses.map(m => [m.i, m]));
       const newMisses = new Map(result.misses.map(m => [m.i, m]));
       for (const [i,m] of newMisses) if (oldMisses.has(i)) assert.equal(m.id,oldMisses.get(i).id,"same deterministic card draw");
+      if (photoEvidencePath) assert.ok([...newMisses.keys()].every(i=>oldMisses.has(i)),"photo release: no individually regressed crowded-table identity");
       console.log(`Real life versus current main: ${[...oldMisses.keys()].filter(i=>!newMisses.has(i)).length} recovered; ${[...newMisses.keys()].filter(i=>!oldMisses.has(i)).length} regressed`);
     }
   }
   console.log(`${mode}: release gates passed (${s.accuracy * 100}%; median ${s.medianMs}ms; p90 ${s.p90Ms}ms)`);
 }
 if(primaryOnly) process.exit(0);
-const hint = JSON.parse(readFileSync(path.join(directory, "recentHint20.json"))).summary;
+const hintResult = JSON.parse(readFileSync(path.join(directory, "recentHint20.json")));
+assert.equal(hintResult.build,candidateBuild,"same candidate in hint and recognition suites");
+const hint = hintResult.summary;
 assert.equal(hint.n, 20); assert.equal(hint.errors, 0); assert.equal(hint.accuracy, 1);
 assert.equal(hint.recentHint.hits, hint.recentHint.attempted);
 assert.equal(hint.recentHint.fullCropFallbacks.length, 0);

@@ -1,0 +1,910 @@
+[
+  {
+    "build": "milo-photo-26 (local vision)",
+    "expected": "Dementia Bat",
+    "got": "Dementia Bat",
+    "aiCrop": false,
+    "ms": 4745,
+    "artBest": {
+      "name": "Dementia Bat",
+      "inliers": 8,
+      "color": 82,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 9,
+      "clickArtInliers": 6,
+      "clickTextInliers": 2
+    },
+    "blockedNames": [],
+    "ai": {
+      "status": "off"
+    },
+    "stages": {
+      "prep": 570,
+      "rankSeeds": 692,
+      "earlyOrbProbe": 0,
+      "rankRefine": 1955,
+      "isolatePrep": 707,
+      "isolateScore": 278,
+      "rank": 0,
+      "orb": 539,
+      "total": 4744
+    }
+  },
+  {
+    "build": "milo-photo-26 (local vision)",
+    "expected": "Dementia Bat",
+    "got": "Dementia Bat",
+    "aiCrop": true,
+    "ms": 1989,
+    "by": "art-match",
+    "artBest": {
+      "name": "Dementia Bat",
+      "inliers": 53,
+      "color": 89,
+      "weak": false,
+      "clickInside": true,
+      "clickInliers": 53,
+      "clickArtInliers": 39,
+      "clickTextInliers": 13
+    },
+    "blockedNames": [],
+    "ai": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 2,
+      "probes": [
+        {
+          "sharpness": 0.022825881838798523,
+          "accepted": true,
+          "reason": "accepted"
+        },
+        {
+          "sharpness": 0.05302805453538895,
+          "accepted": true,
+          "reason": "accepted"
+        }
+      ],
+      "ms": 193,
+      "fastMs": 510,
+      "fastHit": false
+    },
+    "stages": {
+      "prep": 22,
+      "rankSeeds": 77,
+      "earlyOrbProbe": 0,
+      "rankRefine": 1,
+      "rank": 0,
+      "orb": 409,
+      "aiCrop": 193,
+      "aiAttempt": 510,
+      "milo": 1283,
+      "total": 1989
+    }
+  },
+  {
+    "build": "milo-photo-26 (local vision)",
+    "expected": "Champion's Drake",
+    "got": "Champion's Drake",
+    "aiCrop": false,
+    "ms": 4613,
+    "by": "art-match",
+    "artBest": {
+      "name": "Champion's Drake",
+      "inliers": 20,
+      "color": 84,
+      "weak": false,
+      "clickInside": true,
+      "clickInliers": 22,
+      "clickArtInliers": 17,
+      "clickTextInliers": 5
+    },
+    "blockedNames": [],
+    "ai": {
+      "status": "off"
+    },
+    "stages": {
+      "prep": 655,
+      "rankSeeds": 646,
+      "earlyOrbProbe": 0,
+      "rankRefine": 1157,
+      "isolatePrep": 1024,
+      "isolateScore": 429,
+      "rank": 0,
+      "orb": 698,
+      "total": 4613
+    }
+  },
+  {
+    "build": "milo-photo-26 (local vision)",
+    "expected": "Champion's Drake",
+    "got": "Champion's Drake",
+    "aiCrop": true,
+    "ms": 7158,
+    "by": "art-match",
+    "artBest": {
+      "name": "Champion's Drake",
+      "inliers": 20,
+      "color": 84,
+      "weak": false,
+      "clickInside": true,
+      "clickInliers": 22,
+      "clickArtInliers": 17,
+      "clickTextInliers": 5
+    },
+    "blockedNames": [],
+    "ai": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 0,
+      "probes": [
+        {
+          "sharpness": 0.021391188725829124,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        },
+        {
+          "sharpness": 0.02963656559586525,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        }
+      ],
+      "ms": 180,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.042386963963508606,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.03126615658402443,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.023838821798563004,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.03249514847993851,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 356,
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 11,
+          "inferenceMs": 540,
+          "searchMs": 88,
+          "ms": 634
+        }
+      },
+      "retryMs": 2476
+    },
+    "stages": {
+      "prep": 665,
+      "rankSeeds": 643,
+      "earlyOrbProbe": 0,
+      "rankRefine": 1088,
+      "isolatePrep": 1004,
+      "isolateScore": 452,
+      "rank": 0,
+      "orb": 647,
+      "aiCrop": 180,
+      "aiRetry": 2476,
+      "total": 7158
+    }
+  },
+  {
+    "build": "milo-photo-26 (local vision)",
+    "expected": "Mortuary Mire",
+    "got": "Mortuary Mire",
+    "aiCrop": false,
+    "ms": 3630,
+    "artBest": {
+      "name": "Mortuary Mire",
+      "inliers": 16,
+      "color": 81,
+      "weak": false,
+      "clickInside": null,
+      "clickInliers": 7,
+      "clickArtInliers": 1,
+      "clickTextInliers": 6
+    },
+    "blockedNames": [],
+    "ai": {
+      "status": "off"
+    },
+    "stages": {
+      "prep": 638,
+      "rankSeeds": 669,
+      "earlyOrbProbe": 0,
+      "rankRefine": 826,
+      "isolatePrep": 659,
+      "isolateScore": 264,
+      "rank": 0,
+      "orb": 571,
+      "total": 3630
+    }
+  },
+  {
+    "build": "milo-photo-26 (local vision)",
+    "expected": "Mortuary Mire",
+    "got": "Mortuary Mire",
+    "aiCrop": true,
+    "ms": 2506,
+    "by": "art-match",
+    "artBest": {
+      "name": "Mortuary Mire",
+      "inliers": 32,
+      "color": 96,
+      "weak": false,
+      "clickInside": true,
+      "clickInliers": 32,
+      "clickArtInliers": 18,
+      "clickTextInliers": 11
+    },
+    "blockedNames": [],
+    "ai": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 2,
+      "probes": [
+        {
+          "sharpness": 0.06315676867961884,
+          "accepted": true,
+          "reason": "accepted"
+        },
+        {
+          "sharpness": 0.054661571979522705,
+          "accepted": true,
+          "reason": "accepted"
+        }
+      ],
+      "ms": 180,
+      "fastMs": 493,
+      "fastHit": false
+    },
+    "stages": {
+      "prep": 21,
+      "rankSeeds": 74,
+      "earlyOrbProbe": 0,
+      "rankRefine": 0,
+      "rank": 0,
+      "orb": 397,
+      "aiCrop": 180,
+      "aiAttempt": 493,
+      "milo": 1830,
+      "total": 2506
+    }
+  },
+  {
+    "build": "milo-photo-26 (local vision)",
+    "expected": "Horizon of Progress",
+    "got": "Horizon of Progress",
+    "aiCrop": false,
+    "ms": 3986,
+    "artBest": {
+      "name": "Horizon of Progress",
+      "inliers": 51,
+      "color": 41,
+      "weak": false,
+      "clickInside": null,
+      "clickInliers": 9,
+      "clickArtInliers": 1,
+      "clickTextInliers": 8
+    },
+    "blockedNames": [],
+    "ai": {
+      "status": "off"
+    },
+    "stages": {
+      "prep": 681,
+      "rankSeeds": 672,
+      "earlyOrbProbe": 0,
+      "rankRefine": 1249,
+      "isolatePrep": 701,
+      "isolateScore": 250,
+      "rank": 0,
+      "orb": 430,
+      "total": 3986
+    }
+  },
+  {
+    "build": "milo-photo-26 (local vision)",
+    "expected": "Horizon of Progress",
+    "got": "Horizon of Progress",
+    "aiCrop": true,
+    "ms": 483,
+    "by": "art-match",
+    "artBest": {
+      "name": "Horizon of Progress",
+      "inliers": 50,
+      "color": 40,
+      "weak": false,
+      "clickInside": true,
+      "clickInliers": 50,
+      "clickArtInliers": 0,
+      "clickTextInliers": 50
+    },
+    "blockedNames": [],
+    "ai": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 1,
+      "probes": [
+        {
+          "sharpness": 0.05367983877658844,
+          "accepted": true,
+          "reason": "accepted"
+        },
+        {
+          "sharpness": 0.059393368661403656,
+          "accepted": false,
+          "reason": "duplicate"
+        }
+      ],
+      "ms": 177,
+      "fastMs": 303,
+      "fastHit": true
+    },
+    "stages": {
+      "prep": 13,
+      "rankSeeds": 40,
+      "earlyOrbProbe": 0,
+      "rankRefine": 0,
+      "rank": 0,
+      "orb": 250,
+      "aiCrop": 177,
+      "aiAttempt": 303,
+      "total": 483
+    }
+  },
+  {
+    "build": "milo-photo-26 (local vision)",
+    "expected": "Grand Arbiter Augustin IV",
+    "got": "Grand Arbiter Augustin IV",
+    "aiCrop": false,
+    "ms": 2201,
+    "by": "art-match",
+    "artBest": {
+      "name": "Grand Arbiter Augustin IV",
+      "inliers": 41,
+      "color": 63,
+      "weak": false,
+      "clickInside": true,
+      "clickInliers": 32,
+      "clickArtInliers": 20,
+      "clickTextInliers": 12
+    },
+    "blockedNames": [],
+    "ai": {
+      "status": "off"
+    },
+    "stages": {
+      "prep": 642,
+      "rankSeeds": 718,
+      "earlyOrbProbe": 0,
+      "rankRefine": 831,
+      "rank": 0,
+      "orb": 6,
+      "total": 2200
+    }
+  },
+  {
+    "build": "milo-photo-26 (local vision)",
+    "expected": "Grand Arbiter Augustin IV",
+    "got": "Grand Arbiter Augustin IV",
+    "aiCrop": true,
+    "ms": 2025,
+    "by": "art-match",
+    "artBest": {
+      "name": "Grand Arbiter Augustin IV",
+      "inliers": 62,
+      "color": 76,
+      "weak": false,
+      "clickInside": true,
+      "clickInliers": 62,
+      "clickArtInliers": 54,
+      "clickTextInliers": 8
+    },
+    "blockedNames": [],
+    "ai": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 2,
+      "probes": [
+        {
+          "sharpness": 0.06907787173986435,
+          "accepted": true,
+          "reason": "accepted"
+        },
+        {
+          "sharpness": 0.04979874938726425,
+          "accepted": true,
+          "reason": "accepted"
+        }
+      ],
+      "ms": 179,
+      "fastMs": 573,
+      "fastHit": false
+    },
+    "stages": {
+      "prep": 23,
+      "rankSeeds": 75,
+      "earlyOrbProbe": 0,
+      "rankRefine": 0,
+      "rank": 0,
+      "orb": 474,
+      "aiCrop": 179,
+      "aiAttempt": 573,
+      "milo": 1271,
+      "total": 2025
+    }
+  },
+  {
+    "build": "milo-photo-26 (local vision)",
+    "expected": "Key to the City",
+    "got": "Key to the City",
+    "aiCrop": false,
+    "ms": 3792,
+    "artBest": {
+      "name": "Key to the City",
+      "inliers": 11,
+      "color": 73,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 24,
+      "clickArtInliers": 0,
+      "clickTextInliers": 24
+    },
+    "blockedNames": [],
+    "ai": {
+      "status": "off"
+    },
+    "stages": {
+      "prep": 647,
+      "rankSeeds": 673,
+      "earlyOrbProbe": 0,
+      "rankRefine": 1063,
+      "isolatePrep": 662,
+      "isolateScore": 245,
+      "rank": 0,
+      "orb": 499,
+      "total": 3792
+    }
+  },
+  {
+    "build": "milo-photo-26 (local vision)",
+    "expected": "Key to the City",
+    "got": "Key to the City",
+    "aiCrop": true,
+    "ms": 2945,
+    "by": "art-match",
+    "artBest": {
+      "name": "Key to the City",
+      "inliers": 35,
+      "color": 59,
+      "weak": false,
+      "clickInside": true,
+      "clickInliers": 35,
+      "clickArtInliers": 0,
+      "clickTextInliers": 35
+    },
+    "blockedNames": [],
+    "ai": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 1,
+      "probes": [
+        {
+          "sharpness": 0.06909136474132538,
+          "accepted": true,
+          "reason": "accepted"
+        },
+        {
+          "sharpness": 0.061495158821344376,
+          "accepted": false,
+          "reason": "duplicate"
+        }
+      ],
+      "ms": 186,
+      "fastMs": 508,
+      "fastHit": false,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.04256908595561981,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.0656590387225151,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.05675966665148735,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.05977228656411171,
+            "accepted": false,
+            "reason": "duplicate"
+          }
+        ],
+        "ms": 357
+      },
+      "retryHit": true,
+      "retryMs": 814
+    },
+    "stages": {
+      "prep": 21,
+      "rankSeeds": 75,
+      "earlyOrbProbe": 0,
+      "rankRefine": 0,
+      "rank": 0,
+      "orb": 360,
+      "aiCrop": 186,
+      "aiAttempt": 508,
+      "milo": 1435,
+      "aiRetry": 814,
+      "total": 2945
+    }
+  },
+  {
+    "build": "milo-photo-26 (local vision)",
+    "expected": "Event: Baxter's Experiments",
+    "got": "Event: Baxter's Experiments",
+    "aiCrop": false,
+    "ms": 1772,
+    "artBest": {
+      "name": "Event: Baxter's Experiments",
+      "inliers": 12,
+      "color": 66,
+      "weak": false,
+      "clickInside": null,
+      "clickInliers": 12,
+      "clickArtInliers": 7,
+      "clickTextInliers": 5
+    },
+    "blockedNames": [],
+    "ai": {
+      "status": "off"
+    },
+    "stages": {
+      "prep": 512,
+      "rankSeeds": 634,
+      "earlyOrbProbe": 0,
+      "rankRefine": 278,
+      "rank": 0,
+      "orb": 342,
+      "total": 1772
+    }
+  },
+  {
+    "build": "milo-photo-26 (local vision)",
+    "expected": "Event: Baxter's Experiments",
+    "got": "Event: Baxter's Experiments",
+    "aiCrop": true,
+    "ms": 5681,
+    "artBest": {
+      "name": "Event: Baxter's Experiments",
+      "inliers": 13,
+      "color": 66,
+      "weak": false,
+      "clickInside": null,
+      "clickInliers": 12,
+      "clickArtInliers": 7,
+      "clickTextInliers": 5
+    },
+    "blockedNames": [],
+    "ai": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 2,
+      "probes": [
+        {
+          "sharpness": 0.04489186406135559,
+          "accepted": true,
+          "reason": "accepted"
+        },
+        {
+          "sharpness": 0.057647064328193665,
+          "accepted": true,
+          "reason": "accepted"
+        }
+      ],
+      "ms": 181,
+      "fastMs": 279,
+      "fastHit": false,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.05848967283964157,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.039903152734041214,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.05279077962040901,
+            "accepted": false,
+            "reason": "duplicate"
+          },
+          {
+            "sharpness": 0.05320409685373306,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 354,
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 8,
+          "inferenceMs": 540,
+          "searchMs": 91,
+          "ms": 637
+        }
+      },
+      "retryMs": 2162
+    },
+    "stages": {
+      "prep": 509,
+      "rankSeeds": 640,
+      "earlyOrbProbe": 0,
+      "rankRefine": 281,
+      "rank": 0,
+      "orb": 321,
+      "aiCrop": 181,
+      "aiAttempt": 279,
+      "milo": 1307,
+      "aiRetry": 2162,
+      "total": 5681
+    }
+  },
+  {
+    "build": "milo-photo-26 (local vision)",
+    "expected": "Kaya, Orzhov Usurper",
+    "expectedOutcome": "correct-or-unresolved",
+    "got": "Illicit Masquerade",
+    "aiCrop": false,
+    "ms": 4461,
+    "artBest": {
+      "name": "Illicit Masquerade",
+      "inliers": 7,
+      "color": 93,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 6,
+      "clickArtInliers": 4,
+      "clickTextInliers": 2
+    },
+    "blockedNames": [],
+    "ai": {
+      "status": "off"
+    },
+    "stages": {
+      "prep": 686,
+      "rankSeeds": 678,
+      "earlyOrbProbe": 0,
+      "rankRefine": 1352,
+      "isolatePrep": 681,
+      "isolateScore": 259,
+      "rank": 0,
+      "orb": 798,
+      "total": 4460
+    }
+  },
+  {
+    "build": "milo-photo-26 (local vision)",
+    "expected": "Kaya, Orzhov Usurper",
+    "expectedOutcome": "correct-or-unresolved",
+    "got": "Illicit Masquerade",
+    "aiCrop": true,
+    "ms": 8149,
+    "artBest": {
+      "name": "Illicit Masquerade",
+      "inliers": 7,
+      "color": 93,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 6,
+      "clickArtInliers": 4,
+      "clickTextInliers": 2
+    },
+    "blockedNames": [],
+    "ai": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 1,
+      "probes": [
+        {
+          "sharpness": 0.03072667308151722,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        },
+        {
+          "sharpness": 0.033911533653736115,
+          "accepted": true,
+          "reason": "accepted"
+        }
+      ],
+      "ms": 183,
+      "fastMs": 608,
+      "fastHit": false,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.02231588400900364,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.04319758340716362,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.05219775438308716,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.04269428923726082,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 364
+      },
+      "retryMs": 1009
+    },
+    "stages": {
+      "prep": 686,
+      "rankSeeds": 657,
+      "earlyOrbProbe": 0,
+      "rankRefine": 1228,
+      "isolatePrep": 708,
+      "isolateScore": 269,
+      "rank": 0,
+      "orb": 1699,
+      "aiCrop": 183,
+      "aiAttempt": 608,
+      "milo": 1099,
+      "aiRetry": 1009,
+      "total": 8149
+    }
+  },
+  {
+    "build": "milo-photo-26 (local vision)",
+    "expected": "Whirlwing Stormbrood",
+    "expectedOutcome": "correct-or-unresolved",
+    "got": "Whirlwing Stormbrood",
+    "aiCrop": false,
+    "ms": 1259,
+    "artBest": {
+      "name": "Whirlwing Stormbrood",
+      "inliers": 186,
+      "color": 94,
+      "weak": true,
+      "clickInside": false,
+      "clickInliers": 186,
+      "clickArtInliers": 80,
+      "clickTextInliers": 95
+    },
+    "blockedNames": [],
+    "ai": {
+      "status": "off"
+    },
+    "stages": {
+      "prep": 431,
+      "rankSeeds": 483,
+      "earlyOrbProbe": 0,
+      "rankRefine": 0,
+      "rank": 0,
+      "orb": 341,
+      "total": 1259
+    }
+  },
+  {
+    "build": "milo-photo-26 (local vision)",
+    "expected": "Whirlwing Stormbrood",
+    "expectedOutcome": "correct-or-unresolved",
+    "got": "Whirlwing Stormbrood",
+    "aiCrop": true,
+    "ms": 1672,
+    "artBest": {
+      "name": "Whirlwing Stormbrood",
+      "inliers": 186,
+      "color": 94,
+      "weak": true,
+      "clickInside": false,
+      "clickInliers": 186,
+      "clickArtInliers": 80,
+      "clickTextInliers": 95
+    },
+    "blockedNames": [],
+    "ai": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 0,
+      "probes": [
+        {
+          "sharpness": 0.01899079605937004,
+          "accepted": false,
+          "reason": "weak"
+        },
+        {
+          "sharpness": 0.02034686505794525,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        }
+      ],
+      "ms": 185,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.007755131460726261,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.03624216467142105,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.016207322478294373,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.015456104651093483,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 363
+      },
+      "retryMs": 364
+    },
+    "stages": {
+      "prep": 437,
+      "rankSeeds": 539,
+      "earlyOrbProbe": 0,
+      "rankRefine": 0,
+      "rank": 0,
+      "orb": 144,
+      "aiCrop": 185,
+      "aiRetry": 364,
+      "total": 1672
+    }
+  }
+]

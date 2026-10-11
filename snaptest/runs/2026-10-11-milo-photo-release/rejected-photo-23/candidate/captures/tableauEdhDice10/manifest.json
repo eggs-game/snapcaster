@@ -1,0 +1,1280 @@
+[
+  {
+    "file": "000.jpg",
+    "name": "Archaeology",
+    "id": "6c0966d2-3be6-499f-9c35-b7201f450e9b",
+    "pool": "token",
+    "got": "Double-Faced Substitute Card",
+    "dist": 148,
+    "conf": 0.59,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Double-Faced Substitute Card (d=148)",
+      "Knowing // Half the Battle (d=165)",
+      "Sharp Eraser (d=166)"
+    ],
+    "rot": "upright",
+    "occ": "clear",
+    "ms": 6758,
+    "cv": "ready",
+    "tried": 107,
+    "dropped": 7,
+    "artBest": {
+      "name": "Double-Faced Substitute Card",
+      "inliers": 4,
+      "color": 100,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 6,
+      "clickArtInliers": 5,
+      "clickTextInliers": 1
+    },
+    "artChecked": 53,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-portrait--8-44-59-44",
+        "score": 65.36
+      },
+      {
+        "strategy": "isolate-portrait--8-51-65-38",
+        "score": 63.08
+      },
+      {
+        "strategy": "isolate-portrait--10-47-62-35",
+        "score": 58.28
+      },
+      {
+        "strategy": "isolate-portrait--10-51-65-38",
+        "score": 57.88
+      },
+      {
+        "strategy": "isolate-portrait--8-47-62-41",
+        "score": 57.53
+      },
+      {
+        "strategy": "isolate-portrait--8-48-62-41",
+        "score": 57.28
+      },
+      {
+        "strategy": "isolate-portrait--8-47-62-35",
+        "score": 55.7
+      },
+      {
+        "strategy": "isolate-portrait--10-45-62-44",
+        "score": 50.56
+      },
+      {
+        "strategy": "isolate-portrait--10-44-59-44",
+        "score": 50.41
+      },
+      {
+        "strategy": "isolate-portrait--8-45-59-44",
+        "score": 50.2
+      },
+      {
+        "strategy": "isolate-sideways-raw--10-32-71-53",
+        "score": 49.7
+      },
+      {
+        "strategy": "isolate-portrait--8-44-59-38",
+        "score": 49.53
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 1,
+      "probes": [
+        {
+          "sharpness": 0.0386941060423851,
+          "accepted": true,
+          "reason": "accepted"
+        },
+        {
+          "sharpness": 0.01605241373181343,
+          "accepted": false,
+          "reason": "weak"
+        }
+      ],
+      "ms": 175,
+      "fastMs": 326,
+      "fastHit": false,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.020137904211878777,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.012997245416045189,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.016610488295555115,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.014804587699472904,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 355,
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 7,
+          "inferenceMs": 271,
+          "searchMs": 45,
+          "ms": 321
+        }
+      },
+      "retryMs": 1684
+    },
+    "truthGeometry": {
+      "angle": -9.03,
+      "center": {
+        "x": 0.458,
+        "y": 0.558
+      },
+      "card": {
+        "w": 0.334,
+        "h": 0.467
+      }
+    },
+    "capturePoint": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "stages": {
+      "prep": 538,
+      "rankSeeds": 643,
+      "earlyOrbProbe": 0,
+      "rankRefine": 712,
+      "isolatePrep": 569,
+      "isolateScore": 322,
+      "rank": 0,
+      "orb": 727,
+      "aiCrop": 175,
+      "aiAttempt": 326,
+      "milo": 1055,
+      "aiRetry": 1684,
+      "total": 6754
+    },
+    "scene": 2,
+    "coverage": 0,
+    "clipped": 0,
+    "click": {
+      "u": 0.65,
+      "v": 0.39,
+      "covered": false
+    },
+    "layout": "spaced",
+    "diceColor": "black",
+    "diceFace": 6,
+    "diceCoverage": 0.038,
+    "point": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "pointNote": "Exact normalized point supplied to identifyCard."
+  },
+  {
+    "file": "001.jpg",
+    "name": "Seismic",
+    "id": "32da965c-6499-41e4-b16d-754e89cc8aa7",
+    "pool": "token",
+    "got": "Pin Trading",
+    "dist": 160,
+    "conf": 0.5,
+    "trueRank": 27,
+    "trueDist": 108,
+    "top3": [
+      "Pin Trading (d=160)",
+      "Alrund, God of the Cosmos (d=169)",
+      "One Ring to Rule Them All (d=172)"
+    ],
+    "rot": "upright",
+    "occ": "clear",
+    "ms": 5014,
+    "cv": "ready",
+    "tried": 37,
+    "dropped": 5,
+    "artBest": {
+      "name": "Pin Trading",
+      "inliers": 3,
+      "color": 99,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 2,
+      "clickArtInliers": 0,
+      "clickTextInliers": 0
+    },
+    "artChecked": 57,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": null,
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 1,
+      "probes": [
+        {
+          "sharpness": 0.06281495094299316,
+          "accepted": true,
+          "reason": "accepted"
+        },
+        {
+          "sharpness": 0.04488907754421234,
+          "accepted": false,
+          "reason": "duplicate"
+        }
+      ],
+      "ms": 175,
+      "fastMs": 329,
+      "fastHit": false,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.033605027943849564,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.014047789387404919,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.04234643280506134,
+            "accepted": false,
+            "reason": "duplicate"
+          },
+          {
+            "sharpness": 0.043732739984989166,
+            "accepted": false,
+            "reason": "duplicate"
+          }
+        ],
+        "ms": 349,
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 10,
+          "inferenceMs": 273,
+          "searchMs": 46,
+          "ms": 324
+        }
+      },
+      "retryMs": 1576
+    },
+    "truthGeometry": {
+      "angle": -0.69,
+      "center": {
+        "x": 0.479,
+        "y": 0.576
+      },
+      "card": {
+        "w": 0.322,
+        "h": 0.45
+      }
+    },
+    "capturePoint": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "stages": {
+      "prep": 478,
+      "rankSeeds": 584,
+      "earlyOrbProbe": 0,
+      "rankRefine": 209,
+      "rank": 0,
+      "orb": 639,
+      "aiCrop": 175,
+      "aiAttempt": 329,
+      "milo": 1018,
+      "aiRetry": 1576,
+      "total": 5011
+    },
+    "scene": 5,
+    "coverage": 0,
+    "clipped": 0,
+    "click": {
+      "u": 0.57,
+      "v": 0.33,
+      "covered": false
+    },
+    "layout": "spaced",
+    "diceColor": "white",
+    "diceFace": 3,
+    "diceCoverage": 0.033,
+    "point": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "pointNote": "Exact normalized point supplied to identifyCard."
+  },
+  {
+    "file": "002.jpg",
+    "name": "Agent of the Shadow Thieves",
+    "id": "ae796b5c-1979-4dd2-9539-4b9e18903834",
+    "pool": "card",
+    "got": "Blank Card",
+    "dist": 153,
+    "conf": 0.55,
+    "trueRank": 8,
+    "trueDist": 177,
+    "top3": [
+      "Blank Card (d=153)",
+      "Black Lotus Lounge (d=166)",
+      "Find the Assassin (cont'd) (d=170)"
+    ],
+    "rot": "upright",
+    "occ": "clear",
+    "ms": 7683,
+    "cv": "ready",
+    "tried": 116,
+    "dropped": 3,
+    "artBest": {
+      "name": "Blank Card",
+      "inliers": 0,
+      "color": 96,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 0,
+      "clickArtInliers": 0,
+      "clickTextInliers": 0
+    },
+    "artChecked": 56,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-sideways-raw-10-35-74-35",
+        "score": 75.44
+      },
+      {
+        "strategy": "isolate-sideways-rotated-100-48-35-26",
+        "score": 75.2
+      },
+      {
+        "strategy": "isolate-sideways-raw-10-44-80-26",
+        "score": 66.17
+      },
+      {
+        "strategy": "isolate-portrait-10-47-62-14",
+        "score": 63.37
+      },
+      {
+        "strategy": "isolate-portrait-10-45-62-26",
+        "score": 63.19
+      },
+      {
+        "strategy": "isolate-portrait-8-53-8-92",
+        "score": 62.05
+      },
+      {
+        "strategy": "isolate-portrait-12-47-62-14",
+        "score": 61.53
+      },
+      {
+        "strategy": "isolate-portrait-10-50-65-11",
+        "score": 61.24
+      },
+      {
+        "strategy": "isolate-sideways-rotated-100-47-35-26",
+        "score": 60.45
+      },
+      {
+        "strategy": "isolate-sideways-raw-10-33-74-35",
+        "score": 59.54
+      },
+      {
+        "strategy": "isolate-portrait-10-48-65-17",
+        "score": 57.77
+      },
+      {
+        "strategy": "isolate-portrait-14-53-11-89",
+        "score": 55.32
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 1,
+      "probes": [
+        {
+          "sharpness": 0.029597800225019455,
+          "accepted": true,
+          "reason": "accepted"
+        },
+        {
+          "sharpness": 0.039275798946619034,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        }
+      ],
+      "ms": 175,
+      "fastMs": 355,
+      "fastHit": false,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.055909086018800735,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.026565758511424065,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.023784834891557693,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.04364272207021713,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 352,
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 12,
+          "inferenceMs": 542,
+          "searchMs": 87,
+          "ms": 634
+        }
+      },
+      "retryMs": 2425
+    },
+    "truthGeometry": {
+      "angle": 10.72,
+      "center": {
+        "x": 0.392,
+        "y": 0.649
+      },
+      "card": {
+        "w": 0.386,
+        "h": 0.539
+      }
+    },
+    "capturePoint": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "stages": {
+      "prep": 481,
+      "rankSeeds": 625,
+      "earlyOrbProbe": 0,
+      "rankRefine": 926,
+      "isolatePrep": 595,
+      "isolateScore": 255,
+      "rank": 0,
+      "orb": 960,
+      "aiCrop": 175,
+      "aiAttempt": 355,
+      "milo": 879,
+      "aiRetry": 2425,
+      "total": 7678
+    },
+    "scene": 6,
+    "coverage": 0,
+    "clipped": 0,
+    "click": {
+      "u": 0.7,
+      "v": 0.19,
+      "covered": false
+    },
+    "layout": "side-by-side",
+    "diceColor": "pink",
+    "diceFace": 4,
+    "diceCoverage": 0.033,
+    "point": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "pointNote": "Exact normalized point supplied to identifyCard."
+  },
+  {
+    "file": "003.jpg",
+    "name": "Ultron",
+    "id": "b0398a78-60a9-42c0-8501-e4af9e5224c8",
+    "pool": "token",
+    "got": "Double-Faced Substitute Card",
+    "dist": 178,
+    "conf": 0.37,
+    "trueRank": 29,
+    "trueDist": 127,
+    "top3": [
+      "Double-Faced Substitute Card (d=178)",
+      "Jodah, the Unifier (d=182)",
+      "Jaya, Fiery Negotiator (d=187)"
+    ],
+    "rot": "upright",
+    "occ": "clear",
+    "ms": 2900,
+    "cv": "ready",
+    "tried": 90,
+    "dropped": 21,
+    "artBest": {
+      "name": "Double-Faced Substitute Card",
+      "inliers": 5,
+      "color": 100,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 5,
+      "clickArtInliers": 0,
+      "clickTextInliers": 0
+    },
+    "artChecked": 36,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-portrait--8-50-17-17",
+        "score": 41.02
+      },
+      {
+        "strategy": "isolate-portrait--8-50-17-38",
+        "score": 39.34
+      },
+      {
+        "strategy": "isolate-portrait--10-50-20-38",
+        "score": 38.85
+      },
+      {
+        "strategy": "isolate-portrait--10-50-17-38",
+        "score": 37.49
+      },
+      {
+        "strategy": "isolate-portrait--12-51-23-38",
+        "score": 34.85
+      },
+      {
+        "strategy": "isolate-portrait--10-53-23-41",
+        "score": 34.53
+      },
+      {
+        "strategy": "isolate-portrait--10-50-20-17",
+        "score": 34.22
+      },
+      {
+        "strategy": "isolate-portrait--10-48-20-35",
+        "score": 32.62
+      },
+      {
+        "strategy": "isolate-portrait--10-51-20-38",
+        "score": 32.48
+      },
+      {
+        "strategy": "isolate-portrait--4-53-29-23",
+        "score": 32.21
+      },
+      {
+        "strategy": "isolate-sideways-raw--6-44-50-8",
+        "score": 32.15
+      },
+      {
+        "strategy": "isolate-portrait--10-42-23-26",
+        "score": 31.72
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 0,
+      "probes": [
+        {
+          "sharpness": 0.018417222425341606,
+          "accepted": false,
+          "reason": "weak"
+        },
+        {
+          "sharpness": 0.009435229934751987,
+          "accepted": false,
+          "reason": "weak"
+        }
+      ],
+      "ms": 175,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.00903074536472559,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.006989385467022657,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.007600398734211922,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.015061035752296448,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 352
+      },
+      "retryMs": 352
+    },
+    "truthGeometry": {
+      "angle": -9.3,
+      "center": {
+        "x": 0.62,
+        "y": 0.538
+      },
+      "card": {
+        "w": 0.361,
+        "h": 0.504
+      }
+    },
+    "capturePoint": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "stages": {
+      "prep": 389,
+      "rankSeeds": 534,
+      "earlyOrbProbe": 0,
+      "rankRefine": 459,
+      "isolatePrep": 505,
+      "isolateScore": 260,
+      "rank": 0,
+      "orb": 221,
+      "aiCrop": 175,
+      "aiRetry": 352,
+      "total": 2897
+    },
+    "scene": 8,
+    "coverage": 0,
+    "clipped": 0,
+    "click": {
+      "u": 0.19,
+      "v": 0.39,
+      "covered": false
+    },
+    "layout": "side-by-side",
+    "diceColor": "black",
+    "diceFace": 2,
+    "diceCoverage": 0.035,
+    "point": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "pointNote": "Exact normalized point supplied to identifyCard."
+  },
+  {
+    "file": "004.jpg",
+    "name": "Primo, the Indivisible",
+    "id": "c990db6b-e1f2-4802-b8b1-80a8b768be0e",
+    "pool": "token",
+    "got": "Celestial Armor",
+    "dist": 189,
+    "conf": 0.29,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Celestial Armor (d=189)",
+      "Shadow, Mysterious Assassin (d=196)",
+      "Leap (d=198)"
+    ],
+    "rot": "upright",
+    "occ": "overlapped",
+    "ms": 9665,
+    "cv": "ready",
+    "tried": 117,
+    "dropped": 2,
+    "artBest": {
+      "name": "Celestial Armor",
+      "inliers": 7,
+      "color": 60,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 5,
+      "clickArtInliers": 0,
+      "clickTextInliers": 5
+    },
+    "artChecked": 60,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-portrait--10-50-44-26",
+        "score": 120.15
+      },
+      {
+        "strategy": "isolate-portrait--8-50-44-26",
+        "score": 119.1
+      },
+      {
+        "strategy": "isolate-portrait--10-41-53-20",
+        "score": 116.86
+      },
+      {
+        "strategy": "isolate-portrait--10-53-41-23",
+        "score": 114.03
+      },
+      {
+        "strategy": "isolate-portrait--10-47-47-20",
+        "score": 111.78
+      },
+      {
+        "strategy": "isolate-sideways-rotated-78-47-38-65",
+        "score": 111.03
+      },
+      {
+        "strategy": "isolate-portrait--12-48-47-20",
+        "score": 110.1
+      },
+      {
+        "strategy": "isolate-sideways-raw-8-30-26-17",
+        "score": 109.91
+      },
+      {
+        "strategy": "isolate-portrait--12-48-47-26",
+        "score": 108.89
+      },
+      {
+        "strategy": "isolate-portrait--8-51-41-26",
+        "score": 107.6
+      },
+      {
+        "strategy": "isolate-portrait--8-50-41-26",
+        "score": 106.83
+      },
+      {
+        "strategy": "isolate-portrait--10-47-47-17",
+        "score": 105.8
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 1,
+      "probes": [
+        {
+          "sharpness": 0.043831225484609604,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        },
+        {
+          "sharpness": 0.04755695164203644,
+          "accepted": true,
+          "reason": "accepted"
+        }
+      ],
+      "ms": 174,
+      "fastMs": 534,
+      "fastHit": false,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.04626724123954773,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.04755695164203644,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.03625380992889404,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.04832986742258072,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 351,
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 12,
+          "inferenceMs": 542,
+          "searchMs": 90,
+          "ms": 638
+        }
+      },
+      "retryMs": 2949
+    },
+    "truthGeometry": {
+      "angle": -10.9,
+      "center": {
+        "x": 0.554,
+        "y": 0.456
+      },
+      "card": {
+        "w": 0.357,
+        "h": 0.498
+      }
+    },
+    "capturePoint": {
+      "nx": 0.5,
+      "ny": 0.3285289542352577
+    },
+    "stages": {
+      "prep": 549,
+      "rankSeeds": 629,
+      "earlyOrbProbe": 0,
+      "rankRefine": 1228,
+      "isolatePrep": 687,
+      "isolateScore": 236,
+      "rank": 0,
+      "orb": 1509,
+      "aiCrop": 174,
+      "aiAttempt": 534,
+      "milo": 1104,
+      "aiRetry": 2949,
+      "total": 9601
+    },
+    "scene": 9,
+    "coverage": 0.291,
+    "clipped": 0,
+    "click": {
+      "u": 0.42,
+      "v": 0.23,
+      "covered": false
+    },
+    "layout": "overlapping",
+    "diceColor": "white",
+    "diceFace": 4,
+    "diceCoverage": 0.039,
+    "point": {
+      "nx": 0.5,
+      "ny": 0.3285289542352577
+    },
+    "pointNote": "Exact normalized point supplied to identifyCard."
+  },
+  {
+    "file": "005.jpg",
+    "name": "Delirium Skeins",
+    "id": "3a480f1d-1959-4318-bf66-680266fcefd0",
+    "pool": "card",
+    "got": "The Magic Bandit",
+    "dist": 192,
+    "conf": 0.27,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "The Magic Bandit (d=192)",
+      "Blessing (d=192)",
+      "Swamp (d=196)"
+    ],
+    "rot": "tapped",
+    "occ": "overlapped",
+    "ms": 10743,
+    "cv": "ready",
+    "tried": 118,
+    "dropped": 1,
+    "artBest": {
+      "name": "The Magic Bandit",
+      "inliers": 9,
+      "color": 97,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 0,
+      "clickArtInliers": 0,
+      "clickTextInliers": 0
+    },
+    "artChecked": 54,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-sideways-raw-2-36-11-41",
+        "score": 147.08
+      },
+      {
+        "strategy": "isolate-sideways-raw-6-38-38-38",
+        "score": 137.98
+      },
+      {
+        "strategy": "isolate-sideways-raw-6-35-41-41",
+        "score": 135.86
+      },
+      {
+        "strategy": "isolate-portrait-10-44-62-32",
+        "score": 131.41
+      },
+      {
+        "strategy": "isolate-sideways-raw-2-35-8-38",
+        "score": 130.97
+      },
+      {
+        "strategy": "isolate-sideways-rotated-86-50-38-53",
+        "score": 130.21
+      },
+      {
+        "strategy": "isolate-sideways-raw-8-36-38-41",
+        "score": 129.79
+      },
+      {
+        "strategy": "isolate-sideways-raw-8-35-41-41",
+        "score": 128.23
+      },
+      {
+        "strategy": "isolate-sideways-rotated-98-51-38-62",
+        "score": 128.11
+      },
+      {
+        "strategy": "isolate-sideways-raw-2-38-14-41",
+        "score": 124.98
+      },
+      {
+        "strategy": "isolate-sideways-raw--2-36-47-38",
+        "score": 124.48
+      },
+      {
+        "strategy": "isolate-sideways-rotated-100-51-38-62",
+        "score": 123.54
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 1,
+      "probes": [
+        {
+          "sharpness": 0.03705936670303345,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        },
+        {
+          "sharpness": 0.04127700254321098,
+          "accepted": true,
+          "reason": "accepted"
+        }
+      ],
+      "ms": 174,
+      "fastMs": 606,
+      "fastHit": false,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.03129347041249275,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.04958429932594299,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.04844067245721817,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.05107542499899864,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 346,
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 7,
+          "inferenceMs": 542,
+          "searchMs": 91,
+          "ms": 638
+        }
+      },
+      "retryMs": 3379
+    },
+    "truthGeometry": {
+      "angle": 98.12,
+      "center": {
+        "x": 0.5,
+        "y": 0.483
+      },
+      "card": {
+        "w": 0.357,
+        "h": 0.498
+      }
+    },
+    "capturePoint": {
+      "nx": 0.5,
+      "ny": 0.44576912608878816
+    },
+    "stages": {
+      "prep": 612,
+      "rankSeeds": 645,
+      "earlyOrbProbe": 0,
+      "rankRefine": 1279,
+      "isolatePrep": 667,
+      "isolateScore": 254,
+      "rank": 0,
+      "orb": 1972,
+      "aiCrop": 174,
+      "aiAttempt": 606,
+      "milo": 1146,
+      "aiRetry": 3379,
+      "total": 10739
+    },
+    "scene": 9,
+    "coverage": 0.418,
+    "clipped": 0,
+    "click": {
+      "u": 0.4,
+      "v": 0.51,
+      "covered": false
+    },
+    "layout": "overlapping",
+    "diceColor": "black",
+    "diceFace": 3,
+    "diceCoverage": 0.038,
+    "point": {
+      "nx": 0.5,
+      "ny": 0.44576912608878816
+    },
+    "pointNote": "Exact normalized point supplied to identifyCard."
+  },
+  {
+    "file": "006.jpg",
+    "name": "Neurok Stealthsuit",
+    "id": "a65ad83a-7374-435d-a5bd-2dd455fa6420",
+    "pool": "card",
+    "got": "17-Year Cicadas",
+    "dist": 188,
+    "conf": 0.3,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "17-Year Cicadas (d=188)",
+      "First Stage of Magic Design (d=190)",
+      "Peel Out (d=191)"
+    ],
+    "rot": "tapped",
+    "occ": "overlapped",
+    "ms": 6988,
+    "cv": "ready",
+    "tried": 131,
+    "dropped": 4,
+    "artBest": {
+      "name": "17-Year Cicadas",
+      "inliers": 7,
+      "color": 87,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 6,
+      "clickArtInliers": 0,
+      "clickTextInliers": 6
+    },
+    "artChecked": 60,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-sideways-rotated-98-45-89-86",
+        "score": 142.75
+      },
+      {
+        "strategy": "isolate-sideways-raw--4-39-65-50",
+        "score": 133.42
+      },
+      {
+        "strategy": "isolate-sideways-rotated-86-50-50-29",
+        "score": 127.21
+      },
+      {
+        "strategy": "isolate-portrait--4-56-89-35",
+        "score": 124.93
+      },
+      {
+        "strategy": "isolate-sideways-rotated-86-54-50-35",
+        "score": 121.74
+      },
+      {
+        "strategy": "isolate-sideways-raw--4-35-74-50",
+        "score": 118.9
+      },
+      {
+        "strategy": "isolate-sideways-raw--4-39-92-50",
+        "score": 117.31
+      },
+      {
+        "strategy": "isolate-sideways-rotated-98-45-89-83",
+        "score": 117.23
+      },
+      {
+        "strategy": "isolate-sideways-rotated-86-48-50-26",
+        "score": 117.18
+      },
+      {
+        "strategy": "isolate-sideways-rotated-98-44-92-89",
+        "score": 116.85
+      },
+      {
+        "strategy": "isolate-sideways-raw--2-38-68-50",
+        "score": 114.76
+      },
+      {
+        "strategy": "isolate-sideways-raw--4-39-59-50",
+        "score": 114.05
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 1,
+      "probes": [
+        {
+          "sharpness": 0.03694252669811249,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        },
+        {
+          "sharpness": 0.022840265184640884,
+          "accepted": true,
+          "reason": "accepted"
+        }
+      ],
+      "ms": 175,
+      "fastMs": 496,
+      "fastHit": false,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.021959228441119194,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.024272365495562553,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.04701874032616615,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.0420273020863533,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          }
+        ],
+        "ms": 350
+      },
+      "retryMs": 351
+    },
+    "truthGeometry": {
+      "angle": 85.7,
+      "center": {
+        "x": 0.377,
+        "y": 0.474
+      },
+      "card": {
+        "w": 0.357,
+        "h": 0.498
+      }
+    },
+    "capturePoint": {
+      "nx": 0.5,
+      "ny": 0.4775608496753319
+    },
+    "stages": {
+      "prep": 650,
+      "rankSeeds": 645,
+      "earlyOrbProbe": 0,
+      "rankRefine": 1288,
+      "isolatePrep": 826,
+      "isolateScore": 313,
+      "rank": 0,
+      "orb": 1345,
+      "aiCrop": 175,
+      "aiAttempt": 496,
+      "milo": 892,
+      "aiRetry": 351,
+      "total": 6985
+    },
+    "scene": 9,
+    "coverage": 0.206,
+    "clipped": 0,
+    "click": {
+      "u": 0.54,
+      "v": 0.25,
+      "covered": false
+    },
+    "layout": "overlapping",
+    "diceColor": "blue",
+    "diceFace": 4,
+    "diceCoverage": 0.036,
+    "point": {
+      "nx": 0.5,
+      "ny": 0.4775608496753319
+    },
+    "pointNote": "Exact normalized point supplied to identifyCard."
+  }
+]

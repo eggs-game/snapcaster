@@ -1,0 +1,112 @@
+{
+  "build": "milo-photo-23 (local vision)",
+  "aiCropEnabled": true,
+  "mode": "recentHint20",
+  "summary": {
+    "n": 20,
+    "errors": 0,
+    "accuracy": 1,
+    "avgMs": 163,
+    "medianMs": 161,
+    "byRotation": {
+      "upright": {
+        "n": 5,
+        "ok": 5,
+        "acc": 1
+      },
+      "tilt": {
+        "n": 5,
+        "ok": 5,
+        "acc": 1
+      },
+      "sideways": {
+        "n": 5,
+        "ok": 5,
+        "acc": 1
+      },
+      "upsidedown": {
+        "n": 5,
+        "ok": 5,
+        "acc": 1
+      }
+    },
+    "byOcclusion": {
+      "none": {
+        "n": 8,
+        "ok": 8,
+        "acc": 1
+      },
+      "fingers": {
+        "n": 4,
+        "ok": 4,
+        "acc": 1
+      },
+      "dice": {
+        "n": 4,
+        "ok": 4,
+        "acc": 1
+      },
+      "fingers-dice": {
+        "n": 4,
+        "ok": 4,
+        "acc": 1
+      }
+    },
+    "firstHalfAcc": 1,
+    "secondHalfAcc": 1,
+    "peakHeapMB": 15,
+    "wasmHeapStartMB": 134,
+    "wasmHeapEndMB": 134,
+    "wasmHeapPeakMB": 134,
+    "recentHint": {
+      "attempted": 20,
+      "hits": 20,
+      "baselineAvgMs": 795,
+      "hintAvgMs": 163,
+      "speedup": 4.88,
+      "fullCropFallbacks": []
+    },
+    "errorsByStage": {},
+    "stageAvgMs": {
+      "hintPrep": 156,
+      "hint": 4,
+      "total": 163
+    },
+    "p90Ms": 195,
+    "maxMs": 203,
+    "byPathway": {
+      "recent-hint": {
+        "n": 18,
+        "ok": 18,
+        "acc": 1
+      },
+      "art-match": {
+        "n": 2,
+        "ok": 2,
+        "acc": 1
+      }
+    },
+    "byPlacement": {
+      "mild-centered-a": {
+        "n": 16,
+        "ok": 16,
+        "acc": 1
+      },
+      "above-click": {
+        "n": 4,
+        "ok": 4,
+        "acc": 1
+      }
+    },
+    "missTrueRank": {
+      "rank 2": 0,
+      "rank 3-5": 0,
+      "rank 6+": 0,
+      "absent": 0
+    },
+    "missAvgDist": null,
+    "ranAt": "2026-10-11T17:22:26.662Z"
+  },
+  "misses": [],
+  "errors": []
+}

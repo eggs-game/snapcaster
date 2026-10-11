@@ -177,16 +177,66 @@ with Cornelius enabled in both arms and Milo disabled only in the control by
 default. Use `--baselineMilo=1` and `--baselineUrl` pointing at a frozen current-main
 production build to compare improvements against a release that already has Milo.
 Both arms then use Milo and the same current catalogs; exports record that setting.
+For a supplied-photo change, run the paired `arcane` suite at `--severity=medium`
+with that same frozen-main control and `--releaseOutput` / `--controlOutput`.
+Both engines receive the original photo files; neither arm changes their pixels.
+The Arlinn fixture's label is **Arlinn Kord** in all three severities: its visible
+front-face artwork and rules text, and the light photo's readable title, contradict
+the former reverse-face label. Apply that correction equally to the control;
+historical 159/200 exports retain the original label and are not the corrected
+160/200 control. The release record saves the supporting Scryfall face metadata.
+
+`check_recognition_release.mjs CANDIDATE CONTROL --photo-improvement=PAIRED_JSON`
+allows the statistically meaningful gain to come from those supplied photos.
+It requires all 200 unchanged manifest identities/files in order, more than four
+additional correct identities, no individual identity losses, 100% confident
+precision, at least 20% median speedup, improved p90 and more correct subsecond
+reads. The complete crowded-table matrix still runs: the primary must preserve
+every previously correct identity against current main, and the usual precision,
+rotation and hint gates remain. Without that explicit evidence argument, the
+ordinary primary improvement gate still requires more than four recovered cards.
+
 The final candidate must pass the same complete release matrix as a crop change. `scripts/test_milo_browser.mjs`
 checks normal-reference retrieval on the saved new-face cases, missing-catalog
 fallback, and the actual shared WASM allocation across alternating corner and
 lookup jobs. Its wrapper is written only into a temporary compiled `dist`; it
 is not production instrumentation. Run it separately from timed benchmarks.
 `scripts/test_reference_features_browser.mjs BASE DIST OUTPUT` separately checks
-raw/contrast descriptor and keypoint parity, reuse after eviction, the sixty-entry
+raw/contrast descriptor and keypoint parity for the thumbnail, legacy normal
+downsample and enlarged reference, reuse after eviction, the sixty-entry
 bound, and actual OpenCV WASM allocation across 320 replacements. Its worker
 wrapper also lives only in the temporary build. The companion unit test checks
 native ownership and the older-browser fallback.
+`scripts/test_photo_browser.mjs BASE OUTPUT` runs five supplied photos in all
+four quarter-turn orientations through the actual compiled pipeline. It checks
+identity and the direct-frame route; these repeated augmentation timings are
+excluded from headline benchmarks. Replay the saved Geier Reach Sanitarium
+capture and exact click with `scripts/replay_recognition_capture.mjs` as well:
+its legacy normal-image downsample must retain the crowded-card registration.
+`scripts/test_edge_isolation.mjs` exercises physical boundary scoring on a
+synthetic clipped landscape card, bounded per-family crop quotas, quarter-turn
+hash coverage and disjoint full-index bridges. `scripts/compare_recognition_captures.mjs`
+replays exact saved suite misses in both frozen builds using their original
+pixels and clicks. This distinguishes an existing difficult draw from a
+regression and verifies improvements on the failure that motivated them. These
+replays are excluded from headline timings; keep failed release exports as well
+as the final run rather than discarding a difficult random draw.
+Use `check_recognition_release.mjs CANDIDATE --broad` to check all broad
+precision/rotation/hint gates before paying for the paired timed comparisons.
+This partial check does not replace the complete final gate. Every checked
+suite, including hints, must have the same candidate BUILD marker.
+The saved Royal // Virtuous table capture reproduces a confident Monster //
+Virtuous answer on frozen main. Both names share the same Virtuous half. Its
+correct final replay must register the Royal half as well; one shared half
+cannot confer confidence or exclude the real target. `test_click_matching.mjs`
+checks both directions, missing evidence, reprint deduplication, unique split
+names, near-exact hash preservation and clicked-card ownership.
+The saved Bebop Art Series capture reproduces a confident Event-counterpart
+error three times on frozen main. Replay it with its exact click on the candidate
+and keep both exports; a missing shortlist rival must still trigger the existing
+shared-art text requirement. `test_reference_wait.mjs` checks catalog name
+selection, cache reuse and missing-index fallback, and proves that this catalog
+challenge cannot introduce an answer or prevent text-supported acceptance.
 The saved Kaya overlap fixture allows a correct result or an unresolved guess;
 it must never confidently name another card. Its exact pixels reproduce a
 thin-match retry error. `test_milo_lookup.mjs` checks the 24-inlier retry boundary

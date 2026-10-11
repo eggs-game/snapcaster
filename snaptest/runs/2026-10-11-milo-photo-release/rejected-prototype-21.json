@@ -1,0 +1,1328 @@
+{
+  "build": "milo-photo-21 (local vision)",
+  "rejected": true,
+  "reason": "Normal 400px view replaced the exact legacy normal-JPEG 244px view and lost Geier Reach Sanitarium. Final build adds the larger view alongside the unchanged legacy view.",
+  "primarySummary": {
+    "baseline": {
+      "n": 200,
+      "accuracy": 0.945,
+      "byOcclusion": {
+        "clear": {
+          "n": 187,
+          "ok": 180,
+          "acc": 0.963
+        },
+        "overlapped": {
+          "n": 10,
+          "ok": 6,
+          "acc": 0.6
+        },
+        "edge": {
+          "n": 3,
+          "ok": 3,
+          "acc": 1
+        }
+      },
+      "byPool": {
+        "card": {
+          "n": 149,
+          "ok": 141,
+          "acc": 0.946
+        },
+        "token": {
+          "n": 44,
+          "ok": 42,
+          "acc": 0.955
+        },
+        "basic": {
+          "n": 7,
+          "ok": 6,
+          "acc": 0.857
+        }
+      },
+      "byCoverage": {
+        "0 (clear)": {
+          "n": 184,
+          "ok": 177,
+          "acc": 0.962
+        },
+        "0-15%": {
+          "n": 11,
+          "ok": 11,
+          "acc": 1
+        },
+        "15-30%": {
+          "n": 3,
+          "ok": 1,
+          "acc": 0.333
+        },
+        "30%+": {
+          "n": 2,
+          "ok": 0,
+          "acc": 0
+        }
+      },
+      "byClipped": {
+        "0-5% (whole)": {
+          "n": 197,
+          "ok": 186,
+          "acc": 0.944
+        },
+        "5-15%": {
+          "n": 3,
+          "ok": 3,
+          "acc": 1
+        }
+      },
+      "avgMs": 1432,
+      "neighbourMisses": [],
+      "attempted": 200,
+      "correct": 189,
+      "errors": 0,
+      "medianMs": 747,
+      "correctUnder1s": 135,
+      "maxMs": 10368,
+      "p90Ms": 2546,
+      "accepted": {
+        "n": 186,
+        "correct": 186
+      },
+      "byPathway": {
+        "art-match": {
+          "n": 186,
+          "ok": 186,
+          "acc": 1
+        },
+        "(no match)": {
+          "n": 14,
+          "ok": 3,
+          "acc": 0.214
+        }
+      },
+      "byRotation": {
+        "upright": {
+          "n": 109,
+          "ok": 103,
+          "acc": 0.945
+        },
+        "tapped": {
+          "n": 55,
+          "ok": 53,
+          "acc": 0.964
+        },
+        "upsidedown": {
+          "n": 36,
+          "ok": 33,
+          "acc": 0.917
+        }
+      },
+      "byLayout": {
+        "side-by-side": {
+          "n": 120,
+          "ok": 116,
+          "acc": 0.967
+        },
+        "spaced": {
+          "n": 60,
+          "ok": 57,
+          "acc": 0.95
+        },
+        "overlapping": {
+          "n": 20,
+          "ok": 16,
+          "acc": 0.8
+        }
+      },
+      "absentMisses": 10,
+      "firstHalf": 94,
+      "secondHalf": 95,
+      "wasmHeapMB": [
+        134,
+        134
+      ]
+    },
+    "ai": {
+      "n": 200,
+      "accuracy": 0.94,
+      "byOcclusion": {
+        "clear": {
+          "n": 187,
+          "ok": 179,
+          "acc": 0.957
+        },
+        "overlapped": {
+          "n": 10,
+          "ok": 6,
+          "acc": 0.6
+        },
+        "edge": {
+          "n": 3,
+          "ok": 3,
+          "acc": 1
+        }
+      },
+      "byPool": {
+        "card": {
+          "n": 149,
+          "ok": 140,
+          "acc": 0.94
+        },
+        "token": {
+          "n": 44,
+          "ok": 42,
+          "acc": 0.955
+        },
+        "basic": {
+          "n": 7,
+          "ok": 6,
+          "acc": 0.857
+        }
+      },
+      "byCoverage": {
+        "0 (clear)": {
+          "n": 184,
+          "ok": 176,
+          "acc": 0.957
+        },
+        "0-15%": {
+          "n": 11,
+          "ok": 11,
+          "acc": 1
+        },
+        "15-30%": {
+          "n": 3,
+          "ok": 1,
+          "acc": 0.333
+        },
+        "30%+": {
+          "n": 2,
+          "ok": 0,
+          "acc": 0
+        }
+      },
+      "byClipped": {
+        "0-5% (whole)": {
+          "n": 197,
+          "ok": 185,
+          "acc": 0.939
+        },
+        "5-15%": {
+          "n": 3,
+          "ok": 3,
+          "acc": 1
+        }
+      },
+      "avgMs": 1465,
+      "neighbourMisses": [],
+      "attempted": 200,
+      "correct": 188,
+      "errors": 0,
+      "medianMs": 752,
+      "correctUnder1s": 134,
+      "maxMs": 10087,
+      "p90Ms": 2539,
+      "accepted": {
+        "n": 185,
+        "correct": 185
+      },
+      "byPathway": {
+        "art-match": {
+          "n": 185,
+          "ok": 185,
+          "acc": 1
+        },
+        "(no match)": {
+          "n": 15,
+          "ok": 3,
+          "acc": 0.2
+        }
+      },
+      "byRotation": {
+        "upright": {
+          "n": 109,
+          "ok": 102,
+          "acc": 0.936
+        },
+        "tapped": {
+          "n": 55,
+          "ok": 53,
+          "acc": 0.964
+        },
+        "upsidedown": {
+          "n": 36,
+          "ok": 33,
+          "acc": 0.917
+        }
+      },
+      "byLayout": {
+        "side-by-side": {
+          "n": 120,
+          "ok": 115,
+          "acc": 0.958
+        },
+        "spaced": {
+          "n": 60,
+          "ok": 57,
+          "acc": 0.95
+        },
+        "overlapping": {
+          "n": 20,
+          "ok": 16,
+          "acc": 0.8
+        }
+      },
+      "absentMisses": 11,
+      "firstHalf": 94,
+      "secondHalf": 94,
+      "wasmHeapMB": [
+        134,
+        134
+      ]
+    },
+    "recovered": [],
+    "regressed": [
+      188
+    ],
+    "proposals": 192,
+    "fastHits": 131,
+    "miloLookups": 69,
+    "miloRescues": [
+      4,
+      5,
+      14,
+      16,
+      22,
+      23,
+      25,
+      28,
+      36,
+      45,
+      46,
+      48,
+      53,
+      56,
+      60,
+      66,
+      71,
+      72,
+      74,
+      78,
+      83,
+      85,
+      89,
+      90,
+      93,
+      94,
+      97,
+      115,
+      116,
+      132,
+      137,
+      146,
+      148,
+      150,
+      151,
+      163,
+      165,
+      167,
+      168,
+      169,
+      170,
+      173,
+      180,
+      181,
+      184,
+      186,
+      187,
+      191,
+      194,
+      198,
+      199
+    ],
+    "recoveredNeighbours": [],
+    "fastPrecision": {
+      "n": 131,
+      "correct": 131
+    }
+  },
+  "photoSummary": {
+    "baseline": {
+      "n": 200,
+      "accuracy": 0.8,
+      "byOcclusion": {},
+      "byPool": {},
+      "byCoverage": {},
+      "byClipped": {},
+      "avgMs": 4854,
+      "neighbourMisses": [],
+      "attempted": 200,
+      "correct": 160,
+      "errors": 0,
+      "medianMs": 4833,
+      "correctUnder1s": 22,
+      "maxMs": 12350,
+      "p90Ms": 8667,
+      "accepted": {
+        "n": 119,
+        "correct": 119
+      },
+      "byPathway": {
+        "art-match": {
+          "n": 119,
+          "ok": 119,
+          "acc": 1
+        },
+        "(no match)": {
+          "n": 81,
+          "ok": 41,
+          "acc": 0.506
+        }
+      },
+      "byRotation": {},
+      "byLayout": {},
+      "absentMisses": 37,
+      "firstHalf": 83,
+      "secondHalf": 77,
+      "wasmHeapMB": [
+        134,
+        134
+      ]
+    },
+    "ai": {
+      "n": 200,
+      "accuracy": 0.98,
+      "byOcclusion": {},
+      "byPool": {},
+      "byCoverage": {},
+      "byClipped": {},
+      "avgMs": 996,
+      "neighbourMisses": [],
+      "attempted": 200,
+      "correct": 196,
+      "errors": 0,
+      "medianMs": 740,
+      "correctUnder1s": 147,
+      "maxMs": 6462,
+      "p90Ms": 1376,
+      "accepted": {
+        "n": 194,
+        "correct": 194
+      },
+      "byPathway": {
+        "art-match": {
+          "n": 194,
+          "ok": 194,
+          "acc": 1
+        },
+        "(no match)": {
+          "n": 6,
+          "ok": 2,
+          "acc": 0.333
+        }
+      },
+      "byRotation": {},
+      "byLayout": {},
+      "absentMisses": 3,
+      "firstHalf": 99,
+      "secondHalf": 97,
+      "wasmHeapMB": [
+        134,
+        134
+      ]
+    },
+    "recovered": [
+      7,
+      18,
+      19,
+      25,
+      37,
+      44,
+      58,
+      70,
+      78,
+      79,
+      83,
+      87,
+      88,
+      89,
+      91,
+      96,
+      104,
+      115,
+      116,
+      118,
+      119,
+      121,
+      127,
+      130,
+      137,
+      142,
+      151,
+      154,
+      156,
+      157,
+      169,
+      172,
+      190,
+      194,
+      196,
+      198
+    ],
+    "regressed": [],
+    "proposals": 0,
+    "fastHits": 143,
+    "miloLookups": 138,
+    "miloRescues": [
+      1,
+      7,
+      10,
+      13,
+      18,
+      19,
+      28,
+      37,
+      38,
+      44,
+      52,
+      58,
+      70,
+      72,
+      78,
+      80,
+      83,
+      87,
+      88,
+      89,
+      96,
+      102,
+      110,
+      115,
+      116,
+      118,
+      119,
+      121,
+      127,
+      137,
+      142,
+      148,
+      149,
+      150,
+      151,
+      154,
+      155,
+      156,
+      157,
+      160,
+      169,
+      172,
+      173,
+      186,
+      189,
+      194,
+      195,
+      196,
+      198
+    ],
+    "recoveredNeighbours": [],
+    "fastPrecision": {
+      "n": 143,
+      "correct": 143
+    }
+  },
+  "regressedRecords": [
+    {
+      "name": "Geier Reach Sanitarium",
+      "pool": "card",
+      "id": "8d80ec47-0e47-49e3-9c43-1c126d8523e1",
+      "occ": "clear",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5695828081357073
+      },
+      "scene": 18,
+      "rotation": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "clipped": 0,
+      "i": 188,
+      "baseline": {
+        "build": "milo-adaptive-16 (local vision)",
+        "ok": true,
+        "got": "Geier Reach Sanitarium",
+        "by": "art-match",
+        "strategy": "milo",
+        "distance": 172,
+        "trueRank": 1,
+        "ms": 4338,
+        "stages": {
+          "prep": 21,
+          "rankSeeds": 73,
+          "earlyOrbProbe": 0,
+          "rankRefine": 0,
+          "rank": 0,
+          "orb": 258,
+          "aiCrop": 174,
+          "aiAttempt": 380,
+          "milo": 1570,
+          "aiRetry": 2212,
+          "total": 4338
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.03969225659966469,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.036431971937417984,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 174,
+          "fastMs": 380,
+          "fastHit": false,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 2,
+            "probes": [
+              {
+                "sharpness": 0.05090739578008652,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.02488863840699196,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.055464453995227814,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.038087181746959686,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              }
+            ],
+            "ms": 350,
+            "milo": {
+              "model": "milo1",
+              "status": "ready",
+              "crops": 2,
+              "proposals": 12,
+              "inferenceMs": 542,
+              "searchMs": 91,
+              "ms": 637
+            }
+          },
+          "retryHit": true,
+          "retryMs": 2212
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 12,
+          "inferenceMs": 540,
+          "searchMs": 90,
+          "ms": 635,
+          "rescued": true,
+          "totalMs": 1570,
+          "retry": true
+        },
+        "miloVerification": [
+          {
+            "name": "Necrogen Mists",
+            "distance": 227,
+            "inliers": 0,
+            "color": 0.5417277216911316,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Geier Reach Sanitarium",
+            "distance": 208,
+            "inliers": 1,
+            "color": 0.6709965467453003,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Cathartic Reunion",
+            "distance": 234,
+            "inliers": 0,
+            "color": 0.06164348125457764,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Accumulated Knowledge",
+            "distance": 243,
+            "inliers": 0,
+            "color": 0.22738303244113922,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Brokkos, Apex of Forever",
+            "distance": 227,
+            "inliers": 0,
+            "color": 0.2551242411136627,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Fearless Swashbuckler",
+            "distance": 233,
+            "inliers": 2,
+            "color": 0.42446061968803406,
+            "clickInside": null,
+            "clickInliers": 6,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Necrogen Mists",
+            "distance": 244,
+            "inliers": 0,
+            "color": 0.2652130424976349,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Geier Reach Sanitarium",
+            "distance": 217,
+            "inliers": 0,
+            "color": 0.9182989001274109,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Cathartic Reunion",
+            "distance": 245,
+            "inliers": 0,
+            "color": 0.040184974670410156,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Accumulated Knowledge",
+            "distance": 226,
+            "inliers": 0,
+            "color": 0.49700990319252014,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Brokkos, Apex of Forever",
+            "distance": 236,
+            "inliers": 0,
+            "color": 0.6561177372932434,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Fearless Swashbuckler",
+            "distance": 226,
+            "inliers": 0,
+            "color": 0.13334044814109802,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Geier Reach Sanitarium",
+            "distance": 172,
+            "inliers": 26,
+            "color": 0.7829360961914062,
+            "clickInside": true,
+            "clickInliers": 26,
+            "clickArtInliers": 18,
+            "regionalProof": true,
+            "blocked": false
+          },
+          {
+            "name": "Necrogen Mists",
+            "distance": 239,
+            "inliers": 5,
+            "color": 0.5417277216911316,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Broadside Bombardiers",
+            "distance": 241,
+            "inliers": 7,
+            "color": 0.46069782972335815,
+            "clickInside": null,
+            "clickInliers": 5,
+            "clickArtInliers": 4,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Tippy-Toe, Terrific Partner",
+            "distance": 239,
+            "inliers": 6,
+            "color": 0.2987402379512787,
+            "clickInside": null,
+            "clickInliers": 5,
+            "clickArtInliers": 4,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Heliod, Sun-Crowned",
+            "distance": 243,
+            "inliers": 5,
+            "color": 0.6380190849304199,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Cathartic Reunion",
+            "distance": 238,
+            "inliers": 3,
+            "color": 0.06164348125457764,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Geier Reach Sanitarium",
+            "distance": 211,
+            "inliers": 4,
+            "color": 0.8884068727493286,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Necrogen Mists",
+            "distance": 234,
+            "inliers": 6,
+            "color": 0.2652130424976349,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Broadside Bombardiers",
+            "distance": 220,
+            "inliers": 5,
+            "color": 0.6113073825836182,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Tippy-Toe, Terrific Partner",
+            "distance": 210,
+            "inliers": 6,
+            "color": 0.5076315402984619,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Heliod, Sun-Crowned",
+            "distance": 203,
+            "inliers": 6,
+            "color": 0.4645954370498657,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Cathartic Reunion",
+            "distance": 241,
+            "inliers": 5,
+            "color": 0.040184974670410156,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          }
+        ],
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Geier Reach Sanitarium",
+          "inliers": 26,
+          "color": 78,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 26,
+          "clickArtInliers": 18,
+          "clickTextInliers": 8
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Geier Reach Sanitarium",
+            "distance": 172
+          },
+          {
+            "name": "Tax Sweeper",
+            "distance": 181
+          },
+          {
+            "name": "Dawnhart Disciple",
+            "distance": 184
+          }
+        ]
+      },
+      "ai": {
+        "build": "milo-photo-21 (local vision)",
+        "perfectControl": {
+          "ok": false,
+          "got": "Blank Card",
+          "dist": 161
+        },
+        "ok": false,
+        "got": "Blank Card",
+        "strategy": "isolate-portrait--8-50-20-26",
+        "distance": 153,
+        "trueRank": null,
+        "ms": 8289,
+        "stages": {
+          "prep": 610,
+          "rankSeeds": 675,
+          "earlyOrbProbe": 0,
+          "rankRefine": 763,
+          "isolatePrep": 639,
+          "isolateScore": 271,
+          "rank": 0,
+          "orb": 645,
+          "aiCrop": 179,
+          "aiAttempt": 455,
+          "milo": 1735,
+          "aiRetry": 2314,
+          "total": 8288
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.03969225659966469,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.036431971937417984,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 179,
+          "fastMs": 455,
+          "fastHit": false,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 2,
+            "probes": [
+              {
+                "sharpness": 0.05090739578008652,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.02488863840699196,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.055464453995227814,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.038087181746959686,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              }
+            ],
+            "ms": 353,
+            "milo": {
+              "model": "milo1",
+              "status": "ready",
+              "crops": 2,
+              "proposals": 12,
+              "inferenceMs": 541,
+              "searchMs": 90,
+              "ms": 636
+            }
+          },
+          "retryMs": 2314
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 12,
+          "inferenceMs": 540,
+          "searchMs": 89,
+          "ms": 635,
+          "rescued": false,
+          "totalMs": 1735
+        },
+        "miloVerification": [
+          {
+            "name": "Necrogen Mists",
+            "distance": 227,
+            "inliers": 0,
+            "color": 0.5417277216911316,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Geier Reach Sanitarium",
+            "distance": 208,
+            "inliers": 2,
+            "color": 0.6709965467453003,
+            "clickInside": null,
+            "clickInliers": 7,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Cathartic Reunion",
+            "distance": 234,
+            "inliers": 1,
+            "color": 0.06164348125457764,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Accumulated Knowledge",
+            "distance": 243,
+            "inliers": 0,
+            "color": 0.22738303244113922,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Brokkos, Apex of Forever",
+            "distance": 227,
+            "inliers": 0,
+            "color": 0.2551242411136627,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Fearless Swashbuckler",
+            "distance": 233,
+            "inliers": 2,
+            "color": 0.42446061968803406,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Necrogen Mists",
+            "distance": 244,
+            "inliers": 0,
+            "color": 0.2652130424976349,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Geier Reach Sanitarium",
+            "distance": 217,
+            "inliers": 0,
+            "color": 0.9182989001274109,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Cathartic Reunion",
+            "distance": 245,
+            "inliers": 0,
+            "color": 0.040184974670410156,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Accumulated Knowledge",
+            "distance": 226,
+            "inliers": 0,
+            "color": 0.49700990319252014,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Brokkos, Apex of Forever",
+            "distance": 236,
+            "inliers": 0,
+            "color": 0.6561177372932434,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Fearless Swashbuckler",
+            "distance": 226,
+            "inliers": 0,
+            "color": 0.13334044814109802,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Geier Reach Sanitarium",
+            "distance": 172,
+            "inliers": 1,
+            "color": 0.6709965467453003,
+            "clickInside": null,
+            "clickInliers": 7,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Necrogen Mists",
+            "distance": 239,
+            "inliers": 0,
+            "color": 0.5417277216911316,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Broadside Bombardiers",
+            "distance": 241,
+            "inliers": 1,
+            "color": 0.46069782972335815,
+            "clickInside": null,
+            "clickInliers": 7,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Tippy-Toe, Terrific Partner",
+            "distance": 239,
+            "inliers": 0,
+            "color": 0.2987402379512787,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Heliod, Sun-Crowned",
+            "distance": 243,
+            "inliers": 0,
+            "color": 0.6380190849304199,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Cathartic Reunion",
+            "distance": 238,
+            "inliers": 0,
+            "color": 0.06164348125457764,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Geier Reach Sanitarium",
+            "distance": 211,
+            "inliers": 0,
+            "color": 0.8884068727493286,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Necrogen Mists",
+            "distance": 234,
+            "inliers": 0,
+            "color": 0.2652130424976349,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Broadside Bombardiers",
+            "distance": 220,
+            "inliers": 0,
+            "color": 0.6113073825836182,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Tippy-Toe, Terrific Partner",
+            "distance": 210,
+            "inliers": 0,
+            "color": 0.5076315402984619,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Heliod, Sun-Crowned",
+            "distance": 203,
+            "inliers": 0,
+            "color": 0.4645954370498657,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          },
+          {
+            "name": "Cathartic Reunion",
+            "distance": 241,
+            "inliers": 0,
+            "color": 0.040184974670410156,
+            "clickInside": null,
+            "clickInliers": 0,
+            "clickArtInliers": 0,
+            "regionalProof": false,
+            "blocked": false
+          }
+        ],
+        "regionalProof": false,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Blank Card",
+          "inliers": 0,
+          "color": 93,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "clickTextInliers": 0
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Blank Card",
+            "distance": 153
+          },
+          {
+            "name": "Double-Faced Substitute Card",
+            "distance": 156
+          },
+          {
+            "name": "Manakin and Millikin",
+            "distance": 156
+          }
+        ]
+      }
+    }
+  ]
+}

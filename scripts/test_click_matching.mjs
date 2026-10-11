@@ -5,7 +5,7 @@ import vm from "node:vm";
 const worker = readFileSync(new URL("../src/recognition/recognizer.js", import.meta.url), "utf8");
 const start = worker.indexOf("function homographySourceQuad(");
 const end = worker.indexOf("// Gray-world", start);
-const context = vm.createContext({});
+const context = vm.createContext({splitIdentitySupported:()=>true,});
 vm.runInContext(worker.slice(start, end), context);
 const inside = context.homographyContainsClick;
 // A reference card at source x=100..300, y=50..350. A strong neighbouring
@@ -66,7 +66,7 @@ const helper=matcher.slice(matcher.indexOf('function withoutBlockedNeighbours(')
 const fallback=matcher.slice(matcher.indexOf('function suppressUnsafeVisualFallback('),matcher.indexOf('// Object URL of the title strip'));
 const ocr=matcher.slice(matcher.indexOf('async function applyTitleOCRUnlocked('),matcher.indexOf('function applyTitleOCR(result)'));
 const blocked='Neighbour Permanents';const clicked='Clicked Target';let reSearches=0;
-const ctx=vm.createContext({performance,VISUAL_KEEP:210,
+const ctx=vm.createContext({splitIdentitySupported:()=>true,performance,VISUAL_KEEP:210,
  runVisualFallback:async()=>{reSearches++;return{matches:[{name:blocked,distance:10},{name:clicked,distance:190}],printing_matches:[{name:blocked,distance:10},{name:clicked,distance:190}]};},
  runTitleStrips:async()=>[{images:['neighbour'],strategy:'outline-1'},{images:['target'],strategy:'outline-2'}],
  getOCRPool:async()=>Array.from({length:3},()=>({recognize:async image=>({data:{text:image==='neighbour'?blocked:clicked,confidence:image==='neighbour'?100:80}})})),
@@ -123,7 +123,7 @@ assert.equal(context.isDecisiveLead({...globalArt,click_text_inliers:8},{art_inl
 assert.equal(context.isDecisiveLead({...globalArt,distance:180},{art_inliers:6}),true);
 const finishStart = matcher.indexOf("function hasOutsideClickProof(");
 const finishCode = matcher.slice(finishStart,matcher.indexOf("async function performIdentify(",finishStart));
-const finalContext = vm.createContext({ VISUAL_EXACT_DISTANCE:90, OCR_SKIP_DISTANCE:220, performance,
+const finalContext = vm.createContext({splitIdentitySupported:()=>true, VISUAL_EXACT_DISTANCE:90, OCR_SKIP_DISTANCE:220, performance,
   applyTitleOCR:async result => result });
 vm.runInContext(finishCode,finalContext);
 for (const distance of [60,166]) {
@@ -138,3 +138,23 @@ assert.equal(finalContext.hasOutsideClickProof({...outsideLead,click_inliers:15}
 assert.equal(finalContext.hasOutsideClickProof({...outsideLead,click_art_inliers:7}),false);
 assert.equal(finalContext.hasOutsideClickProof({...textNeighbour,click_inliers:35}),true);
 console.log("outside registration retains an off-centre guess without confidently naming an unreadable target's neighbour");
+
+const split=vm.createContext({cards:[["Royal // Virtuous"],["Monster // Virtuous"],["Royal // Virtuous"],["Fire // Ice"]],RECENT_HINT_EXACT_DISTANCE:90});
+vm.runInContext(worker.slice(worker.indexOf("let sharedSplitNames"),worker.indexOf("// A reused illustration")),split);
+const support=(counts,distance=173)=>split.splitIdentitySupported({name:"Monster // Virtuous",distance,click_half_inliers:counts});
+assert.equal(support([3,51]),false,"the reused Virtuous half cannot identify Monster");
+assert.equal(support([51,3]),false,"a reused first half cannot identify the second half either");
+assert.equal(support([8,8]),true,"registered content from both halves supports the complete split identity");
+assert.equal(support([]),false);assert.equal(support([55]),false);assert.equal(support(undefined),false);
+assert.equal(support([0,0],90),true,"the unchanged near-exact whole-card hash remains an independent path");
+assert.equal(split.splitIdentitySupported({name:"Fire // Ice",distance:194}),true,"a unique split identity is unchanged");
+assert.equal(split.splitIdentitySupported({name:"Single card",distance:194}),true,"ordinary printed-text rescues are unchanged");
+const duplicates=vm.createContext({cards:[["Royal // Virtuous"],["Royal // Virtuous"]],RECENT_HINT_EXACT_DISTANCE:90});
+vm.runInContext(worker.slice(worker.indexOf("let sharedSplitNames"),worker.indexOf("// A reused illustration")),duplicates);
+assert.equal(duplicates.splitIdentitySupported({name:"Royal // Virtuous",distance:173}),true,"duplicate printings do not create a different-name rival");
+console.log("Shared split-card halves require both registered content regions; ordinary and near-exact identity paths remain intact");
+
+vm.runInContext(worker.slice(worker.indexOf("function contentSupportsIdentity("),worker.indexOf("function extendAiVerification(")),split);
+const partialSplit={name:"Monster // Virtuous",distance:173,click_inside:true,click_inliers:55,click_art_inliers:3,click_text_inliers:51,regional_proof:true,click_half_inliers:[3,51]};
+assert.equal(split.hasPositiveClickProof(partialSplit),false,"a reused half cannot exclude the actual clicked card's other identity");
+assert.equal(split.hasPositiveClickProof({...partialSplit,click_half_inliers:[26,29]}),true);

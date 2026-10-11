@@ -3,7 +3,7 @@
 One click against 113,263 printing faces — without a recognition
 server or a per-scan inference charge.
 
-The `milo-adaptive-16` pipeline adds local learned retrieval and a corner detector to
+The `milo-photo-27` pipeline adds local learned retrieval and a corner detector to
 perceptual hashing and geometric artwork verification. Tesseract remains the
 optional text fallback. No recognition API, API key, or per-scan inference
 charge is involved; camera captures stay in the browser.
@@ -18,6 +18,13 @@ There is no API key, capture upload or per-scan inference charge. Model and
 runtime licenses, checksums and corresponding-source links ship with the app.
 
 Clear, verified hash/artwork results and room hints retain their fast paths.
+An unhinted input already within 0.03 of the card aspect ratio tries its complete
+frame first, in either orientation. Hash/artwork verification and, when needed,
+Milo can settle a supplied card photo without corner inference, shifted retries
+or thousands of isolation windows. An uncertain frame falls through to the full
+ordinary matcher with the bounded Milo printing supplements. Input proportions
+are only a retrieval hypothesis; they never create independent regional proof.
+
 When the initial learned crop cannot settle identity, Milo embeds up to two
 rectified crops in both portrait orientations. Cosine retrieval keeps two
 treatments of six different card names; a card's many reprints cannot exhaust
@@ -35,10 +42,42 @@ near-exact label, even when the target itself has too little visible content to
 register. An off-centre guess remains selectable; positive clicked-card proof
 still excludes proven neighbours across their printings. A strong model score, shared template,
 unregistered match or proven neighbour cannot replace the baseline result.
+Split cards that share a named half with another catalog identity need at least
+eight registered interior points in each half before an artwork match can be
+confident or exclude another clicked identity. Matching shared rules text in
+only one half cannot establish the complete split identity. The existing
+near-exact whole-card hash and unique split names retain their paths. Catalog
+name sets are built once, counting distinct names rather than reprint rows.
+
+A confident artwork leader with fewer than eight distinguishing printed-text
+points also checks up to two different names from the catalog whose 256-bit
+art hashes are within 32 bits of its reference. The printing probe is cached
+with a 400-entry bound. These catalog rows can challenge confidence but cannot
+seed an answer. Actual bidirectional reference artwork registration must still
+establish reuse before the shared-art printed-text gate applies. This covers
+a counterpart missing from the query shortlist; detecting a physical card
+outline cannot distinguish identical illustrations.
+
 Both crop hypotheses are available to artwork verification. The first four
-retrieved printings also compare a normal-resolution reference, preserving
-small-reference matches while recovering features lost in the thumbnail.
-After positive regional registration, color and frame-ring agreement compare
+retrieved printings also compare a normal-resolution reference at 400 × 557
+pixels, alongside both unchanged 244 × 340 paths: the thumbnail and the
+normal-image downsample. Large photo queries request the enlarged view lazily
+from the same downloaded JPEG; small camera crops retain the legacy views and
+skip that allocation. Each view is rendered directly from the original JPEG,
+keeping the legacy pixels exact. Both local artwork
+and original-source registration can use those extra pixels. Feature bands and
+homographies use each reference's actual dimensions, preserving text/art and
+click coordinates across resolutions.
+
+For a full-frame card hypothesis with a clipped title or border, source
+registration may extrapolate a footprint up to 1.8 times the photo area, instead
+of the ordinary 1.2 limit, only with at least 35 agreeing keypoints, eight
+interior artwork points and eight printed-text points. Other queries keep the
+original bound. The footprint must still contain the real click; this remains
+global registration and cannot become independent regional proof. Shared-art
+and poor-hash printed-text requirements remain in force.
+
+After positive regional or global registration, color and frame-ring agreement compare
 matching raw and white-balanced versions of both the physical card and its
 reference. Balancing only the query can otherwise veto strongly matched green
 or red cards. These variants do not reduce artwork or click-proof thresholds. Weak proposals
@@ -298,15 +337,23 @@ but a printing must agree in at least two tables before exact 512-bit scoring.
 That rejects random playmat collisions while allowing every plausible
 isolation crop—not only the ten full-scan seeds—to surface a printing.
 
-Edge-clipped cards use one additional bounded isolation family. Unlike the
-ordinary click-local grid, it allows the click to sit below the physical card
+Edge-clipped cards use two additional bounded isolation families. Unlike the
+ordinary click-local grid, they allow the click to sit below the physical card
 and only keeps rectangles whose top edge meets the capture boundary. This
 models a card held above the cursor or partially outside the camera frame.
-The family is disabled when a card-shaped contour already contains the click,
+The portrait family keeps its existing quota and orientations. The landscape
+family uses the tapped card's short side for height and allows the click up to
+3.3 short sides below its top edge. Its landscape crops retain all four hash
+orientations. Each edge family renders at most sixteen proposals and has two
+independent full-index seed scans; neither displaces an established orientation
+family. These are retrieval crops without an independent source transform.
+Both families are disabled when a card-shaped contour already contains the click,
 which prevents a card higher in an overlapping tableau from replacing the
-card the player selected. Its retrieval distance is tracked independently from
+card the player selected. Each family’s retrieval distance is tracked independently from
 the ordinary crop used for ORB; the edge image joins visual verification only
 when an edge-sourced printing actually reaches the verification shortlist.
+An off-centre match outside the actual click stays tentative even with strong
+artwork or printed-text correspondence.
 
 Query crops are white-balanced first: a warm room casts the whole image, and
 the index is built from neutral scans.

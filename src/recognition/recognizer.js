@@ -1239,7 +1239,7 @@ function localCardIsolationCandidates(src, point, { allowAboveClick = true } = {
   const gray = toGray(src);
   const proposals = [];
   const add = (angle, scale, anchorV, anchorH, landscape = false, family = "portrait") => {
-    if (family === "top-edge") {
+    if (family.startsWith("top-edge")) {
       const aw = landscape ? CARD_H : CARD_W;
       const ah = landscape ? CARD_W : CARD_H;
       let ch = gray.h * scale, cw = (ch * aw) / ah;
@@ -1296,6 +1296,18 @@ function localCardIsolationCandidates(src, point, { allowAboveClick = true } = {
         }
       }
     }
+    // A tapped card's source-space height is its short side. The portrait
+    // edge family cannot frame it, and the click can sit more than two short
+    // sides below it. Give this interpretation its own bounded quota.
+    for (const angle of angles) {
+      for (const scale of [0.20, 0.24, 0.28, 0.32, 0.36, 0.40]) {
+        for (const anchorH of anchors) {
+          for (const anchorV of [1.2, 1.5, 1.8, 2.1, 2.4, 2.7, 3.0, 3.3]) {
+            add(angle, scale, anchorV, anchorH, true, "top-edge-tapped");
+          }
+        }
+      }
+    }
   }
   // A tapped card is already cut into a landscape canvas and the hash variants
   // rotate it later. Only undo its small tabletop tilt here; undoing the whole
@@ -1327,7 +1339,7 @@ function localCardIsolationCandidates(src, point, { allowAboveClick = true } = {
   // perceptual hash out of retrieval range.
   proposals.sort((a, b) => b.score - a.score);
   const isolationFamilies = allowAboveClick
-    ? ["portrait", "top-edge", "sideways-raw", "sideways-rotated"]
+    ? ["portrait", "top-edge", "top-edge-tapped", "sideways-raw", "sideways-rotated"]
     : ["portrait", "sideways-raw", "sideways-rotated"];
   for (const family of isolationFamilies) {
     for (const base of proposals.filter((p) => p.family === family).slice(0, 12)) {
@@ -1336,7 +1348,7 @@ function localCardIsolationCandidates(src, point, { allowAboveClick = true } = {
           for (const dh of [-0.06, -0.03, 0, 0.03, 0.06]) {
             for (const dv of [-0.06, -0.03, 0, 0.03, 0.06]) {
               const anchorH = Math.max(0.05, Math.min(0.95, base.anchorH + dh));
-              const maxAnchorV = family === "top-edge" ? 1.9 : 0.95;
+              const maxAnchorV = family === "top-edge-tapped" ? 3.3 : family === "top-edge" ? 1.9 : 0.95;
               const anchorV = Math.max(0.05, Math.min(maxAnchorV, base.anchorV + dv));
               add(base.angle + da, base.scale + ds, anchorV, anchorH, base.landscape, base.family);
             }
@@ -1359,7 +1371,7 @@ function localCardIsolationCandidates(src, point, { allowAboveClick = true } = {
       ));
       if (!nearDuplicate) familySelected.push(proposal);
       if (familySelected.length >= Math.round(
-        (family === "top-edge" ? 32 : 48) * ISOLATION_CAP_SCALE)) break;
+        (family.startsWith("top-edge") ? 32 : 48) * ISOLATION_CAP_SCALE)) break;
     }
     selected.push(...familySelected);
   }
@@ -1375,6 +1387,7 @@ function localCardIsolationCandidates(src, point, { allowAboveClick = true } = {
       proposal.anchorV, proposal.anchorH, proposal.landscape),
     strategy: `isolate-${proposal.family}-${proposal.angle}-${Math.round(proposal.scale * 100)}-${Math.round(proposal.anchorH * 100)}-${Math.round(proposal.anchorV * 100)}`,
     isolation: true,
+    isolationFamily: proposal.family,
     isolationScore: proposal.score,
   }));
   isolationTiming.render = performance.now() - tRender;
@@ -1791,7 +1804,10 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads =
     const t1 = performance.now();
     const gray = toGray(wbImage);
     const t2 = performance.now();
-    const oriented = HALF_ROTATIONS && ORIENTED_STRATEGY.test(candidate.strategy || "");
+    // Landscape edge crops retain the tapped layout; unlike rectified
+    // portrait crops, they still need the 90/270-degree hash orientations.
+    const oriented = HALF_ROTATIONS && ORIENTED_STRATEGY.test(candidate.strategy || "")
+      && candidate.isolationFamily !== "top-edge-tapped";
     const variants = oriented ? queryVariantsUpright(gray) : queryVariants(gray);
     prepTiming.wb += t1 - t0;
     prepTiming.gray += t2 - t1;
@@ -1894,6 +1910,11 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads =
   }
 
   let clickInsideCardLikeQuad = false;
+  // A tightly framed input is already a useful retrieval hypothesis. Keep it
+  // unregistered: input proportions are not independent clicked-card proof.
+  if (aiOnly && useMilo && Math.abs(Math.max(bmp.width, bmp.height) / Math.min(bmp.width, bmp.height) - CARD_H / CARD_W) < 0.03) {
+    candidates.push({ image: getSourceImageData(), strategy: "full-frame" });
+  }
   // The local-only detector supplies hypotheses, never card identities. Keep
   // its budget additive so tapped/inverted seeds cannot be displaced. Recheck
   // the click and geometry here before giving a proposal any retrieval power.
@@ -2520,9 +2541,9 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads =
       // scans. Do not short-circuit this bridge on gray distance: an unrelated
       // playmat texture can score <=60 before the true card's proposal runs.
       const exactIsolation = new Set();
-      for (const family of ["portrait", "top-edge", "sideways-raw", "sideways-rotated"]) {
+      for (const family of ["portrait", "top-edge", "top-edge-tapped", "sideways-raw", "sideways-rotated"]) {
         for (const p of isolation
-          .filter((candidate) => candidate.candidate.strategy.startsWith(`isolate-${family}-`))
+          .filter((candidate) => candidate.candidate.isolationFamily === family)
           .slice(0, 2)) {
           exactIsolation.add(p);
         }
@@ -2673,7 +2694,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads =
         if (!queryImages.includes(candidate.image)) queryImages.push(candidate.image);
       }
       if (aiOnly && useMilo && bestCandidateDistance > 150 && notifyMilo) {
-        const images = candidates.filter(c => c.strategy.startsWith("ai-crop-")).slice(0, 2).map(c => c.image);
+        const images = candidates.filter(c => c.strategy === "full-frame" || c.strategy.startsWith("ai-crop-")).slice(0, 2).map(c => c.image);
         if (images.length === 1) notifyMilo(images);
       }
       const verified = earlyVerified || await verifyTopMatches(verificationPool, queryImages, cardShaped, getSourceImageData(), click, verificationPool.length - verificationCandidates.length, queryRegionsFor(queryImages));
@@ -2693,12 +2714,12 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads =
       if (aiOnly && useMilo && !artDecisive && (matchesOut[0]?.distance ?? Infinity) > CONF_GOOD) {
         miloContext = { queryImages, cardShaped, source: getSourceImageData(), click,
           base: verified.matches, dists, blockedNames,
-          hashes: candidates.filter(c => c.strategy.startsWith("ai-crop-")).flatMap(c => prepareCandidate(c).variants),
+          hashes: candidates.filter(c => c.strategy === "full-frame" || c.strategy.startsWith("ai-crop-")).flatMap(c => prepareCandidate(c).variants),
           sourceRegions: new Map(candidates.filter(c => c.sourceClick && c.cameraToCrop).map(c => [c.image, {
             mappedClick: c.sourceClick, cameraToCrop: c.cameraToCrop, click,
             width: getSourceImageData().width, height: getSourceImageData().height,
           }])),
-          images: candidates.filter(c => c.strategy.startsWith("ai-crop-")).slice(0, 2).map(c => c.image) };
+          images: candidates.filter(c => c.strategy === "full-frame" || c.strategy.startsWith("ai-crop-")).slice(0, 2).map(c => c.image) };
       }
     } catch (e) {
       console.warn("[snapcast worker] art verification failed", e);
@@ -2770,24 +2791,42 @@ async function makeTitleStrips(titleSource) {
 const refCache = new Map(); // "id/face" -> Promise<ImageData|null>
 
 function fetchReference(id, face, size = "small") {
-  const key = `${id}/${face}/${size}`;
+  const render = (bmp, width) => {
+    const height = Math.round(width * CARD_H / CARD_W);
+    const canvas = new OffscreenCanvas(width, height);
+    try {
+      const ctx = canvas.getContext("2d"); ctx.drawImage(bmp, 0, 0, width, height);
+      return ctx.getImageData(0, 0, width, height);
+    } finally { canvas.width = canvas.height = 0; }
+  };
+  const downloadSize = size === "detail" ? "normal" : size;
+  const key = `${id}/${face}/${downloadSize}`;
   if (!refCache.has(key)) {
     if (refCache.size > 400) refCache.delete(refCache.keys().next().value);
     refCache.set(key, (async () => {
       const side = face === 1 ? "back" : "front";
-      const resp = await fetch(`https://cards.scryfall.io/${size}/${side}/${id[0]}/${id[1]}/${id}.jpg`);
+      const resp = await fetch(`https://cards.scryfall.io/${downloadSize}/${side}/${id[0]}/${id[1]}/${id}.jpg`);
       if (!resp.ok) throw new Error("ref fetch failed");
-      const bmp = await createImageBitmap(await resp.blob());
-      const canvas = new OffscreenCanvas(CARD_W, CARD_H);
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(bmp, 0, 0, CARD_W, CARD_H);
-      if (bmp.close) bmp.close();
-      const pixels = ctx.getImageData(0, 0, CARD_W, CARD_H);
-      canvas.width = canvas.height = 0;
-      return pixels;
+      const blob = await resp.blob();
+      const bmp = await createImageBitmap(blob);
+      try {
+        // Preserve the exact legacy normal-size pixels for small camera
+        // crops. Keep the compressed original for a lazily requested larger
+        // view; small camera queries never allocate that view or download twice.
+        return { image: render(bmp, CARD_W), blob: downloadSize === "normal" ? blob : null, detail: null };
+      } finally { if (bmp.close) bmp.close(); }
     })().catch(() => null));
   }
-  return refCache.get(key);
+  return refCache.get(key).then(images => {
+    if (!images) return null;
+    if (size !== "detail") return images.image;
+    if (!images.detail) images.detail = (async () => {
+      const bmp = await createImageBitmap(images.blob);
+      try { return render(bmp, 400); }
+      finally { if (bmp.close) bmp.close(); }
+    })().catch(() => null);
+    return images.detail;
+  });
 }
 
 function orbFeatures(imageData, nfeatures, restoreContrast = false) {
@@ -2834,12 +2873,13 @@ function releaseReferenceFeatures(features) {
   if (!features.cachedReference) { features.kp.delete(); features.desc.delete(); }
 }
 
-function orbAlignment(query, ref, click = null, sourceRegion = null) {
+function orbAlignment(query, ref, click = null, sourceRegion = null, clippedFrame = false) {
   const cv = self.cv;
   if (!query.desc.rows || !ref.desc.rows) return { inliers: 0, inside: null, artInliers: 0 };
   const bf = new cv.BFMatcher(cv.NORM_HAMMING, false);
   const knn = new cv.DMatchVectorVector();
   let inliers = 0, inside = null, artInliers = 0, textInliers = 0, sourceCorners = null;
+  const halfInliers = [0, 0];
   try {
     bf.knnMatch(query.desc, ref.desc, knn, 2);
     const qPts = [], rPts = [];
@@ -2878,7 +2918,8 @@ function orbAlignment(query, ref, click = null, sourceRegion = null) {
         for (let i = 0; i < hmask.rows; i++) {
           if (!hmask.data[i]) continue;
           inliers++;
-          const rx = rPts[i * 2] / CARD_W, ry = rPts[i * 2 + 1] / CARD_H;
+          const rx = rPts[i * 2] / ref.width, ry = rPts[i * 2 + 1] / ref.height;
+          if (rx > 0.12 && rx < 0.88 && ry > 0.04 && ry < 0.96) halfInliers[ry < 0.5 ? 0 : 1]++;
           if (rx > 0.12 && rx < 0.88 && ry > 0.14 && ry < 0.56) artInliers++;
           if (rx > 0.12 && rx < 0.88 && ((ry > 0.04 && ry < 0.13) || (ry > 0.58 && ry < 0.9))) textInliers++;
         }
@@ -2889,15 +2930,20 @@ function orbAlignment(query, ref, click = null, sourceRegion = null) {
           const transform = sourceRegion ? multiplyHomographies(H.data64F, sourceRegion.cameraToCrop) : H.data64F;
           const width = sourceRegion?.width || query.width, height = sourceRegion?.height || query.height;
           const sourceClick = sourceRegion?.click || click;
-          const corners = homographySourceQuad(transform, CARD_W, CARD_H);
+          const corners = homographySourceQuad(transform, ref.width, ref.height);
           const geometry = corners && quadGeometry(corners, width, height, 1, sourceClick);
           if (geometry?.valid && geometry.aspect >= 0.9 && geometry.aspect <= 2.5) {
             const area = Math.abs(corners.reduce((sum, p, i) => {
               const next = corners[(i + 1) % 4];
               return sum + p.x * next.y - next.x * p.y;
             }, 0)) / 2;
-            if (area >= width * height * 0.01 && area <= width * height * 1.2) {
-              inside = homographyContainsClick(transform, sourceClick, CARD_W, CARD_H);
+            // Supplied card photos can clip the name/border. Permit a larger
+            // extrapolated footprint only for a full-frame card hypothesis
+            // with strong artwork AND printed-text correspondence. This is
+            // still global registration, never independent regional proof.
+            const maxArea = clippedFrame && inliers >= 35 && artInliers >= 8 && textInliers >= 8 ? 1.8 : 1.2;
+            if (area >= width * height * 0.01 && area <= width * height * maxArea) {
+              inside = homographyContainsClick(transform, sourceClick, ref.width, ref.height);
               sourceCorners = geometry.corners;
             }
           }
@@ -2914,7 +2960,7 @@ function orbAlignment(query, ref, click = null, sourceRegion = null) {
   } finally {
     bf.delete(); knn.delete();
   }
-  return { inliers, inside, artInliers, textInliers, corners: sourceCorners };
+  return { inliers, inside, artInliers, textInliers, halfInliers, corners: sourceCorners };
 }
 
 // Shared borders, rules text and symbols can produce a plausible homography
@@ -2932,6 +2978,7 @@ function hasClickProof(match) {
   }, 8);
 }
 function hasPositiveClickProof(match) {
+  if (!splitIdentitySupported(match)) return false;
   // A shared illustration can extrapolate a printed card body into the mat.
   // Such a footprint cannot own the click or exclude another physical layout.
   if ((match?.distance ?? 0) > 180 && !match?.regional_proof
@@ -2948,6 +2995,7 @@ function recordRegionalProof(match, alignment) {
   match.click_inliers = alignment.inliers;
   match.click_art_inliers = alignment.artInliers;
   match.click_text_inliers = alignment.textInliers;
+  match.click_half_inliers = alignment.halfInliers;
   match.regional_proof = true;
   return true;
 }
@@ -2962,7 +3010,7 @@ function extendAiVerification(base, proposals, budget = 12) {
     keys.add(key);
     result.push({ ...match, ai_supplement: true, identified_by: undefined,
       art_inliers: 0, color_sim: 0, ring_sim: undefined, click_inside: null,
-      click_inliers: 0, click_art_inliers: 0, click_text_inliers: 0, click_blocked: false, regional_proof: false });
+      click_inliers: 0, click_art_inliers: 0, click_text_inliers: 0, click_half_inliers: null, click_blocked: false, regional_proof: false });
   }
   return result;
 }
@@ -3113,6 +3161,59 @@ function registeredColorAgreement(frame, reference) {
   };
 }
 
+// A split identity needs evidence beyond its reused half. Build this small
+// name set once from catalog metadata; repeated printings are not rivals.
+let sharedSplitNames = null;
+function splitIdentitySupported(match) {
+  if (!match?.name?.includes(" // ")) return true;
+  if (!cards) return false;
+  if (!sharedSplitNames) {
+    const byHalf = new Map();
+    for (const row of cards) {
+      if (!row[0].includes(" // ")) continue;
+      for (const half of row[0].split(" // ")) {
+        if (!byHalf.has(half)) byHalf.set(half, new Set());
+        byHalf.get(half).add(row[0]);
+      }
+    }
+    sharedSplitNames = new Set();
+    for (const names of byHalf.values()) if (names.size > 1) for (const name of names) sharedSplitNames.add(name);
+  }
+  return !sharedSplitNames.has(match.name) || (match.distance ?? 999) <= RECENT_HINT_EXACT_DISTANCE
+    || match.click_half_inliers?.length === 2 && match.click_half_inliers.every(count => count >= 8);
+}
+
+// A reused illustration may have no rival in the query shortlist. Probe the
+// immutable art-hash catalog only to challenge confidence, never to seed an
+// answer. The two nearest distinct names still require bidirectional ORB.
+const catalogArtworkRivalCache = new Map();
+function catalogArtworkRivals(match) {
+  if (!cards || !artIndex) return [];
+  const key = `${match.scryfall_id}:${match.face || 0}`;
+  if (catalogArtworkRivalCache.has(key)) return catalogArtworkRivalCache.get(key);
+  const row = ensurePrintingIndex()?.get(key);
+  if (row === undefined) return [];
+  const offset = row * ART_BYTES, nearest = [];
+  for (let i = 0; i < cards.length; i++) {
+    if (cards[i][0] === match.name) continue;
+    let distance = 0;
+    for (let b = 0; b < ART_BYTES && distance <= 32; b++) {
+      distance += POPCOUNT[artIndex[offset + b] ^ artIndex[i * ART_BYTES + b]];
+    }
+    if (distance <= 32) nearest.push({i, distance});
+  }
+  nearest.sort((a,b) => a.distance - b.distance);
+  const seen = new Set(), rivals = [];
+  for (const candidate of nearest) {
+    if (seen.has(cards[candidate.i][0])) continue;
+    seen.add(cards[candidate.i][0]); rivals.push(cardMeta(candidate.i, candidate.distance));
+    if (rivals.length === 2) break;
+  }
+  if (catalogArtworkRivalCache.size >= 400) catalogArtworkRivalCache.delete(catalogArtworkRivalCache.keys().next().value);
+  catalogArtworkRivalCache.set(key, rivals);
+  return rivals;
+}
+
 const sharedArtworkCache = new Map();
 function referencesShareArtwork(a, b, key) {
   if (sharedArtworkCache.has(key)) return sharedArtworkCache.get(key);
@@ -3138,10 +3239,13 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source 
   orbTiming.match = 0; orbTiming.refs = shortlist.length;
   const jobs = shortlist.map(m => fetchReference(m.scryfall_id, m.face || 0));
   const detailJobs = shortlist.map(m => m.milo_highres ? fetchReference(m.scryfall_id, m.face || 0, "normal") : null);
-  const refs = new Array(shortlist.length), detailed = new Array(shortlist.length);
+  const enlargedQuery = queryImages.some(image => Math.min(image.width, image.height) > CARD_W * 1.2
+    && Math.max(image.width, image.height) > CARD_H * 1.2);
+  const enlargedJobs = shortlist.map(m => m.milo_highres && enlargedQuery ? fetchReference(m.scryfall_id, m.face || 0, "detail") : null);
+  const refs = new Array(shortlist.length), detailed = new Array(shortlist.length), enlarged = new Array(shortlist.length);
   const referenceAt = async i => {
     const started = performance.now();
-    [refs[i], detailed[i]] = await Promise.all([jobs[i], detailJobs[i]]);
+    [refs[i], detailed[i], enlarged[i]] = await Promise.all([jobs[i], detailJobs[i], enlargedJobs[i]]);
     orbTiming.fetch += performance.now() - started;
   };
   const tQF = performance.now();
@@ -3153,13 +3257,14 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source 
   const wbQuery = whiteBalance(queryImages[0]);
   const querySig = colorSignature(wbQuery);
   const queryRing = queryIsCardShaped ? ringSignature(wbQuery) : null;
+  const clippedFrame = queryIsCardShaped && queryImages.includes(source);
   try {
     let lead = 0, second = 0;
     for (let i = 0; i < shortlist.length; i++) {
       await referenceAt(i);
       if (!refs[i]) { shortlist[i].art_inliers = 0; shortlist[i].color_sim = 0; continue; }
       let inliers = 0, registeredFrame = null;
-      for (const reference of [refs[i], detailed[i]].filter(Boolean)) {
+      for (const reference of [refs[i], detailed[i], enlarged[i]].filter(Boolean)) {
         const tRF = performance.now();
         const rf = referenceFeatures(reference, contrastRescue);
         orbTiming.refFeat += performance.now() - tRF;
@@ -3211,11 +3316,19 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source 
         if (item.regional_proof && hasPositiveClickProof(item)) continue;
         const index = shortlist.indexOf(item);
         if (refs[index] === undefined) await referenceAt(index);
-        const ref = refs[index];
+        let ref = refs[index];
         if (!ref) continue;
-        const rf = referenceFeatures(ref, contrastRescue);
-        try {
-          const alignment = orbAlignment(full, rf, click);
+        {
+          let alignment = null;
+          const quality = a => (a.inside === true && a.inliers >= 16 && contentSupportsIdentity(a, 8) ? 10000 : 0)
+            + (a.inside !== null && contentSupportsIdentity(a, 8) ? 1000 : 0) + a.inliers;
+          for (const image of [ref, detailed[index], enlarged[index]].filter(Boolean)) {
+            const rf = referenceFeatures(image, contrastRescue);
+            try {
+              const candidate = orbAlignment(full, rf, click, null, clippedFrame);
+              if (!alignment || quality(candidate) > quality(alignment)) { alignment = candidate; ref = image; }
+            } finally { releaseReferenceFeatures(rf); }
+          }
           // A weak/unknown global match cannot erase a crop's registered
           // neighbour. Positive source proof may establish a clicked duplicate.
           const retainedRegional = item.regional_proof && hasClickProof(item);
@@ -3224,6 +3337,7 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source 
             item.click_inliers = alignment.inliers;
             item.click_art_inliers = alignment.artInliers;
             item.click_text_inliers = alignment.textInliers;
+            item.click_half_inliers = alignment.halfInliers;
             item.click_inside = alignment.inside;
             if (positive && retainedRegional) item.regional_proof = false;
           }
@@ -3232,13 +3346,14 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source 
           if (alignment.inside === true && alignment.inliers >= 24 && contentSupportsIdentity(alignment, 8)) {
             item.art_inliers = Math.max(item.art_inliers || 0, alignment.inliers);
             if (alignment.corners) {
-              const framed = whiteBalance(rectifyCard(source, alignment.corners));
-              item.color_sim = colorSimilarity(colorSignature(framed), colorSignature(ref));
-              item.ring_sim = colorSimilarity(ringSignature(framed), ringSignature(ref));
+              const framed = rectifyCard(source, alignment.corners);
+              const agreement = registeredColorAgreement(framed, ref);
+              item.color_sim = agreement.color;
+              item.ring_sim = agreement.ring;
             }
           }
           if (alignment.inside === true && alignment.inliers >= 16 && contentSupportsIdentity(alignment, 8)) break;
-        } finally { releaseReferenceFeatures(rf); }
+        }
       }
       excludeProvenNeighbours(shortlist, [...probes, ...shortlist.filter(item => item.regional_proof)]);
     } finally { if (full) { full.kp.delete(); full.desc.delete(); } }
@@ -3261,6 +3376,17 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source 
       }
     }
   }
+  if (leader?.art_inliers >= 16 && (leader.click_text_inliers || 0) < 8 && !leader.shared_artwork) {
+    const a = shortlist.indexOf(leader);
+    if (refs[a] === undefined) await referenceAt(a);
+    for (const rival of catalogArtworkRivals(leader)) {
+      const ref = await fetchReference(rival.scryfall_id, rival.face || 0);
+      const key = [leader, rival].map(m => `${m.scryfall_id}:${m.face || 0}`).sort().join("|");
+      if (refs[a] && ref && referencesShareArtwork(refs[a], ref, key)) {
+        leader.shared_artwork = true; break;
+      }
+    }
+  }
   // Coarse color agreement bands: same color identity, plausible, or clashing.
   const colorBand = (m) => ((m.color_sim || 0) >= 0.45 ? 2 : (m.color_sim || 0) >= 0.22 ? 1 : 0);
   // Border-frame agreement: 1 = frames plausibly match, 0 = frame clash
@@ -3270,7 +3396,7 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source 
   const isDecisiveLead = (match, rival) => {
     const inliers = match?.art_inliers || 0;
     if (inliers < 16 || (match?.color_sim || 0) < 0.22) return false;
-    if (match?.click_blocked) return false;
+    if (match?.click_blocked || !splitIdentitySupported(match)) return false;
     if (match?.shared_artwork && (match.click_text_inliers || 0) < 8) return false;
     // A whole-scene illustration match can extrapolate a normal card's text
     // box into empty table space (for example, an Art Series print). At poor
@@ -3347,6 +3473,7 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source 
       weak: maxInliers < 12,
       clickInside: best.click_inside ?? null, clickInliers: best.click_inliers || 0,
       clickArtInliers: best.click_art_inliers || 0, clickTextInliers: best.click_text_inliers || 0,
+      clickHalfInliers: best.click_half_inliers || null,
     } : null,
     blockedNames: [...new Set(shortlist.filter(m => m.click_blocked).map(m => m.name))],
     artChecked: shortlist.length,

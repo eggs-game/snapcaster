@@ -1,0 +1,727 @@
+{
+  "build": "milo-photo-25 (local vision)",
+  "n": 20,
+  "records": [
+    {
+      "index": 7,
+      "rotation": 0,
+      "expected": "Guerrilla Tactics",
+      "got": "Guerrilla Tactics",
+      "by": "art-match",
+      "build": "milo-photo-25 (local vision)",
+      "aiCrop": {
+        "status": "input-card",
+        "fastMs": 963,
+        "fastHit": false
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 12,
+        "inferenceMs": 275,
+        "searchMs": 47,
+        "ms": 328,
+        "speculative": true,
+        "rescued": true,
+        "totalMs": 659
+      },
+      "ms": 1625,
+      "artBest": {
+        "name": "Guerrilla Tactics",
+        "inliers": 66,
+        "color": 81,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 66,
+        "clickArtInliers": 48,
+        "clickTextInliers": 18
+      }
+    },
+    {
+      "index": 7,
+      "rotation": 90,
+      "expected": "Guerrilla Tactics",
+      "got": "Guerrilla Tactics",
+      "by": "art-match",
+      "build": "milo-photo-25 (local vision)",
+      "aiCrop": {
+        "status": "input-card",
+        "fastMs": 625,
+        "fastHit": false
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 12,
+        "inferenceMs": 268,
+        "searchMs": 45,
+        "ms": 320,
+        "speculative": true,
+        "rescued": true,
+        "totalMs": 561
+      },
+      "ms": 1188,
+      "artBest": {
+        "name": "Guerrilla Tactics",
+        "inliers": 84,
+        "color": 81,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 84,
+        "clickArtInliers": 69,
+        "clickTextInliers": 12
+      }
+    },
+    {
+      "index": 7,
+      "rotation": 180,
+      "expected": "Guerrilla Tactics",
+      "got": "Guerrilla Tactics",
+      "by": "art-match",
+      "build": "milo-photo-25 (local vision)",
+      "aiCrop": {
+        "status": "input-card",
+        "fastMs": 670,
+        "fastHit": false
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 12,
+        "inferenceMs": 272,
+        "searchMs": 41,
+        "ms": 318,
+        "speculative": true,
+        "rescued": true,
+        "totalMs": 960
+      },
+      "ms": 1632,
+      "artBest": {
+        "name": "Guerrilla Tactics",
+        "inliers": 80,
+        "color": 81,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 80,
+        "clickArtInliers": 68,
+        "clickTextInliers": 11
+      }
+    },
+    {
+      "index": 7,
+      "rotation": 270,
+      "expected": "Guerrilla Tactics",
+      "got": "Guerrilla Tactics",
+      "by": "art-match",
+      "build": "milo-photo-25 (local vision)",
+      "aiCrop": {
+        "status": "input-card",
+        "fastMs": 639,
+        "fastHit": false
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 12,
+        "inferenceMs": 273,
+        "searchMs": 43,
+        "ms": 319,
+        "speculative": true,
+        "rescued": true,
+        "totalMs": 562
+      },
+      "ms": 1203,
+      "artBest": {
+        "name": "Guerrilla Tactics",
+        "inliers": 68,
+        "color": 81,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 68,
+        "clickArtInliers": 53,
+        "clickTextInliers": 15
+      }
+    },
+    {
+      "index": 18,
+      "rotation": 0,
+      "expected": "Brambleweft Behemoth",
+      "got": "Brambleweft Behemoth",
+      "by": "art-match",
+      "build": "milo-photo-25 (local vision)",
+      "aiCrop": {
+        "status": "input-card",
+        "fastMs": 835,
+        "fastHit": false
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 10,
+        "inferenceMs": 275,
+        "searchMs": 45,
+        "ms": 330,
+        "speculative": true,
+        "rescued": true,
+        "totalMs": 312
+      },
+      "ms": 1150,
+      "artBest": {
+        "name": "Brambleweft Behemoth",
+        "inliers": 119,
+        "color": 82,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 119,
+        "clickArtInliers": 10,
+        "clickTextInliers": 104
+      }
+    },
+    {
+      "index": 18,
+      "rotation": 90,
+      "expected": "Brambleweft Behemoth",
+      "got": "Brambleweft Behemoth",
+      "by": "art-match",
+      "build": "milo-photo-25 (local vision)",
+      "aiCrop": {
+        "status": "input-card",
+        "fastMs": 594,
+        "fastHit": false
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 10,
+        "inferenceMs": 277,
+        "searchMs": 46,
+        "ms": 331,
+        "speculative": true,
+        "rescued": true,
+        "totalMs": 127
+      },
+      "ms": 724,
+      "artBest": {
+        "name": "Brambleweft Behemoth",
+        "inliers": 112,
+        "color": 83,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 112,
+        "clickArtInliers": 10,
+        "clickTextInliers": 97
+      }
+    },
+    {
+      "index": 18,
+      "rotation": 180,
+      "expected": "Brambleweft Behemoth",
+      "got": "Brambleweft Behemoth",
+      "by": "art-match",
+      "build": "milo-photo-25 (local vision)",
+      "aiCrop": {
+        "status": "input-card",
+        "fastMs": 653,
+        "fastHit": false
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 10,
+        "inferenceMs": 272,
+        "searchMs": 45,
+        "ms": 320,
+        "speculative": true,
+        "rescued": true,
+        "totalMs": 125
+      },
+      "ms": 780,
+      "artBest": {
+        "name": "Brambleweft Behemoth",
+        "inliers": 120,
+        "color": 83,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 120,
+        "clickArtInliers": 10,
+        "clickTextInliers": 105
+      }
+    },
+    {
+      "index": 18,
+      "rotation": 270,
+      "expected": "Brambleweft Behemoth",
+      "got": "Brambleweft Behemoth",
+      "by": "art-match",
+      "build": "milo-photo-25 (local vision)",
+      "aiCrop": {
+        "status": "input-card",
+        "fastMs": 544,
+        "fastHit": false
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 10,
+        "inferenceMs": 271,
+        "searchMs": 45,
+        "ms": 323,
+        "speculative": true,
+        "rescued": true,
+        "totalMs": 561
+      },
+      "ms": 1108,
+      "artBest": {
+        "name": "Brambleweft Behemoth",
+        "inliers": 103,
+        "color": 79,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 103,
+        "clickArtInliers": 9,
+        "clickTextInliers": 91
+      }
+    },
+    {
+      "index": 19,
+      "rotation": 0,
+      "expected": "Void Attendant",
+      "got": "Void Attendant",
+      "by": "art-match",
+      "build": "milo-photo-25 (local vision)",
+      "aiCrop": {
+        "status": "input-card",
+        "fastMs": 784,
+        "fastHit": false
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 10,
+        "inferenceMs": 273,
+        "searchMs": 46,
+        "ms": 321,
+        "speculative": true,
+        "rescued": true,
+        "totalMs": 450
+      },
+      "ms": 1237,
+      "artBest": {
+        "name": "Void Attendant",
+        "inliers": 113,
+        "color": 81,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 113,
+        "clickArtInliers": 25,
+        "clickTextInliers": 88
+      }
+    },
+    {
+      "index": 19,
+      "rotation": 90,
+      "expected": "Void Attendant",
+      "got": "Void Attendant",
+      "by": "art-match",
+      "build": "milo-photo-25 (local vision)",
+      "aiCrop": {
+        "status": "input-card",
+        "fastMs": 492,
+        "fastHit": false
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 10,
+        "inferenceMs": 277,
+        "searchMs": 42,
+        "ms": 322,
+        "speculative": true,
+        "rescued": true,
+        "totalMs": 371
+      },
+      "ms": 866,
+      "artBest": {
+        "name": "Void Attendant",
+        "inliers": 113,
+        "color": 80,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 113,
+        "clickArtInliers": 27,
+        "clickTextInliers": 86
+      }
+    },
+    {
+      "index": 19,
+      "rotation": 180,
+      "expected": "Void Attendant",
+      "got": "Void Attendant",
+      "by": "art-match",
+      "build": "milo-photo-25 (local vision)",
+      "aiCrop": {
+        "status": "input-card",
+        "fastMs": 534,
+        "fastHit": false
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 10,
+        "inferenceMs": 271,
+        "searchMs": 46,
+        "ms": 321,
+        "speculative": true,
+        "rescued": true,
+        "totalMs": 357
+      },
+      "ms": 893,
+      "artBest": {
+        "name": "Void Attendant",
+        "inliers": 110,
+        "color": 80,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 110,
+        "clickArtInliers": 25,
+        "clickTextInliers": 85
+      }
+    },
+    {
+      "index": 19,
+      "rotation": 270,
+      "expected": "Void Attendant",
+      "got": "Void Attendant",
+      "by": "art-match",
+      "build": "milo-photo-25 (local vision)",
+      "aiCrop": {
+        "status": "input-card",
+        "fastMs": 630,
+        "fastHit": false
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 10,
+        "inferenceMs": 273,
+        "searchMs": 46,
+        "ms": 321,
+        "speculative": true,
+        "rescued": true,
+        "totalMs": 369
+      },
+      "ms": 1001,
+      "artBest": {
+        "name": "Void Attendant",
+        "inliers": 115,
+        "color": 80,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 115,
+        "clickArtInliers": 26,
+        "clickTextInliers": 89
+      }
+    },
+    {
+      "index": 34,
+      "rotation": 0,
+      "expected": "Arlinn Kord",
+      "got": "Arlinn Kord",
+      "by": "art-match",
+      "build": "milo-photo-25 (local vision)",
+      "aiCrop": {
+        "status": "input-card",
+        "fastMs": 571,
+        "fastHit": true
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 12,
+        "inferenceMs": 273,
+        "searchMs": 46,
+        "ms": 321,
+        "speculative": true,
+        "unused": true,
+        "rescued": false,
+        "totalMs": 0
+      },
+      "ms": 574,
+      "artBest": {
+        "name": "Arlinn Kord",
+        "inliers": 42,
+        "color": 94,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 42,
+        "clickArtInliers": 25,
+        "clickTextInliers": 17
+      }
+    },
+    {
+      "index": 34,
+      "rotation": 90,
+      "expected": "Arlinn Kord",
+      "got": "Arlinn Kord",
+      "by": "art-match",
+      "build": "milo-photo-25 (local vision)",
+      "aiCrop": {
+        "status": "input-card",
+        "fastMs": 662,
+        "fastHit": false
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 12,
+        "inferenceMs": 275,
+        "searchMs": 46,
+        "ms": 323,
+        "speculative": true,
+        "rescued": true,
+        "totalMs": 415
+      },
+      "ms": 1080,
+      "artBest": {
+        "name": "Arlinn Kord",
+        "inliers": 115,
+        "color": 90,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 115,
+        "clickArtInliers": 41,
+        "clickTextInliers": 69
+      }
+    },
+    {
+      "index": 34,
+      "rotation": 180,
+      "expected": "Arlinn Kord",
+      "got": "Arlinn Kord",
+      "by": "art-match",
+      "build": "milo-photo-25 (local vision)",
+      "aiCrop": {
+        "status": "input-card",
+        "fastMs": 628,
+        "fastHit": false
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 12,
+        "inferenceMs": 274,
+        "searchMs": 45,
+        "ms": 322,
+        "speculative": true,
+        "rescued": true,
+        "totalMs": 392
+      },
+      "ms": 1022,
+      "artBest": {
+        "name": "Arlinn Kord",
+        "inliers": 141,
+        "color": 88,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 141,
+        "clickArtInliers": 23,
+        "clickTextInliers": 110
+      }
+    },
+    {
+      "index": 34,
+      "rotation": 270,
+      "expected": "Arlinn Kord",
+      "got": "Arlinn Kord",
+      "by": "art-match",
+      "build": "milo-photo-25 (local vision)",
+      "aiCrop": {
+        "status": "input-card",
+        "fastMs": 591,
+        "fastHit": false
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 12,
+        "inferenceMs": 277,
+        "searchMs": 46,
+        "ms": 325,
+        "speculative": true,
+        "rescued": true,
+        "totalMs": 385
+      },
+      "ms": 979,
+      "artBest": {
+        "name": "Arlinn Kord",
+        "inliers": 114,
+        "color": 90,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 114,
+        "clickArtInliers": 41,
+        "clickTextInliers": 68
+      }
+    },
+    {
+      "index": 44,
+      "rotation": 0,
+      "expected": "Boiling Blood",
+      "got": "Boiling Blood",
+      "by": "art-match",
+      "build": "milo-photo-25 (local vision)",
+      "aiCrop": {
+        "status": "input-card",
+        "fastMs": 772,
+        "fastHit": false
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 11,
+        "inferenceMs": 272,
+        "searchMs": 45,
+        "ms": 320,
+        "speculative": true,
+        "rescued": true,
+        "totalMs": 357
+      },
+      "ms": 1131,
+      "artBest": {
+        "name": "Boiling Blood",
+        "inliers": 118,
+        "color": 97,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 118,
+        "clickArtInliers": 90,
+        "clickTextInliers": 27
+      }
+    },
+    {
+      "index": 44,
+      "rotation": 90,
+      "expected": "Boiling Blood",
+      "got": "Boiling Blood",
+      "by": "art-match",
+      "build": "milo-photo-25 (local vision)",
+      "aiCrop": {
+        "status": "input-card",
+        "fastMs": 532,
+        "fastHit": false
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 11,
+        "inferenceMs": 273,
+        "searchMs": 46,
+        "ms": 321,
+        "speculative": true,
+        "rescued": true,
+        "totalMs": 339
+      },
+      "ms": 874,
+      "artBest": {
+        "name": "Boiling Blood",
+        "inliers": 121,
+        "color": 96,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 121,
+        "clickArtInliers": 84,
+        "clickTextInliers": 34
+      }
+    },
+    {
+      "index": 44,
+      "rotation": 180,
+      "expected": "Boiling Blood",
+      "got": "Boiling Blood",
+      "by": "art-match",
+      "build": "milo-photo-25 (local vision)",
+      "aiCrop": {
+        "status": "input-card",
+        "fastMs": 570,
+        "fastHit": false
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 11,
+        "inferenceMs": 274,
+        "searchMs": 46,
+        "ms": 323,
+        "speculative": true,
+        "rescued": true,
+        "totalMs": 331
+      },
+      "ms": 903,
+      "artBest": {
+        "name": "Boiling Blood",
+        "inliers": 126,
+        "color": 97,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 126,
+        "clickArtInliers": 89,
+        "clickTextInliers": 34
+      }
+    },
+    {
+      "index": 44,
+      "rotation": 270,
+      "expected": "Boiling Blood",
+      "got": "Boiling Blood",
+      "by": "art-match",
+      "build": "milo-photo-25 (local vision)",
+      "aiCrop": {
+        "status": "input-card",
+        "fastMs": 580,
+        "fastHit": false
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 11,
+        "inferenceMs": 272,
+        "searchMs": 45,
+        "ms": 319,
+        "speculative": true,
+        "rescued": true,
+        "totalMs": 330
+      },
+      "ms": 913,
+      "artBest": {
+        "name": "Boiling Blood",
+        "inliers": 113,
+        "color": 96,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 113,
+        "clickArtInliers": 90,
+        "clickTextInliers": 20
+      }
+    }
+  ]
+}

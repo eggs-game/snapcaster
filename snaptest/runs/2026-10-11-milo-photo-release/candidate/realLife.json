@@ -1,0 +1,1261 @@
+{
+  "build": "milo-photo-27 (local vision)",
+  "aiCropEnabled": true,
+  "miloEnabled": true,
+  "mode": "realLife",
+  "summary": {
+    "n": 200,
+    "accuracy": 0.945,
+    "byOcclusion": {
+      "clear": {
+        "n": 187,
+        "ok": 180,
+        "acc": 0.963
+      },
+      "overlapped": {
+        "n": 10,
+        "ok": 6,
+        "acc": 0.6
+      },
+      "edge": {
+        "n": 3,
+        "ok": 3,
+        "acc": 1
+      }
+    },
+    "byPool": {
+      "card": {
+        "n": 149,
+        "ok": 141,
+        "acc": 0.946
+      },
+      "token": {
+        "n": 44,
+        "ok": 42,
+        "acc": 0.955
+      },
+      "basic": {
+        "n": 7,
+        "ok": 6,
+        "acc": 0.857
+      }
+    },
+    "byCoverage": {
+      "0 (clear)": {
+        "n": 184,
+        "ok": 177,
+        "acc": 0.962
+      },
+      "0-15%": {
+        "n": 11,
+        "ok": 11,
+        "acc": 1
+      },
+      "15-30%": {
+        "n": 3,
+        "ok": 1,
+        "acc": 0.333
+      },
+      "30%+": {
+        "n": 2,
+        "ok": 0,
+        "acc": 0
+      }
+    },
+    "byClipped": {
+      "0-5% (whole)": {
+        "n": 197,
+        "ok": 186,
+        "acc": 0.944
+      },
+      "5-15%": {
+        "n": 3,
+        "ok": 3,
+        "acc": 1
+      }
+    },
+    "avgMs": 1480,
+    "neighbourMisses": [],
+    "attempted": 200,
+    "correct": 189,
+    "errors": 0,
+    "medianMs": 770,
+    "correctUnder1s": 131,
+    "maxMs": 10607,
+    "p90Ms": 2417,
+    "accepted": {
+      "n": 186,
+      "correct": 186
+    },
+    "byPathway": {
+      "art-match": {
+        "n": 186,
+        "ok": 186,
+        "acc": 1
+      },
+      "(no match)": {
+        "n": 14,
+        "ok": 3,
+        "acc": 0.214
+      }
+    },
+    "byRotation": {
+      "upright": {
+        "n": 109,
+        "ok": 103,
+        "acc": 0.945
+      },
+      "tapped": {
+        "n": 55,
+        "ok": 53,
+        "acc": 0.964
+      },
+      "upsidedown": {
+        "n": 36,
+        "ok": 33,
+        "acc": 0.917
+      }
+    },
+    "byLayout": {
+      "side-by-side": {
+        "n": 120,
+        "ok": 116,
+        "acc": 0.967
+      },
+      "spaced": {
+        "n": 60,
+        "ok": 57,
+        "acc": 0.95
+      },
+      "overlapping": {
+        "n": 20,
+        "ok": 16,
+        "acc": 0.8
+      }
+    },
+    "absentMisses": 10,
+    "firstHalf": 94,
+    "secondHalf": 95,
+    "wasmHeapMB": [
+      134,
+      134
+    ],
+    "perfectCropControl": {
+      "n": 11,
+      "ok": 3,
+      "acc": 0.273
+    },
+    "wasmHeapStartMB": 134,
+    "wasmHeapEndMB": 134,
+    "firstHalfAcc": 0.94,
+    "secondHalfAcc": 0.95
+  },
+  "misses": [
+    {
+      "name": "Valakut, the Molten Pinnacle",
+      "id": "c2d07eea-b165-4976-9088-d283ab7cfe72",
+      "i": 26,
+      "scene": 2,
+      "rot": "upright",
+      "layout": "spaced",
+      "coverage": 0,
+      "got": "Blank Card",
+      "trueRank": null,
+      "artBest": {
+        "name": "Blank Card",
+        "inliers": 0,
+        "color": 96,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0,
+        "clickHalfInliers": null
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.05871216952800751,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.04632841795682907,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 182,
+        "fastMs": 850,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.039392296224832535,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.035724204033613205,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.04755567014217377,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.020898764953017235,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 358,
+          "milo": {
+            "model": "milo1",
+            "status": "ready",
+            "crops": 2,
+            "proposals": 12,
+            "inferenceMs": 552,
+            "searchMs": 92,
+            "ms": 649
+          }
+        },
+        "retryMs": 2310
+      },
+      "stages": {
+        "prep": 601,
+        "rankSeeds": 677,
+        "earlyOrbProbe": 0,
+        "rankRefine": 694,
+        "isolatePrep": 646,
+        "isolateScore": 300,
+        "rank": 0,
+        "orb": 629,
+        "aiCrop": 182,
+        "aiAttempt": 850,
+        "milo": 1662,
+        "aiRetry": 2310,
+        "total": 8551
+      },
+      "ms": 8552,
+      "perfectControl": {
+        "ok": false,
+        "got": "Guildmark",
+        "dist": 149
+      }
+    },
+    {
+      "name": "Path to Exile",
+      "id": "a9851a6e-a8be-4c1f-9e44-4bdf06d9d010",
+      "i": 55,
+      "scene": 5,
+      "rot": "tapped",
+      "layout": "spaced",
+      "coverage": 0,
+      "got": "Sejiri Glacier",
+      "trueRank": 4,
+      "artBest": {
+        "name": "Sejiri Glacier",
+        "inliers": 7,
+        "color": 94,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 5,
+        "clickArtInliers": 1,
+        "clickTextInliers": 2,
+        "clickHalfInliers": [
+          1,
+          4
+        ]
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.0626082643866539,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.02900419570505619,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          }
+        ],
+        "ms": 177,
+        "fastMs": 498,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.030379552394151688,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.018419302999973297,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.03655800595879555,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.06202811747789383,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 358,
+          "milo": {
+            "model": "milo1",
+            "status": "ready",
+            "crops": 2,
+            "proposals": 12,
+            "inferenceMs": 543,
+            "searchMs": 91,
+            "ms": 639
+          }
+        },
+        "retryMs": 2535
+      },
+      "stages": {
+        "prep": 558,
+        "rankSeeds": 652,
+        "earlyOrbProbe": 0,
+        "rankRefine": 905,
+        "isolatePrep": 628,
+        "isolateScore": 247,
+        "rank": 0,
+        "orb": 922,
+        "aiCrop": 177,
+        "aiAttempt": 498,
+        "milo": 1288,
+        "aiRetry": 2535,
+        "total": 8413
+      },
+      "ms": 8413,
+      "perfectControl": {
+        "ok": false,
+        "got": "Mistwalker",
+        "dist": 167
+      }
+    },
+    {
+      "name": "Malcolm, Alluring Scoundrel",
+      "id": "b3ed6341-59f4-44f3-99c9-80f636fa484d",
+      "i": 86,
+      "scene": 8,
+      "rot": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Unbounded Potential",
+      "trueRank": null,
+      "artBest": {
+        "name": "Unbounded Potential",
+        "inliers": 0,
+        "color": 100,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0,
+        "clickHalfInliers": null
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.045270320028066635,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.007730055134743452,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 178,
+        "fastMs": 456,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.009839007630944252,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.008407119661569595,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.007469723466783762,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.007432354614138603,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 352
+        },
+        "retryMs": 353
+      },
+      "stages": {
+        "prep": 415,
+        "rankSeeds": 572,
+        "earlyOrbProbe": 0,
+        "rankRefine": 606,
+        "isolatePrep": 853,
+        "isolateScore": 473,
+        "rank": 0,
+        "orb": 293,
+        "aiCrop": 178,
+        "aiAttempt": 456,
+        "milo": 575,
+        "aiRetry": 353,
+        "total": 4775
+      },
+      "ms": 4775,
+      "perfectControl": {
+        "ok": false,
+        "got": "Barry's Land",
+        "dist": 172
+      }
+    },
+    {
+      "name": "Sacred Foundry",
+      "id": "b7b598d0-535d-477d-a33d-d6a10ff5439a",
+      "i": 92,
+      "scene": 9,
+      "rot": "upright",
+      "layout": "overlapping",
+      "coverage": 0.218,
+      "got": "Beast Walkers",
+      "trueRank": null,
+      "artBest": {
+        "name": "Beast Walkers",
+        "inliers": 6,
+        "color": 87,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 8,
+        "clickArtInliers": 6,
+        "clickTextInliers": 2,
+        "clickHalfInliers": [
+          6,
+          2
+        ]
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.04512445256114006,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.03188095614314079,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 186,
+        "fastMs": 752,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.027109535411000252,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.036623284220695496,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.061901841312646866,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.043194763362407684,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 362,
+          "milo": {
+            "model": "milo1",
+            "status": "ready",
+            "crops": 2,
+            "proposals": 12,
+            "inferenceMs": 555,
+            "searchMs": 91,
+            "ms": 650
+          }
+        },
+        "retryMs": 3319
+      },
+      "stages": {
+        "prep": 643,
+        "rankSeeds": 652,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1383,
+        "isolatePrep": 699,
+        "isolateScore": 246,
+        "rank": 0,
+        "orb": 1586,
+        "aiCrop": 186,
+        "aiAttempt": 752,
+        "milo": 1138,
+        "aiRetry": 3319,
+        "total": 10607
+      },
+      "ms": 10607,
+      "perfectControl": {
+        "ok": true,
+        "got": "Sacred Foundry",
+        "by": "art-match",
+        "dist": 239
+      }
+    },
+    {
+      "name": "High Market",
+      "id": "7ab4104c-7826-410c-b250-4000f7dc86eb",
+      "i": 95,
+      "scene": 9,
+      "rot": "upright",
+      "layout": "overlapping",
+      "coverage": 0.303,
+      "got": "Moorland Inquisitor",
+      "trueRank": null,
+      "artBest": {
+        "name": "Moorland Inquisitor",
+        "inliers": 5,
+        "color": 90,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 8,
+        "clickArtInliers": 3,
+        "clickTextInliers": 5,
+        "clickHalfInliers": [
+          3,
+          5
+        ]
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.03639282286167145,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.0272882841527462,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 178,
+        "fastMs": 515,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.030817873775959015,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.03329533711075783,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.0387464202940464,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.02752397395670414,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 362,
+          "milo": {
+            "model": "milo1",
+            "status": "ready",
+            "crops": 2,
+            "proposals": 12,
+            "inferenceMs": 546,
+            "searchMs": 91,
+            "ms": 642
+          }
+        },
+        "retryMs": 2823
+      },
+      "stages": {
+        "prep": 715,
+        "rankSeeds": 665,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1221,
+        "isolatePrep": 735,
+        "isolateScore": 250,
+        "rank": 0,
+        "orb": 1569,
+        "aiCrop": 178,
+        "aiAttempt": 515,
+        "milo": 1036,
+        "aiRetry": 2823,
+        "total": 9709
+      },
+      "ms": 9709,
+      "perfectControl": {
+        "ok": false,
+        "got": "Double-Faced Substitute Card",
+        "dist": 162
+      }
+    },
+    {
+      "name": "Arasta of the Endless Web",
+      "id": "e905a310-02d5-4a86-bb58-2bb3502edba2",
+      "i": 98,
+      "scene": 9,
+      "rot": "upright",
+      "layout": "overlapping",
+      "coverage": 0.206,
+      "got": "Tangle Mantis",
+      "trueRank": null,
+      "artBest": {
+        "name": "Tangle Mantis",
+        "inliers": 7,
+        "color": 87,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 5,
+        "clickArtInliers": 3,
+        "clickTextInliers": 2,
+        "clickHalfInliers": [
+          3,
+          2
+        ]
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.0459270142018795,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.01980331912636757,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 184,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.03631418198347092,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.022997291758656502,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.04985952004790306,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.031848788261413574,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 369,
+          "milo": {
+            "model": "milo1",
+            "status": "ready",
+            "crops": 2,
+            "proposals": 12,
+            "inferenceMs": 555,
+            "searchMs": 93,
+            "ms": 652
+          }
+        },
+        "retryMs": 3294
+      },
+      "stages": {
+        "prep": 636,
+        "rankSeeds": 676,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1198,
+        "isolatePrep": 714,
+        "isolateScore": 259,
+        "rank": 0,
+        "orb": 722,
+        "aiCrop": 184,
+        "aiRetry": 3294,
+        "total": 7687
+      },
+      "ms": 7687,
+      "perfectControl": {
+        "ok": true,
+        "got": "Arasta of the Endless Web",
+        "by": "art-match",
+        "dist": 160
+      }
+    },
+    {
+      "name": "Cat",
+      "id": "07b58d5f-8a9f-4fd6-83d6-efe3a92e89b2",
+      "i": 100,
+      "scene": 10,
+      "rot": "tapped",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Blank Card",
+      "trueRank": null,
+      "artBest": {
+        "name": "Blank Card",
+        "inliers": 9,
+        "color": 94,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0,
+        "clickHalfInliers": [
+          0,
+          0
+        ]
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.02828635461628437,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.007413591258227825,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 179,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.0074917892925441265,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.010247385129332542,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.018631763756275177,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.03731907904148102,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 352,
+          "milo": {
+            "model": "milo1",
+            "status": "ready",
+            "crops": 1,
+            "proposals": 11,
+            "inferenceMs": 276,
+            "searchMs": 45,
+            "ms": 325
+          }
+        },
+        "retryMs": 2164
+      },
+      "stages": {
+        "prep": 483,
+        "rankSeeds": 591,
+        "earlyOrbProbe": 0,
+        "rankRefine": 552,
+        "isolatePrep": 920,
+        "isolateScore": 420,
+        "rank": 0,
+        "orb": 391,
+        "aiCrop": 179,
+        "aiRetry": 2164,
+        "total": 5702
+      },
+      "ms": 5702,
+      "perfectControl": {
+        "ok": false,
+        "got": "Find the Assassin (cont'd)",
+        "dist": 133
+      }
+    },
+    {
+      "name": "The Fire Crystal",
+      "id": "daceda7c-db1d-4847-9c80-13fdfe4d2135",
+      "i": 104,
+      "scene": 10,
+      "rot": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Find the Assassin (cont'd)",
+      "trueRank": null,
+      "artBest": {
+        "name": "Find the Assassin (cont'd)",
+        "inliers": 2,
+        "color": 99,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 6,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0,
+        "clickHalfInliers": [
+          0,
+          0
+        ]
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.023394418880343437,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.010325143113732338,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 178,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.019167082384228706,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.00886400043964386,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.010241937823593616,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.0165040735155344,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 352
+        },
+        "retryMs": 352
+      },
+      "stages": {
+        "prep": 441,
+        "rankSeeds": 581,
+        "earlyOrbProbe": 0,
+        "rankRefine": 657,
+        "isolatePrep": 944,
+        "isolateScore": 449,
+        "rank": 0,
+        "orb": 235,
+        "aiCrop": 178,
+        "aiRetry": 352,
+        "total": 3839
+      },
+      "ms": 3839,
+      "perfectControl": {
+        "ok": false,
+        "got": "Double-Faced Substitute Card",
+        "dist": 160
+      }
+    },
+    {
+      "name": "Anger",
+      "id": "ed8d665e-9df6-4ae9-a567-977c687fa8e2",
+      "i": 119,
+      "scene": 11,
+      "rot": "upsidedown",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Blank Card",
+      "trueRank": null,
+      "artBest": {
+        "name": "Blank Card",
+        "inliers": 0,
+        "color": 93,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0,
+        "clickHalfInliers": null
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.05308578908443451,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.056039366871118546,
+            "accepted": false,
+            "reason": "duplicate"
+          }
+        ],
+        "ms": 179,
+        "fastMs": 378,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.056039366871118546,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.05675337836146355,
+              "accepted": false,
+              "reason": "duplicate"
+            },
+            {
+              "sharpness": 0.05738496407866478,
+              "accepted": false,
+              "reason": "duplicate"
+            },
+            {
+              "sharpness": 0.04499533399939537,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 359,
+          "milo": {
+            "model": "milo1",
+            "status": "ready",
+            "crops": 2,
+            "proposals": 12,
+            "inferenceMs": 538,
+            "searchMs": 90,
+            "ms": 633
+          }
+        },
+        "retryMs": 2395
+      },
+      "stages": {
+        "prep": 519,
+        "rankSeeds": 628,
+        "earlyOrbProbe": 0,
+        "rankRefine": 481,
+        "isolatePrep": 570,
+        "isolateScore": 286,
+        "rank": 0,
+        "orb": 401,
+        "aiCrop": 179,
+        "aiAttempt": 378,
+        "milo": 1136,
+        "aiRetry": 2395,
+        "total": 6974
+      },
+      "ms": 6975,
+      "perfectControl": {
+        "ok": false,
+        "got": "White Rhystic Study",
+        "dist": 179
+      }
+    },
+    {
+      "name": "Wastes",
+      "id": "837edd3f-5380-4c1c-8323-0e61dac385e5",
+      "i": 158,
+      "scene": 15,
+      "rot": "upsidedown",
+      "layout": "spaced",
+      "coverage": 0,
+      "got": "Astor, Bearer of Blades",
+      "trueRank": null,
+      "artBest": {
+        "name": "Astor, Bearer of Blades",
+        "inliers": 5,
+        "color": 100,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0,
+        "clickHalfInliers": null
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.02368766814470291,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.02460777759552002,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 177,
+        "fastMs": 394,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.02460777759552002,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.022672245278954506,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.021297747269272804,
+              "accepted": false,
+              "reason": "duplicate"
+            },
+            {
+              "sharpness": 0.019788580015301704,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 351,
+          "milo": {
+            "model": "milo1",
+            "status": "ready",
+            "crops": 2,
+            "proposals": 12,
+            "inferenceMs": 543,
+            "searchMs": 89,
+            "ms": 636
+          }
+        },
+        "retryMs": 2146
+      },
+      "stages": {
+        "prep": 528,
+        "rankSeeds": 619,
+        "earlyOrbProbe": 0,
+        "rankRefine": 615,
+        "isolatePrep": 639,
+        "isolateScore": 272,
+        "rank": 0,
+        "orb": 489,
+        "aiCrop": 177,
+        "aiAttempt": 394,
+        "milo": 1138,
+        "aiRetry": 2146,
+        "total": 7020
+      },
+      "ms": 7020,
+      "perfectControl": {
+        "ok": false,
+        "got": "Double-Faced Substitute Card",
+        "dist": 155
+      }
+    },
+    {
+      "name": "Kai Budde Bio",
+      "id": "9ed2329f-d055-4a60-955b-384722504278",
+      "i": 195,
+      "scene": 19,
+      "rot": "upsidedown",
+      "layout": "overlapping",
+      "coverage": 0.321,
+      "got": "Ash Barrens",
+      "trueRank": null,
+      "artBest": {
+        "name": "Ash Barrens",
+        "inliers": 5,
+        "color": 96,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 7,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0,
+        "clickHalfInliers": [
+          0,
+          0
+        ]
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.019668610766530037,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.02547452412545681,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 179,
+        "fastMs": 891,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.04120511934161186,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.029107116162776947,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.019056253135204315,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.023276222869753838,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            }
+          ],
+          "ms": 350,
+          "milo": {
+            "model": "milo1",
+            "status": "ready",
+            "crops": 1,
+            "proposals": 6,
+            "inferenceMs": 271,
+            "searchMs": 45,
+            "ms": 320
+          }
+        },
+        "retryMs": 2485
+      },
+      "stages": {
+        "prep": 678,
+        "rankSeeds": 699,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1201,
+        "isolatePrep": 705,
+        "isolateScore": 248,
+        "rank": 0,
+        "orb": 1600,
+        "aiCrop": 179,
+        "aiAttempt": 891,
+        "milo": 1011,
+        "aiRetry": 2485,
+        "total": 9701
+      },
+      "ms": 9701,
+      "perfectControl": {
+        "ok": true,
+        "got": "Kai Budde Bio",
+        "by": "art-match",
+        "dist": 199
+      }
+    }
+  ],
+  "errors": []
+}

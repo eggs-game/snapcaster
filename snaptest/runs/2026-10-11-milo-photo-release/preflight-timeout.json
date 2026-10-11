@@ -1,0 +1,7 @@
+{
+  "check": "scripts/test_milo_browser.mjs",
+  "error": "page.evaluate: Error: worker timed out",
+  "timedBenchmarksStarted": false,
+  "recognitionSourceChangedForRetry": false,
+  "freshWorkerRetry": "Passed: 20/20 new faces, 50 lookups, retained native allocation and missing-Milo fallback."
+}

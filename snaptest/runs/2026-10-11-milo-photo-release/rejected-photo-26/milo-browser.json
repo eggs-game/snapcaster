@@ -1,0 +1,648 @@
+{
+  "warm": {
+    "model": "milo1",
+    "status": "ready",
+    "ms": 340
+  },
+  "records": [
+    {
+      "name": "Hapatra, the Desert Frost",
+      "id": "85faaa9d-4656-4365-871d-7cba53ed0996",
+      "face": 0,
+      "got": "Hapatra, the Desert Frost",
+      "ok": true,
+      "diagnostic": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 6,
+        "inferenceMs": 276,
+        "searchMs": 42,
+        "ms": 324
+      }
+    },
+    {
+      "name": "Turbulent Shore",
+      "id": "68353281-ebcc-4dcb-853c-f4d128c992d2",
+      "face": 0,
+      "got": "Turbulent Shore",
+      "ok": true,
+      "diagnostic": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 10,
+        "inferenceMs": 277,
+        "searchMs": 46,
+        "ms": 329
+      }
+    },
+    {
+      "name": "Uncover the Moon-Letters",
+      "id": "79edf5f6-f6b6-4271-bd2a-14a980f30616",
+      "face": 0,
+      "got": "Uncover the Moon-Letters",
+      "ok": true,
+      "diagnostic": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 10,
+        "inferenceMs": 276,
+        "searchMs": 43,
+        "ms": 325
+      }
+    },
+    {
+      "name": "Bard, Heir of Girion",
+      "id": "a5bf2146-0843-4e1b-ad07-29e3dc0e842f",
+      "face": 0,
+      "got": "Bard, Heir of Girion",
+      "ok": true,
+      "diagnostic": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 10,
+        "inferenceMs": 273,
+        "searchMs": 45,
+        "ms": 328
+      }
+    },
+    {
+      "name": "Kuroki, Thief of Talents",
+      "id": "95a0a609-216b-42e1-83fa-6570c08a4a11",
+      "face": 0,
+      "got": "Kuroki, Thief of Talents",
+      "ok": true,
+      "diagnostic": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 10,
+        "inferenceMs": 271,
+        "searchMs": 45,
+        "ms": 318
+      }
+    },
+    {
+      "name": "Gargantos, the Endbringer",
+      "id": "60b48730-3590-4c8c-b0e8-6007bb36d6b6",
+      "face": 0,
+      "got": "Gargantos, the Endbringer",
+      "ok": true,
+      "diagnostic": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 10,
+        "inferenceMs": 271,
+        "searchMs": 45,
+        "ms": 322
+      }
+    },
+    {
+      "name": "Hela's Arcanum",
+      "id": "738f0bc9-075c-45de-a1c3-7509b8bdb55b",
+      "face": 0,
+      "got": "Hela's Arcanum",
+      "ok": true,
+      "diagnostic": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 10,
+        "inferenceMs": 281,
+        "searchMs": 46,
+        "ms": 330
+      }
+    },
+    {
+      "name": "Auspicious Aquarium",
+      "id": "2647ed1a-53c0-4158-8de4-b8f99940a9c4",
+      "face": 0,
+      "got": "Auspicious Aquarium",
+      "ok": true,
+      "diagnostic": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 9,
+        "inferenceMs": 275,
+        "searchMs": 45,
+        "ms": 322
+      }
+    },
+    {
+      "name": "Vraska's Final Mercy",
+      "id": "92ae3d06-9b54-4269-9421-1f69da3cc7e5",
+      "face": 0,
+      "got": "Vraska's Final Mercy",
+      "ok": true,
+      "diagnostic": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 9,
+        "inferenceMs": 276,
+        "searchMs": 45,
+        "ms": 324
+      }
+    },
+    {
+      "name": "Dáin Ironfoot",
+      "id": "74326947-b3b9-4a58-936c-905803e125a8",
+      "face": 0,
+      "got": "Dáin Ironfoot",
+      "ok": true,
+      "diagnostic": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 10,
+        "inferenceMs": 280,
+        "searchMs": 46,
+        "ms": 328
+      }
+    },
+    {
+      "name": "Lotus",
+      "id": "c59b7223-00a9-4c0d-896d-1cd463860c40",
+      "face": 0,
+      "got": "Lotus",
+      "ok": true,
+      "diagnostic": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 10,
+        "inferenceMs": 277,
+        "searchMs": 46,
+        "ms": 325
+      }
+    },
+    {
+      "name": "Gingerbrute Token",
+      "id": "dc2dff97-a68b-497f-a004-1e14ba5116ea",
+      "face": 0,
+      "got": "Gingerbrute Token",
+      "ok": true,
+      "diagnostic": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 11,
+        "inferenceMs": 278,
+        "searchMs": 46,
+        "ms": 326
+      }
+    },
+    {
+      "name": "Enduring Story",
+      "id": "53bfaac7-07cf-4637-8f64-aba93ec7fd1a",
+      "face": 0,
+      "got": "Enduring Story",
+      "ok": true,
+      "diagnostic": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 10,
+        "inferenceMs": 277,
+        "searchMs": 46,
+        "ms": 325
+      }
+    },
+    {
+      "name": "God Pack Celebration Card",
+      "id": "f9fc7b5e-a4d9-48f1-af5d-ebc6ebc4aa70",
+      "face": 0,
+      "got": "God Pack Celebration Card",
+      "ok": true,
+      "diagnostic": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 11,
+        "inferenceMs": 274,
+        "searchMs": 45,
+        "ms": 322
+      }
+    },
+    {
+      "name": "Ceti Eel",
+      "id": "8ba16590-26bb-4bc9-9147-b7f4728da549",
+      "face": 0,
+      "got": "Ceti Eel",
+      "ok": true,
+      "diagnostic": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 10,
+        "inferenceMs": 276,
+        "searchMs": 46,
+        "ms": 324
+      }
+    },
+    {
+      "name": "Silicate Surveyor",
+      "id": "6359ab5d-4151-4a0c-af13-d59c1b381bb0",
+      "face": 0,
+      "got": "Silicate Surveyor",
+      "ok": true,
+      "diagnostic": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 7,
+        "inferenceMs": 271,
+        "searchMs": 46,
+        "ms": 319
+      }
+    },
+    {
+      "name": "Darkchild, Demon Uncaged",
+      "id": "60e252e3-88ea-49f2-a14f-ae9d0712bafe",
+      "face": 1,
+      "got": "Darkchild, Demon Uncaged",
+      "ok": true,
+      "diagnostic": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 9,
+        "inferenceMs": 277,
+        "searchMs": 45,
+        "ms": 324
+      }
+    },
+    {
+      "name": "Phyrexian",
+      "id": "7b7f2e3a-ec43-4408-affd-a09338566ce3",
+      "face": 1,
+      "got": "Phyrexian",
+      "ok": true,
+      "diagnostic": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 11,
+        "inferenceMs": 279,
+        "searchMs": 45,
+        "ms": 327
+      }
+    },
+    {
+      "name": "Lu Xun, Scholar General",
+      "id": "7c074d4c-7155-44a0-a4a5-b3825cbc36b6",
+      "face": 1,
+      "got": "Lu Xun, Scholar General",
+      "ok": true,
+      "diagnostic": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 11,
+        "inferenceMs": 280,
+        "searchMs": 45,
+        "ms": 327
+      }
+    },
+    {
+      "name": "Dragon-Kami's Egg",
+      "id": "a19f069c-b112-4a73-8303-709771d86b55",
+      "face": 1,
+      "got": "Dragon-Kami's Egg",
+      "ok": true,
+      "diagnostic": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 11,
+        "inferenceMs": 272,
+        "searchMs": 45,
+        "ms": 320
+      }
+    }
+  ],
+  "memory": [
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ],
+    [
+      0,
+      92340224
+    ]
+  ],
+  "queries": 50,
+  "fallback": {
+    "lookup": {
+      "model": "milo1",
+      "status": "failed",
+      "proposals": 0,
+      "ms": 334,
+      "error": "Failed to fetch"
+    },
+    "recognition": {
+      "status": "ready",
+      "startedAt": 1791744100059,
+      "readyAt": 1791744100827,
+      "durationMs": 768,
+      "workerMs": 371,
+      "cvStatus": "ready",
+      "indexReady": true,
+      "count": 113263
+    },
+    "scan": {
+      "got": "Dementia Bat",
+      "ok": true,
+      "crop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.022825881838798523,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.05302805453538895,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 216,
+        "fastMs": 798,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.04176143929362297,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.036099016666412354,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.04289894923567772,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.03911269083619118,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 354,
+          "milo": {
+            "model": "milo1",
+            "status": "failed",
+            "proposals": 0,
+            "ms": 334,
+            "error": "Failed to fetch",
+            "totalMs": 0
+          }
+        },
+        "retryMs": 904
+      },
+      "lookup": {
+        "model": "milo1",
+        "status": "failed",
+        "proposals": 0,
+        "ms": 334,
+        "error": "Failed to fetch",
+        "totalMs": 0
+      }
+    }
+  }
+}

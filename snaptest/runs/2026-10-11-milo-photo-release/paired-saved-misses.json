@@ -1,0 +1,4393 @@
+{
+  "purpose": "Exact saved suite misses, paired replay outside headline timing; fresh contexts and identical pixels/clicks",
+  "n": 28,
+  "baselineCorrect": 0,
+  "candidateCorrect": 4,
+  "regressed": [],
+  "records": [
+    {
+      "mode": "tableauEdh10",
+      "file": "000.jpg",
+      "name": "Displacement Wave",
+      "id": "ad6fef1f-6cc9-4e24-a1be-fc313774f28d",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "baseline": {
+        "build": "milo-adaptive-16 (local vision)",
+        "got": "Blank Card",
+        "ok": false,
+        "artBest": {
+          "name": "Blank Card",
+          "inliers": 0,
+          "color": 94,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "clickTextInliers": 0
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.058292340487241745,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.04964183270931244,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 191,
+          "fastMs": 617,
+          "fastHit": false,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 2,
+            "probes": [
+              {
+                "sharpness": 0.052500538527965546,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.04520618915557861,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.0505487322807312,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.048974160104990005,
+                "accepted": false,
+                "reason": "duplicate"
+              }
+            ],
+            "ms": 363,
+            "milo": {
+              "model": "milo1",
+              "status": "ready",
+              "crops": 2,
+              "proposals": 12,
+              "inferenceMs": 556,
+              "searchMs": 89,
+              "ms": 653
+            }
+          },
+          "retryMs": 2394
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 12,
+          "inferenceMs": 279,
+          "searchMs": 48,
+          "ms": 333,
+          "speculative": true,
+          "rescued": false,
+          "totalMs": 805
+        }
+      },
+      "candidate": {
+        "build": "milo-photo-27 (local vision)",
+        "got": "Blank Card",
+        "ok": false,
+        "artBest": {
+          "name": "Blank Card",
+          "inliers": 0,
+          "color": 94,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "clickTextInliers": 0,
+          "clickHalfInliers": null
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.058292340487241745,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.04964183270931244,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 195,
+          "fastMs": 811,
+          "fastHit": false,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 2,
+            "probes": [
+              {
+                "sharpness": 0.052500538527965546,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.04520618915557861,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.0505487322807312,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.048974160104990005,
+                "accepted": false,
+                "reason": "duplicate"
+              }
+            ],
+            "ms": 385,
+            "milo": {
+              "model": "milo1",
+              "status": "ready",
+              "crops": 2,
+              "proposals": 12,
+              "inferenceMs": 558,
+              "searchMs": 93,
+              "ms": 658
+            }
+          },
+          "retryMs": 2476
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 12,
+          "inferenceMs": 282,
+          "searchMs": 45,
+          "ms": 335,
+          "speculative": true,
+          "rescued": false,
+          "totalMs": 712
+        }
+      }
+    },
+    {
+      "mode": "tableauEdh10",
+      "file": "001.jpg",
+      "name": "Spider-Man No More",
+      "id": "72dbab11-96ed-43db-8b59-ceca47c8cd22",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "candidate": {
+        "build": "milo-photo-27 (local vision)",
+        "got": "Double-Faced Substitute Card",
+        "ok": false,
+        "artBest": {
+          "name": "Double-Faced Substitute Card",
+          "inliers": 4,
+          "color": 100,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 6,
+          "clickArtInliers": 0,
+          "clickTextInliers": 0,
+          "clickHalfInliers": [
+            0,
+            0
+          ]
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.07029188424348831,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.0641375333070755,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 178,
+          "fastMs": 482,
+          "fastHit": false,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 2,
+            "probes": [
+              {
+                "sharpness": 0.06296496093273163,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.05652208253741264,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.06457661092281342,
+                "accepted": false,
+                "reason": "duplicate"
+              },
+              {
+                "sharpness": 0.0653364509344101,
+                "accepted": false,
+                "reason": "duplicate"
+              }
+            ],
+            "ms": 369,
+            "milo": {
+              "model": "milo1",
+              "status": "ready",
+              "crops": 2,
+              "proposals": 11,
+              "inferenceMs": 570,
+              "searchMs": 98,
+              "ms": 674
+            }
+          },
+          "retryMs": 2424
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 10,
+          "inferenceMs": 292,
+          "searchMs": 48,
+          "ms": 347,
+          "rescued": false,
+          "totalMs": 1146
+        }
+      },
+      "baseline": {
+        "build": "milo-adaptive-16 (local vision)",
+        "got": "Double-Faced Substitute Card",
+        "ok": false,
+        "artBest": {
+          "name": "Double-Faced Substitute Card",
+          "inliers": 4,
+          "color": 100,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 6,
+          "clickArtInliers": 0,
+          "clickTextInliers": 0
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.07029188424348831,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.0641375333070755,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 188,
+          "fastMs": 620,
+          "fastHit": false,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 2,
+            "probes": [
+              {
+                "sharpness": 0.06296496093273163,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.05652208253741264,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.06457661092281342,
+                "accepted": false,
+                "reason": "duplicate"
+              },
+              {
+                "sharpness": 0.0653364509344101,
+                "accepted": false,
+                "reason": "duplicate"
+              }
+            ],
+            "ms": 358,
+            "milo": {
+              "model": "milo1",
+              "status": "ready",
+              "crops": 2,
+              "proposals": 11,
+              "inferenceMs": 572,
+              "searchMs": 98,
+              "ms": 682
+            }
+          },
+          "retryMs": 2475
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 10,
+          "inferenceMs": 277,
+          "searchMs": 43,
+          "ms": 327,
+          "rescued": false,
+          "totalMs": 1123
+        }
+      }
+    },
+    {
+      "mode": "tableauEdh10",
+      "file": "002.jpg",
+      "name": "Verdant Catacombs",
+      "id": "981b3a2e-de94-428d-8e5d-5a7ba6afe4a2",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.3285289542352577
+      },
+      "baseline": {
+        "build": "milo-adaptive-16 (local vision)",
+        "got": "Bonders' Enclave",
+        "ok": false,
+        "artBest": {
+          "name": "Bonders' Enclave",
+          "inliers": 12,
+          "color": 95,
+          "weak": false,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "clickTextInliers": 0
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.02785293385386467,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.03965355083346367,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 180,
+          "fastMs": 558,
+          "fastHit": false,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 2,
+            "probes": [
+              {
+                "sharpness": 0.04721454530954361,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.03965355083346367,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.03492854908108711,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.050044409930706024,
+                "accepted": false,
+                "reason": "duplicate"
+              }
+            ],
+            "ms": 363,
+            "milo": {
+              "model": "milo1",
+              "status": "ready",
+              "crops": 2,
+              "proposals": 10,
+              "inferenceMs": 566,
+              "searchMs": 92,
+              "ms": 663
+            }
+          },
+          "retryMs": 2855
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 11,
+          "inferenceMs": 557,
+          "searchMs": 95,
+          "ms": 658,
+          "rescued": false,
+          "totalMs": 1364
+        }
+      },
+      "candidate": {
+        "build": "milo-photo-27 (local vision)",
+        "got": "Bonders' Enclave",
+        "ok": false,
+        "artBest": {
+          "name": "Bonders' Enclave",
+          "inliers": 12,
+          "color": 95,
+          "weak": false,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "clickTextInliers": 0,
+          "clickHalfInliers": null
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.02785293385386467,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.03965355083346367,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 182,
+          "fastMs": 862,
+          "fastHit": false,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 2,
+            "probes": [
+              {
+                "sharpness": 0.04721454530954361,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.03965355083346367,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.03492854908108711,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.050044409930706024,
+                "accepted": false,
+                "reason": "duplicate"
+              }
+            ],
+            "ms": 372,
+            "milo": {
+              "model": "milo1",
+              "status": "ready",
+              "crops": 2,
+              "proposals": 10,
+              "inferenceMs": 565,
+              "searchMs": 94,
+              "ms": 664
+            }
+          },
+          "retryMs": 2922
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 11,
+          "inferenceMs": 558,
+          "searchMs": 94,
+          "ms": 657,
+          "rescued": false,
+          "totalMs": 1408
+        }
+      }
+    },
+    {
+      "mode": "tableauEdh10",
+      "file": "003.jpg",
+      "name": "Modified",
+      "id": "0f0a52a2-35c3-4475-ad20-f3942152a7f7",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.44576912608878816
+      },
+      "candidate": {
+        "build": "milo-photo-27 (local vision)",
+        "got": "Blank Card",
+        "ok": false,
+        "artBest": {
+          "name": "Blank Card",
+          "inliers": 0,
+          "color": 90,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "clickTextInliers": 0,
+          "clickHalfInliers": [
+            0,
+            0
+          ]
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.04768906161189079,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.0357336662709713,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            }
+          ],
+          "ms": 186,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 1,
+            "probes": [
+              {
+                "sharpness": 0.028817417100071907,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.038341742008924484,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.047992512583732605,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.033583320677280426,
+                "accepted": true,
+                "reason": "accepted"
+              }
+            ],
+            "ms": 371,
+            "milo": {
+              "model": "milo1",
+              "status": "ready",
+              "crops": 1,
+              "proposals": 12,
+              "inferenceMs": 278,
+              "searchMs": 46,
+              "ms": 331
+            }
+          },
+          "retryMs": 2478
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      },
+      "baseline": {
+        "build": "milo-adaptive-16 (local vision)",
+        "got": "Double-Faced Substitute Card",
+        "ok": false,
+        "artBest": {
+          "name": "Double-Faced Substitute Card",
+          "inliers": 5,
+          "color": 87,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 10,
+          "clickArtInliers": 8,
+          "clickTextInliers": 2
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.04768906161189079,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.0357336662709713,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            }
+          ],
+          "ms": 182,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 1,
+            "probes": [
+              {
+                "sharpness": 0.028817417100071907,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.038341742008924484,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.047992512583732605,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.033583320677280426,
+                "accepted": true,
+                "reason": "accepted"
+              }
+            ],
+            "ms": 361,
+            "milo": {
+              "model": "milo1",
+              "status": "ready",
+              "crops": 1,
+              "proposals": 12,
+              "inferenceMs": 271,
+              "searchMs": 43,
+              "ms": 316
+            }
+          },
+          "retryMs": 2646
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      }
+    },
+    {
+      "mode": "tableauEdh10",
+      "file": "004.jpg",
+      "name": "Shire Shirriff",
+      "id": "444b687f-2571-4c55-a497-d24b9e18bc0f",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.4775608496753319
+      },
+      "baseline": {
+        "build": "milo-adaptive-16 (local vision)",
+        "got": "Paladin Class",
+        "ok": false,
+        "artBest": {
+          "name": "Paladin Class",
+          "inliers": 8,
+          "color": 93,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 8,
+          "clickArtInliers": 6,
+          "clickTextInliers": 2
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.018138529732823372,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.02686806209385395,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            }
+          ],
+          "ms": 183,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 1,
+            "probes": [
+              {
+                "sharpness": 0.024569397792220116,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.024280942976474762,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.04304629564285278,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.046527113765478134,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              }
+            ],
+            "ms": 369,
+            "milo": {
+              "model": "milo1",
+              "status": "ready",
+              "crops": 1,
+              "proposals": 12,
+              "inferenceMs": 275,
+              "searchMs": 46,
+              "ms": 328
+            }
+          },
+          "retryMs": 2750
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      },
+      "candidate": {
+        "build": "milo-photo-27 (local vision)",
+        "got": "Sagrada Familiar",
+        "ok": false,
+        "artBest": {
+          "name": "Sagrada Familiar",
+          "inliers": 7,
+          "color": 100,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 6,
+          "clickArtInliers": 0,
+          "clickTextInliers": 6,
+          "clickHalfInliers": [
+            0,
+            6
+          ]
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.018138529732823372,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.02686806209385395,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            }
+          ],
+          "ms": 184,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 1,
+            "probes": [
+              {
+                "sharpness": 0.024569397792220116,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.024280942976474762,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.04304629564285278,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.046527113765478134,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              }
+            ],
+            "ms": 362,
+            "milo": {
+              "model": "milo1",
+              "status": "ready",
+              "crops": 1,
+              "proposals": 12,
+              "inferenceMs": 282,
+              "searchMs": 46,
+              "ms": 333
+            }
+          },
+          "retryMs": 2670
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      }
+    },
+    {
+      "mode": "tableauEdhDice10",
+      "file": "000.jpg",
+      "name": "Archaeology",
+      "id": "6c0966d2-3be6-499f-9c35-b7201f450e9b",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "candidate": {
+        "build": "milo-photo-27 (local vision)",
+        "got": "Double-Faced Substitute Card",
+        "ok": false,
+        "artBest": {
+          "name": "Double-Faced Substitute Card",
+          "inliers": 4,
+          "color": 100,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 6,
+          "clickArtInliers": 5,
+          "clickTextInliers": 1,
+          "clickHalfInliers": [
+            5,
+            1
+          ]
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.0386941060423851,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.01605241373181343,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 186,
+          "fastMs": 334,
+          "fastHit": false,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 1,
+            "probes": [
+              {
+                "sharpness": 0.020137904211878777,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.012997245416045189,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.016610488295555115,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.014804587699472904,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 367,
+            "milo": {
+              "model": "milo1",
+              "status": "ready",
+              "crops": 1,
+              "proposals": 7,
+              "inferenceMs": 277,
+              "searchMs": 46,
+              "ms": 327
+            }
+          },
+          "retryMs": 1644
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 9,
+          "inferenceMs": 280,
+          "searchMs": 46,
+          "ms": 332,
+          "rescued": false,
+          "totalMs": 1112
+        }
+      },
+      "baseline": {
+        "build": "milo-adaptive-16 (local vision)",
+        "got": "Double-Faced Substitute Card",
+        "ok": false,
+        "artBest": {
+          "name": "Double-Faced Substitute Card",
+          "inliers": 4,
+          "color": 100,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 6,
+          "clickArtInliers": 5,
+          "clickTextInliers": 1
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.0386941060423851,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.01605241373181343,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 181,
+          "fastMs": 500,
+          "fastHit": false,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 1,
+            "probes": [
+              {
+                "sharpness": 0.020137904211878777,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.012997245416045189,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.016610488295555115,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.014804587699472904,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 363,
+            "milo": {
+              "model": "milo1",
+              "status": "ready",
+              "crops": 1,
+              "proposals": 7,
+              "inferenceMs": 278,
+              "searchMs": 43,
+              "ms": 326
+            }
+          },
+          "retryMs": 1622
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 9,
+          "inferenceMs": 295,
+          "searchMs": 43,
+          "ms": 342,
+          "rescued": false,
+          "totalMs": 1111
+        }
+      }
+    },
+    {
+      "mode": "tableauEdhDice10",
+      "file": "001.jpg",
+      "name": "Seismic",
+      "id": "32da965c-6499-41e4-b16d-754e89cc8aa7",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "baseline": {
+        "build": "milo-adaptive-16 (local vision)",
+        "got": "Pin Trading",
+        "ok": false,
+        "artBest": {
+          "name": "Pin Trading",
+          "inliers": 3,
+          "color": 99,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 2,
+          "clickArtInliers": 0,
+          "clickTextInliers": 0
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.06281495094299316,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.04488907754421234,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 179,
+          "fastMs": 365,
+          "fastHit": false,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 1,
+            "probes": [
+              {
+                "sharpness": 0.033605027943849564,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.014047789387404919,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.04234643280506134,
+                "accepted": false,
+                "reason": "duplicate"
+              },
+              {
+                "sharpness": 0.043732739984989166,
+                "accepted": false,
+                "reason": "duplicate"
+              }
+            ],
+            "ms": 362,
+            "milo": {
+              "model": "milo1",
+              "status": "ready",
+              "crops": 1,
+              "proposals": 10,
+              "inferenceMs": 279,
+              "searchMs": 46,
+              "ms": 328
+            }
+          },
+          "retryMs": 1628
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 10,
+          "inferenceMs": 283,
+          "searchMs": 46,
+          "ms": 335,
+          "rescued": false,
+          "totalMs": 1044
+        }
+      },
+      "candidate": {
+        "build": "milo-photo-27 (local vision)",
+        "got": "Pin Trading",
+        "ok": false,
+        "artBest": {
+          "name": "Pin Trading",
+          "inliers": 3,
+          "color": 99,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 2,
+          "clickArtInliers": 0,
+          "clickTextInliers": 0,
+          "clickHalfInliers": [
+            0,
+            0
+          ]
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.06281495094299316,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.04488907754421234,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 183,
+          "fastMs": 621,
+          "fastHit": false,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 1,
+            "probes": [
+              {
+                "sharpness": 0.033605027943849564,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.014047789387404919,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.04234643280506134,
+                "accepted": false,
+                "reason": "duplicate"
+              },
+              {
+                "sharpness": 0.043732739984989166,
+                "accepted": false,
+                "reason": "duplicate"
+              }
+            ],
+            "ms": 363,
+            "milo": {
+              "model": "milo1",
+              "status": "ready",
+              "crops": 1,
+              "proposals": 10,
+              "inferenceMs": 274,
+              "searchMs": 44,
+              "ms": 322
+            }
+          },
+          "retryMs": 1639
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 10,
+          "inferenceMs": 278,
+          "searchMs": 47,
+          "ms": 329,
+          "rescued": false,
+          "totalMs": 1102
+        }
+      }
+    },
+    {
+      "mode": "tableauEdhDice10",
+      "file": "002.jpg",
+      "name": "Agent of the Shadow Thieves",
+      "id": "ae796b5c-1979-4dd2-9539-4b9e18903834",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "candidate": {
+        "build": "milo-photo-27 (local vision)",
+        "got": "Blank Card",
+        "ok": false,
+        "artBest": {
+          "name": "Blank Card",
+          "inliers": 0,
+          "color": 96,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "clickTextInliers": 0,
+          "clickHalfInliers": null
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.029597800225019455,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.039275798946619034,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            }
+          ],
+          "ms": 176,
+          "fastMs": 381,
+          "fastHit": false,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 2,
+            "probes": [
+              {
+                "sharpness": 0.055909086018800735,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.026565758511424065,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.023784834891557693,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.04364272207021713,
+                "accepted": true,
+                "reason": "accepted"
+              }
+            ],
+            "ms": 356,
+            "milo": {
+              "model": "milo1",
+              "status": "ready",
+              "crops": 2,
+              "proposals": 12,
+              "inferenceMs": 552,
+              "searchMs": 91,
+              "ms": 648
+            }
+          },
+          "retryMs": 2580
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 12,
+          "inferenceMs": 283,
+          "searchMs": 47,
+          "ms": 334,
+          "speculative": true,
+          "rescued": false,
+          "totalMs": 894
+        }
+      },
+      "baseline": {
+        "build": "milo-adaptive-16 (local vision)",
+        "got": "Blank Card",
+        "ok": false,
+        "artBest": {
+          "name": "Blank Card",
+          "inliers": 0,
+          "color": 96,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "clickTextInliers": 0
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.029597800225019455,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.039275798946619034,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            }
+          ],
+          "ms": 182,
+          "fastMs": 540,
+          "fastHit": false,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 2,
+            "probes": [
+              {
+                "sharpness": 0.055909086018800735,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.026565758511424065,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.023784834891557693,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.04364272207021713,
+                "accepted": true,
+                "reason": "accepted"
+              }
+            ],
+            "ms": 366,
+            "milo": {
+              "model": "milo1",
+              "status": "ready",
+              "crops": 2,
+              "proposals": 12,
+              "inferenceMs": 553,
+              "searchMs": 89,
+              "ms": 645
+            }
+          },
+          "retryMs": 2379
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 12,
+          "inferenceMs": 282,
+          "searchMs": 44,
+          "ms": 328,
+          "speculative": true,
+          "rescued": false,
+          "totalMs": 821
+        }
+      }
+    },
+    {
+      "mode": "tableauEdhDice10",
+      "file": "003.jpg",
+      "name": "Ultron",
+      "id": "b0398a78-60a9-42c0-8501-e4af9e5224c8",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "baseline": {
+        "build": "milo-adaptive-16 (local vision)",
+        "got": "Double-Faced Substitute Card",
+        "ok": false,
+        "artBest": {
+          "name": "Double-Faced Substitute Card",
+          "inliers": 5,
+          "color": 100,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 5,
+          "clickArtInliers": 0,
+          "clickTextInliers": 0
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.018417222425341606,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.009435229934751987,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 177,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.00903074536472559,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.006989385467022657,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.007600398734211922,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.015061035752296448,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 358
+          },
+          "retryMs": 359
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      },
+      "candidate": {
+        "build": "milo-photo-27 (local vision)",
+        "got": "Double-Faced Substitute Card",
+        "ok": false,
+        "artBest": {
+          "name": "Double-Faced Substitute Card",
+          "inliers": 5,
+          "color": 100,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 5,
+          "clickArtInliers": 0,
+          "clickTextInliers": 0,
+          "clickHalfInliers": [
+            0,
+            0
+          ]
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.018417222425341606,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.009435229934751987,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 177,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.00903074536472559,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.006989385467022657,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.007600398734211922,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.015061035752296448,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 353
+          },
+          "retryMs": 353
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      }
+    },
+    {
+      "mode": "tableauEdhDice10",
+      "file": "004.jpg",
+      "name": "Primo, the Indivisible",
+      "id": "c990db6b-e1f2-4802-b8b1-80a8b768be0e",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.3285289542352577
+      },
+      "candidate": {
+        "build": "milo-photo-27 (local vision)",
+        "got": "Celestial Armor",
+        "ok": false,
+        "artBest": {
+          "name": "Celestial Armor",
+          "inliers": 7,
+          "color": 60,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 5,
+          "clickArtInliers": 0,
+          "clickTextInliers": 5,
+          "clickHalfInliers": [
+            0,
+            5
+          ]
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.043831225484609604,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.04755695164203644,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 184,
+          "fastMs": 621,
+          "fastHit": false,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 2,
+            "probes": [
+              {
+                "sharpness": 0.04626724123954773,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.04755695164203644,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.03625380992889404,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.04832986742258072,
+                "accepted": true,
+                "reason": "accepted"
+              }
+            ],
+            "ms": 366,
+            "milo": {
+              "model": "milo1",
+              "status": "ready",
+              "crops": 2,
+              "proposals": 12,
+              "inferenceMs": 544,
+              "searchMs": 92,
+              "ms": 641
+            }
+          },
+          "retryMs": 3080
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 12,
+          "inferenceMs": 274,
+          "searchMs": 48,
+          "ms": 327,
+          "speculative": true,
+          "rescued": false,
+          "totalMs": 1157
+        }
+      },
+      "baseline": {
+        "build": "milo-adaptive-16 (local vision)",
+        "got": "Celestial Armor",
+        "ok": false,
+        "artBest": {
+          "name": "Celestial Armor",
+          "inliers": 7,
+          "color": 60,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 5,
+          "clickArtInliers": 0,
+          "clickTextInliers": 5
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.043831225484609604,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.04755695164203644,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 187,
+          "fastMs": 1238,
+          "fastHit": false,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 2,
+            "probes": [
+              {
+                "sharpness": 0.04626724123954773,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.04755695164203644,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.03625380992889404,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.04832986742258072,
+                "accepted": true,
+                "reason": "accepted"
+              }
+            ],
+            "ms": 360,
+            "milo": {
+              "model": "milo1",
+              "status": "ready",
+              "crops": 2,
+              "proposals": 12,
+              "inferenceMs": 550,
+              "searchMs": 89,
+              "ms": 642
+            }
+          },
+          "retryMs": 3010
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 12,
+          "inferenceMs": 286,
+          "searchMs": 46,
+          "ms": 335,
+          "speculative": true,
+          "rescued": false,
+          "totalMs": 1032
+        }
+      }
+    },
+    {
+      "mode": "tableauEdhDice10",
+      "file": "005.jpg",
+      "name": "Delirium Skeins",
+      "id": "3a480f1d-1959-4318-bf66-680266fcefd0",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.44576912608878816
+      },
+      "baseline": {
+        "build": "milo-adaptive-16 (local vision)",
+        "got": "The Magic Bandit",
+        "ok": false,
+        "artBest": {
+          "name": "The Magic Bandit",
+          "inliers": 9,
+          "color": 97,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "clickTextInliers": 0
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.03705936670303345,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.04127700254321098,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 177,
+          "fastMs": 641,
+          "fastHit": false,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 2,
+            "probes": [
+              {
+                "sharpness": 0.03129347041249275,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.04958429932594299,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.04844067245721817,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.05107542499899864,
+                "accepted": true,
+                "reason": "accepted"
+              }
+            ],
+            "ms": 360,
+            "milo": {
+              "model": "milo1",
+              "status": "ready",
+              "crops": 2,
+              "proposals": 7,
+              "inferenceMs": 553,
+              "searchMs": 93,
+              "ms": 649
+            }
+          },
+          "retryMs": 3167
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 6,
+          "inferenceMs": 276,
+          "searchMs": 45,
+          "ms": 323,
+          "speculative": true,
+          "rescued": false,
+          "totalMs": 1310
+        }
+      },
+      "candidate": {
+        "build": "milo-photo-27 (local vision)",
+        "got": "The Magic Bandit",
+        "ok": false,
+        "artBest": {
+          "name": "The Magic Bandit",
+          "inliers": 9,
+          "color": 97,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "clickTextInliers": 0,
+          "clickHalfInliers": null
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.03705936670303345,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.04127700254321098,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 181,
+          "fastMs": 808,
+          "fastHit": false,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 2,
+            "probes": [
+              {
+                "sharpness": 0.03129347041249275,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.04958429932594299,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.04844067245721817,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.05107542499899864,
+                "accepted": true,
+                "reason": "accepted"
+              }
+            ],
+            "ms": 360,
+            "milo": {
+              "model": "milo1",
+              "status": "ready",
+              "crops": 2,
+              "proposals": 7,
+              "inferenceMs": 550,
+              "searchMs": 94,
+              "ms": 649
+            }
+          },
+          "retryMs": 3209
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 6,
+          "inferenceMs": 279,
+          "searchMs": 50,
+          "ms": 335,
+          "speculative": true,
+          "rescued": false,
+          "totalMs": 1156
+        }
+      }
+    },
+    {
+      "mode": "tableauEdhDice10",
+      "file": "006.jpg",
+      "name": "Neurok Stealthsuit",
+      "id": "a65ad83a-7374-435d-a5bd-2dd455fa6420",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.4775608496753319
+      },
+      "candidate": {
+        "build": "milo-photo-27 (local vision)",
+        "got": "Blank Card",
+        "ok": false,
+        "artBest": {
+          "name": "Blank Card",
+          "inliers": 0,
+          "color": 87,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "clickTextInliers": 0,
+          "clickHalfInliers": null
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.03694252669811249,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.022840265184640884,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 177,
+          "fastMs": 586,
+          "fastHit": false,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.021959228441119194,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.024272365495562553,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.04701874032616615,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.0420273020863533,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              }
+            ],
+            "ms": 358
+          },
+          "retryMs": 358
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 12,
+          "inferenceMs": 278,
+          "searchMs": 47,
+          "ms": 329,
+          "speculative": true,
+          "rescued": false,
+          "totalMs": 837
+        }
+      },
+      "baseline": {
+        "build": "milo-adaptive-16 (local vision)",
+        "got": "17-Year Cicadas",
+        "ok": false,
+        "artBest": {
+          "name": "17-Year Cicadas",
+          "inliers": 7,
+          "color": 87,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 6,
+          "clickArtInliers": 0,
+          "clickTextInliers": 6
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.03694252669811249,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.022840265184640884,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 179,
+          "fastMs": 630,
+          "fastHit": false,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.021959228441119194,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.024272365495562553,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.04701874032616615,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.0420273020863533,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              }
+            ],
+            "ms": 355
+          },
+          "retryMs": 355
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 12,
+          "inferenceMs": 284,
+          "searchMs": 44,
+          "ms": 330,
+          "speculative": true,
+          "rescued": false,
+          "totalMs": 896
+        }
+      }
+    },
+    {
+      "mode": "random200",
+      "file": "000.jpg",
+      "name": "Aven Tactician",
+      "id": "b9dfc3ec-ca06-40a6-b77c-c2432af9802f",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "baseline": {
+        "build": "milo-adaptive-16 (local vision)",
+        "got": "Trash Panda",
+        "ok": false,
+        "artBest": {
+          "name": "Trash Panda",
+          "inliers": 6,
+          "color": 89,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 5,
+          "clickArtInliers": 0,
+          "clickTextInliers": 0
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.05957157909870148,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.007443008478730917,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 176,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.007484322879463434,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.016040746122598648,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.008092159405350685,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.007359923329204321,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 354
+          },
+          "retryMs": 355
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      },
+      "candidate": {
+        "build": "milo-photo-27 (local vision)",
+        "got": "Aven Tactician",
+        "ok": true,
+        "artBest": {
+          "name": "Aven Tactician",
+          "inliers": 83,
+          "color": 74,
+          "weak": true,
+          "clickInside": false,
+          "clickInliers": 54,
+          "clickArtInliers": 47,
+          "clickTextInliers": 6,
+          "clickHalfInliers": [
+            42,
+            12
+          ]
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.05957157909870148,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.007443008478730917,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 186,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.007484322879463434,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.016040746122598648,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.008092159405350685,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.007359923329204321,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 369
+          },
+          "retryMs": 369
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      }
+    },
+    {
+      "mode": "random200",
+      "file": "001.jpg",
+      "name": "Cloudshift",
+      "id": "c2ebce86-2342-482c-a882-8f3c02c56486",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "candidate": {
+        "build": "milo-photo-27 (local vision)",
+        "got": "Merchant of Truth",
+        "ok": false,
+        "artBest": {
+          "name": "Merchant of Truth",
+          "inliers": 5,
+          "color": 94,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "clickTextInliers": 0,
+          "clickHalfInliers": [
+            0,
+            0
+          ]
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.04638649895787239,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.007580819074064493,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 182,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.007862680591642857,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.05097363516688347,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.007075076922774315,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.007328575011342764,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 349
+          },
+          "retryMs": 349
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      },
+      "baseline": {
+        "build": "milo-adaptive-16 (local vision)",
+        "got": "Merchant of Truth",
+        "ok": false,
+        "artBest": {
+          "name": "Merchant of Truth",
+          "inliers": 5,
+          "color": 94,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "clickTextInliers": 0
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.04638649895787239,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.007580819074064493,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 177,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.007862680591642857,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.05097363516688347,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.007075076922774315,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.007328575011342764,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 362
+          },
+          "retryMs": 362
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      }
+    },
+    {
+      "mode": "random200",
+      "file": "002.jpg",
+      "name": "Mox Ruby",
+      "id": "1abdfbaa-5bd7-4732-b62b-ab27581bc6bb",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "baseline": {
+        "build": "milo-adaptive-16 (local vision)",
+        "got": "Merfolk Surveyor",
+        "ok": false,
+        "artBest": {
+          "name": "Merfolk Surveyor",
+          "inliers": 6,
+          "color": 99,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 7,
+          "clickArtInliers": 2,
+          "clickTextInliers": 4
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.04152728617191315,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.03150507062673569,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            }
+          ],
+          "ms": 175,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.00795600563287735,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.04516318067908287,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.01966344378888607,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.024688750505447388,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              }
+            ],
+            "ms": 349
+          },
+          "retryMs": 350
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      },
+      "candidate": {
+        "build": "milo-photo-27 (local vision)",
+        "got": "Merfolk Surveyor",
+        "ok": false,
+        "artBest": {
+          "name": "Merfolk Surveyor",
+          "inliers": 6,
+          "color": 99,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 7,
+          "clickArtInliers": 2,
+          "clickTextInliers": 4,
+          "clickHalfInliers": [
+            1,
+            6
+          ]
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.04152728617191315,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.03150507062673569,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            }
+          ],
+          "ms": 181,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.00795600563287735,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.04516318067908287,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.01966344378888607,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.024688750505447388,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              }
+            ],
+            "ms": 384
+          },
+          "retryMs": 384
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      }
+    },
+    {
+      "mode": "random200",
+      "file": "003.jpg",
+      "name": "Wing Snare",
+      "id": "19116d5d-8f2d-4e85-849d-1fbaa67e8cfd",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "candidate": {
+        "build": "milo-photo-27 (local vision)",
+        "got": "Shahrazad and Sindbad",
+        "ok": false,
+        "artBest": {
+          "name": "Shahrazad and Sindbad",
+          "inliers": 7,
+          "color": 57,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 7,
+          "clickArtInliers": 1,
+          "clickTextInliers": 6,
+          "clickHalfInliers": [
+            0,
+            7
+          ]
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.012423866428434849,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.00850016251206398,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 173,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.007596766110509634,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.018267899751663208,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.007730091921985149,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.009247609414160252,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 345
+          },
+          "retryMs": 346
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      },
+      "baseline": {
+        "build": "milo-adaptive-16 (local vision)",
+        "got": "Shahrazad and Sindbad",
+        "ok": false,
+        "artBest": {
+          "name": "Shahrazad and Sindbad",
+          "inliers": 7,
+          "color": 57,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 7,
+          "clickArtInliers": 1,
+          "clickTextInliers": 6
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.012423866428434849,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.00850016251206398,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 183,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.007596766110509634,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.018267899751663208,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.007730091921985149,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.009247609414160252,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 354
+          },
+          "retryMs": 355
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      }
+    },
+    {
+      "mode": "random200",
+      "file": "004.jpg",
+      "name": "Wolfbitten Captive",
+      "id": "1303e02a-ef69-4817-bca5-02c74774b811",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "baseline": {
+        "build": "milo-adaptive-16 (local vision)",
+        "got": "Shacklegeist",
+        "ok": false,
+        "artBest": {
+          "name": "Shacklegeist",
+          "inliers": 6,
+          "color": 89,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 8,
+          "clickArtInliers": 0,
+          "clickTextInliers": 7
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.05844510346651077,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.008087160997092724,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 182,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.007687858305871487,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.03244451433420181,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.007442406378686428,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.008035419508814812,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 351
+          },
+          "retryMs": 352
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      },
+      "candidate": {
+        "build": "milo-photo-27 (local vision)",
+        "got": "Wolfbitten Captive",
+        "ok": true,
+        "artBest": {
+          "name": "Wolfbitten Captive",
+          "inliers": 110,
+          "color": 88,
+          "weak": true,
+          "clickInside": false,
+          "clickInliers": 100,
+          "clickArtInliers": 73,
+          "clickTextInliers": 20,
+          "clickHalfInliers": [
+            81,
+            19
+          ]
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.05844510346651077,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.008087160997092724,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 179,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.007687858305871487,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.03244451433420181,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.007442406378686428,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.008035419508814812,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 353
+          },
+          "retryMs": 354
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      }
+    },
+    {
+      "mode": "random200",
+      "file": "005.jpg",
+      "name": "Hulking Ogre",
+      "id": "0676d39e-229f-480b-874e-ff0cb8e335d8",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "candidate": {
+        "build": "milo-photo-27 (local vision)",
+        "got": "Zephyr Sprite",
+        "ok": false,
+        "artBest": {
+          "name": "Zephyr Sprite",
+          "inliers": 7,
+          "color": 80,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 7,
+          "clickArtInliers": 7,
+          "clickTextInliers": 0,
+          "clickHalfInliers": [
+            7,
+            0
+          ]
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.024348590523004532,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.01102136354893446,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 180,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.00809308048337698,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.024648582562804222,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.009600923396646976,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.009474179707467556,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 353
+          },
+          "retryMs": 354
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      },
+      "baseline": {
+        "build": "milo-adaptive-16 (local vision)",
+        "got": "Zephyr Sprite",
+        "ok": false,
+        "artBest": {
+          "name": "Zephyr Sprite",
+          "inliers": 7,
+          "color": 80,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 7,
+          "clickArtInliers": 7,
+          "clickTextInliers": 0
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.024348590523004532,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.01102136354893446,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 181,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.00809308048337698,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.024648582562804222,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.009600923396646976,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.009474179707467556,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 351
+          },
+          "retryMs": 351
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      }
+    },
+    {
+      "mode": "random200",
+      "file": "006.jpg",
+      "name": "Rankle, Master of Pranks",
+      "id": "97776800-5647-4d24-9870-72aeb355926a",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "baseline": {
+        "build": "milo-adaptive-16 (local vision)",
+        "got": "Glimpse of Nature",
+        "ok": false,
+        "artBest": {
+          "name": "Glimpse of Nature",
+          "inliers": 5,
+          "color": 94,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 7,
+          "clickArtInliers": 7,
+          "clickTextInliers": 0
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.03678925335407257,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.02208467572927475,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            }
+          ],
+          "ms": 180,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.007897878997027874,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.040147893130779266,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.023272179067134857,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.02188277430832386,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              }
+            ],
+            "ms": 360
+          },
+          "retryMs": 360
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      },
+      "candidate": {
+        "build": "milo-photo-27 (local vision)",
+        "got": "Sword of Light and Shadow",
+        "ok": false,
+        "artBest": {
+          "name": "Sword of Light and Shadow",
+          "inliers": 6,
+          "color": 96,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 6,
+          "clickArtInliers": 0,
+          "clickTextInliers": 6,
+          "clickHalfInliers": [
+            0,
+            6
+          ]
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.03678925335407257,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.02208467572927475,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            }
+          ],
+          "ms": 186,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.007897878997027874,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.040147893130779266,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.023272179067134857,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.02188277430832386,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              }
+            ],
+            "ms": 363
+          },
+          "retryMs": 363
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      }
+    },
+    {
+      "mode": "random200",
+      "file": "007.jpg",
+      "name": "Leery Fogbeast",
+      "id": "56125660-2307-4270-a947-f1f4ad63841c",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "candidate": {
+        "build": "milo-photo-27 (local vision)",
+        "got": "Doomwake Giant",
+        "ok": false,
+        "artBest": {
+          "name": "Doomwake Giant",
+          "inliers": 7,
+          "color": 87,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 9,
+          "clickArtInliers": 9,
+          "clickTextInliers": 0,
+          "clickHalfInliers": [
+            8,
+            1
+          ]
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.03309832513332367,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.031117334961891174,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            }
+          ],
+          "ms": 179,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.008211920969188213,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.03550823777914047,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.03183974325656891,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.014725939370691776,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 352
+          },
+          "retryMs": 353
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      },
+      "baseline": {
+        "build": "milo-adaptive-16 (local vision)",
+        "got": "Doomwake Giant",
+        "ok": false,
+        "artBest": {
+          "name": "Doomwake Giant",
+          "inliers": 7,
+          "color": 87,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 9,
+          "clickArtInliers": 9,
+          "clickTextInliers": 0
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.03309832513332367,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.031117334961891174,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            }
+          ],
+          "ms": 182,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.008211920969188213,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.03550823777914047,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.03183974325656891,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.014725939370691776,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 359
+          },
+          "retryMs": 360
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      }
+    },
+    {
+      "mode": "random200",
+      "file": "008.jpg",
+      "name": "Burning-Rune Demon",
+      "id": "4d3b0c3b-896e-4d1e-b7fb-670718ba97d4",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "baseline": {
+        "build": "milo-adaptive-16 (local vision)",
+        "got": "Trudge Garden",
+        "ok": false,
+        "artBest": {
+          "name": "Trudge Garden",
+          "inliers": 6,
+          "color": 86,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 6,
+          "clickArtInliers": 1,
+          "clickTextInliers": 5
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.03353975713253021,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.010169416666030884,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 177,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.007304597645998001,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.03607998788356781,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.008297722786664963,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.01120847836136818,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 356
+          },
+          "retryMs": 357
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      },
+      "candidate": {
+        "build": "milo-photo-27 (local vision)",
+        "got": "Trudge Garden",
+        "ok": false,
+        "artBest": {
+          "name": "Trudge Garden",
+          "inliers": 6,
+          "color": 86,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 6,
+          "clickArtInliers": 1,
+          "clickTextInliers": 5,
+          "clickHalfInliers": [
+            1,
+            5
+          ]
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.03353975713253021,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.010169416666030884,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 180,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.007304597645998001,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.03607998788356781,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.008297722786664963,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.01120847836136818,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 356
+          },
+          "retryMs": 356
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      }
+    },
+    {
+      "mode": "random200",
+      "file": "009.jpg",
+      "name": "Tolarian Contempt",
+      "id": "153dfc34-767e-4df2-a1dc-4361e94d65ed",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "candidate": {
+        "build": "milo-photo-27 (local vision)",
+        "got": "Lumengrid Warden",
+        "ok": false,
+        "artBest": {
+          "name": "Lumengrid Warden",
+          "inliers": 5,
+          "color": 82,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 4,
+          "clickArtInliers": 3,
+          "clickTextInliers": 1,
+          "clickHalfInliers": [
+            2,
+            2
+          ]
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.026233814656734467,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.013190369121730328,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 181,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.009670514613389969,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.034582722932100296,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.013872942887246609,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.0188661590218544,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 352
+          },
+          "retryMs": 353
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      },
+      "baseline": {
+        "build": "milo-adaptive-16 (local vision)",
+        "got": "Lumengrid Warden",
+        "ok": false,
+        "artBest": {
+          "name": "Lumengrid Warden",
+          "inliers": 5,
+          "color": 82,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 4,
+          "clickArtInliers": 3,
+          "clickTextInliers": 1
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.026233814656734467,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.013190369121730328,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 177,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.009670514613389969,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.034582722932100296,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.013872942887246609,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.0188661590218544,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 363
+          },
+          "retryMs": 364
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      }
+    },
+    {
+      "mode": "random200",
+      "file": "010.jpg",
+      "name": "Crimson Muckwader",
+      "id": "ea9a6ac5-cc7c-422e-90b6-e0b866abfea9",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "baseline": {
+        "build": "milo-adaptive-16 (local vision)",
+        "got": "Command the Storm",
+        "ok": false,
+        "artBest": {
+          "name": "Command the Storm",
+          "inliers": 5,
+          "color": 59,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "clickTextInliers": 0
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.05785983055830002,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.0076117184944450855,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 180,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.007682192139327526,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.023435361683368683,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.008608606643974781,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.007670036517083645,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 348
+          },
+          "retryMs": 349
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      },
+      "candidate": {
+        "build": "milo-photo-27 (local vision)",
+        "got": "Crimson Muckwader",
+        "ok": true,
+        "artBest": {
+          "name": "Crimson Muckwader",
+          "inliers": 63,
+          "color": 57,
+          "weak": true,
+          "clickInside": false,
+          "clickInliers": 63,
+          "clickArtInliers": 1,
+          "clickTextInliers": 61,
+          "clickHalfInliers": [
+            1,
+            62
+          ]
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.05785983055830002,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.0076117184944450855,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 182,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.007682192139327526,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.023435361683368683,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.008608606643974781,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.007670036517083645,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 353
+          },
+          "retryMs": 353
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      }
+    },
+    {
+      "mode": "random200",
+      "file": "011.jpg",
+      "name": "Callaphe, Beloved of the Sea",
+      "id": "69641e64-d4f5-4654-8da8-9eb9a71e51c8",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "candidate": {
+        "build": "milo-photo-27 (local vision)",
+        "got": "Ogre's Cleaver",
+        "ok": false,
+        "artBest": {
+          "name": "Ogre's Cleaver",
+          "inliers": 4,
+          "color": 81,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 6,
+          "clickArtInliers": 5,
+          "clickTextInliers": 1,
+          "clickHalfInliers": [
+            3,
+            3
+          ]
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.04692552983760834,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.013121889904141426,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 180,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.008669821545481682,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.04218343272805214,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.01431198325008154,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.011065780185163021,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 353
+          },
+          "retryMs": 353
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      },
+      "baseline": {
+        "build": "milo-adaptive-16 (local vision)",
+        "got": "Ogre's Cleaver",
+        "ok": false,
+        "artBest": {
+          "name": "Ogre's Cleaver",
+          "inliers": 4,
+          "color": 81,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 6,
+          "clickArtInliers": 5,
+          "clickTextInliers": 1
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.04692552983760834,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.013121889904141426,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 181,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.008669821545481682,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.04218343272805214,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.01431198325008154,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.011065780185163021,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 359
+          },
+          "retryMs": 359
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      }
+    },
+    {
+      "mode": "edh200",
+      "file": "000.jpg",
+      "name": "Spinerock Tyrant",
+      "id": "10808193-6ddc-4d53-a3fa-32d7ba80a04f",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "baseline": {
+        "build": "milo-adaptive-16 (local vision)",
+        "got": "Fissure",
+        "ok": false,
+        "artBest": {
+          "name": "Fissure",
+          "inliers": 3,
+          "color": 48,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "clickTextInliers": 0
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.043524906039237976,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.009971481747925282,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 179,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.0077950237318873405,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.036575961858034134,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.008834985084831715,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.008021702989935875,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 356
+          },
+          "retryMs": 357
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      },
+      "candidate": {
+        "build": "milo-photo-27 (local vision)",
+        "got": "Fissure",
+        "ok": false,
+        "artBest": {
+          "name": "Fissure",
+          "inliers": 3,
+          "color": 48,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "clickTextInliers": 0,
+          "clickHalfInliers": null
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.043524906039237976,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.009971481747925282,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 180,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.0077950237318873405,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.036575961858034134,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.008834985084831715,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.008021702989935875,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 368
+          },
+          "retryMs": 368
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      }
+    },
+    {
+      "mode": "edh200",
+      "file": "001.jpg",
+      "name": "Memory Lapse",
+      "id": "bf9c4e40-ff50-4837-ae11-1670d637bcfb",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "candidate": {
+        "build": "milo-photo-27 (local vision)",
+        "got": "Double-Faced Substitute Card",
+        "ok": false,
+        "artBest": {
+          "name": "Double-Faced Substitute Card",
+          "inliers": 7,
+          "color": 100,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 6,
+          "clickArtInliers": 0,
+          "clickTextInliers": 0,
+          "clickHalfInliers": [
+            0,
+            0
+          ]
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.044615767896175385,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.007549920119345188,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 175,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.007862680591642857,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.03953411430120468,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.007243999280035496,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.0074850511737167835,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 353
+          },
+          "retryMs": 353
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      },
+      "baseline": {
+        "build": "milo-adaptive-16 (local vision)",
+        "got": "Double-Faced Substitute Card",
+        "ok": false,
+        "artBest": {
+          "name": "Double-Faced Substitute Card",
+          "inliers": 7,
+          "color": 100,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 6,
+          "clickArtInliers": 0,
+          "clickTextInliers": 0
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.044615767896175385,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.007549920119345188,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 178,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.007862680591642857,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.03953411430120468,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.007243999280035496,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.0074850511737167835,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 352
+          },
+          "retryMs": 353
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      }
+    },
+    {
+      "mode": "edh200",
+      "file": "002.jpg",
+      "name": "Event: Shredder's Challenge",
+      "id": "8b673d4b-0188-4225-9067-dc61386a18fd",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "baseline": {
+        "build": "milo-adaptive-16 (local vision)",
+        "got": "Sunglasses of Urza",
+        "ok": false,
+        "artBest": {
+          "name": "Sunglasses of Urza",
+          "inliers": 6,
+          "color": 52,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 7,
+          "clickArtInliers": 1,
+          "clickTextInliers": 6
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.039181917905807495,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.01382202748209238,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 180,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.00917754229158163,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.03804323449730873,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.013040444813668728,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.014675512909889221,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 355
+          },
+          "retryMs": 356
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      },
+      "candidate": {
+        "build": "milo-photo-27 (local vision)",
+        "got": "Sunglasses of Urza",
+        "ok": false,
+        "artBest": {
+          "name": "Sunglasses of Urza",
+          "inliers": 6,
+          "color": 52,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 7,
+          "clickArtInliers": 1,
+          "clickTextInliers": 6,
+          "clickHalfInliers": [
+            1,
+            6
+          ]
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.039181917905807495,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.01382202748209238,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 184,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.00917754229158163,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.03804323449730873,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.013040444813668728,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.014675512909889221,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 357
+          },
+          "retryMs": 358
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      }
+    },
+    {
+      "mode": "edh200",
+      "file": "003.jpg",
+      "name": "Shipwreck Dowser",
+      "id": "17625c3f-ed32-4475-8012-e64cbccc35b1",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "candidate": {
+        "build": "milo-photo-27 (local vision)",
+        "got": "Shipwreck Dowser",
+        "ok": true,
+        "artBest": {
+          "name": "Shipwreck Dowser",
+          "inliers": 107,
+          "color": 82,
+          "weak": true,
+          "clickInside": false,
+          "clickInliers": 81,
+          "clickArtInliers": 49,
+          "clickTextInliers": 28,
+          "clickHalfInliers": [
+            44,
+            37
+          ]
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.056320447474718094,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.007477282080799341,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 183,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.007682192139327526,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.025357330217957497,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.007976564578711987,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.007489997427910566,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 357
+          },
+          "retryMs": 357
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      },
+      "baseline": {
+        "build": "milo-adaptive-16 (local vision)",
+        "got": "Double-Faced Substitute Card",
+        "ok": false,
+        "artBest": {
+          "name": "Double-Faced Substitute Card",
+          "inliers": 6,
+          "color": 57,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 8,
+          "clickArtInliers": 6,
+          "clickTextInliers": 2
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.056320447474718094,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.007477282080799341,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 179,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.007682192139327526,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.025357330217957497,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.007976564578711987,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.007489997427910566,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 356
+          },
+          "retryMs": 357
+        },
+        "milo": {
+          "status": "skipped"
+        }
+      }
+    }
+  ]
+}

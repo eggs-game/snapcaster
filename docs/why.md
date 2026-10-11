@@ -76,18 +76,29 @@ way a player does. See [testing.md](testing.md).
 Concretely, on the current benchmark of realistic table scenes:
 
 - **189/200** correct identities, including **180/187** clear cards
-- **0.74s median**, **2.25s p90** identification time on a warmed M2 Max browser
+- **0.77s median**, **2.42s p90** identification time on a warmed desktop browser
 - **186/186** confident artwork answers correct in the paired primary run
 
-The same current-main control identifies 184/200. All five additional correct
-answers preserve clicked-card verification; no previously correct identity is
-lost. Correct reads under one second increase from 129/200 to 136/200 in this
-run, so the goal of every card in less than one second remains unmet. Eleven
-captures still fail, including clear cards that the verifier cannot settle.
-Only one becomes correct through the same full verifier on an exact crop.
+The paired current-main control also identifies 189/200; every previously
+correct crowded-table identity is preserved. Correct reads under one second
+are 131/200 versus 133/200 in the control, so this release does not establish a
+camera speed gain. Eleven captures still fail, including clear cards that the
+verifier cannot settle. Three become correct through the same full verifier on
+an exact crop.
+
+Supplied Arcane Medium photographs improve from **160/200 to 198/200**, with
+**196/196 confident answers correct** and no individually lost identity. The
+median falls from **4.85s to 0.75s**, p90 from **8.56s to 1.44s**, and correct
+subsecond reads increase from **22/200 to 139/200**. Both arms use the corrected
+Arlinn Kord front-face expectation; its former reverse-face label accounts for
+one additional control answer compared with the historical 159/200 export.
+The Hive and Seven Dwarves still fail verification. A high model retrieval
+score cannot replace missing geometric/text evidence. The goal of 200 correct
+answers each in under one second remains unmet.
+
 These timings include decoding, detection and verification, but exclude camera
 transport and first-visit downloads. See [the release results](../snaptest/results.md)
-for the broader suites and separate photograph limitations.
+for the broader suites, individual misses and release evidence.
 
 ## Constraints that shape everything
 

@@ -1,0 +1,33 @@
+{
+  "id": "314c478c-cd8e-4256-9542-79846c6f8f63",
+  "source": "https://api.scryfall.com/cards/314c478c-cd8e-4256-9542-79846c6f8f63",
+  "scryfallPage": "https://scryfall.com/card/plst/SOI-243/arlinn-kord-arlinn-embraced-by-the-moon",
+  "oldExpected": "Arlinn, Embraced by the Moon",
+  "correctExpected": "Arlinn Kord",
+  "evidence": "The light photo has a readable Arlinn Kord title. Medium and heavy photos show the same front illustration and the create-Wolf-then-transform rules, rather than the reverse-face artwork and abilities.",
+  "faces": [
+    {
+      "name": "Arlinn Kord",
+      "image": "https://cards.scryfall.io/normal/front/3/1/314c478c-cd8e-4256-9542-79846c6f8f63.jpg?1788503431"
+    },
+    {
+      "name": "Arlinn, Embraced by the Moon",
+      "image": "https://cards.scryfall.io/normal/back/3/1/314c478c-cd8e-4256-9542-79846c6f8f63.jpg?1788503431"
+    }
+  ],
+  "images": [
+    {
+      "file": "public/snaptest/arcane/light/314c478c-cd8e-4256-9542-79846c6f8f63_rand_light.jpg",
+      "sha256": "165f582b192dfa5e264931625651a35c3cef538fabd7184cb74f78156814a2e0"
+    },
+    {
+      "file": "public/snaptest/arcane/medium/314c478c-cd8e-4256-9542-79846c6f8f63_rand_medium.jpg",
+      "sha256": "6e85429506411e785713fbd0fe049ddbe211291f1cdb99cede66cdc3b07bdd8e"
+    },
+    {
+      "file": "public/snaptest/arcane/heavy/314c478c-cd8e-4256-9542-79846c6f8f63_rand_heavy.jpg",
+      "sha256": "42a41fb77505d9f4476059c64a7a44ac7a667be986d304a0ad77b078fc314e7f"
+    }
+  ],
+  "comparison": "Both recognition engines use the corrected expectation. Photo bytes, identities, order and inference catalogs are unchanged. This correction adds one correct answer to the historic 159/200 current-main score, independently of algorithm changes."
+}

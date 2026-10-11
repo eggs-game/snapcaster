@@ -1,0 +1,86 @@
+{
+  "baselineCommit": "b569d01c75d2d46ea77696a563a4ebfe65a31f03",
+  "baselineBuild": "milo-adaptive-16 (local vision)",
+  "candidateBuild": "milo-photo-27 (local vision)",
+  "browser": "Installed macOS Google Chrome, headless Playwright; warmed models/index; fresh contexts per suite; sequential runs with background throttling disabled.",
+  "pairedSettings": {
+    "aiCrop": true,
+    "milo": true,
+    "alternatingOrder": true,
+    "primarySeed": 20260803,
+    "photoSeverity": "medium",
+    "photoPixels": "Original supplied files; one front-face expectation corrected equally in both arms."
+  },
+  "timingLimits": "Includes local image decoding, retrieval, registration and fallback; excludes cold asset downloads and camera/WebRTC transport. Orientation and repeated-capture checks are separate from headline timing.",
+  "sharedSplitFix": {
+    "frozenMainWrong": 3,
+    "candidateCorrect": 3,
+    "capture": "royal-capture/000.jpg",
+    "minimumInteriorInliersPerHalf": 8,
+    "nearExactHashThresholdUnchanged": 90,
+    "partialMatchCanExcludeTarget": false
+  },
+  "sharedArtworkFix": {
+    "frozenMainWrong": 3,
+    "candidateCorrect": 3,
+    "capture": "bebop-capture/000.jpg",
+    "catalogArtHashMaxDistance": 32,
+    "maxRivalNames": 2,
+    "probeCacheEntries": 400,
+    "rivalsCanSeedAnswers": false
+  },
+  "sourceSHA256": {
+    "src/main.jsx": "3ca959b1ff51c32750bbf5763d784b3c2e011fc0fa3c50c7e2974f9822116a24",
+    "src/SnapTest.jsx": "d03090798f4c8832341051253fd7ed6c6d327a037ea9eee841fcf2f00297cac6",
+    "src/snaptest/scene.js": "c3aed501c5787dea50b752ba35d959b5e71caf93f617eb7b24790e86ab62e345",
+    "src/snaptest/degrade.js": "ef006310323143b974fe29847c48d7dd3ed3cb077bc41683cbce8203eaf675d2",
+    "src/recognition/matcher.js": "d79aca8d6b0dd9d18793104c0687cffcbaccb4647d5214c738d8d0e101d85e93",
+    "src/recognition/recognizer.js": "c307195a4001d04e956ab460f9836968515f141eaca6c6dec3f76c826a98872a",
+    "src/recognition/aiCropWorker.js": "ad5aecaf05ba3ef91c770a77f23476fa1d9d13b1486ec56d59750a0bd921ba87",
+    "src/recognition/aiCropGeometry.js": "a9153c763e917e15703a1d5fe8a80714e4722c6f73948e61a733170c064343cb",
+    "src/recognition/miloLookup.js": "f61d901f0d300f12dacb1d7860eee94ab1b66ba065347bcc450f1952de177a2f",
+    "public/carddata/cards.json": "79f0775b3b84f509edc614170e325607bd0f7245b9c9006f029e8adc6553cadc",
+    "public/carddata/milo/manifest.json": "dd2c83e7bd3654944d9b92142ebb2300004f95170f96ea762703afb44d6305bc",
+    "public/vendor/vision/milo1/model.onnx": "bd13d8d60383c69da04dce261f32e93fdaeaa8fd618fbc991e7385f71b3d45df",
+    "public/snaptest/arcane/manifest.json": "beef48b2d4aed723d49e80980adeca3f68716e4529e32765c14c7a0dc96f6197",
+    "public/carddata/arthashes.bin": "7c059b0c1689b07aa60bd8344f7f2c4374c330d7c6079e155306cf8883cb6f9b"
+  },
+  "scriptSHA256": {
+    "scripts/benchmark_milo_lookup.mjs": "44d8d3ed3b733ee3462acfaa9171842b18112e351197a966aab8939180b46c61",
+    "scripts/benchmark_recognition_release.mjs": "5649dc873c9e6b3ef042228d068b3a0bd5c06a77a26cc37ec95c7a5a393c84ef",
+    "scripts/check_recognition_release.mjs": "e1fd076d5e0daa18200146d6430bd4eac15a7563c21da99a9aa7a7291581674b",
+    "scripts/test_photo_matching.mjs": "1fc77b162c67e3f325a6e92ca424328635973d4a7af295d089202538d5c49e78",
+    "scripts/test_edge_isolation.mjs": "7c94d6244d3b5300c83ecbb0df64d1b32a4eb457e6adb7d24bd3f7ba6fca095f",
+    "scripts/compare_recognition_captures.mjs": "f2d993362f42b9eababb796dacdea43076ca89e7020b75cbd3a9b693e5d35afe",
+    "scripts/test_photo_release_gate.mjs": "8d86b7d765258d28c8860d9f33650db9fe0eeff587334251739b575afb03fcdb",
+    "scripts/test_photo_browser.mjs": "e1d09b2e2d0c470613442d9f4bef4e1f86d4afffc7e78590866201d5711d43cd",
+    "scripts/test_click_matching.mjs": "921618beb308886b282b52fdca93dc689f622d8c55eafd9b7cdfbca5fb15f671",
+    "scripts/test_milo_lookup.mjs": "eb1782ebbb459d8e36301ee923e8562759de69af43810bba98f8260bc8d36c28",
+    "scripts/test_reference_wait.mjs": "b66e0e54a926af7b7b5bda80e246e5df1a99bbd1467772727e5defd07ae60082",
+    "scripts/test_reference_features_browser.mjs": "4f9b56bea4c88fe9976ceee4072f448056b4cfa6d01e25b801c4a54119c78489",
+    "scripts/test_crowded_recognition.mjs": "020fd3149a106ceb10bd6bb52733e683a35d67b280beebf63142cf914722453a",
+    "scripts/test_milo_browser.mjs": "aad501c4b330f85425985320b95335e6e8f0c898e3ef190666efa2f9c6d0351e",
+    "scripts/replay_recognition_capture.mjs": "27a3cde9b38ee50b38639eaec51290c70df3a82366d7b292b05bbb6498d88ee7"
+  },
+  "savedFailureReplays": {
+    "samePixelsAndClicks": true,
+    "mainCorrect": 0,
+    "candidateCorrect": 4,
+    "n": 28,
+    "originalRandomMissesRecovered": 3,
+    "originalRandomMisses": 12,
+    "allRecoveriesTentative": true,
+    "rejected23RandomCorrect": 188,
+    "rejected24RandomRecoveries": 0
+  },
+  "checks": [
+    "Fast policies and production build passed",
+    "JS/Python hashing compatibility passed; duplicate hashing functions unchanged",
+    "Six raw/contrast reference-feature parity checks passed across thumbnail, legacy normal and enlarged views; 320 replacements; sixty-entry native cache; constant 134217728-byte OpenCV WASM heap",
+    "20/20 new-face retrievals; 50 lookup queries; missing-catalog recognition fallback passed; shared ONNX allocation unchanged at 92340224 bytes",
+    "20/20 actual photo quarter-turn checks",
+    "18/18 crowded checks with AI on/off; unresolved fixtures never confidently named another card",
+    "Three exact saved Geier capture replays and final paired Geier scan passed",
+    "Full photo-targeted release gate passed, retaining default primary improvement gate for other releases"
+  ]
+}

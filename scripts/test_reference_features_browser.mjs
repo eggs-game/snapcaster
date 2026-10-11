@@ -10,7 +10,10 @@ const probe = `
     try {
       await loadCV();
       const image = await fetchReference("cb231e4d-dbba-4475-a01b-212d83859722", 0);
-      if (!image) throw new Error("public reference unavailable");
+      const legacy = await fetchReference("cb231e4d-dbba-4475-a01b-212d83859722", 0, "normal");
+      const detail = await fetchReference("cb231e4d-dbba-4475-a01b-212d83859722", 0, "detail");
+      if (!image || !legacy || !detail) throw new Error("public reference unavailable");
+      if (image.width !== 244 || detail.width !== 400 || detail.height !== 557) throw new Error("reference detail was discarded");
       const snapshot = features => ({
         bytes: Array.from(features.desc.data),
         points: Array.from({length: features.kp.size()}, (_, i) => {
@@ -19,19 +22,20 @@ const probe = `
         })
       });
       const parity = [];
-      for (const contrast of [false, true]) {
-        const fresh = orbFeatures(image, 300, contrast), cached = referenceFeatures(image, contrast);
+      for (const pixels of [image, legacy, detail]) for (const contrast of [false, true]) {
+        const fresh = orbFeatures(pixels, 300, contrast), cached = referenceFeatures(pixels, contrast);
         const expected = snapshot(fresh);
         const equal = JSON.stringify(expected) === JSON.stringify(snapshot(cached));
         fresh.kp.delete(); fresh.desc.delete(); releaseReferenceFeatures(cached);
-        const reused = referenceFeatures(image, contrast);
-        parity.push({contrast, equal, sameObject: reused === cached, keypoints: reused.kp.size()});
+        const reused = referenceFeatures(pixels, contrast);
+        parity.push({width:pixels.width, height:pixels.height, contrast, equal, sameObject: reused === cached, keypoints: reused.kp.size()});
         releaseReferenceFeatures(reused);
       }
       const heaps = [];
       for (let batch = 0; batch < 4; batch++) {
         for (let i = 0; i < 80; i++) {
-          const clone = new ImageData(new Uint8ClampedArray(image.data), image.width, image.height);
+          const pixels = i % 4 < 2 ? image : detail;
+          const clone = new ImageData(new Uint8ClampedArray(pixels.data), pixels.width, pixels.height);
           const f = referenceFeatures(clone, i % 2 === 0);
           if (!f.desc.rows) throw new Error("cached descriptors missing");
           releaseReferenceFeatures(f);

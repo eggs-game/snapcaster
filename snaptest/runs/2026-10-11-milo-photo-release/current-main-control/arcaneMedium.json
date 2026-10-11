@@ -1,0 +1,3421 @@
+{
+  "build": "milo-adaptive-16 (local vision)",
+  "aiCropEnabled": true,
+  "miloEnabled": true,
+  "mode": "arcaneMedium",
+  "summary": {
+    "n": 200,
+    "accuracy": 0.8,
+    "byOcclusion": {},
+    "byPool": {},
+    "byCoverage": {},
+    "byClipped": {},
+    "avgMs": 4822,
+    "neighbourMisses": [],
+    "attempted": 200,
+    "correct": 160,
+    "errors": 0,
+    "medianMs": 4847,
+    "correctUnder1s": 22,
+    "maxMs": 11755,
+    "p90Ms": 8563,
+    "accepted": {
+      "n": 119,
+      "correct": 119
+    },
+    "byPathway": {
+      "art-match": {
+        "n": 119,
+        "ok": 119,
+        "acc": 1
+      },
+      "(no match)": {
+        "n": 81,
+        "ok": 41,
+        "acc": 0.506
+      }
+    },
+    "byRotation": {},
+    "byLayout": {},
+    "absentMisses": 37,
+    "firstHalf": 83,
+    "secondHalf": 77,
+    "wasmHeapMB": [
+      134,
+      134
+    ],
+    "perfectCropControl": {
+      "n": 0,
+      "ok": 0,
+      "acc": 0
+    },
+    "wasmHeapStartMB": 134,
+    "wasmHeapEndMB": 134,
+    "firstHalfAcc": 0.83,
+    "secondHalfAcc": 0.77
+  },
+  "misses": [
+    {
+      "name": "Guerrilla Tactics",
+      "id": "0da436c2-5cc9-49a6-bbf0-6fa3133a56c5",
+      "i": 7,
+      "scene": 0,
+      "got": "Serra Angel",
+      "trueRank": null,
+      "artBest": {
+        "name": "Serra Angel",
+        "inliers": 4,
+        "color": 73,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 5,
+        "clickArtInliers": 4,
+        "clickTextInliers": 1
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.05051696300506592,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.018878884613513947,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 178,
+        "fastMs": 608,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.02014949731528759,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.019008636474609375,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.024391183629631996,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.01577877812087536,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 353
+        },
+        "retryMs": 354
+      },
+      "stages": {
+        "prep": 621,
+        "rankSeeds": 658,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1300,
+        "isolatePrep": 734,
+        "isolateScore": 246,
+        "rank": 0,
+        "orb": 932,
+        "aiCrop": 178,
+        "aiAttempt": 608,
+        "milo": 1060,
+        "aiRetry": 354,
+        "total": 6694
+      },
+      "ms": 6694
+    },
+    {
+      "name": "Brambleweft Behemoth",
+      "id": "1c759e94-e437-4dda-af0f-6578c0a50619",
+      "i": 18,
+      "scene": 1,
+      "got": "Dark Confidant",
+      "trueRank": null,
+      "artBest": {
+        "name": "Dark Confidant",
+        "inliers": 6,
+        "color": 49,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.026004759594798088,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.01182402204722166,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 181,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.007682729046791792,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.009254055097699165,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.012646425515413284,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.010940209031105042,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 359
+        },
+        "retryMs": 359
+      },
+      "stages": {
+        "prep": 570,
+        "rankSeeds": 667,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1270,
+        "isolatePrep": 852,
+        "isolateScore": 326,
+        "rank": 0,
+        "orb": 873,
+        "aiCrop": 181,
+        "aiRetry": 359,
+        "total": 5101
+      },
+      "ms": 5102
+    },
+    {
+      "name": "Void Attendant",
+      "id": "1f66eb97-b151-48b1-aff0-f1280af66291",
+      "i": 19,
+      "scene": 1,
+      "got": "Godless Shrine",
+      "trueRank": null,
+      "artBest": {
+        "name": "Godless Shrine",
+        "inliers": 6,
+        "color": 86,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 5,
+        "clickArtInliers": 0,
+        "clickTextInliers": 5
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.02651398815214634,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.009194518439471722,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 177,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.01149898674339056,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.016263149678707123,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.009170355275273323,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.009790809825062752,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 361
+        },
+        "retryMs": 361
+      },
+      "stages": {
+        "prep": 550,
+        "rankSeeds": 635,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1301,
+        "isolatePrep": 776,
+        "isolateScore": 240,
+        "rank": 0,
+        "orb": 591,
+        "aiCrop": 177,
+        "aiRetry": 361,
+        "total": 4635
+      },
+      "ms": 4635
+    },
+    {
+      "name": "Plains",
+      "id": "258a12f9-3961-4cee-98f2-68dfd574706e",
+      "i": 25,
+      "scene": 2,
+      "got": "Myr",
+      "trueRank": 14,
+      "artBest": {
+        "name": "Myr",
+        "inliers": 12,
+        "color": 67,
+        "weak": false,
+        "clickInside": null,
+        "clickInliers": 16,
+        "clickArtInliers": 14,
+        "clickTextInliers": 2
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.011114857159554958,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.01085889432579279,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 181,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.01044855359941721,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.01653895154595375,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.010483701713383198,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.00936573650687933,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 360
+        },
+        "retryMs": 361
+      },
+      "stages": {
+        "prep": 603,
+        "rankSeeds": 650,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1380,
+        "isolatePrep": 734,
+        "isolateScore": 240,
+        "rank": 0,
+        "orb": 868,
+        "aiCrop": 181,
+        "aiRetry": 361,
+        "total": 5021
+      },
+      "ms": 5022
+    },
+    {
+      "name": "Goblin Chieftain",
+      "id": "35ac943e-8747-40a0-ac2a-8b88cfa32ca8",
+      "i": 37,
+      "scene": 3,
+      "got": "Argothian Opportunist",
+      "trueRank": null,
+      "artBest": {
+        "name": "Argothian Opportunist",
+        "inliers": 8,
+        "color": 72,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 8,
+        "clickArtInliers": 3,
+        "clickTextInliers": 3
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.020723409950733185,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.008670373819768429,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 182,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.010610900819301605,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.009105130098760128,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.00822056457400322,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.008213399909436703,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 359
+        },
+        "retryMs": 360
+      },
+      "stages": {
+        "prep": 809,
+        "rankSeeds": 777,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1308,
+        "isolatePrep": 1023,
+        "isolateScore": 296,
+        "rank": 0,
+        "orb": 761,
+        "aiCrop": 182,
+        "aiRetry": 360,
+        "total": 5519
+      },
+      "ms": 5519
+    },
+    {
+      "name": "Boiling Blood",
+      "id": "3fcb85b6-ab5a-40db-aaae-555315f32877",
+      "i": 44,
+      "scene": 4,
+      "got": "Flooded Strand",
+      "trueRank": null,
+      "artBest": {
+        "name": "Flooded Strand",
+        "inliers": 21,
+        "color": 56,
+        "weak": false,
+        "clickInside": null,
+        "clickInliers": 34,
+        "clickArtInliers": 33,
+        "clickTextInliers": 1
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.026550976559519768,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.008604698814451694,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 181,
+        "fastMs": 603,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.007842391729354858,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.014199528843164444,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.013176091015338898,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.009322946891188622,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 362
+        },
+        "retryMs": 362
+      },
+      "stages": {
+        "prep": 586,
+        "rankSeeds": 654,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1291,
+        "isolatePrep": 727,
+        "isolateScore": 251,
+        "rank": 0,
+        "orb": 1379,
+        "aiCrop": 181,
+        "aiAttempt": 603,
+        "milo": 1199,
+        "aiRetry": 362,
+        "total": 7235
+      },
+      "ms": 7235
+    },
+    {
+      "name": "Leaf-Crowned Elder",
+      "id": "5d47a112-9441-4580-9fd8-1a83e35f64b7",
+      "i": 58,
+      "scene": 5,
+      "got": "Story Beats",
+      "trueRank": null,
+      "artBest": {
+        "name": "Story Beats",
+        "inliers": 7,
+        "color": 97,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 10,
+        "clickArtInliers": 9,
+        "clickTextInliers": 1
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.022269202396273613,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.015152626670897007,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 177,
+        "fastMs": 549,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.00886848196387291,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.02884814515709877,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.011048882268369198,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.022847512736916542,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 352,
+          "milo": {
+            "model": "milo1",
+            "status": "ready",
+            "crops": 2,
+            "proposals": 12,
+            "inferenceMs": 547,
+            "searchMs": 91,
+            "ms": 642
+          }
+        },
+        "retryMs": 2635
+      },
+      "stages": {
+        "prep": 521,
+        "rankSeeds": 627,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1350,
+        "isolatePrep": 791,
+        "isolateScore": 304,
+        "rank": 0,
+        "orb": 1498,
+        "aiCrop": 177,
+        "aiAttempt": 549,
+        "milo": 1067,
+        "aiRetry": 2635,
+        "total": 9523
+      },
+      "ms": 9523
+    },
+    {
+      "name": "Lightning Greaves",
+      "id": "70eab734-875b-4b76-901b-3ac7d2133ad9",
+      "i": 70,
+      "scene": 7,
+      "got": "Reclamation Sage",
+      "trueRank": null,
+      "artBest": {
+        "name": "Reclamation Sage",
+        "inliers": 7,
+        "color": 89,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 5,
+        "clickArtInliers": 5,
+        "clickTextInliers": 0
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.04271426051855087,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.011299822479486465,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 176,
+        "fastMs": 543,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.008739029988646507,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.018488086760044098,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.019564783200621605,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.014484191313385963,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 355
+        },
+        "retryMs": 356
+      },
+      "stages": {
+        "prep": 507,
+        "rankSeeds": 622,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1061,
+        "isolatePrep": 686,
+        "isolateScore": 232,
+        "rank": 0,
+        "orb": 807,
+        "aiCrop": 176,
+        "aiAttempt": 543,
+        "milo": 563,
+        "aiRetry": 356,
+        "total": 5556
+      },
+      "ms": 5557
+    },
+    {
+      "name": "Long-Finned Skywhale",
+      "id": "772e9472-c710-474e-b8e9-54662330a592",
+      "i": 77,
+      "scene": 7,
+      "got": "Karn, the Great Creator",
+      "trueRank": null,
+      "artBest": {
+        "name": "Karn, the Great Creator",
+        "inliers": 7,
+        "color": 87,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 5,
+        "clickArtInliers": 2,
+        "clickTextInliers": 2
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.016413593664765358,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.008740400895476341,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 181,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.009121209383010864,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.008540783077478409,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.009622681885957718,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.010287009179592133,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 360
+        },
+        "retryMs": 360
+      },
+      "stages": {
+        "prep": 556,
+        "rankSeeds": 634,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1212,
+        "isolatePrep": 852,
+        "isolateScore": 315,
+        "rank": 0,
+        "orb": 528,
+        "aiCrop": 181,
+        "aiRetry": 360,
+        "total": 4642
+      },
+      "ms": 4643
+    },
+    {
+      "name": "Crook of Condemnation",
+      "id": "78f6d7c2-ee4f-4cd0-a9a2-d8469ff89291",
+      "i": 78,
+      "scene": 7,
+      "got": "Defender of Law",
+      "trueRank": null,
+      "artBest": {
+        "name": "Defender of Law",
+        "inliers": 7,
+        "color": 23,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 6,
+        "clickArtInliers": 0,
+        "clickTextInliers": 6
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.029037542641162872,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.009343046694993973,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 179,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.01234912034124136,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.016416367143392563,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.007974357344210148,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.00902861449867487,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 356
+        },
+        "retryMs": 356
+      },
+      "stages": {
+        "prep": 512,
+        "rankSeeds": 666,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1005,
+        "isolatePrep": 619,
+        "isolateScore": 236,
+        "rank": 0,
+        "orb": 324,
+        "aiCrop": 179,
+        "aiRetry": 356,
+        "total": 3901
+      },
+      "ms": 3901
+    },
+    {
+      "name": "Myriad Landscape",
+      "id": "79bfe024-1be9-4902-898a-93502e48b86d",
+      "i": 79,
+      "scene": 7,
+      "got": "High Noon At Thunder Junction",
+      "trueRank": null,
+      "artBest": {
+        "name": "High Noon At Thunder Junction",
+        "inliers": 5,
+        "color": 97,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 14,
+        "clickArtInliers": 0,
+        "clickTextInliers": 14
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.03282511606812477,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.011901176534593105,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 183,
+        "fastMs": 622,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.008771375752985477,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.011383626610040665,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.01100432500243187,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.010173429735004902,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 359
+        },
+        "retryMs": 359
+      },
+      "stages": {
+        "prep": 502,
+        "rankSeeds": 666,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1126,
+        "isolatePrep": 569,
+        "isolateScore": 236,
+        "rank": 0,
+        "orb": 970,
+        "aiCrop": 183,
+        "aiAttempt": 622,
+        "milo": 526,
+        "aiRetry": 359,
+        "total": 5763
+      },
+      "ms": 5763
+    },
+    {
+      "name": "Horseshoe Crab",
+      "id": "7b8ba7cc-2586-497a-8b62-4342a3f19506",
+      "i": 83,
+      "scene": 8,
+      "got": "Old-Growth Troll",
+      "trueRank": null,
+      "artBest": {
+        "name": "Old-Growth Troll",
+        "inliers": 6,
+        "color": 95,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 10,
+        "clickArtInliers": 9,
+        "clickTextInliers": 1
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.03067759796977043,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.012705323286354542,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 178,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.013776632025837898,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.01709829270839691,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.0159324761480093,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.014785381965339184,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 358
+        },
+        "retryMs": 358
+      },
+      "stages": {
+        "prep": 535,
+        "rankSeeds": 626,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1393,
+        "isolatePrep": 565,
+        "isolateScore": 256,
+        "rank": 0,
+        "orb": 795,
+        "aiCrop": 178,
+        "aiRetry": 358,
+        "total": 4710
+      },
+      "ms": 4710
+    },
+    {
+      "name": "All Will Be One",
+      "id": "7f9cf727-c02f-4295-a708-d2497e503a27",
+      "i": 87,
+      "scene": 8,
+      "got": "Gray Merchant of Asphodel",
+      "trueRank": null,
+      "artBest": {
+        "name": "Gray Merchant of Asphodel",
+        "inliers": 7,
+        "color": 84,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 5,
+        "clickArtInliers": 1,
+        "clickTextInliers": 4
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.022354118525981903,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.026348590850830078,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 180,
+        "fastMs": 646,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.029307007789611816,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.03393542394042015,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.013833566568791866,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.02553700841963291,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            }
+          ],
+          "ms": 359,
+          "milo": {
+            "model": "milo1",
+            "status": "ready",
+            "crops": 2,
+            "proposals": 12,
+            "inferenceMs": 546,
+            "searchMs": 92,
+            "ms": 643
+          }
+        },
+        "retryMs": 3052
+      },
+      "stages": {
+        "prep": 683,
+        "rankSeeds": 662,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1303,
+        "isolatePrep": 761,
+        "isolateScore": 232,
+        "rank": 0,
+        "orb": 1696,
+        "aiCrop": 180,
+        "aiAttempt": 646,
+        "milo": 2139,
+        "aiRetry": 3052,
+        "total": 11359
+      },
+      "ms": 11359
+    },
+    {
+      "name": "Chastise",
+      "id": "80972578-36fb-4bc2-9593-f9b10fb8424c",
+      "i": 88,
+      "scene": 8,
+      "got": "Paliano",
+      "trueRank": null,
+      "artBest": {
+        "name": "Paliano",
+        "inliers": 7,
+        "color": 51,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 9,
+        "clickArtInliers": 8,
+        "clickTextInliers": 1
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.0320182628929615,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.013514971360564232,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 179,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.017307918518781662,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.016949566081166267,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.026035232469439507,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.015779739245772362,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 354,
+          "milo": {
+            "model": "milo1",
+            "status": "ready",
+            "crops": 1,
+            "proposals": 12,
+            "inferenceMs": 276,
+            "searchMs": 45,
+            "ms": 326
+          }
+        },
+        "retryMs": 2084
+      },
+      "stages": {
+        "prep": 536,
+        "rankSeeds": 637,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1269,
+        "isolatePrep": 677,
+        "isolateScore": 242,
+        "rank": 0,
+        "orb": 600,
+        "aiCrop": 179,
+        "aiRetry": 2084,
+        "total": 6227
+      },
+      "ms": 6227
+    },
+    {
+      "name": "Tectonic Edge",
+      "id": "80f775ed-0ed0-451f-9916-01d00bbd5112",
+      "i": 89,
+      "scene": 8,
+      "got": "Windfall",
+      "trueRank": null,
+      "artBest": {
+        "name": "Windfall",
+        "inliers": 6,
+        "color": 75,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 6,
+        "clickArtInliers": 0,
+        "clickTextInliers": 6
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.026608072221279144,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.007859542965888977,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 179,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.00907528679817915,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.00986604392528534,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.008696001023054123,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.007507737260311842,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 364
+        },
+        "retryMs": 364
+      },
+      "stages": {
+        "prep": 533,
+        "rankSeeds": 664,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1224,
+        "isolatePrep": 576,
+        "isolateScore": 236,
+        "rank": 0,
+        "orb": 646,
+        "aiCrop": 179,
+        "aiRetry": 364,
+        "total": 4425
+      },
+      "ms": 4425
+    },
+    {
+      "name": "Traveling Chocobo",
+      "id": "81690ce7-0651-40e4-9769-baebe10e2cbf",
+      "i": 91,
+      "scene": 9,
+      "got": "Godless Shrine",
+      "trueRank": null,
+      "artBest": {
+        "name": "Godless Shrine",
+        "inliers": 4,
+        "color": 63,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.019585687667131424,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.01390084344893694,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 180,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.012779620476067066,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.009400681592524052,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.016855832189321518,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.014338753186166286,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 361
+        },
+        "retryMs": 362
+      },
+      "stages": {
+        "prep": 575,
+        "rankSeeds": 694,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1077,
+        "isolatePrep": 873,
+        "isolateScore": 343,
+        "rank": 0,
+        "orb": 460,
+        "aiCrop": 180,
+        "aiRetry": 362,
+        "total": 4567
+      },
+      "ms": 4567
+    },
+    {
+      "name": "Instill Energy",
+      "id": "85304d7b-d62b-41b5-95a3-93d6a54a9fc4",
+      "i": 96,
+      "scene": 9,
+      "got": "Fog",
+      "trueRank": null,
+      "artBest": {
+        "name": "Fog",
+        "inliers": 63,
+        "color": 64,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 63,
+        "clickArtInliers": 63,
+        "clickTextInliers": 0
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.03386909142136574,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.019814491271972656,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 178,
+        "fastMs": 283,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.009436479769647121,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.015423186123371124,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.021782582625746727,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.02175525575876236,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 357,
+          "milo": {
+            "model": "milo1",
+            "status": "ready",
+            "crops": 2,
+            "proposals": 12,
+            "inferenceMs": 553,
+            "searchMs": 93,
+            "ms": 652
+          }
+        },
+        "retryMs": 2965
+      },
+      "stages": {
+        "prep": 683,
+        "rankSeeds": 662,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1127,
+        "isolatePrep": 821,
+        "isolateScore": 334,
+        "rank": 0,
+        "orb": 1614,
+        "aiCrop": 178,
+        "aiAttempt": 283,
+        "milo": 594,
+        "aiRetry": 2965,
+        "total": 9264
+      },
+      "ms": 9264
+    },
+    {
+      "name": "Ozolith, the Shattered Spire",
+      "id": "8ec4a507-3db3-4f22-858b-097244c54ef0",
+      "i": 104,
+      "scene": 10,
+      "got": "Rootwire Amalgam",
+      "trueRank": null,
+      "artBest": {
+        "name": "Rootwire Amalgam",
+        "inliers": 7,
+        "color": 46,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.02791304886341095,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.008184605278074741,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 181,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.009097660891711712,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.009382450953125954,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.014975154772400856,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.008945534937083721,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 359
+        },
+        "retryMs": 359
+      },
+      "stages": {
+        "prep": 601,
+        "rankSeeds": 708,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1180,
+        "isolatePrep": 830,
+        "isolateScore": 304,
+        "rank": 0,
+        "orb": 803,
+        "aiCrop": 181,
+        "aiRetry": 359,
+        "total": 4968
+      },
+      "ms": 4968
+    },
+    {
+      "name": "The Reality Chip",
+      "id": "9797bb82-24f6-4dd5-8f5d-b3ea45bb65b8",
+      "i": 111,
+      "scene": 11,
+      "got": "Glacierwood Siege",
+      "trueRank": null,
+      "artBest": {
+        "name": "Glacierwood Siege",
+        "inliers": 8,
+        "color": 52,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 18,
+        "clickArtInliers": 0,
+        "clickTextInliers": 18
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.02575620822608471,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.023086613044142723,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 182,
+        "fastMs": 653,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.00915621966123581,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.018511580303311348,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.01508164033293724,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.018111709505319595,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 349
+        },
+        "retryMs": 350
+      },
+      "stages": {
+        "prep": 566,
+        "rankSeeds": 705,
+        "earlyOrbProbe": 0,
+        "rankRefine": 974,
+        "isolatePrep": 897,
+        "isolateScore": 306,
+        "rank": 0,
+        "orb": 1691,
+        "aiCrop": 182,
+        "aiAttempt": 653,
+        "milo": 1844,
+        "aiRetry": 350,
+        "total": 8175
+      },
+      "ms": 8175
+    },
+    {
+      "name": "Swamp",
+      "id": "9d18998b-94b8-47e6-a21a-112e0a989a5a",
+      "i": 115,
+      "scene": 11,
+      "got": "Monastery Loremaster",
+      "trueRank": null,
+      "artBest": {
+        "name": "Monastery Loremaster",
+        "inliers": 6,
+        "color": 76,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 5,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.010231570340692997,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.020145408809185028,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 177,
+        "fastMs": 826,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.014477802440524101,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.017433878034353256,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.02123803086578846,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.011853842064738274,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 353,
+          "milo": {
+            "model": "milo1",
+            "status": "ready",
+            "crops": 1,
+            "proposals": 12,
+            "inferenceMs": 275,
+            "searchMs": 45,
+            "ms": 324
+          }
+        },
+        "retryMs": 1967
+      },
+      "stages": {
+        "prep": 486,
+        "rankSeeds": 668,
+        "earlyOrbProbe": 0,
+        "rankRefine": 930,
+        "isolatePrep": 755,
+        "isolateScore": 314,
+        "rank": 0,
+        "orb": 732,
+        "aiCrop": 177,
+        "aiAttempt": 826,
+        "milo": 774,
+        "aiRetry": 1967,
+        "total": 7633
+      },
+      "ms": 7634
+    },
+    {
+      "name": "Barging Sergeant",
+      "id": "9d41f61e-8b0c-4dea-b39b-faf93c4c847f",
+      "i": 116,
+      "scene": 11,
+      "got": "Demon's Disciple",
+      "trueRank": null,
+      "artBest": {
+        "name": "Demon's Disciple",
+        "inliers": 7,
+        "color": 73,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 8,
+        "clickArtInliers": 0,
+        "clickTextInliers": 8
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.029942020773887634,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.021163610741496086,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 178,
+        "fastMs": 771,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.012657622806727886,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.02527839131653309,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.025580674409866333,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.01528218574821949,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 351,
+          "milo": {
+            "model": "milo1",
+            "status": "ready",
+            "crops": 2,
+            "proposals": 12,
+            "inferenceMs": 546,
+            "searchMs": 93,
+            "ms": 645
+          }
+        },
+        "retryMs": 2963
+      },
+      "stages": {
+        "prep": 628,
+        "rankSeeds": 644,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1443,
+        "isolatePrep": 717,
+        "isolateScore": 246,
+        "rank": 0,
+        "orb": 2053,
+        "aiCrop": 178,
+        "aiAttempt": 771,
+        "milo": 2110,
+        "aiRetry": 2963,
+        "total": 11755
+      },
+      "ms": 11755
+    },
+    {
+      "name": "Drain Life",
+      "id": "9fbc6761-c4fc-4b4c-afb5-94ad4d21bc05",
+      "i": 118,
+      "scene": 11,
+      "got": "Open the Graves",
+      "trueRank": null,
+      "artBest": {
+        "name": "Open the Graves",
+        "inliers": 7,
+        "color": 70,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 9,
+        "clickArtInliers": 0,
+        "clickTextInliers": 9
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.04104616865515709,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.008185163140296936,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 177,
+        "fastMs": 601,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.0076173823326826096,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.012667878530919552,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.0145970918238163,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.01157001405954361,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 356
+        },
+        "retryMs": 356
+      },
+      "stages": {
+        "prep": 578,
+        "rankSeeds": 640,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1344,
+        "isolatePrep": 725,
+        "isolateScore": 237,
+        "rank": 0,
+        "orb": 1353,
+        "aiCrop": 177,
+        "aiAttempt": 601,
+        "milo": 1215,
+        "aiRetry": 356,
+        "total": 7228
+      },
+      "ms": 7229
+    },
+    {
+      "name": "Treacherous Vampire",
+      "id": "a00562ae-b8b4-4f8f-8ea8-15d20568997d",
+      "i": 119,
+      "scene": 11,
+      "got": "Sparksmith",
+      "trueRank": null,
+      "artBest": {
+        "name": "Sparksmith",
+        "inliers": 5,
+        "color": 88,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 6,
+        "clickArtInliers": 0,
+        "clickTextInliers": 6
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.041201721876859665,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.010113435797393322,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 179,
+        "fastMs": 523,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.008484762161970139,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.016467958688735962,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.011573887430131435,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.011903317645192146,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 358
+        },
+        "retryMs": 359
+      },
+      "stages": {
+        "prep": 415,
+        "rankSeeds": 614,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1005,
+        "isolatePrep": 793,
+        "isolateScore": 309,
+        "rank": 0,
+        "orb": 735,
+        "aiCrop": 179,
+        "aiAttempt": 523,
+        "milo": 864,
+        "aiRetry": 359,
+        "total": 5800
+      },
+      "ms": 5800
+    },
+    {
+      "name": "Eagle of Deliverance",
+      "id": "a4631187-9a5b-43d5-92d8-de6e609d2a03",
+      "i": 121,
+      "scene": 12,
+      "got": "Glamdring",
+      "trueRank": null,
+      "artBest": {
+        "name": "Glamdring",
+        "inliers": 7,
+        "color": 96,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 10,
+        "clickArtInliers": 0,
+        "clickTextInliers": 10
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.03216319903731346,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.00978078693151474,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 179,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.007857399992644787,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.01441101636737585,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.011685149744153023,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.009518351405858994,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 362
+        },
+        "retryMs": 363
+      },
+      "stages": {
+        "prep": 569,
+        "rankSeeds": 696,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1578,
+        "isolatePrep": 656,
+        "isolateScore": 232,
+        "rank": 0,
+        "orb": 1173,
+        "aiCrop": 179,
+        "aiRetry": 363,
+        "total": 5449
+      },
+      "ms": 5449
+    },
+    {
+      "name": "Dazzling Beauty",
+      "id": "ad0ece98-5506-4a18-b900-8d1a6cd87385",
+      "i": 127,
+      "scene": 12,
+      "got": "Meddling Mage",
+      "trueRank": null,
+      "artBest": {
+        "name": "Meddling Mage",
+        "inliers": 7,
+        "color": 75,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 11,
+        "clickArtInliers": 9,
+        "clickTextInliers": 2
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.028764763846993446,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.007885829545557499,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 177,
+        "fastMs": 555,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.007135461084544659,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.009841452352702618,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.007577246520668268,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.007865320891141891,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 350
+        },
+        "retryMs": 350
+      },
+      "stages": {
+        "prep": 551,
+        "rankSeeds": 667,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1253,
+        "isolatePrep": 625,
+        "isolateScore": 253,
+        "rank": 0,
+        "orb": 1496,
+        "aiCrop": 177,
+        "aiAttempt": 555,
+        "milo": 1155,
+        "aiRetry": 350,
+        "total": 7086
+      },
+      "ms": 7087
+    },
+    {
+      "name": "Indentured Oaf",
+      "id": "af6e976c-3c0b-4ba5-b614-e1b576b57e86",
+      "i": 130,
+      "scene": 13,
+      "got": "Foe-Razer Regent",
+      "trueRank": null,
+      "artBest": {
+        "name": "Foe-Razer Regent",
+        "inliers": 11,
+        "color": 68,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 8,
+        "clickArtInliers": 0,
+        "clickTextInliers": 8
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.028822746127843857,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.019107718020677567,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 179,
+        "fastMs": 656,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.01075545884668827,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.017218496650457382,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.01591884344816208,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.025508461520075798,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 350,
+          "milo": {
+            "model": "milo1",
+            "status": "ready",
+            "crops": 1,
+            "proposals": 12,
+            "inferenceMs": 269,
+            "searchMs": 46,
+            "ms": 320
+          }
+        },
+        "retryMs": 2158
+      },
+      "stages": {
+        "prep": 572,
+        "rankSeeds": 655,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1291,
+        "isolatePrep": 765,
+        "isolateScore": 241,
+        "rank": 0,
+        "orb": 1120,
+        "aiCrop": 179,
+        "aiAttempt": 656,
+        "milo": 974,
+        "aiRetry": 2158,
+        "total": 8615
+      },
+      "ms": 8615
+    },
+    {
+      "name": "Persecute",
+      "id": "b5b3e2b1-029c-43f2-882b-cdc0f429f694",
+      "i": 137,
+      "scene": 13,
+      "got": "Silverquill Silencer",
+      "trueRank": null,
+      "artBest": {
+        "name": "Silverquill Silencer",
+        "inliers": 5,
+        "color": 51,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 6,
+        "clickArtInliers": 1,
+        "clickTextInliers": 5
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.023866692557930946,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.011960286647081375,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 178,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.009985961019992828,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.013638491742312908,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.011722682043910027,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.013897346332669258,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 349
+        },
+        "retryMs": 349
+      },
+      "stages": {
+        "prep": 603,
+        "rankSeeds": 643,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1186,
+        "isolatePrep": 691,
+        "isolateScore": 234,
+        "rank": 0,
+        "orb": 681,
+        "aiCrop": 178,
+        "aiRetry": 349,
+        "total": 4570
+      },
+      "ms": 4570
+    },
+    {
+      "name": "Liberty Prime, Recharged",
+      "id": "bca7aa89-f7c0-471b-ab16-c0664f535942",
+      "i": 142,
+      "scene": 14,
+      "got": "Magus of the Bridge",
+      "trueRank": null,
+      "artBest": {
+        "name": "Magus of the Bridge",
+        "inliers": 7,
+        "color": 87,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 7,
+        "clickArtInliers": 6,
+        "clickTextInliers": 1
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.026250213384628296,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.008477339521050453,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 178,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.011745251715183258,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.02032294124364853,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.008814096450805664,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.00886892806738615,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 349,
+          "milo": {
+            "model": "milo1",
+            "status": "ready",
+            "crops": 1,
+            "proposals": 12,
+            "inferenceMs": 269,
+            "searchMs": 46,
+            "ms": 319
+          }
+        },
+        "retryMs": 2177
+      },
+      "stages": {
+        "prep": 550,
+        "rankSeeds": 616,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1345,
+        "isolatePrep": 768,
+        "isolateScore": 253,
+        "rank": 0,
+        "orb": 819,
+        "aiCrop": 178,
+        "aiRetry": 2177,
+        "total": 6708
+      },
+      "ms": 6708
+    },
+    {
+      "name": "Braidwood Cup",
+      "id": "c2e783b7-9bd1-4f82-bf20-5d201413f5e8",
+      "i": 151,
+      "scene": 15,
+      "got": "Cauldron Dance",
+      "trueRank": null,
+      "artBest": {
+        "name": "Cauldron Dance",
+        "inliers": 6,
+        "color": 67,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.04043078050017357,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.011491184122860432,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 175,
+        "fastMs": 659,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.011067017912864685,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.023437349125742912,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.01748904213309288,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.024107573553919792,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 346,
+          "milo": {
+            "model": "milo1",
+            "status": "ready",
+            "crops": 2,
+            "proposals": 12,
+            "inferenceMs": 543,
+            "searchMs": 91,
+            "ms": 639
+          }
+        },
+        "retryMs": 2690
+      },
+      "stages": {
+        "prep": 556,
+        "rankSeeds": 658,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1098,
+        "isolatePrep": 715,
+        "isolateScore": 260,
+        "rank": 0,
+        "orb": 1066,
+        "aiCrop": 175,
+        "aiAttempt": 659,
+        "milo": 599,
+        "aiRetry": 2690,
+        "total": 8481
+      },
+      "ms": 8481
+    },
+    {
+      "name": "Scaleguard Sentinels",
+      "id": "c8b54ece-aec3-4314-b157-5bf8861ea0a0",
+      "i": 154,
+      "scene": 15,
+      "got": "Singer of Swift Rivers",
+      "trueRank": null,
+      "artBest": {
+        "name": "Singer of Swift Rivers",
+        "inliers": 7,
+        "color": 80,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 7,
+        "clickArtInliers": 4,
+        "clickTextInliers": 3
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.03845897316932678,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.01579221710562706,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 175,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.009198099374771118,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.026858210563659668,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.016240689903497696,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.025189634412527084,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 351,
+          "milo": {
+            "model": "milo1",
+            "status": "ready",
+            "crops": 2,
+            "proposals": 12,
+            "inferenceMs": 580,
+            "searchMs": 99,
+            "ms": 683
+          }
+        },
+        "retryMs": 2973
+      },
+      "stages": {
+        "prep": 658,
+        "rankSeeds": 651,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1305,
+        "isolatePrep": 843,
+        "isolateScore": 298,
+        "rank": 0,
+        "orb": 667,
+        "aiCrop": 175,
+        "aiRetry": 2973,
+        "total": 7573
+      },
+      "ms": 7573
+    },
+    {
+      "name": "Volo, Guide to Monsters",
+      "id": "c9ae01f9-7461-47b4-aa1e-93bd6ff1bf9e",
+      "i": 156,
+      "scene": 15,
+      "got": "Wear // Tear",
+      "trueRank": null,
+      "artBest": {
+        "name": "Wear // Tear",
+        "inliers": 5,
+        "color": 86,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 4,
+        "clickArtInliers": 2,
+        "clickTextInliers": 2
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.03862753137946129,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.015524209477007389,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 176,
+        "fastMs": 676,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.020297084003686905,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.019451763480901718,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.01742587424814701,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.016422219574451447,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 356
+        },
+        "retryMs": 357
+      },
+      "stages": {
+        "prep": 601,
+        "rankSeeds": 636,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1551,
+        "isolatePrep": 666,
+        "isolateScore": 221,
+        "rank": 0,
+        "orb": 1485,
+        "aiCrop": 176,
+        "aiAttempt": 676,
+        "milo": 1345,
+        "aiRetry": 357,
+        "total": 7719
+      },
+      "ms": 7719
+    },
+    {
+      "name": "Island",
+      "id": "cc101b90-3e17-4beb-a606-3e76088e362c",
+      "i": 157,
+      "scene": 15,
+      "got": "Pin Trading",
+      "trueRank": 13,
+      "artBest": {
+        "name": "Pin Trading",
+        "inliers": 7,
+        "color": 89,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 7,
+        "clickArtInliers": 1,
+        "clickTextInliers": 6
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.01635991781949997,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.012443546205759048,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 173,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.009210605174303055,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.013314109295606613,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.014717275276780128,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.013935703784227371,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 347
+        },
+        "retryMs": 347
+      },
+      "stages": {
+        "prep": 538,
+        "rankSeeds": 672,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1361,
+        "isolatePrep": 705,
+        "isolateScore": 301,
+        "rank": 0,
+        "orb": 768,
+        "aiCrop": 173,
+        "aiRetry": 347,
+        "total": 4869
+      },
+      "ms": 4869
+    },
+    {
+      "name": "Lay Claim",
+      "id": "d3592353-7d29-480a-a074-0d5a51c189d4",
+      "i": 169,
+      "scene": 16,
+      "got": "Agoraphobic Phyrexian",
+      "trueRank": null,
+      "artBest": {
+        "name": "Agoraphobic Phyrexian",
+        "inliers": 15,
+        "color": 85,
+        "weak": false,
+        "clickInside": null,
+        "clickInliers": 31,
+        "clickArtInliers": 28,
+        "clickTextInliers": 3
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.02175462245941162,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.026706421747803688,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 176,
+        "fastMs": 564,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.009229611605405807,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.038178667426109314,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.012369714677333832,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.01063283160328865,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 348,
+          "milo": {
+            "model": "milo1",
+            "status": "ready",
+            "crops": 1,
+            "proposals": 12,
+            "inferenceMs": 267,
+            "searchMs": 45,
+            "ms": 317
+          }
+        },
+        "retryMs": 2554
+      },
+      "stages": {
+        "prep": 543,
+        "rankSeeds": 626,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1531,
+        "isolatePrep": 677,
+        "isolateScore": 230,
+        "rank": 0,
+        "orb": 1492,
+        "aiCrop": 176,
+        "aiAttempt": 564,
+        "milo": 973,
+        "aiRetry": 2554,
+        "total": 9369
+      },
+      "ms": 9369
+    },
+    {
+      "name": "Skycloud Expanse",
+      "id": "d7a89f88-f8f2-43a7-b1f1-d98d3a07c4e3",
+      "i": 172,
+      "scene": 17,
+      "got": "Brushfire Elemental",
+      "trueRank": null,
+      "artBest": {
+        "name": "Brushfire Elemental",
+        "inliers": 7,
+        "color": 84,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 8,
+        "clickArtInliers": 6,
+        "clickTextInliers": 2
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.008225355297327042,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.01983219012618065,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 180,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.01319816242903471,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.01836184598505497,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.01811748929321766,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.01731090433895588,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 357
+        },
+        "retryMs": 358
+      },
+      "stages": {
+        "prep": 534,
+        "rankSeeds": 629,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1187,
+        "isolatePrep": 613,
+        "isolateScore": 245,
+        "rank": 0,
+        "orb": 539,
+        "aiCrop": 180,
+        "aiRetry": 358,
+        "total": 4286
+      },
+      "ms": 4287
+    },
+    {
+      "name": "The Hive",
+      "id": "dc052e94-1574-4e79-9b1b-288180901dea",
+      "i": 174,
+      "scene": 17,
+      "got": "Rimewood Falls",
+      "trueRank": null,
+      "artBest": {
+        "name": "Rimewood Falls",
+        "inliers": 5,
+        "color": 81,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 6,
+        "clickArtInliers": 1,
+        "clickTextInliers": 5
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.04976346716284752,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.009260779246687889,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 178,
+        "fastMs": 555,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.008434055373072624,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.01655706949532032,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.011862212792038918,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.010224265977740288,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 352
+        },
+        "retryMs": 353
+      },
+      "stages": {
+        "prep": 544,
+        "rankSeeds": 657,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1189,
+        "isolatePrep": 762,
+        "isolateScore": 240,
+        "rank": 0,
+        "orb": 996,
+        "aiCrop": 178,
+        "aiAttempt": 555,
+        "milo": 1061,
+        "aiRetry": 353,
+        "total": 6537
+      },
+      "ms": 6537
+    },
+    {
+      "name": "Deadly Dispute",
+      "id": "f1ee1e37-bde7-4208-8851-718f2ae1c540",
+      "i": 190,
+      "scene": 19,
+      "got": "Horn of Valhalla // Ysgard's Call",
+      "trueRank": null,
+      "artBest": {
+        "name": "Horn of Valhalla // Ysgard's Call",
+        "inliers": 6,
+        "color": 92,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 12,
+        "clickArtInliers": 0,
+        "clickTextInliers": 12
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.02551921457052231,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.012715740129351616,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 177,
+        "fastMs": 614,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.010986239649355412,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.01251037698239088,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.012403233908116817,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.01156377512961626,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 358
+        },
+        "retryMs": 359
+      },
+      "stages": {
+        "prep": 558,
+        "rankSeeds": 643,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1336,
+        "isolatePrep": 707,
+        "isolateScore": 249,
+        "rank": 0,
+        "orb": 1546,
+        "aiCrop": 177,
+        "aiAttempt": 614,
+        "milo": 1032,
+        "aiRetry": 359,
+        "total": 7224
+      },
+      "ms": 7224
+    },
+    {
+      "name": "Time Wipe",
+      "id": "f7663ff4-dd25-4259-bf82-8bbb5c384051",
+      "i": 194,
+      "scene": 19,
+      "got": "Ranger Class",
+      "trueRank": null,
+      "artBest": {
+        "name": "Ranger Class",
+        "inliers": 5,
+        "color": 74,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 6,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.02357337810099125,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.00888045970350504,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 178,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.007330616470426321,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.016320422291755676,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.013666446320712566,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.008488793857395649,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 357
+        },
+        "retryMs": 357
+      },
+      "stages": {
+        "prep": 572,
+        "rankSeeds": 618,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1221,
+        "isolatePrep": 825,
+        "isolateScore": 296,
+        "rank": 0,
+        "orb": 733,
+        "aiCrop": 178,
+        "aiRetry": 357,
+        "total": 4805
+      },
+      "ms": 4805
+    },
+    {
+      "name": "Ingot Chewer",
+      "id": "f84b4b61-0e92-4ca2-b4e0-ae846a2a8e37",
+      "i": 196,
+      "scene": 19,
+      "got": "Down // Dirty",
+      "trueRank": null,
+      "artBest": {
+        "name": "Down // Dirty",
+        "inliers": 7,
+        "color": 90,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 7,
+        "clickArtInliers": 5,
+        "clickTextInliers": 2
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.038858965039253235,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.010326099582016468,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 180,
+        "fastMs": 680,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.009320368990302086,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.021750295534729958,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.014727145433425903,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.010246189311146736,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 355,
+          "milo": {
+            "model": "milo1",
+            "status": "ready",
+            "crops": 1,
+            "proposals": 12,
+            "inferenceMs": 274,
+            "searchMs": 46,
+            "ms": 325
+          }
+        },
+        "retryMs": 2180
+      },
+      "stages": {
+        "prep": 587,
+        "rankSeeds": 639,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1274,
+        "isolatePrep": 673,
+        "isolateScore": 253,
+        "rank": 0,
+        "orb": 1543,
+        "aiCrop": 180,
+        "aiAttempt": 680,
+        "milo": 1135,
+        "aiRetry": 2180,
+        "total": 9147
+      },
+      "ms": 9147
+    },
+    {
+      "name": "Seven Dwarves",
+      "id": "fa5b50fb-949f-4333-8b3f-456e06848f26",
+      "i": 197,
+      "scene": 19,
+      "got": "River Boa",
+      "trueRank": 25,
+      "artBest": {
+        "name": "River Boa",
+        "inliers": 2,
+        "color": 80,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.04290267080068588,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.014251545071601868,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 188,
+        "fastMs": 488,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.011841664090752602,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.01841198094189167,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.013235829770565033,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.010745075531303883,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 363
+        },
+        "retryMs": 363
+      },
+      "stages": {
+        "prep": 505,
+        "rankSeeds": 652,
+        "earlyOrbProbe": 0,
+        "rankRefine": 828,
+        "isolatePrep": 887,
+        "isolateScore": 322,
+        "rank": 0,
+        "orb": 447,
+        "aiCrop": 188,
+        "aiAttempt": 488,
+        "milo": 910,
+        "aiRetry": 363,
+        "total": 5594
+      },
+      "ms": 5594
+    },
+    {
+      "name": "Subterfuge",
+      "id": "fdbf0034-c28a-44ed-b817-519b2a3df3c4",
+      "i": 198,
+      "scene": 19,
+      "got": "Surtland Flinger",
+      "trueRank": null,
+      "artBest": {
+        "name": "Surtland Flinger",
+        "inliers": 12,
+        "color": 54,
+        "weak": false,
+        "clickInside": null,
+        "clickInliers": 12,
+        "clickArtInliers": 10,
+        "clickTextInliers": 2
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.03320039436221123,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.009584488347172737,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 181,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.009351980872452259,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.027468141168355942,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.014537664130330086,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.01269531436264515,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 365,
+          "milo": {
+            "model": "milo1",
+            "status": "ready",
+            "crops": 1,
+            "proposals": 12,
+            "inferenceMs": 275,
+            "searchMs": 44,
+            "ms": 324
+          }
+        },
+        "retryMs": 2599
+      },
+      "stages": {
+        "prep": 591,
+        "rankSeeds": 651,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1507,
+        "isolatePrep": 667,
+        "isolateScore": 244,
+        "rank": 0,
+        "orb": 928,
+        "aiCrop": 181,
+        "aiRetry": 2599,
+        "total": 7371
+      },
+      "ms": 7371
+    }
+  ],
+  "errors": []
+}

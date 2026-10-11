@@ -948,15 +948,17 @@ async function performIdentify(source, point, hints, aiCrop, useMilo) {
   };
   const t0 = performance.now();
   const bmp = await sourceToBitmap(source);
+  const inputCard = aiCrop && useMilo && !hints?.length
+    && Math.abs(Math.max(bmp.width, bmp.height) / Math.min(bmp.width, bmp.height) - 340 / 244) < 0.03;
   // Verified recent-card hints already have a cheaper local prepass. Do not
   // charge those scans model inference before they can use it.
-  const ai = aiCrop && !hints?.length ? await proposeAiCrops(bmp, point)
-    : { quads: [], diagnostic: { status: aiCrop ? "skipped-hints" : "off" } };
+  const ai = aiCrop && !hints?.length && !inputCard ? await proposeAiCrops(bmp, point)
+    : { quads: [], diagnostic: { status: inputCard ? "input-card" : aiCrop ? "skipped-hints" : "off" } };
   let raw, fast, speculative, miloVerification = [], milo = { status: useMilo ? "skipped" : "off" };
   // A good learned crop should bypass contour enumeration and thousands of
   // isolation windows. Try only the two proposals, with the SAME identity
   // gates. Weak reads still receive the complete established pipeline.
-  if (ai.quads.length && !hints?.length) {
+  if ((ai.quads.length || inputCard) && !hints?.length) {
     const fastStarted = performance.now();
     try { fast = await runOnWorker(await createImageBitmap(bmp), point, [], ai.quads, true, [], useMilo, images => {
       if (speculative || !useMilo || !images?.length) return;

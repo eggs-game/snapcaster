@@ -42,7 +42,7 @@ assert.throws(() => validateMiloCatalog(manifest, new Int8Array(256), new Float3
 const worker = readFileSync(new URL("../src/recognition/recognizer.js", import.meta.url), "utf8");
 const boundary = worker.slice(worker.indexOf("async function verifyMiloRows("), worker.indexOf("self.onmessage = async (e)"));
 const helpers = worker.slice(worker.indexOf("function contentSupportsIdentity("), worker.indexOf("function homographySourceQuad("));
-const geometry = vm.createContext({});
+const geometry = vm.createContext({splitIdentitySupported:()=>true,});
 vm.runInContext(worker.slice(worker.indexOf("function rectifiedClick("), worker.indexOf("function rectifyCard(")), geometry);
 vm.runInContext(worker.slice(worker.indexOf("function homographySourceQuad("), worker.indexOf("// Gray-world")), geometry);
 vm.runInContext(helpers, geometry);
@@ -72,7 +72,7 @@ const proof = {};
 assert.equal(geometry.recordRegionalProof(proof,{inside:true,inliers:35,artInliers:12}),true);
 assert.equal(geometry.hasClickProof(proof),true);
 assert.equal(proof.identified_by,undefined,"registered geometry still needs the decisive rival/color/gray gates");
-const colors = vm.createContext({ ImageData: class { constructor(data,width,height) { Object.assign(this,{data,width,height}); } } });
+const colors = vm.createContext({splitIdentitySupported:()=>true, ImageData: class { constructor(data,width,height) { Object.assign(this,{data,width,height}); } } });
 vm.runInContext(worker.slice(worker.indexOf("function whiteBalance("), worker.indexOf("async function verifyTopMatches(")), colors);
 const solid = rgb => ({ width: 20, height: 20, data: Uint8ClampedArray.from(Array.from({length:400}, () => [...rgb,255]).flat()) });
 const greenCapture = solid([36,120,36]), greenReference = solid([40,130,40]);
@@ -85,7 +85,7 @@ for (const evidence of ["weak", "neighbour", "unregistered", "verified", "contra
   const winner = { name: "Retrieved card", scryfall_id: "new", milo_retrieval: true, face: 0, distance: 150,
     click_inside: evidence === "unregistered" ? null : !evidence.includes("neighbour"), click_inliers: 24, click_art_inliers: 12 };
   let calls = 0;
-  const context = vm.createContext({
+  const context = vm.createContext({splitIdentitySupported:()=>true,
     self: {}, cards: [[], []], cardsSha256: "current",
     lastMiloContext: { scanId: 7, base: [initial], images: [{}], queryImages: [{}], dists: [190,150], blockedNames: [],
       result: { matches: [initial], printingMatches: [initial], artChecked: 1 } },
@@ -113,7 +113,7 @@ console.log("Milo keeps a diverse bounded shortlist, rejects stale catalogs, and
 const bridgeSource = readFileSync(new URL("../src/recognition/aiCrop.js", import.meta.url), "utf8")
   .replaceAll("export ", "").replaceAll("import.meta.url", "'http://localhost/src/recognition/aiCrop.js'");
 let modelJobs = [], workerCount = 0;
-const bridge = vm.createContext({
+const bridge = vm.createContext({splitIdentitySupported:()=>true,
   URL, URLSearchParams, performance, setTimeout, clearTimeout, location: { search: "" },
   OffscreenCanvas: class { transferToImageBitmap() { return { close() {} }; } },
   createImageBitmap: async () => ({ close() {} }),
@@ -138,7 +138,7 @@ for (const scenario of ["clear", "verified", "weak", "failed", "stale", "hint"])
   let lookupCalls = 0, fallbacks = 0, closed = 0;
   const base = { scan_id: 1, matches: [{ name: "Old guess", distance: scenario === "clear" ? 70 : 190 }],
     art_best: {}, milo_images: [{}], printing_matches: [], stage_ms: {} };
-  const context = vm.createContext({
+  const context = vm.createContext({splitIdentitySupported:()=>true,
     performance, VISUAL_EXACT_DISTANCE: 90,
     sourceToBitmap: async () => ({ close() { closed++; } }), createImageBitmap: async () => ({}),
     proposeAiCrops: async (_bmp, _point, retry) => ({ quads: retry ? [] : [{}], diagnostic: { status: "ready", ms: 1 } }),
@@ -165,7 +165,7 @@ for (const scenario of ["verified", "weak", "error", "neighbour", "thin", "sourc
   const original = [{ crop: "original" }], retry = [{ crop: "retry" }];
   let trial = 0, fallbacks = 0, closed = 0;
   const result = { scan_id: 1, matches: [{ name: "Old guess", distance: 190 }], art_best: {}, stage_ms: {} };
-  const context = vm.createContext({
+  const context = vm.createContext({splitIdentitySupported:()=>true,
     performance, VISUAL_EXACT_DISTANCE: 90,
     sourceToBitmap: async () => ({ close() { closed++; } }), createImageBitmap: async () => ({}),
     proposeAiCrops: async (_bmp, _point, shifted) => ({ quads: shifted ? retry : original, diagnostic: { status: "ready", ms: 1 } }),
