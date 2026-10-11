@@ -1,0 +1,23 @@
+{
+  "baseCommit": "535167311d503ed86e26604674eede3fadcb781a",
+  "build": "milo-adaptive-8 (local vision)",
+  "sourceSha256": {
+    "src/main.jsx": "9be21b977fcf9ee923b87cbca609fcfb3379e30959c0b64cc403ae21d02ed7e6",
+    "src/SnapTest.jsx": "d380fa05950c612195199390a2a65a3564812f2ef0d3630620327d42431433c8",
+    "src/snaptest/scene.js": "c3aed501c5787dea50b752ba35d959b5e71caf93f617eb7b24790e86ab62e345",
+    "src/snaptest/degrade.js": "ef006310323143b974fe29847c48d7dd3ed3cb077bc41683cbce8203eaf675d2",
+    "src/recognition/aiCrop.js": "9e6291bd8d151010042dc59043a3aeb6868c3a4e1618f8aec5de1635d65d09e2",
+    "src/recognition/aiCropWorker.js": "ad5aecaf05ba3ef91c770a77f23476fa1d9d13b1486ec56d59750a0bd921ba87",
+    "src/recognition/aiCropGeometry.js": "a9153c763e917e15703a1d5fe8a80714e4722c6f73948e61a733170c064343cb",
+    "src/recognition/matcher.js": "1260aa63cc31ec0362401df8fdb76d097a5a0ba70d1ea8358df8ee7a84657a83",
+    "src/recognition/recognizer.js": "fa6ac126a0f8ff47bacca3674a57568a645afa7ddb00e9527c36ee6ab1af7a6a",
+    "src/recognition/miloLookup.js": "f61d901f0d300f12dacb1d7860eee94ab1b66ba065347bcc450f1952de177a2f",
+    "public/carddata/cards.json": "79f0775b3b84f509edc614170e325607bd0f7245b9c9006f029e8adc6553cadc",
+    "public/carddata/milo/manifest.json": "dd2c83e7bd3654944d9b92142ebb2300004f95170f96ea762703afb44d6305bc",
+    "public/vendor/vision/milo1/model.onnx": "bd13d8d60383c69da04dce261f32e93fdaeaa8fd618fbc991e7385f71b3d45df"
+  },
+  "comparison": "Frozen current-main production build with Milo enabled in both arms; identical authoritative SNAPTEST Real life JPEGs, seed 20260803, alternating order and separate contexts. Control per-card outcomes exactly reproduce the previous 184/200 release.",
+  "timingScope": "Warmed production browser pipeline on Apple M2 Max. No camera transport, first-visit model loading or phone measurement.",
+  "requiredReleaseGates": "pending",
+  "supplementalPhotographs": "Arcane medium supplied labels retained; separate validation pending."
+}

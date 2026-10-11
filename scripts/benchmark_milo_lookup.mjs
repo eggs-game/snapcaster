@@ -12,6 +12,7 @@ const flags = Object.fromEntries(process.argv.slice(2).map((arg) => {
 const suite = flags.suite || "smoke";
 if (!["smoke", "tableau", "vegas", "dice", "overlap", "arcane", "realLife"].includes(suite)) throw new Error("Unknown suite");
 const base = flags.url || "http://127.0.0.1:5173";
+const baselineMilo = flags.baselineMilo === "1";
 const output = flags.output || `.cache/ai-crop/${suite}.json`;
 const browser = await chromium.launch({
   headless: true,
@@ -54,10 +55,10 @@ try {
     // A development HMR reload would invalidate a paired run halfway through.
     // Tests use a frozen server snapshot; make unexpected reloads explicit.
     page.on("pageerror", (err) => console.error(`[${name}] ${err.message}`));
-    await page.goto(`${name === "baseline" ? flags.baselineUrl || base : base}/snaptest?aiCrop=1&milo=${name === "baseline" ? 0 : 1}`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${name === "baseline" ? flags.baselineUrl || base : base}/snaptest?aiCrop=1&milo=${name === "ai" || baselineMilo ? 1 : 0}`, { waitUntil: "domcontentloaded" });
     if (flags.production) {
       await page.waitForFunction(() => window.__SNAP_RECOGNITION_WARMUP?.status === "ready", null, { timeout: 90000 });
-      if (name === "ai" && await page.evaluate(() => window.__SNAP_MILO_WARMUP?.status) !== "ready") throw new Error("Milo catalog/model warmup did not succeed");
+      if ((name === "ai" || baselineMilo) && await page.evaluate(() => window.__SNAP_MILO_WARMUP?.status) !== "ready") throw new Error("Milo catalog/model warmup did not succeed");
     } else await page.evaluate(async () => {
       window.aiMatcher = await import("/src/recognition/matcher.js");
       await window.aiMatcher.preload();
@@ -133,13 +134,13 @@ try {
       const order = records.length % 2 ? ["ai", "baseline"] : ["baseline", "ai"];
       for (const name of order) {
         await arms[name].bringToFront();
-        rec[name] = await arms[name].evaluate(async ({ item, name, production }) => {
+        rec[name] = await arms[name].evaluate(async ({ item, milo, production }) => {
           const start = performance.now();
           try {
             if (document.visibilityState !== "visible") throw new Error("Benchmark page is hidden");
             const scan = (source, point) => production
-              ? window.__scIdentifyUrl(source, point, [], { aiCrop: true, milo: name === "ai" })
-              : window.aiMatcher.identify(source, point, { aiCrop: true, milo: name === "ai" });
+              ? window.__scIdentifyUrl(source, point, [], { aiCrop: true, milo })
+              : window.aiMatcher.identify(source, point, { aiCrop: true, milo });
             const result = await scan(item.source, item.point);
             const best = result.matches[0];
             const rank = result.matches.findIndex((m) => m.name === item.name);
@@ -157,7 +158,7 @@ try {
               aiCrop: result.ai_crop, milo: result.milo, regionalProof: !!best?.regional_proof, wasmHeapMB: result.wasm_heap_mb,
               artBest: result.art_best, blockedNames: result.blocked_names, top3: result.matches.slice(0, 3).map((m) => ({ name: m.name, distance: m.distance })) };
           } catch (error) { return { ok: false, ms: Math.round(performance.now() - start), error: String(error?.message || error) }; }
-        }, { item, name, production: !!flags.production });
+        }, { item, milo: name === "ai" || baselineMilo, production: !!flags.production });
       }
       records.push(rec);
       console.log(`${records.length}: ${item.name}: baseline=${rec.baseline.ok}/${rec.baseline.ms}ms ai=${rec.ai.ok}/${rec.ai.ms}ms fast=${!!rec.ai.aiCrop?.fastHit} proposals=${rec.ai.aiCrop?.proposals ?? 0} (${rec.ai.aiCrop?.status || "unknown"})`);
@@ -196,7 +197,7 @@ async function save(log = true) {
   await mkdir(path.dirname(path.resolve(output)), { recursive: true });
   const payload = { build: records[0]?.ai?.build || "unknown", suite, severity: flags.severity,
     sample: suite === "realLife" ? "authoritative SNAPTEST realLife sampler, seed 20260803, identical production captures" : "frozen snaptest/cards.json", paired: true, completed: records.length,
-    workerMemory, summary: { baseline: summary("baseline"), ai: summary("ai"),
+    baselineMilo, workerMemory, summary: { baseline: summary("baseline"), ai: summary("ai"),
       recovered: records.filter((r) => !r.baseline.ok && r.ai.ok).map((r) => r.i),
       regressed: records.filter((r) => r.baseline.ok && !r.ai.ok).map((r) => r.i),
       proposals: records.filter((r) => r.ai.aiCrop?.proposals > 0).length,
@@ -215,7 +216,7 @@ async function save(log = true) {
       summary.wasmHeapStartMB = summary.wasmHeapMB[0]; summary.wasmHeapEndMB = summary.wasmHeapMB[1];
       summary.firstHalfAcc = summary.firstHalf / 100; summary.secondHalfAcc = summary.secondHalf / 100;
       await mkdir(directory, {recursive:true});
-      await writeFile(path.join(directory,"realLife.json"), JSON.stringify({build:records[0][arm].build, aiCropEnabled:true, miloEnabled:arm === "ai", mode:"realLife", summary,
+      await writeFile(path.join(directory,"realLife.json"), JSON.stringify({build:records[0][arm].build, aiCropEnabled:true, miloEnabled:arm === "ai" || baselineMilo, mode:"realLife", summary,
         misses:records.filter(r=>!r[arm].ok && !r[arm].error).map(r=>({name:r.name,id:r.id,i:r.i,scene:r.scene,rot:r.rotation,layout:r.layout,coverage:r.coverage,got:r[arm].got,by:r[arm].by,trueRank:r[arm].trueRank,artBest:r[arm].artBest,aiCrop:r[arm].aiCrop,stages:r[arm].stages,ms:r[arm].ms,perfectControl:r[arm].perfectControl})),
         errors:records.filter(r=>r[arm].error).map(r=>({i:r.i,name:r.name,error:r[arm].error}))}, null, 2)+"\n");
     }

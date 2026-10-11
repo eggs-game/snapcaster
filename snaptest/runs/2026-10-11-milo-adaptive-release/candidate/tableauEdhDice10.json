@@ -1,0 +1,543 @@
+{
+  "build": "milo-adaptive-16 (local vision)",
+  "aiCropEnabled": true,
+  "mode": "tableauEdhDice10",
+  "summary": {
+    "n": 100,
+    "errors": 0,
+    "accuracy": 0.98,
+    "avgMs": 1261,
+    "medianMs": 676,
+    "byRotation": {
+      "upright": {
+        "n": 61,
+        "ok": 59,
+        "acc": 0.967
+      },
+      "tapped": {
+        "n": 23,
+        "ok": 23,
+        "acc": 1
+      },
+      "upsidedown": {
+        "n": 16,
+        "ok": 16,
+        "acc": 1
+      }
+    },
+    "byOcclusion": {
+      "clear": {
+        "n": 93,
+        "ok": 92,
+        "acc": 0.989
+      },
+      "overlapped": {
+        "n": 7,
+        "ok": 6,
+        "acc": 0.857
+      }
+    },
+    "firstHalfAcc": 1,
+    "secondHalfAcc": 0.96,
+    "peakHeapMB": 27,
+    "wasmHeapStartMB": 134,
+    "wasmHeapEndMB": 134,
+    "wasmHeapPeakMB": 134,
+    "errorsByStage": {},
+    "stageAvgMs": {
+      "prep": 46,
+      "rank": 0,
+      "orb": 372,
+      "total": 1248
+    },
+    "p90Ms": 2718,
+    "maxMs": 9528,
+    "byPathway": {
+      "art-match": {
+        "n": 96,
+        "ok": 96,
+        "acc": 1
+      },
+      "(no match)": {
+        "n": 4,
+        "ok": 2,
+        "acc": 0.5
+      }
+    },
+    "byLayout": {
+      "side-by-side": {
+        "n": 60,
+        "ok": 59,
+        "acc": 0.983
+      },
+      "spaced": {
+        "n": 30,
+        "ok": 30,
+        "acc": 1
+      },
+      "overlapping": {
+        "n": 10,
+        "ok": 9,
+        "acc": 0.9
+      }
+    },
+    "byPool": {
+      "token": {
+        "n": 26,
+        "ok": 26,
+        "acc": 1
+      },
+      "basic": {
+        "n": 5,
+        "ok": 5,
+        "acc": 1
+      },
+      "card": {
+        "n": 69,
+        "ok": 67,
+        "acc": 0.971
+      }
+    },
+    "byDiceColor": {
+      "white": {
+        "n": 20,
+        "ok": 19,
+        "acc": 0.95
+      },
+      "black": {
+        "n": 20,
+        "ok": 19,
+        "acc": 0.95
+      },
+      "blue": {
+        "n": 20,
+        "ok": 20,
+        "acc": 1
+      },
+      "red": {
+        "n": 20,
+        "ok": 20,
+        "acc": 1
+      },
+      "pink": {
+        "n": 20,
+        "ok": 20,
+        "acc": 1
+      }
+    },
+    "byClipped": {
+      "0-5% (whole)": {
+        "n": 100,
+        "ok": 98,
+        "acc": 0.98
+      }
+    },
+    "missTrueRank": {
+      "rank 2": 0,
+      "rank 3-5": 0,
+      "rank 6+": 1,
+      "absent": 1
+    },
+    "missAvgDist": 171,
+    "byCoverage": {
+      "0 (clear)": {
+        "n": 91,
+        "ok": 90,
+        "acc": 0.989
+      },
+      "15-30%": {
+        "n": 5,
+        "ok": 4,
+        "acc": 0.8
+      },
+      "30%+": {
+        "n": 1,
+        "ok": 1,
+        "acc": 1
+      },
+      "0-15%": {
+        "n": 3,
+        "ok": 3,
+        "acc": 1
+      }
+    },
+    "ranAt": "2026-10-11T14:38:39.233Z"
+  },
+  "misses": [
+    {
+      "name": "Wayward Swordtooth",
+      "id": "1d98486a-bfbe-4144-b65c-c2e8e8e5a3ca",
+      "pool": "card",
+      "got": "Midnight Reaper",
+      "dist": 157,
+      "conf": 0.52,
+      "trueRank": 28,
+      "trueDist": 129,
+      "top3": [
+        "Midnight Reaper (d=157)",
+        "Disorienting Glower (d=165)",
+        "Orvar, the All-Form (d=165)"
+      ],
+      "rot": "upright",
+      "occ": "clear",
+      "ms": 6948,
+      "cv": "ready",
+      "tried": 91,
+      "dropped": 20,
+      "artBest": {
+        "name": "Midnight Reaper",
+        "inliers": 6,
+        "color": 88,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "artChecked": 57,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-portrait--8-50-17-17",
+          "score": 39.89
+        },
+        {
+          "strategy": "isolate-portrait--8-50-17-38",
+          "score": 39.14
+        },
+        {
+          "strategy": "isolate-portrait--10-50-20-38",
+          "score": 36.49
+        },
+        {
+          "strategy": "isolate-portrait--10-50-17-38",
+          "score": 35.56
+        },
+        {
+          "strategy": "isolate-portrait--10-45-11-32",
+          "score": 34.98
+        },
+        {
+          "strategy": "isolate-portrait--8-47-11-35",
+          "score": 34.1
+        },
+        {
+          "strategy": "isolate-portrait--10-47-14-41",
+          "score": 33.79
+        },
+        {
+          "strategy": "isolate-portrait--10-53-23-41",
+          "score": 33.19
+        },
+        {
+          "strategy": "isolate-portrait--10-51-20-38",
+          "score": 33.05
+        },
+        {
+          "strategy": "isolate-portrait--12-48-17-35",
+          "score": 32.84
+        },
+        {
+          "strategy": "isolate-portrait--10-48-20-35",
+          "score": 32.51
+        },
+        {
+          "strategy": "isolate-portrait--8-50-17-8",
+          "score": 32.43
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.020676666870713234,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.03726082667708397,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 176,
+        "fastMs": 365,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.020484810695052147,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.008437064476311207,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.034692998975515366,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.01694609597325325,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 354,
+          "milo": {
+            "model": "milo1",
+            "status": "ready",
+            "crops": 2,
+            "proposals": 9,
+            "inferenceMs": 551,
+            "searchMs": 92,
+            "ms": 646
+          }
+        },
+        "retryMs": 2336
+      },
+      "truthGeometry": {
+        "angle": -9.3,
+        "center": {
+          "x": 0.62,
+          "y": 0.538
+        },
+        "card": {
+          "w": 0.361,
+          "h": 0.504
+        }
+      },
+      "capturePoint": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "stages": {
+        "prep": 411,
+        "rankSeeds": 528,
+        "earlyOrbProbe": 0,
+        "rankRefine": 473,
+        "isolatePrep": 550,
+        "isolateScore": 361,
+        "rank": 0,
+        "orb": 334,
+        "aiCrop": 176,
+        "aiAttempt": 365,
+        "milo": 1408,
+        "aiRetry": 2336,
+        "total": 6944
+      },
+      "scene": 8,
+      "coverage": 0,
+      "clipped": 0,
+      "click": {
+        "u": 0.19,
+        "v": 0.39,
+        "covered": false
+      },
+      "layout": "side-by-side",
+      "diceColor": "black",
+      "diceFace": 2,
+      "diceCoverage": 0.035
+    },
+    {
+      "name": "Steelswarm Operator",
+      "id": "ca468b86-f31a-4cd7-a574-eb984bc4bc3e",
+      "pool": "card",
+      "got": "PuPu UFO",
+      "dist": 184,
+      "conf": 0.33,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "PuPu UFO (d=184)",
+        "Valgavoth, Terror Eater (d=189)",
+        "Supernatural Rescue (d=193)"
+      ],
+      "rot": "upright",
+      "occ": "overlapped",
+      "ms": 9528,
+      "cv": "ready",
+      "tried": 117,
+      "dropped": 2,
+      "artBest": {
+        "name": "PuPu UFO",
+        "inliers": 6,
+        "color": 79,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 6,
+        "clickArtInliers": 3,
+        "clickTextInliers": 3
+      },
+      "artChecked": 58,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-portrait--12-45-50-23",
+          "score": 134.32
+        },
+        {
+          "strategy": "isolate-portrait--10-50-38-26",
+          "score": 126.43
+        },
+        {
+          "strategy": "isolate-portrait--12-45-44-23",
+          "score": 125.02
+        },
+        {
+          "strategy": "isolate-portrait--10-47-47-26",
+          "score": 123.83
+        },
+        {
+          "strategy": "isolate-portrait--10-47-41-26",
+          "score": 123.83
+        },
+        {
+          "strategy": "isolate-sideways-rotated-86-53-11-80",
+          "score": 123.21
+        },
+        {
+          "strategy": "isolate-portrait--10-44-44-29",
+          "score": 122.55
+        },
+        {
+          "strategy": "isolate-sideways-rotated-88-56-11-77",
+          "score": 122.29
+        },
+        {
+          "strategy": "isolate-portrait--10-44-44-23",
+          "score": 121.94
+        },
+        {
+          "strategy": "isolate-portrait--12-47-47-20",
+          "score": 120.94
+        },
+        {
+          "strategy": "isolate-portrait--10-44-50-23",
+          "score": 119.88
+        },
+        {
+          "strategy": "isolate-sideways-raw--12-41-29-23",
+          "score": 119.56
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.043216656893491745,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.04272928833961487,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 176,
+        "fastMs": 505,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.03718310594558716,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.04272928833961487,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.05084115266799927,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.05163295939564705,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 357,
+          "milo": {
+            "model": "milo1",
+            "status": "ready",
+            "crops": 2,
+            "proposals": 11,
+            "inferenceMs": 551,
+            "searchMs": 92,
+            "ms": 645
+          }
+        },
+        "retryMs": 2764
+      },
+      "truthGeometry": {
+        "angle": -10.9,
+        "center": {
+          "x": 0.554,
+          "y": 0.456
+        },
+        "card": {
+          "w": 0.357,
+          "h": 0.498
+        }
+      },
+      "capturePoint": {
+        "nx": 0.5,
+        "ny": 0.3285289542352577
+      },
+      "stages": {
+        "prep": 564,
+        "rankSeeds": 643,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1324,
+        "isolatePrep": 714,
+        "isolateScore": 266,
+        "rank": 0,
+        "orb": 1457,
+        "aiCrop": 176,
+        "aiAttempt": 505,
+        "milo": 1017,
+        "aiRetry": 2764,
+        "total": 9435
+      },
+      "scene": 9,
+      "coverage": 0.291,
+      "clipped": 0,
+      "click": {
+        "u": 0.42,
+        "v": 0.23,
+        "covered": false
+      },
+      "layout": "overlapping",
+      "diceColor": "white",
+      "diceFace": 4,
+      "diceCoverage": 0.039
+    }
+  ],
+  "errors": []
+}

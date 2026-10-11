@@ -1,0 +1,24 @@
+{
+  "baseCommit": "535167311d503ed86e26604674eede3fadcb781a",
+  "build": "milo-adaptive-16 (local vision)",
+  "sourceSha256": {
+    "src/main.jsx": "cd6c589306af1199792ce2c9cd2cc93cc1e076b62f5fe5335abe42ef711f9555",
+    "src/SnapTest.jsx": "d03090798f4c8832341051253fd7ed6c6d327a037ea9eee841fcf2f00297cac6",
+    "src/snaptest/scene.js": "c3aed501c5787dea50b752ba35d959b5e71caf93f617eb7b24790e86ab62e345",
+    "src/snaptest/degrade.js": "ef006310323143b974fe29847c48d7dd3ed3cb077bc41683cbce8203eaf675d2",
+    "src/recognition/aiCrop.js": "9e6291bd8d151010042dc59043a3aeb6868c3a4e1618f8aec5de1635d65d09e2",
+    "src/recognition/aiCropWorker.js": "ad5aecaf05ba3ef91c770a77f23476fa1d9d13b1486ec56d59750a0bd921ba87",
+    "src/recognition/aiCropGeometry.js": "a9153c763e917e15703a1d5fe8a80714e4722c6f73948e61a733170c064343cb",
+    "src/recognition/matcher.js": "3b4b05b0873dded4cb2d637d164a440992ea329b8673a78683e3cbdfefac5f90",
+    "src/recognition/recognizer.js": "c7e3aead60fe117ce1054bb3eb9f8cdfcca9c38f12c30eb95914acef3c26d6df",
+    "src/recognition/miloLookup.js": "f61d901f0d300f12dacb1d7860eee94ab1b66ba065347bcc450f1952de177a2f",
+    "public/carddata/cards.json": "79f0775b3b84f509edc614170e325607bd0f7245b9c9006f029e8adc6553cadc",
+    "public/carddata/milo/manifest.json": "dd2c83e7bd3654944d9b92142ebb2300004f95170f96ea762703afb44d6305bc",
+    "public/vendor/vision/milo1/model.onnx": "bd13d8d60383c69da04dce261f32e93fdaeaa8fd618fbc991e7385f71b3d45df"
+  },
+  "comparison": "Frozen main production build, Milo on in both arms; identical authoritative SNAPTEST Real life production JPEGs, seed 20260803, alternating order and separate fresh contexts. All 184 baseline identities reproduced; five recoveries and no regressions.",
+  "timingScope": "Warmed Apple M2 Max browser pipeline, no camera transport, cold model downloads or phone measurements. Timed suites run sequentially without heavy competing tasks.",
+  "requiredReleaseGates": "Passed: full six-suite accuracy matrix plus recentHint20, final build 16. Five recovered and zero regressed versus main; all accepted pathway precision gates passed.",
+  "discardedRun": "Prototype 14 partial Arcane run exceeded 90 minutes after long machine scheduling stalls; incomplete, no accuracy or latency claim. Final driver rejects >60-second polling stalls.",
+  "supplementalPhotographs": "Complete final Arcane medium: 159/200, identical correct/missed identities to prior release; 119/119 accepted correct versus prior 118/119. No accuracy gain, slower historical recorded latency; see results.md. Supplied labels unchanged."
+}

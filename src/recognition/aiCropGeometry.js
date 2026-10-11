@@ -3,10 +3,17 @@
 export const AI_CROP_MODEL = "cornelius-2.12";
 export const AI_CROP_MAX_QUADS = 2;
 
-export function aiCropWindows(width, height, point) {
+export function aiCropWindows(width, height, point, retry = false) {
   const nx = Number.isFinite(point?.nx) ? Math.max(0, Math.min(1, point.nx)) : 0.5;
   const ny = Number.isFinite(point?.ny) ? Math.max(0, Math.min(1, point.ny)) : 0.5;
   const side = Math.min(width, height) * 0.7;
+  if (retry) {
+    return [[0, 1 / 6], [0, -1 / 6], [1 / 6, 0], [-1 / 6, 0]].map(([dx, dy]) => ({
+      x: Math.max(0, Math.min(width - side, nx * width - side / 2 + dx * side)),
+      y: Math.max(0, Math.min(height - side, ny * height - side / 2 + dy * side)),
+      w: side, h: side,
+    }));
+  }
   return [
     { x: 0, y: 0, w: width, h: height },
     { x: Math.max(0, Math.min(width - side, nx * width - side / 2)),

@@ -169,6 +169,7 @@ function getWorker() {
       } = e.data || {};
       const p = pending.get(id);
       if (!p) return;
+      if (e.data?.type === "milo-preview") { p.onMilo?.(e.data.images); return; }
       pending.delete(id);
       clearTimeout(p.timer);
       if (error) p.reject(new Error(error));
@@ -781,7 +782,7 @@ function applyTitleOCR(result) {
   return withOCRLock(() => applyTitleOCRUnlocked(result));
 }
 
-function runOnWorker(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads = [], aiOnly = false, aiCandidates = [], milo = false) {
+function runOnWorker(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads = [], aiOnly = false, aiCandidates = [], milo = false, onMilo = null) {
   const w = getWorker();
   const id = ++seq;
   return new Promise((resolve, reject) => {
@@ -789,8 +790,8 @@ function runOnWorker(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads = []
       pending.delete(id);
       reject(new Error("Card recognition timed out. Please try again."));
     }, IDENTIFY_TIMEOUT_MS);
-    pending.set(id, { resolve, reject, timer });
-    w.postMessage({ type: "identify", id, bmp, point, hints: Array.isArray(hints) ? hints.slice(0, 12) : [], aiQuads, aiOnly, aiCandidates, milo }, [bmp]);
+    pending.set(id, { resolve, reject, timer, onMilo });
+    w.postMessage({ type: "identify", id, bmp, point, hints: Array.isArray(hints) ? hints.slice(0, 12) : [], aiQuads, aiOnly, aiCandidates, milo, miloPreviewEnabled: typeof onMilo === "function" }, [bmp]);
   });
 }
 
@@ -801,6 +802,10 @@ function runMiloVerification(scanId, lookup) {
     pending.set(id, { resolve, reject, timer });
     w.postMessage({ type: "milo-verify", id, scanId, rows: lookup.rows, cards_sha256: lookup.cards_sha256 });
   });
+}
+
+function prefetchMiloReferences(lookup) {
+  if (lookup.rows?.length) getWorker().postMessage({ type: "milo-prefetch", rows: lookup.rows, cards_sha256: lookup.cards_sha256 });
 }
 
 function runCorePreload() {
@@ -931,19 +936,35 @@ async function finishIdentify(result) {
 }
 
 async function performIdentify(source, point, hints, aiCrop, useMilo) {
+  const retryAccepted = attempt => {
+    if (attempt?.art_best?.clickInside === false) return false;
+    if ((attempt?.matches[0]?.distance ?? Infinity) <= VISUAL_EXACT_DISTANCE) return true;
+    // Extra crop hypotheses increase opportunities for weak coincidences.
+    // Use the existing full-source rescue strength for retry artwork, in both
+    // the crop and original camera coordinates, before replacing the fallback.
+    return (attempt?.milo_rescued || (attempt?.art_decisive && attempt?.matches[0]?.identified_by === "art-match"))
+      && attempt.art_best?.clickInside === true
+      && attempt.art_best.inliers >= 24 && attempt.art_best.clickInliers >= 24;
+  };
   const t0 = performance.now();
   const bmp = await sourceToBitmap(source);
   // Verified recent-card hints already have a cheaper local prepass. Do not
   // charge those scans model inference before they can use it.
   const ai = aiCrop && !hints?.length ? await proposeAiCrops(bmp, point)
     : { quads: [], diagnostic: { status: aiCrop ? "skipped-hints" : "off" } };
-  let raw, fast, miloVerification = [], milo = { status: useMilo ? "skipped" : "off" };
+  let raw, fast, speculative, miloVerification = [], milo = { status: useMilo ? "skipped" : "off" };
   // A good learned crop should bypass contour enumeration and thousands of
   // isolation windows. Try only the two proposals, with the SAME identity
   // gates. Weak reads still receive the complete established pipeline.
   if (ai.quads.length && !hints?.length) {
     const fastStarted = performance.now();
-    try { fast = await runOnWorker(await createImageBitmap(bmp), point, [], ai.quads, true, [], useMilo); }
+    try { fast = await runOnWorker(await createImageBitmap(bmp), point, [], ai.quads, true, [], useMilo, images => {
+      if (speculative || !useMilo || !images?.length) return;
+      speculative = lookupAiCrops(images).then(lookup => {
+        prefetchMiloReferences(lookup);
+        return lookup;
+      }).catch(error => ({ rows: [], diagnostic: { status: "failed", error: String(error?.message || error) } }));
+    }); }
     catch (error) { ai.diagnostic.fastError = String(error?.message || error); }
     ai.diagnostic.fastMs = (ai.diagnostic.fastMs || 0) + Math.round(performance.now() - fastStarted);
     ai.diagnostic.fastHit = fast?.art_best?.clickInside !== false && (
@@ -955,8 +976,9 @@ async function performIdentify(source, point, hints, aiCrop, useMilo) {
     }
     if (!raw && useMilo && fast?.milo_images?.length) {
       const started = performance.now();
-      const lookup = await lookupAiCrops(fast.milo_images);
+      const lookup = await (speculative || lookupAiCrops(fast.milo_images));
       milo = lookup.diagnostic;
+      if (speculative) milo.speculative = true;
       if (lookup.rows?.length) {
         try {
           const verified = await runMiloVerification(fast.scan_id, lookup);
@@ -968,6 +990,35 @@ async function performIdentify(source, point, hints, aiCrop, useMilo) {
       }
       milo.totalMs = Math.round(performance.now() - started);
     }
+    if (raw && speculative && ai.diagnostic.fastHit) {
+      // Finish the bounded speculative job before another click uses the
+      // shared model worker. A verified hash/art result remains the answer.
+      const started = performance.now(), lookup = await speculative;
+      milo = { ...lookup.diagnostic, speculative: true, unused: true, rescued: false,
+        totalMs: Math.round(performance.now() - started) };
+    }
+  }
+  if (!raw && useMilo && !hints?.length && ai.diagnostic.status === "ready") {
+    const retryStarted = performance.now();
+    const retry = await proposeAiCrops(bmp, point, true);
+    ai.diagnostic.retry = retry.diagnostic;
+    if (retry.quads.length) {
+      try {
+        let attempt = await runOnWorker(await createImageBitmap(bmp), point, [], retry.quads, true, [], true);
+        const accepted = retryAccepted(attempt);
+        if (!accepted && attempt.milo_images?.length) {
+          const lookup = await lookupAiCrops(attempt.milo_images);
+          ai.diagnostic.retry.milo = lookup.diagnostic;
+          if (lookup.rows?.length) attempt = await runMiloVerification(attempt.scan_id, lookup);
+          miloVerification.push(...(attempt.milo_verification || []));
+        }
+        if (retryAccepted(attempt)) {
+          raw = attempt; bmp.close(); ai.diagnostic.retryHit = true;
+          if (attempt.milo_rescued) milo = { ...milo, status: "ready", rescued: true, retry: true };
+        }
+      } catch (error) { ai.diagnostic.retryError = String(error?.message || error); }
+    }
+    ai.diagnostic.retryMs = Math.round(performance.now() - retryStarted);
   }
   if (!raw) raw = await runOnWorker(bmp, point, hints, ai.quads, false, fast?.printing_matches || []);
   const out = await finishIdentify(raw);
@@ -978,6 +1029,7 @@ async function performIdentify(source, point, hints, aiCrop, useMilo) {
   if (aiCrop) out.stage_ms = { ...(out.stage_ms || {}), aiCrop: ai.diagnostic.ms || 0 };
   if (ai.diagnostic.fastMs) out.stage_ms.aiAttempt = ai.diagnostic.fastMs;
   if (milo.totalMs) out.stage_ms.milo = milo.totalMs;
+  if (ai.diagnostic.retryMs) out.stage_ms.aiRetry = ai.diagnostic.retryMs;
   out.stage_ms = { ...(out.stage_ms || {}), total: Math.round(performance.now() - t0) };
   return out;
 }

@@ -16,10 +16,15 @@ assert.ok(validateAiQuad(landscape, 100, 100, { nx: 0.3, ny: 0.5 }));
 assert.ok(sameAiQuad(portrait, [...portrait.slice(1), portrait[0]], 100, 100));
 assert.ok(!sameAiQuad(portrait, portrait.map((p) => ({ x: p.x + 10, y: p.y })), 100, 100));
 for (const click of [{ nx: 0, ny: 0 }, { nx: 1, ny: 1 }, point]) {
-  for (const win of aiCropWindows(640, 480, click)) {
+  for (const win of [...aiCropWindows(640, 480, click), ...aiCropWindows(640, 480, click, true)]) {
     assert.ok(win.x >= 0 && win.y >= 0 && win.x + win.w <= 640 && win.y + win.h <= 480);
+    assert.ok(click.nx * 640 >= win.x && click.nx * 640 <= win.x + win.w);
+    assert.ok(click.ny * 480 >= win.y && click.ny * 480 <= win.y + win.h);
   }
 }
+const retryWindows = aiCropWindows(640, 480, { nx: .5, ny: .5 }, true);
+assert.equal(retryWindows.length, 4);
+assert.equal(new Set(retryWindows.map(w => `${w.x},${w.y}`)).size, 4, "retry moves the crop in every card orientation");
 
 // Inject a missing runtime and a non-responsive worker. Both must preserve
 // recognition by returning no proposals, releasing/terminating the worker,

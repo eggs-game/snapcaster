@@ -1,0 +1,521 @@
+{
+  "build": "milo-adaptive-16 (local vision)",
+  "aiCropEnabled": true,
+  "mode": "tableauEdh10",
+  "summary": {
+    "n": 100,
+    "errors": 0,
+    "accuracy": 0.98,
+    "avgMs": 1042,
+    "medianMs": 667,
+    "byRotation": {
+      "upright": {
+        "n": 61,
+        "ok": 61,
+        "acc": 1
+      },
+      "tapped": {
+        "n": 23,
+        "ok": 21,
+        "acc": 0.913
+      },
+      "upsidedown": {
+        "n": 16,
+        "ok": 16,
+        "acc": 1
+      }
+    },
+    "byOcclusion": {
+      "clear": {
+        "n": 93,
+        "ok": 93,
+        "acc": 1
+      },
+      "overlapped": {
+        "n": 7,
+        "ok": 5,
+        "acc": 0.714
+      }
+    },
+    "firstHalfAcc": 1,
+    "secondHalfAcc": 0.96,
+    "peakHeapMB": 25,
+    "wasmHeapStartMB": 134,
+    "wasmHeapEndMB": 134,
+    "wasmHeapPeakMB": 134,
+    "errorsByStage": {},
+    "stageAvgMs": {
+      "prep": 44,
+      "rank": 0,
+      "orb": 375,
+      "total": 1029
+    },
+    "p90Ms": 1315,
+    "maxMs": 9746,
+    "byPathway": {
+      "art-match": {
+        "n": 95,
+        "ok": 95,
+        "acc": 1
+      },
+      "(no match)": {
+        "n": 4,
+        "ok": 2,
+        "acc": 0.5
+      },
+      "visual-exact": {
+        "n": 1,
+        "ok": 1,
+        "acc": 1
+      }
+    },
+    "byLayout": {
+      "side-by-side": {
+        "n": 60,
+        "ok": 60,
+        "acc": 1
+      },
+      "spaced": {
+        "n": 30,
+        "ok": 30,
+        "acc": 1
+      },
+      "overlapping": {
+        "n": 10,
+        "ok": 8,
+        "acc": 0.8
+      }
+    },
+    "byPool": {
+      "card": {
+        "n": 75,
+        "ok": 73,
+        "acc": 0.973
+      },
+      "basic": {
+        "n": 2,
+        "ok": 2,
+        "acc": 1
+      },
+      "token": {
+        "n": 23,
+        "ok": 23,
+        "acc": 1
+      }
+    },
+    "byClipped": {
+      "0-5% (whole)": {
+        "n": 100,
+        "ok": 98,
+        "acc": 0.98
+      }
+    },
+    "missTrueRank": {
+      "rank 2": 0,
+      "rank 3-5": 0,
+      "rank 6+": 0,
+      "absent": 2
+    },
+    "missAvgDist": 186,
+    "byCoverage": {
+      "0 (clear)": {
+        "n": 91,
+        "ok": 91,
+        "acc": 1
+      },
+      "15-30%": {
+        "n": 5,
+        "ok": 4,
+        "acc": 0.8
+      },
+      "30%+": {
+        "n": 1,
+        "ok": 0,
+        "acc": 0
+      },
+      "0-15%": {
+        "n": 3,
+        "ok": 3,
+        "acc": 1
+      }
+    },
+    "ranAt": "2026-10-11T14:31:44.745Z"
+  },
+  "misses": [
+    {
+      "name": "Mortuary",
+      "id": "b4d28171-d4c3-48d2-8faa-d867fc00bea0",
+      "pool": "card",
+      "got": "Figure of Fable",
+      "dist": 184,
+      "conf": 0.33,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Figure of Fable (d=184)",
+        "Esper Sentinel (d=189)",
+        "Verdant Embrace (d=190)"
+      ],
+      "rot": "tapped",
+      "occ": "overlapped",
+      "ms": 9746,
+      "cv": "ready",
+      "tried": 119,
+      "dropped": 0,
+      "artBest": {
+        "name": "Figure of Fable",
+        "inliers": 7,
+        "color": 93,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 7,
+        "clickArtInliers": 0,
+        "clickTextInliers": 6
+      },
+      "artChecked": 60,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-sideways-rotated-98-53-47-83",
+          "score": 135.97
+        },
+        {
+          "strategy": "isolate-sideways-rotated-86-42-44-62",
+          "score": 134.5
+        },
+        {
+          "strategy": "isolate-sideways-raw-8-38-17-47",
+          "score": 134.13
+        },
+        {
+          "strategy": "isolate-sideways-rotated-96-53-44-83",
+          "score": 130.38
+        },
+        {
+          "strategy": "isolate-sideways-raw-2-36-11-41",
+          "score": 128.57
+        },
+        {
+          "strategy": "isolate-sideways-raw--4-30-38-44",
+          "score": 127.13
+        },
+        {
+          "strategy": "isolate-sideways-rotated-98-51-47-86",
+          "score": 126.3
+        },
+        {
+          "strategy": "isolate-sideways-rotated-96-53-32-83",
+          "score": 126.25
+        },
+        {
+          "strategy": "isolate-sideways-rotated-96-53-47-83",
+          "score": 126.1
+        },
+        {
+          "strategy": "isolate-sideways-raw--6-32-41-41",
+          "score": 125.82
+        },
+        {
+          "strategy": "isolate-sideways-raw--4-41-86-53",
+          "score": 125.21
+        },
+        {
+          "strategy": "isolate-sideways-raw--2-38-17-38",
+          "score": 124.03
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.028115207329392433,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.03968295827507973,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 177,
+        "fastMs": 571,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.03565705567598343,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.04500818997621536,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.04970546066761017,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.028465714305639267,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 351,
+          "milo": {
+            "model": "milo1",
+            "status": "ready",
+            "crops": 1,
+            "proposals": 12,
+            "inferenceMs": 271,
+            "searchMs": 44,
+            "ms": 320
+          }
+        },
+        "retryMs": 2581
+      },
+      "truthGeometry": {
+        "angle": 98.12,
+        "center": {
+          "x": 0.5,
+          "y": 0.483
+        },
+        "card": {
+          "w": 0.357,
+          "h": 0.498
+        }
+      },
+      "capturePoint": {
+        "nx": 0.5,
+        "ny": 0.44576912608878816
+      },
+      "stages": {
+        "prep": 661,
+        "rankSeeds": 637,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1388,
+        "isolatePrep": 701,
+        "isolateScore": 241,
+        "rank": 0,
+        "orb": 1565,
+        "aiCrop": 177,
+        "aiAttempt": 571,
+        "milo": 1215,
+        "aiRetry": 2581,
+        "total": 9742
+      },
+      "scene": 9,
+      "coverage": 0.418,
+      "clipped": 0,
+      "click": {
+        "u": 0.4,
+        "v": 0.51,
+        "covered": false
+      },
+      "layout": "overlapping",
+      "diceColor": null,
+      "diceFace": null,
+      "diceCoverage": 0
+    },
+    {
+      "name": "Pain Distributor",
+      "id": "3a3a0170-444e-4147-96b6-b14bb5649108",
+      "pool": "card",
+      "got": "Invasion of Tolvada",
+      "dist": 187,
+      "conf": 0.31,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Invasion of Tolvada (d=187)",
+        "Tamiyo, Collector of Tales (d=188)",
+        "Gríma, Saruman's Footman (d=197)"
+      ],
+      "rot": "tapped",
+      "occ": "overlapped",
+      "ms": 8980,
+      "cv": "ready",
+      "tried": 116,
+      "dropped": 3,
+      "artBest": {
+        "name": "Invasion of Tolvada",
+        "inliers": 6,
+        "color": 88,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 9,
+        "clickArtInliers": 1,
+        "clickTextInliers": 8
+      },
+      "artChecked": 60,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-sideways-rotated-98-53-65-74",
+          "score": 130.06
+        },
+        {
+          "strategy": "isolate-sideways-rotated-86-54-53-38",
+          "score": 129.18
+        },
+        {
+          "strategy": "isolate-sideways-rotated-98-53-65-71",
+          "score": 126.01
+        },
+        {
+          "strategy": "isolate-sideways-raw--2-39-62-50",
+          "score": 124.51
+        },
+        {
+          "strategy": "isolate-sideways-rotated-98-44-86-89",
+          "score": 123.5
+        },
+        {
+          "strategy": "isolate-sideways-rotated-86-53-53-35",
+          "score": 120.6
+        },
+        {
+          "strategy": "isolate-sideways-raw--4-39-92-50",
+          "score": 116.68
+        },
+        {
+          "strategy": "isolate-sideways-raw--6-38-65-53",
+          "score": 115.08
+        },
+        {
+          "strategy": "isolate-sideways-raw--4-38-65-53",
+          "score": 113.95
+        },
+        {
+          "strategy": "isolate-sideways-rotated-88-54-50-38",
+          "score": 112.66
+        },
+        {
+          "strategy": "isolate-sideways-rotated-98-45-89-83",
+          "score": 112.1
+        },
+        {
+          "strategy": "isolate-sideways-raw--4-38-77-53",
+          "score": 111.56
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.01733325980603695,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.030354885384440422,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 176,
+        "fastMs": 555,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.024623315781354904,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.02940676175057888,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.04881688579916954,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.04866890236735344,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            }
+          ],
+          "ms": 350,
+          "milo": {
+            "model": "milo1",
+            "status": "ready",
+            "crops": 1,
+            "proposals": 12,
+            "inferenceMs": 272,
+            "searchMs": 46,
+            "ms": 323
+          }
+        },
+        "retryMs": 2188
+      },
+      "truthGeometry": {
+        "angle": 85.7,
+        "center": {
+          "x": 0.377,
+          "y": 0.474
+        },
+        "card": {
+          "w": 0.357,
+          "h": 0.498
+        }
+      },
+      "capturePoint": {
+        "nx": 0.5,
+        "ny": 0.4775608496753319
+      },
+      "stages": {
+        "prep": 674,
+        "rankSeeds": 658,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1355,
+        "isolatePrep": 709,
+        "isolateScore": 234,
+        "rank": 0,
+        "orb": 1502,
+        "aiCrop": 176,
+        "aiAttempt": 555,
+        "milo": 922,
+        "aiRetry": 2188,
+        "total": 8977
+      },
+      "scene": 9,
+      "coverage": 0.206,
+      "clipped": 0,
+      "click": {
+        "u": 0.54,
+        "v": 0.25,
+        "covered": false
+      },
+      "layout": "overlapping",
+      "diceColor": null,
+      "diceFace": null,
+      "diceCoverage": 0
+    }
+  ],
+  "errors": []
+}

@@ -9,6 +9,145 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-10-11 — `milo-adaptive-16` — stronger local AI rescues and less repeated work
+
+Local contrast recovery and a bounded shifted-crop retry recover five more
+identities. Reference downloads start together, but the verifier waits only for
+images it inspects. Milo's diverse shortlist avoids a whole-gallery sort;
+one uncertain crop can start lookup alongside ordinary verification and prefetch
+its bounded reference set. A sixty-entry native descriptor cache reuses public
+reference features, with separate raw/contrast entries and explicit eviction.
+Camera query features retain their normal release lifetime. Model inference
+remains in the browser, with no paid per-scan inference call.
+
+The final paired comparison uses frozen current main at
+`535167311d503ed86e26604674eede3fadcb781a`, **Milo enabled in both arms**,
+identical production JPEGs, the authoritative Real life sampler (seed 20260803),
+alternating engine order and separate fresh browser contexts. Prototypes 8, 9,
+13, 14 and final 16 all reproduce the same five recoveries and zero losses; their
+control reproduces all 184 current-main correct identities. The rejected
+prototypes were not deployed. Historical artifacts keep their own build marker.
+
+| Paired Real life, all 200 clicks | Current main | Final candidate |
+| --- | --- | --- |
+| Correct identity | 184/200 (92%) | **189/200 (94.5%)** |
+| Accepted artwork answers | 174/174 correct | **186/186 correct** |
+| Median | 840ms | **741ms** |
+| Average | 1706ms | **1419ms** |
+| p90 | 4871ms | **2249ms** |
+| Correct identity in under one second | 129/200 | **136/200** |
+| Slowest click | 8552ms | 9927ms |
+| Upright / tapped / inverted | 99/109, 52/55, 33/36 | **103/109, 53/55, 33/36** |
+| Side by side / spaced / overlapping layout | 113/120, 57/60, 14/20 | **116/120, 57/60, 16/20** |
+| Clear / overlapped / clipped edge | 177/187, 4/10, 3/3 | **180/187, 6/10, 3/3** |
+| First / second half | 91/100, 93/100 | **94/100, 95/100** |
+| OpenCV WASM allocation | 134→134MB | **134→134MB** |
+
+Recovered: As Foretold, Bat, Exsanguinate, Mistrise Village and Geier Reach
+Sanitarium. The five-card gain exceeds the documented four-card noise band
+for 200 scans. All 131 direct corner/hash fast hits are correct. Of 22 shifted
+retries, eight settle the card; three are new recoveries. Eleven captures still
+fail, and only one succeeds through the same full verifier on an exact crop.
+This does not prove those ten cards are inherently unreadable; it measures the
+current verifier's remaining limit even with ideal framing.
+
+Average time falls 16.8% and p90 53.8%. Correct-under-one-second counts are much
+less stable: final 16 scores 136/200, while prototypes 14 and 13 scored 130/200 and 137/200 with
+identical per-card correctness. These are warmed Apple M2 Max browser pipeline
+timings, excluding camera transport, first-visit downloads and phone performance.
+The goal of **200/200 in under one second remains unmet**. Hard rejected retries
+can increase the worst-case time despite improving median and p90.
+
+Three confidence failures found by the broader suites were fixed before release.
+Prototype 8's dice run confidently called Event: Baxter's Experiments its
+creature counterpart, which shares the illustration. The exact saved JPEG
+reproduces this error three times on current main and three times on prototype
+8. Bidirectional reference-art comparison now detects that ambiguity, requiring
+distinguishing registered text for confident artwork acceptance. Stronger
+whole-card evidence keeps the correct Event suggestion in front; three saved
+replays are correct and tentative.
+
+Prototype 13's tableau run confidently called an overlapped Kaya, Orzhov Usurper
+another Kaya after a shifted retry: 18 crop inliers and 21 source inliers.
+Current main returns an unresolved wrong guess on all three exact replays.
+The final candidate requires at least 24 inliers in both coordinates for retry artwork,
+matching the existing full-source rescue strength; near-exact hashes retain
+their gate. Three exact replays now stay unresolved, rather than confidently
+naming another card. This is a confidence correction, not a newly recognized
+card. Its saved fixture allows a correct answer or an unresolved guess; primary
+benchmark ground truth and scoring are unchanged.
+
+Prototype 14's EDH run confidently substituted the playable Whirlwing Stormbrood
+Adventure layout for its Art Series print. Canonical stretching makes direct
+reference-art registration too weak to detect this layout pair. At poor whole-card
+hash distance, a global illustration-only match now needs printed-text evidence
+or independent regional registration to own the click. It cannot exclude the
+actual Art Series as a neighbour. Three exact final replays return the correct
+Art Series suggestion without an unsupported confidence label. The physical
+layout labels remain unchanged; this is not a benchmark alias adjustment.
+
+The parallel-lookup pilot also rejected speculative work for every uncertain
+crop: although all 20 reads stayed correct, the median worsened when easy
+two-crop reads waited on unnecessary inference. The retained one-crop pilot
+kept its median at 714ms, reduced average 1035→956ms and p90 1892→1737ms, with
+20/20 accepted answers correct. Four final primary jobs finish unused speculation
+before accepting the next scan. Rows are fingerprint-checked and never decide
+identity before the completed scan context.
+
+Native browser checks compare every descriptor byte and keypoint position
+against fresh extraction for both contrast modes (291/292 keypoints), retain
+the identical object on reuse, verify parity after eviction, and stress 320
+replacements. The cache stays at sixty entries and actual OpenCV allocation
+stays 134,217,728 bytes. The final browser build repeats this check. The cache and feature extractor
+retain the same behavior while the final source tightens confidence and footprint
+ownership for shared illustrations.
+Unit checks additionally exercise native ownership, older-browser fallback,
+stalled unused downloads, exact shortlist/tie parity, stale rows, worker callback
+ownership, failed models and retry-strength boundaries.
+
+The final build passes every required suite in separate fresh contexts:
+
+| Suite | Correct | Accepted answers correct | Median | p90 |
+| --- | --- | --- | --- | --- |
+| Real life paired primary | 189/200 | 186/186 | 741ms | 2249ms |
+| Tableau EDH | 98/100 | 96/96 | 667ms | 1315ms |
+| Vegas playmat | 191/200 | 190/190 | 665ms | 2050ms |
+| EDH dice | 98/100 | 96/96 | 676ms | 2718ms |
+| Random printing | 193/200 | 129/129 | 752ms | 3541ms |
+| EDH printing | 194/200 | 130/130 | 756ms | 3437ms |
+| Recent hints | 20/20 | 20/20 | 156ms | 196ms |
+
+There are no scan errors or wrong accepted answers in these required runs.
+Vegas clear-card accuracy is 179/185; every rotation clears its gate and all
+nine misses have exact-crop controls (six work on the perfect crop). All seven
+Random and six EDH misses are unresolved top-edge captures; the other placement
+blocks remain fully correct. White/black dice score 19/20 each, the other three
+colors 20/20. Recent hints hit all twenty scans with no full-crop fallback and a
+4.78x average speedup. Every suite retains a flat 134MB OpenCV WASM allocation.
+The randomized draws are independent release checks, not paired accuracy gains.
+
+The separate supplied-photograph Arcane medium run completes all 200 scans at
+**159/200**, with exactly the same correct/missed identities as the previous
+release. Accepted artwork answers improve from 118/119 to **119/119 correct**;
+the old Instill Energy → Pirate Ship error now remains an unresolved Fog guess.
+There is no identity-accuracy gain on this set. Recorded average/median/p90
+are **4717/4808/8383ms**, versus the prior run's 3946/4140/6839ms: extra failed
+rescue work slows these photographs. These are separate historical runs rather
+than a new paired latency comparison. All labels remain unchanged, no errors
+occur, and actual OpenCV allocation stays flat at 134MB. A prior prototype-14
+photograph run was discarded after long machine scheduling stalls and a
+ninety-minute timeout; it contributes no result. The final run completes normally
+with the new polling-stall guard and temporary sleep prevention.
+
+Primary evidence: [paired scans](runs/2026-10-11-milo-adaptive-release/paired-realLife.json),
+[joint timing](runs/2026-10-11-milo-adaptive-release/joint-timing.json),
+[native reference-cache check](runs/2026-10-11-milo-adaptive-release/reference-features.json),
+[Kaya before](runs/2026-10-11-milo-adaptive-release/kaya-candidate.json),
+[Kaya after](runs/2026-10-11-milo-adaptive-release/kaya-fixed.json),
+[Art Series after](runs/2026-10-11-milo-adaptive-release/whirlwing-fixed.json),
+[complete release matrix](runs/2026-10-11-milo-adaptive-release/candidate),
+[source/catalog provenance](runs/2026-10-11-milo-adaptive-release/provenance.json).
+
 ## 2026-10-10 — `milo-rescue-7` — complete local card retrieval
 
 Milo 1 now contributes a bounded printing shortlist on uncertain Cornelius

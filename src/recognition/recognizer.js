@@ -1742,7 +1742,7 @@ function waitForCV(ms) {
   });
 }
 
-async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads = [], aiOnly = false, aiCandidates = [], useMilo = false) {
+async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads = [], aiOnly = false, aiCandidates = [], useMilo = false, notifyMilo = null) {
   await loadIndex();
   // Prefer the accurate OpenCV pipeline, but don't hang the first scan forever
   // if it's still compiling — fall back to center-crop this once; the diagnostic
@@ -2672,6 +2672,10 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads =
       if (!aiOnly) for (const candidate of candidates.filter(c => c.strategy.startsWith("ai-crop-")).slice(0, 2)) {
         if (!queryImages.includes(candidate.image)) queryImages.push(candidate.image);
       }
+      if (aiOnly && useMilo && bestCandidateDistance > 150 && notifyMilo) {
+        const images = candidates.filter(c => c.strategy.startsWith("ai-crop-")).slice(0, 2).map(c => c.image);
+        if (images.length === 1) notifyMilo(images);
+      }
       const verified = earlyVerified || await verifyTopMatches(verificationPool, queryImages, cardShaped, getSourceImageData(), click, verificationPool.length - verificationCandidates.length, queryRegionsFor(queryImages));
       // Keep the result UI compact after printing-level verification. The best
       // verified treatment wins for each name, and a decisive exact artwork
@@ -2786,7 +2790,7 @@ function fetchReference(id, face, size = "small") {
   return refCache.get(key);
 }
 
-function orbFeatures(imageData, nfeatures) {
+function orbFeatures(imageData, nfeatures, restoreContrast = false) {
   const cv = self.cv;
   const src = cv.matFromImageData(imageData);
   const gray = new cv.Mat();
@@ -2796,11 +2800,38 @@ function orbFeatures(imageData, nfeatures) {
   const orb = new cv.ORB(nfeatures);
   try {
     cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+    if (restoreContrast) {
+      const enhanced = new cv.Mat(), clahe = new cv.CLAHE(3, new cv.Size(8, 8));
+      try { clahe.apply(gray, enhanced); enhanced.copyTo(gray); }
+      finally { enhanced.delete(); clahe.delete(); }
+    }
     orb.detectAndCompute(gray, mask, kp, desc);
   } finally {
     src.delete(); gray.delete(); mask.delete(); orb.delete();
   }
   return { kp, desc, width: imageData.width, height: imageData.height };
+}
+
+const referenceFeatureCache = [];
+function referenceFeatures(image, restoreContrast = false) {
+  if (typeof WeakRef !== "function") return orbFeatures(image, 300, restoreContrast);
+  const found = referenceFeatureCache.findIndex(entry => entry.image.deref() === image && entry.restoreContrast === restoreContrast);
+  if (found >= 0) {
+    const [entry] = referenceFeatureCache.splice(found, 1);
+    referenceFeatureCache.push(entry);
+    return entry.features;
+  }
+  if (referenceFeatureCache.length >= 60) {
+    const oldest = referenceFeatureCache.shift().features;
+    oldest.kp.delete(); oldest.desc.delete();
+  }
+  const features = orbFeatures(image, 300, restoreContrast);
+  features.cachedReference = true;
+  referenceFeatureCache.push({ image: new WeakRef(image), restoreContrast, features });
+  return features;
+}
+function releaseReferenceFeatures(features) {
+  if (!features.cachedReference) { features.kp.delete(); features.desc.delete(); }
 }
 
 function orbAlignment(query, ref, click = null, sourceRegion = null) {
@@ -2900,7 +2931,13 @@ function hasClickProof(match) {
     inliers: match.click_inliers, artInliers: match.click_art_inliers, textInliers: match.click_text_inliers,
   }, 8);
 }
-function hasPositiveClickProof(match) { return match?.click_inside === true && hasClickProof(match); }
+function hasPositiveClickProof(match) {
+  // A shared illustration can extrapolate a printed card body into the mat.
+  // Such a footprint cannot own the click or exclude another physical layout.
+  if ((match?.distance ?? 0) > 180 && !match?.regional_proof
+    && (match?.click_text_inliers || 0) < 8) return false;
+  return match?.click_inside === true && hasClickProof(match);
+}
 function orbScore(query, ref) { return artworkInlierScore(orbAlignment(query, ref)); }
 
 function recordRegionalProof(match, alignment) {
@@ -2962,7 +2999,7 @@ function homographyContainsClick(h, click, width, height) {
 // under the click stay eligible. No positive proof means no veto, preserving
 // the established above-click single-card recovery.
 function excludeProvenNeighbours(matches, probes) {
-  const clickedNames = new Set(probes.filter((m) => m.click_inside === true && hasClickProof(m)).map((m) => m.name));
+  const clickedNames = new Set(probes.filter(hasPositiveClickProof).map((m) => m.name));
   const neighbours = new Set(probes.filter((m) => clickedNames.size
     && m.click_inside === false && hasClickProof(m)
     && !clickedNames.has(m.name)).map((m) => m.name));
@@ -3076,21 +3113,40 @@ function registeredColorAgreement(frame, reference) {
   };
 }
 
-async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source = null, click = null, extraBudget = 0, queryRegions = []) {
+const sharedArtworkCache = new Map();
+function referencesShareArtwork(a, b, key) {
+  if (sharedArtworkCache.has(key)) return sharedArtworkCache.get(key);
+  const af = referenceFeatures(a), bf = referenceFeatures(b);
+  let shared;
+  try {
+    // Registration alone cannot distinguish two different names printed with
+    // the same illustration. Require strong interior-art correspondence in
+    // both directions; ordinary frame/text similarities cannot trigger this.
+    shared = orbAlignment(af, bf).artInliers >= 24 && orbAlignment(bf, af).artInliers >= 24;
+  } finally { releaseReferenceFeatures(af); releaseReferenceFeatures(bf); }
+  if (sharedArtworkCache.size >= 400) sharedArtworkCache.delete(sharedArtworkCache.keys().next().value);
+  sharedArtworkCache.set(key, shared);
+  return shared;
+}
+
+async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source = null, click = null, extraBudget = 0, queryRegions = [], featureMode = false) {
   // The first 24 entries come from combined ranking; the remaining bounded
   // slots are pure-art rescues that the old 24-item slice silently discarded.
   const limit = ORB_SHORTLIST + Math.min(24, Math.max(0, extraBudget));
   const shortlist = matches.slice(0, limit);
   orbTiming.fetch = 0; orbTiming.queryFeat = 0; orbTiming.refFeat = 0;
   orbTiming.match = 0; orbTiming.refs = shortlist.length;
-  const tFetch = performance.now();
-  const [refs, detailed] = await Promise.all([
-    Promise.all(shortlist.map((m) => fetchReference(m.scryfall_id, m.face || 0))),
-    Promise.all(shortlist.map(m => m.milo_highres ? fetchReference(m.scryfall_id, m.face || 0, "normal") : null)),
-  ]);
-  orbTiming.fetch = performance.now() - tFetch;
+  const jobs = shortlist.map(m => fetchReference(m.scryfall_id, m.face || 0));
+  const detailJobs = shortlist.map(m => m.milo_highres ? fetchReference(m.scryfall_id, m.face || 0, "normal") : null);
+  const refs = new Array(shortlist.length), detailed = new Array(shortlist.length);
+  const referenceAt = async i => {
+    const started = performance.now();
+    [refs[i], detailed[i]] = await Promise.all([jobs[i], detailJobs[i]]);
+    orbTiming.fetch += performance.now() - started;
+  };
   const tQF = performance.now();
-  const queryFeats = queryImages.map((img) => orbFeatures(img, 500));
+  const contrastRescue = featureMode;
+  const queryFeats = queryImages.map((img) => orbFeatures(img, 500, contrastRescue));
   orbTiming.queryFeat = performance.now() - tQF;
   // References are neutral Scryfall scans, so neutralize the query's room cast
   // before comparing color and frame-ring hue.
@@ -3100,11 +3156,12 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source 
   try {
     let lead = 0, second = 0;
     for (let i = 0; i < shortlist.length; i++) {
+      await referenceAt(i);
       if (!refs[i]) { shortlist[i].art_inliers = 0; shortlist[i].color_sim = 0; continue; }
       let inliers = 0, registeredFrame = null;
       for (const reference of [refs[i], detailed[i]].filter(Boolean)) {
         const tRF = performance.now();
-        const rf = orbFeatures(reference, 300);
+        const rf = referenceFeatures(reference, contrastRescue);
         orbTiming.refFeat += performance.now() - tRF;
         try {
           const tM = performance.now();
@@ -3118,7 +3175,7 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source 
           }
           orbTiming.match += performance.now() - tM;
           shortlist[i].art_inliers = inliers;
-        } finally { rf.kp.delete(); rf.desc.delete(); }
+        } finally { releaseReferenceFeatures(rf); }
       }
       shortlist[i].color_sim = colorSimilarity(querySig, colorSignature(refs[i]));
       if (queryRing) shortlist[i].ring_sim = colorSimilarity(queryRing, ringSignature(refs[i]));
@@ -3145,16 +3202,18 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source 
       if (!probes.includes(item)) probes.push(item);
     }
     const needsFull = probes.some(item => !(item.regional_proof && hasPositiveClickProof(item)));
-    const full = needsFull ? orbFeatures(source, 1600) : null;
+    const full = needsFull ? orbFeatures(source, 1600, contrastRescue) : null;
     try {
       for (const item of probes) {
         // These keypoints already map the original source click through the
         // exact crop transform. A dominant duplicate elsewhere in the full
         // scene must not erase a positively registered clicked copy.
         if (item.regional_proof && hasPositiveClickProof(item)) continue;
-        const ref = refs[shortlist.indexOf(item)];
+        const index = shortlist.indexOf(item);
+        if (refs[index] === undefined) await referenceAt(index);
+        const ref = refs[index];
         if (!ref) continue;
-        const rf = orbFeatures(ref, 300);
+        const rf = referenceFeatures(ref, contrastRescue);
         try {
           const alignment = orbAlignment(full, rf, click);
           // A weak/unknown global match cannot erase a crop's registered
@@ -3179,12 +3238,29 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source 
             }
           }
           if (alignment.inside === true && alignment.inliers >= 16 && contentSupportsIdentity(alignment, 8)) break;
-        } finally { rf.kp.delete(); rf.desc.delete(); }
+        } finally { releaseReferenceFeatures(rf); }
       }
       excludeProvenNeighbours(shortlist, [...probes, ...shortlist.filter(item => item.regional_proof)]);
     } finally { if (full) { full.kp.delete(); full.desc.delete(); } }
   }
   let eligible = shortlist.filter((match) => !match.click_blocked);
+  const leader = [...eligible].sort((a,b) => (b.art_inliers || 0) - (a.art_inliers || 0))[0];
+  if (leader?.art_inliers >= 16) {
+    const seen = new Set([leader.name]);
+    const rivals = [...eligible].sort((a,b) => a.distance - b.distance).filter(m => {
+      if (seen.has(m.name) || (m.art_inliers || 0) < 12 || (m.color_sim || 0) < .22) return false;
+      seen.add(m.name); return true;
+    }).slice(0, 2);
+    for (const rival of rivals) {
+      const a = shortlist.indexOf(leader), b = shortlist.indexOf(rival);
+      if (refs[a] === undefined) await referenceAt(a);
+      if (refs[b] === undefined) await referenceAt(b);
+      const key = [leader, rival].map(m => `${m.scryfall_id}:${m.face || 0}`).sort().join("|");
+      if (refs[a] && refs[b] && referencesShareArtwork(refs[a], refs[b], key)) {
+        leader.shared_artwork = true; rival.shared_artwork = true;
+      }
+    }
+  }
   // Coarse color agreement bands: same color identity, plausible, or clashing.
   const colorBand = (m) => ((m.color_sim || 0) >= 0.45 ? 2 : (m.color_sim || 0) >= 0.22 ? 1 : 0);
   // Border-frame agreement: 1 = frames plausibly match, 0 = frame clash
@@ -3195,6 +3271,13 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source 
     const inliers = match?.art_inliers || 0;
     if (inliers < 16 || (match?.color_sim || 0) < 0.22) return false;
     if (match?.click_blocked) return false;
+    if (match?.shared_artwork && (match.click_text_inliers || 0) < 8) return false;
+    // A whole-scene illustration match can extrapolate a normal card's text
+    // box into empty table space (for example, an Art Series print). At poor
+    // whole-card distance, require printed text unless an independently
+    // detected card region also registered the clicked footprint.
+    if ((match?.distance ?? 999) > 180 && match?.click_inside !== undefined
+      && !match.regional_proof && (match.click_text_inliers || 0) < 8) return false;
     if (inliers < 1.5 * ((rival?.art_inliers || 0) + 1)) return false;
     // Mid-strength ORB collisions at implausible gray distance have produced
     // confident wrong answers. Genuine distance-poor rescues clear 35+.
@@ -3225,7 +3308,8 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source 
     const leadRival = ranked.find((match) => match.name !== ranked[0]?.name);
     if (!isDecisiveLead(ranked[0], leadRival)) {
       const closest = ranked.reduce((a, b) => (b.distance < a.distance ? b : a), ranked[0]);
-      if (closest !== ranked[0] && closest.distance + 50 <= ranked[0].distance) {
+      if (closest !== ranked[0] && (closest.distance + 50 <= ranked[0].distance
+        || ranked[0].shared_artwork && closest.distance < ranked[0].distance)) {
         ranked = [closest, ...ranked.filter((m) => m !== closest)];
       }
     }
@@ -3330,6 +3414,18 @@ loadCV().catch(() => {});
 let lastTitleSource = { scanId: null, candidates: [] };
 let lastMiloContext = null;
 
+function prefetchMiloRows(rows, fingerprint) {
+  if (!cards?.length || !cardsSha256 || fingerprint !== cardsSha256) return;
+  const seen = new Set();
+  for (const entry of Array.isArray(rows) ? rows.slice(0, 12) : []) {
+    if (!Number.isInteger(entry.row) || entry.row < 0 || entry.row >= cards.length || !Number.isFinite(entry.score) || seen.has(entry.row)) continue;
+    seen.add(entry.row);
+    const match = cardMeta(entry.row);
+    fetchReference(match.scryfall_id, match.face || 0);
+    if (seen.size <= 4) fetchReference(match.scryfall_id, match.face || 0, "normal");
+  }
+}
+
 async function verifyMiloRows(scanId, rows, fingerprint) {
   const context = lastMiloContext;
   // A row number is meaningful only for the exact cards.json used to build it.
@@ -3353,8 +3449,17 @@ async function verifyMiloRows(scanId, rows, fingerprint) {
   // Already-verified hash candidates remain competitors. Model candidates
   // get their own bounded slots rather than displacing the ordinary shortlist.
   const queries = [...new Set([...context.queryImages, ...context.images])].slice(0, 2);
-  const verified = await verifyTopMatches([...added, ...base], queries,
-    context.cardShaped, context.source, context.click, added.length, queries.map(image => context.sourceRegions?.get(image) || null));
+  const pool = [...added, ...base], regions = queries.map(image => context.sourceRegions?.get(image) || null);
+  let verified = await verifyTopMatches(pool, queries,
+    context.cardShaped, context.source, context.click, added.length, regions);
+  if (!verified.artDecisive && added.length) {
+    // Retrieval provides the bounded identities; local contrast restores
+    // keypoints lost to a lighting gradient. Keep the same geometric/content
+    // acceptance rules and preserve the ordinary verifier's successful reads.
+    const enhanced = await verifyTopMatches(pool.map(m => ({ ...m })), queries,
+      context.cardShaped, context.source, context.click, added.length, regions, true);
+    if (enhanced.artDecisive && enhanced.matches[0]?.milo_retrieval) verified = enhanced;
+  }
   const winner = verified.matches[0];
   const rescued = verified.artDecisive && winner?.milo_retrieval && winner.click_inside === true && hasClickProof(winner);
   const names = new Set();
@@ -3433,6 +3538,8 @@ self.onmessage = async (e) => {
     } catch (err) {
       self.postMessage({ id, error: String((err && err.message) || err), cvStatus });
     }
+  } else if (type === "milo-prefetch") {
+    prefetchMiloRows(e.data.rows, e.data.cards_sha256);
   } else if (type === "milo-verify") {
     try {
       const res = await verifyMiloRows(scanId, e.data.rows, e.data.cards_sha256);
@@ -3442,7 +3549,8 @@ self.onmessage = async (e) => {
   } else if (type === "identify") {
     try {
       lastMiloContext = null;
-      const res = await identify(bmp, point, hints, aiQuads, aiOnly, aiCandidates, e.data.milo);
+      const res = await identify(bmp, point, hints, aiQuads, aiOnly, aiCandidates, e.data.milo,
+        e.data.miloPreviewEnabled ? images => self.postMessage({ id, type: "milo-preview", images }) : null);
       lastTitleSource = { scanId: id, candidates: res.titleSource || [] };
       delete res.titleSource; // ImageData payloads stay in-worker
       const context = res.miloContext;

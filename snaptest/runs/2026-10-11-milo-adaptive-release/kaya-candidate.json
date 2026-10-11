@@ -1,0 +1,1411 @@
+{
+  "item": {
+    "file": "002.jpg",
+    "name": "Kaya, Orzhov Usurper",
+    "id": "fdb4b2ef-5196-4f7f-88ff-64b2cdb36c6b",
+    "pool": "card",
+    "got": "Kaya, Spirits' Justice",
+    "by": "art-match",
+    "dist": 180,
+    "conf": 0.45,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Kaya, Spirits' Justice (d=180)",
+      "Davriel, Rogue Shadowmage (d=200)",
+      "Pilfering Imp (d=194)"
+    ],
+    "rot": "tapped",
+    "occ": "overlapped",
+    "ms": 2732,
+    "cv": "ready",
+    "tried": 2,
+    "dropped": 0,
+    "artBest": {
+      "name": "Kaya, Spirits' Justice",
+      "inliers": 18,
+      "color": 94,
+      "weak": false,
+      "clickInside": true,
+      "clickInliers": 21,
+      "clickArtInliers": 20,
+      "clickTextInliers": 1
+    },
+    "artChecked": 36,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": null,
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 1,
+      "probes": [
+        {
+          "sharpness": 0.03072667308151722,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        },
+        {
+          "sharpness": 0.033911533653736115,
+          "accepted": true,
+          "reason": "accepted"
+        }
+      ],
+      "ms": 175,
+      "fastMs": 571,
+      "fastHit": false,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.02231588400900364,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.04319758340716362,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.05219775438308716,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.04269428923726082,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 350
+      },
+      "retryHit": true,
+      "retryMs": 937
+    },
+    "truthGeometry": {
+      "angle": 98.12,
+      "center": {
+        "x": 0.5,
+        "y": 0.483
+      },
+      "card": {
+        "w": 0.357,
+        "h": 0.498
+      }
+    },
+    "capturePoint": {
+      "nx": 0.5,
+      "ny": 0.44576912608878816
+    },
+    "stages": {
+      "prep": 22,
+      "rankSeeds": 74,
+      "earlyOrbProbe": 0,
+      "rankRefine": 0,
+      "rank": 0,
+      "orb": 490,
+      "aiCrop": 175,
+      "aiAttempt": 571,
+      "milo": 1042,
+      "aiRetry": 937,
+      "total": 2729
+    },
+    "scene": 9,
+    "coverage": 0.418,
+    "clipped": 0,
+    "click": {
+      "u": 0.4,
+      "v": 0.51,
+      "covered": false
+    },
+    "layout": "overlapping",
+    "diceColor": null,
+    "diceFace": null,
+    "diceCoverage": 0,
+    "point": {
+      "nx": 0.5,
+      "ny": 0.44576912608878816
+    },
+    "pointNote": "Exact normalized point supplied to identifyCard."
+  },
+  "records": [
+    {
+      "build": "milo-adaptive-13 (local vision)",
+      "got": "Kaya, Spirits' Justice",
+      "ok": false,
+      "by": "art-match",
+      "matches": [
+        {
+          "name": "Kaya, Spirits' Justice",
+          "set": "pmkm",
+          "collector_number": "211s",
+          "scryfall_id": "8efb9dba-a0c9-499e-8ddc-928523a937c7",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/8/e/8efb9dba-a0c9-499e-8ddc-928523a937c7.jpg",
+          "scryfall_uri": "https://scryfall.com/card/pmkm/211s",
+          "distance": 180,
+          "confidence": 0.45,
+          "strategy": "ai-crop-2",
+          "art_inliers": 18,
+          "color_sim": 0.9441795945313061,
+          "ring_sim": 0.9441369856067467,
+          "click_inliers": 21,
+          "click_art_inliers": 20,
+          "click_text_inliers": 1,
+          "click_inside": true,
+          "click_blocked": false,
+          "identified_by": "art-match"
+        },
+        {
+          "name": "Davriel, Rogue Shadowmage",
+          "set": "pwar",
+          "collector_number": "83s★",
+          "scryfall_id": "d8899a2c-37d5-4786-8612-3dfc6b615777",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/d/8/d8899a2c-37d5-4786-8612-3dfc6b615777.jpg",
+          "scryfall_uri": "https://scryfall.com/card/pwar/83s★",
+          "distance": 200,
+          "confidence": 0.21428571428571427,
+          "strategy": "ai-crop-2",
+          "art_inliers": 9,
+          "color_sim": 0.9427596682198782,
+          "ring_sim": 0.9039208292524563,
+          "click_blocked": false
+        },
+        {
+          "name": "Pilfering Imp",
+          "set": "grn",
+          "collector_number": "81",
+          "scryfall_id": "646dedff-150c-4ed2-8f2e-3b2e6ba5521a",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/6/4/646dedff-150c-4ed2-8f2e-3b2e6ba5521a.jpg",
+          "scryfall_uri": "https://scryfall.com/card/grn/81",
+          "distance": 194,
+          "confidence": 0.2571428571428571,
+          "strategy": "ai-crop-2",
+          "art_inliers": 8,
+          "color_sim": 0.9024448603013298,
+          "ring_sim": 0.919405369204469,
+          "click_blocked": false
+        },
+        {
+          "name": "Scrapwork Mutt",
+          "set": "plst",
+          "collector_number": "BRO-164",
+          "scryfall_id": "2d78d844-72e8-481b-a700-f92571b2d347",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/2/d/2d78d844-72e8-481b-a700-f92571b2d347.jpg",
+          "scryfall_uri": "https://scryfall.com/card/plst/BRO-164",
+          "distance": 193,
+          "confidence": 0.2642857142857143,
+          "strategy": "ai-crop-2",
+          "art_inliers": 8,
+          "color_sim": 0.8931654475745745,
+          "ring_sim": 0.9140853871504078,
+          "click_blocked": false
+        },
+        {
+          "name": "Promising Duskmage",
+          "set": "stx",
+          "collector_number": "85",
+          "scryfall_id": "2ea0dff9-71c3-4d56-aa7b-e0fb9938529a",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/2/e/2ea0dff9-71c3-4d56-aa7b-e0fb9938529a.jpg",
+          "scryfall_uri": "https://scryfall.com/card/stx/85",
+          "distance": 187,
+          "confidence": 0.30714285714285716,
+          "strategy": "ai-crop-2",
+          "art_inliers": 7,
+          "color_sim": 0.9703115061856806,
+          "ring_sim": 0.9185731989709893,
+          "click_blocked": false
+        },
+        {
+          "name": "Liliana, Defiant Necromancer",
+          "set": "ori",
+          "collector_number": "106",
+          "scryfall_id": "9f25e1cf-eeb4-458d-8fb2-b3a2f86bdd54",
+          "face": 1,
+          "image": "https://cards.scryfall.io/normal/back/9/f/9f25e1cf-eeb4-458d-8fb2-b3a2f86bdd54.jpg",
+          "scryfall_uri": "https://scryfall.com/card/ori/106",
+          "distance": 198,
+          "confidence": 0.22857142857142856,
+          "strategy": "ai-crop-2",
+          "art_inliers": 7,
+          "color_sim": 0.9544438896482461,
+          "ring_sim": 0.9233448553859489,
+          "click_blocked": false
+        },
+        {
+          "name": "Guilded Lotus",
+          "set": "unk",
+          "collector_number": "UA05b",
+          "scryfall_id": "9ea59595-c9fb-4f4b-915a-5410b4f5c002",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/9/e/9ea59595-c9fb-4f4b-915a-5410b4f5c002.jpg",
+          "scryfall_uri": "https://scryfall.com/card/unk/UA05b",
+          "distance": 198,
+          "confidence": 0.22857142857142856,
+          "strategy": "ai-crop-2",
+          "art_inliers": 7,
+          "color_sim": 0.9380367994308472,
+          "ring_sim": 0.9047048445354449,
+          "click_blocked": false
+        },
+        {
+          "name": "Serra Paragon",
+          "set": "pdmu",
+          "collector_number": "32s",
+          "scryfall_id": "72ae055a-9f19-4b3e-86e1-de7bd30b5c9c",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/7/2/72ae055a-9f19-4b3e-86e1-de7bd30b5c9c.jpg",
+          "scryfall_uri": "https://scryfall.com/card/pdmu/32s",
+          "distance": 196,
+          "confidence": 0.24285714285714285,
+          "strategy": "ai-crop-2",
+          "art_inliers": 7,
+          "color_sim": 0.8040185282079619,
+          "ring_sim": 0.9258611376862973,
+          "click_blocked": false
+        },
+        {
+          "name": "Bontu's Last Reckoning",
+          "set": "phou",
+          "collector_number": "60s",
+          "scryfall_id": "9aae9aa6-b989-4bc8-ad04-51d833b91dcc",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/9/a/9aae9aa6-b989-4bc8-ad04-51d833b91dcc.jpg",
+          "scryfall_uri": "https://scryfall.com/card/phou/60s",
+          "distance": 196,
+          "confidence": 0.24285714285714285,
+          "strategy": "ai-crop-2",
+          "art_inliers": 6,
+          "color_sim": 0.9771925274981186,
+          "ring_sim": 0.9059319449297618,
+          "click_blocked": false
+        },
+        {
+          "name": "Sorin, Imperious Bloodlord",
+          "set": "pm20",
+          "collector_number": "115p",
+          "scryfall_id": "4a9452b7-799a-4834-bb1c-60fd050a9e07",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/4/a/4a9452b7-799a-4834-bb1c-60fd050a9e07.jpg",
+          "scryfall_uri": "https://scryfall.com/card/pm20/115p",
+          "distance": 198,
+          "confidence": 0.22857142857142856,
+          "strategy": "ai-crop-2",
+          "art_inliers": 6,
+          "color_sim": 0.9687994298365084,
+          "ring_sim": 0.9191983012133278,
+          "click_blocked": false
+        },
+        {
+          "name": "The Belligerent and Useless Island",
+          "set": "unk",
+          "collector_number": "RL01a",
+          "scryfall_id": "6ff8c834-9cac-471a-a317-b49e63bdd88e",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/6/f/6ff8c834-9cac-471a-a317-b49e63bdd88e.jpg",
+          "scryfall_uri": "https://scryfall.com/card/unk/RL01a",
+          "distance": 192,
+          "confidence": 0.2714285714285714,
+          "strategy": "ai-crop-2",
+          "art_inliers": 6,
+          "color_sim": 0.9668516903184354,
+          "ring_sim": 0.7052639117464423,
+          "click_blocked": false
+        },
+        {
+          "name": "Minnea, Planar Tourist",
+          "set": "unk",
+          "collector_number": "MG01",
+          "scryfall_id": "d06db963-9574-4e49-83e7-84e931ff7a28",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/d/0/d06db963-9574-4e49-83e7-84e931ff7a28.jpg",
+          "scryfall_uri": "https://scryfall.com/card/unk/MG01",
+          "distance": 189,
+          "confidence": 0.29285714285714287,
+          "strategy": "ai-crop-2",
+          "art_inliers": 6,
+          "color_sim": 0.9430094231156545,
+          "ring_sim": 0.8864840734750032,
+          "click_blocked": false
+        }
+      ],
+      "artBest": {
+        "name": "Kaya, Spirits' Justice",
+        "inliers": 18,
+        "color": 94,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 21,
+        "clickArtInliers": 20,
+        "clickTextInliers": 1
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 12,
+        "inferenceMs": 278,
+        "searchMs": 46,
+        "ms": 329,
+        "speculative": true,
+        "rescued": false,
+        "totalMs": 1033
+      },
+      "miloChecked": [
+        {
+          "name": "Guttersnipe",
+          "distance": 242,
+          "inliers": 5,
+          "color": 0.8492652290442493,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Ivory Tower",
+          "distance": 230,
+          "inliers": 1,
+          "color": 0.8119666213206074,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Dragonsguard Elite",
+          "distance": 238,
+          "inliers": 1,
+          "color": 0.11455942710017553,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Seize the Day",
+          "distance": 239,
+          "inliers": 7,
+          "color": 0.2882954899851029,
+          "clickInside": null,
+          "clickInliers": 10,
+          "clickArtInliers": 1,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Summon: Esper Ramuh",
+          "distance": 232,
+          "inliers": 0,
+          "color": 0.32900243061521905,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Kazuul, Tyrant of the Cliffs",
+          "distance": 245,
+          "inliers": 5,
+          "color": 0.9261484258749988,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Guttersnipe",
+          "distance": 231,
+          "inliers": 4,
+          "color": 0.6780971784646681,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Ivory Tower",
+          "distance": 232,
+          "inliers": 1,
+          "color": 0.9268539229451562,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Dragonsguard Elite",
+          "distance": 233,
+          "inliers": 1,
+          "color": 0.6248733296561113,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Seize the Day",
+          "distance": 235,
+          "inliers": 6,
+          "color": 0.34916432764657657,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Summon: Esper Ramuh",
+          "distance": 247,
+          "inliers": 7,
+          "color": 0.5201508859645401,
+          "clickInside": null,
+          "clickInliers": 5,
+          "clickArtInliers": 3,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Kazuul, Tyrant of the Cliffs",
+          "distance": 232,
+          "inliers": 0,
+          "color": 0.6622613563995401,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.03072667308151722,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.033911533653736115,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 189,
+        "fastMs": 811,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.02231588400900364,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.04319758340716362,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.05219775438308716,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.04269428923726082,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 352
+        },
+        "retryHit": true,
+        "retryMs": 948
+      },
+      "stages": {
+        "prep": 23,
+        "rankSeeds": 77,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1,
+        "rank": 0,
+        "orb": 495,
+        "aiCrop": 189,
+        "aiAttempt": 811,
+        "milo": 1033,
+        "aiRetry": 948,
+        "total": 2983
+      }
+    },
+    {
+      "build": "milo-adaptive-13 (local vision)",
+      "got": "Kaya, Spirits' Justice",
+      "ok": false,
+      "by": "art-match",
+      "matches": [
+        {
+          "name": "Kaya, Spirits' Justice",
+          "set": "pmkm",
+          "collector_number": "211s",
+          "scryfall_id": "8efb9dba-a0c9-499e-8ddc-928523a937c7",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/8/e/8efb9dba-a0c9-499e-8ddc-928523a937c7.jpg",
+          "scryfall_uri": "https://scryfall.com/card/pmkm/211s",
+          "distance": 180,
+          "confidence": 0.45,
+          "strategy": "ai-crop-2",
+          "art_inliers": 18,
+          "color_sim": 0.9441795945313061,
+          "ring_sim": 0.9441369856067467,
+          "click_inliers": 21,
+          "click_art_inliers": 20,
+          "click_text_inliers": 1,
+          "click_inside": true,
+          "click_blocked": false,
+          "identified_by": "art-match"
+        },
+        {
+          "name": "Davriel, Rogue Shadowmage",
+          "set": "pwar",
+          "collector_number": "83s★",
+          "scryfall_id": "d8899a2c-37d5-4786-8612-3dfc6b615777",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/d/8/d8899a2c-37d5-4786-8612-3dfc6b615777.jpg",
+          "scryfall_uri": "https://scryfall.com/card/pwar/83s★",
+          "distance": 200,
+          "confidence": 0.21428571428571427,
+          "strategy": "ai-crop-2",
+          "art_inliers": 9,
+          "color_sim": 0.9427596682198782,
+          "ring_sim": 0.9039208292524563,
+          "click_blocked": false
+        },
+        {
+          "name": "Pilfering Imp",
+          "set": "grn",
+          "collector_number": "81",
+          "scryfall_id": "646dedff-150c-4ed2-8f2e-3b2e6ba5521a",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/6/4/646dedff-150c-4ed2-8f2e-3b2e6ba5521a.jpg",
+          "scryfall_uri": "https://scryfall.com/card/grn/81",
+          "distance": 194,
+          "confidence": 0.2571428571428571,
+          "strategy": "ai-crop-2",
+          "art_inliers": 8,
+          "color_sim": 0.9024448603013298,
+          "ring_sim": 0.919405369204469,
+          "click_blocked": false
+        },
+        {
+          "name": "Scrapwork Mutt",
+          "set": "plst",
+          "collector_number": "BRO-164",
+          "scryfall_id": "2d78d844-72e8-481b-a700-f92571b2d347",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/2/d/2d78d844-72e8-481b-a700-f92571b2d347.jpg",
+          "scryfall_uri": "https://scryfall.com/card/plst/BRO-164",
+          "distance": 193,
+          "confidence": 0.2642857142857143,
+          "strategy": "ai-crop-2",
+          "art_inliers": 8,
+          "color_sim": 0.8931654475745745,
+          "ring_sim": 0.9140853871504078,
+          "click_blocked": false
+        },
+        {
+          "name": "Promising Duskmage",
+          "set": "stx",
+          "collector_number": "85",
+          "scryfall_id": "2ea0dff9-71c3-4d56-aa7b-e0fb9938529a",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/2/e/2ea0dff9-71c3-4d56-aa7b-e0fb9938529a.jpg",
+          "scryfall_uri": "https://scryfall.com/card/stx/85",
+          "distance": 187,
+          "confidence": 0.30714285714285716,
+          "strategy": "ai-crop-2",
+          "art_inliers": 7,
+          "color_sim": 0.9703115061856806,
+          "ring_sim": 0.9185731989709893,
+          "click_blocked": false
+        },
+        {
+          "name": "Liliana, Defiant Necromancer",
+          "set": "ori",
+          "collector_number": "106",
+          "scryfall_id": "9f25e1cf-eeb4-458d-8fb2-b3a2f86bdd54",
+          "face": 1,
+          "image": "https://cards.scryfall.io/normal/back/9/f/9f25e1cf-eeb4-458d-8fb2-b3a2f86bdd54.jpg",
+          "scryfall_uri": "https://scryfall.com/card/ori/106",
+          "distance": 198,
+          "confidence": 0.22857142857142856,
+          "strategy": "ai-crop-2",
+          "art_inliers": 7,
+          "color_sim": 0.9544438896482461,
+          "ring_sim": 0.9233448553859489,
+          "click_blocked": false
+        },
+        {
+          "name": "Guilded Lotus",
+          "set": "unk",
+          "collector_number": "UA05b",
+          "scryfall_id": "9ea59595-c9fb-4f4b-915a-5410b4f5c002",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/9/e/9ea59595-c9fb-4f4b-915a-5410b4f5c002.jpg",
+          "scryfall_uri": "https://scryfall.com/card/unk/UA05b",
+          "distance": 198,
+          "confidence": 0.22857142857142856,
+          "strategy": "ai-crop-2",
+          "art_inliers": 7,
+          "color_sim": 0.9380367994308472,
+          "ring_sim": 0.9047048445354449,
+          "click_blocked": false
+        },
+        {
+          "name": "Serra Paragon",
+          "set": "pdmu",
+          "collector_number": "32s",
+          "scryfall_id": "72ae055a-9f19-4b3e-86e1-de7bd30b5c9c",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/7/2/72ae055a-9f19-4b3e-86e1-de7bd30b5c9c.jpg",
+          "scryfall_uri": "https://scryfall.com/card/pdmu/32s",
+          "distance": 196,
+          "confidence": 0.24285714285714285,
+          "strategy": "ai-crop-2",
+          "art_inliers": 7,
+          "color_sim": 0.8040185282079619,
+          "ring_sim": 0.9258611376862973,
+          "click_blocked": false
+        },
+        {
+          "name": "Bontu's Last Reckoning",
+          "set": "phou",
+          "collector_number": "60s",
+          "scryfall_id": "9aae9aa6-b989-4bc8-ad04-51d833b91dcc",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/9/a/9aae9aa6-b989-4bc8-ad04-51d833b91dcc.jpg",
+          "scryfall_uri": "https://scryfall.com/card/phou/60s",
+          "distance": 196,
+          "confidence": 0.24285714285714285,
+          "strategy": "ai-crop-2",
+          "art_inliers": 6,
+          "color_sim": 0.9771925274981186,
+          "ring_sim": 0.9059319449297618,
+          "click_blocked": false
+        },
+        {
+          "name": "Sorin, Imperious Bloodlord",
+          "set": "pm20",
+          "collector_number": "115p",
+          "scryfall_id": "4a9452b7-799a-4834-bb1c-60fd050a9e07",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/4/a/4a9452b7-799a-4834-bb1c-60fd050a9e07.jpg",
+          "scryfall_uri": "https://scryfall.com/card/pm20/115p",
+          "distance": 198,
+          "confidence": 0.22857142857142856,
+          "strategy": "ai-crop-2",
+          "art_inliers": 6,
+          "color_sim": 0.9687994298365084,
+          "ring_sim": 0.9191983012133278,
+          "click_blocked": false
+        },
+        {
+          "name": "The Belligerent and Useless Island",
+          "set": "unk",
+          "collector_number": "RL01a",
+          "scryfall_id": "6ff8c834-9cac-471a-a317-b49e63bdd88e",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/6/f/6ff8c834-9cac-471a-a317-b49e63bdd88e.jpg",
+          "scryfall_uri": "https://scryfall.com/card/unk/RL01a",
+          "distance": 192,
+          "confidence": 0.2714285714285714,
+          "strategy": "ai-crop-2",
+          "art_inliers": 6,
+          "color_sim": 0.9668516903184354,
+          "ring_sim": 0.7052639117464423,
+          "click_blocked": false
+        },
+        {
+          "name": "Minnea, Planar Tourist",
+          "set": "unk",
+          "collector_number": "MG01",
+          "scryfall_id": "d06db963-9574-4e49-83e7-84e931ff7a28",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/d/0/d06db963-9574-4e49-83e7-84e931ff7a28.jpg",
+          "scryfall_uri": "https://scryfall.com/card/unk/MG01",
+          "distance": 189,
+          "confidence": 0.29285714285714287,
+          "strategy": "ai-crop-2",
+          "art_inliers": 6,
+          "color_sim": 0.9430094231156545,
+          "ring_sim": 0.8864840734750032,
+          "click_blocked": false
+        }
+      ],
+      "artBest": {
+        "name": "Kaya, Spirits' Justice",
+        "inliers": 18,
+        "color": 94,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 21,
+        "clickArtInliers": 20,
+        "clickTextInliers": 1
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 12,
+        "inferenceMs": 273,
+        "searchMs": 43,
+        "ms": 321,
+        "speculative": true,
+        "rescued": false,
+        "totalMs": 1009
+      },
+      "miloChecked": [
+        {
+          "name": "Guttersnipe",
+          "distance": 242,
+          "inliers": 5,
+          "color": 0.8492652290442493,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Ivory Tower",
+          "distance": 230,
+          "inliers": 1,
+          "color": 0.8119666213206074,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Dragonsguard Elite",
+          "distance": 238,
+          "inliers": 1,
+          "color": 0.11455942710017553,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Seize the Day",
+          "distance": 239,
+          "inliers": 7,
+          "color": 0.2882954899851029,
+          "clickInside": null,
+          "clickInliers": 10,
+          "clickArtInliers": 1,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Summon: Esper Ramuh",
+          "distance": 232,
+          "inliers": 0,
+          "color": 0.32900243061521905,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Kazuul, Tyrant of the Cliffs",
+          "distance": 245,
+          "inliers": 5,
+          "color": 0.9261484258749988,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Guttersnipe",
+          "distance": 231,
+          "inliers": 4,
+          "color": 0.6780971784646681,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Ivory Tower",
+          "distance": 232,
+          "inliers": 1,
+          "color": 0.9268539229451562,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Dragonsguard Elite",
+          "distance": 233,
+          "inliers": 1,
+          "color": 0.6248733296561113,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Seize the Day",
+          "distance": 235,
+          "inliers": 6,
+          "color": 0.34916432764657657,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Summon: Esper Ramuh",
+          "distance": 247,
+          "inliers": 7,
+          "color": 0.5201508859645401,
+          "clickInside": null,
+          "clickInliers": 5,
+          "clickArtInliers": 3,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Kazuul, Tyrant of the Cliffs",
+          "distance": 232,
+          "inliers": 0,
+          "color": 0.6622613563995401,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.03072667308151722,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.033911533653736115,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 177,
+        "fastMs": 463,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.02231588400900364,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.04319758340716362,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.05219775438308716,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.04269428923726082,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 353
+        },
+        "retryHit": true,
+        "retryMs": 820
+      },
+      "stages": {
+        "prep": 22,
+        "rankSeeds": 74,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1,
+        "rank": 0,
+        "orb": 369,
+        "aiCrop": 177,
+        "aiAttempt": 463,
+        "milo": 1009,
+        "aiRetry": 820,
+        "total": 2470
+      }
+    },
+    {
+      "build": "milo-adaptive-13 (local vision)",
+      "got": "Kaya, Spirits' Justice",
+      "ok": false,
+      "by": "art-match",
+      "matches": [
+        {
+          "name": "Kaya, Spirits' Justice",
+          "set": "pmkm",
+          "collector_number": "211s",
+          "scryfall_id": "8efb9dba-a0c9-499e-8ddc-928523a937c7",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/8/e/8efb9dba-a0c9-499e-8ddc-928523a937c7.jpg",
+          "scryfall_uri": "https://scryfall.com/card/pmkm/211s",
+          "distance": 180,
+          "confidence": 0.45,
+          "strategy": "ai-crop-2",
+          "art_inliers": 18,
+          "color_sim": 0.9441795945313061,
+          "ring_sim": 0.9441369856067467,
+          "click_inliers": 21,
+          "click_art_inliers": 20,
+          "click_text_inliers": 1,
+          "click_inside": true,
+          "click_blocked": false,
+          "identified_by": "art-match"
+        },
+        {
+          "name": "Davriel, Rogue Shadowmage",
+          "set": "pwar",
+          "collector_number": "83s★",
+          "scryfall_id": "d8899a2c-37d5-4786-8612-3dfc6b615777",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/d/8/d8899a2c-37d5-4786-8612-3dfc6b615777.jpg",
+          "scryfall_uri": "https://scryfall.com/card/pwar/83s★",
+          "distance": 200,
+          "confidence": 0.21428571428571427,
+          "strategy": "ai-crop-2",
+          "art_inliers": 9,
+          "color_sim": 0.9427596682198782,
+          "ring_sim": 0.9039208292524563,
+          "click_blocked": false
+        },
+        {
+          "name": "Pilfering Imp",
+          "set": "grn",
+          "collector_number": "81",
+          "scryfall_id": "646dedff-150c-4ed2-8f2e-3b2e6ba5521a",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/6/4/646dedff-150c-4ed2-8f2e-3b2e6ba5521a.jpg",
+          "scryfall_uri": "https://scryfall.com/card/grn/81",
+          "distance": 194,
+          "confidence": 0.2571428571428571,
+          "strategy": "ai-crop-2",
+          "art_inliers": 8,
+          "color_sim": 0.9024448603013298,
+          "ring_sim": 0.919405369204469,
+          "click_blocked": false
+        },
+        {
+          "name": "Scrapwork Mutt",
+          "set": "plst",
+          "collector_number": "BRO-164",
+          "scryfall_id": "2d78d844-72e8-481b-a700-f92571b2d347",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/2/d/2d78d844-72e8-481b-a700-f92571b2d347.jpg",
+          "scryfall_uri": "https://scryfall.com/card/plst/BRO-164",
+          "distance": 193,
+          "confidence": 0.2642857142857143,
+          "strategy": "ai-crop-2",
+          "art_inliers": 8,
+          "color_sim": 0.8931654475745745,
+          "ring_sim": 0.9140853871504078,
+          "click_blocked": false
+        },
+        {
+          "name": "Promising Duskmage",
+          "set": "stx",
+          "collector_number": "85",
+          "scryfall_id": "2ea0dff9-71c3-4d56-aa7b-e0fb9938529a",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/2/e/2ea0dff9-71c3-4d56-aa7b-e0fb9938529a.jpg",
+          "scryfall_uri": "https://scryfall.com/card/stx/85",
+          "distance": 187,
+          "confidence": 0.30714285714285716,
+          "strategy": "ai-crop-2",
+          "art_inliers": 7,
+          "color_sim": 0.9703115061856806,
+          "ring_sim": 0.9185731989709893,
+          "click_blocked": false
+        },
+        {
+          "name": "Liliana, Defiant Necromancer",
+          "set": "ori",
+          "collector_number": "106",
+          "scryfall_id": "9f25e1cf-eeb4-458d-8fb2-b3a2f86bdd54",
+          "face": 1,
+          "image": "https://cards.scryfall.io/normal/back/9/f/9f25e1cf-eeb4-458d-8fb2-b3a2f86bdd54.jpg",
+          "scryfall_uri": "https://scryfall.com/card/ori/106",
+          "distance": 198,
+          "confidence": 0.22857142857142856,
+          "strategy": "ai-crop-2",
+          "art_inliers": 7,
+          "color_sim": 0.9544438896482461,
+          "ring_sim": 0.9233448553859489,
+          "click_blocked": false
+        },
+        {
+          "name": "Guilded Lotus",
+          "set": "unk",
+          "collector_number": "UA05b",
+          "scryfall_id": "9ea59595-c9fb-4f4b-915a-5410b4f5c002",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/9/e/9ea59595-c9fb-4f4b-915a-5410b4f5c002.jpg",
+          "scryfall_uri": "https://scryfall.com/card/unk/UA05b",
+          "distance": 198,
+          "confidence": 0.22857142857142856,
+          "strategy": "ai-crop-2",
+          "art_inliers": 7,
+          "color_sim": 0.9380367994308472,
+          "ring_sim": 0.9047048445354449,
+          "click_blocked": false
+        },
+        {
+          "name": "Serra Paragon",
+          "set": "pdmu",
+          "collector_number": "32s",
+          "scryfall_id": "72ae055a-9f19-4b3e-86e1-de7bd30b5c9c",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/7/2/72ae055a-9f19-4b3e-86e1-de7bd30b5c9c.jpg",
+          "scryfall_uri": "https://scryfall.com/card/pdmu/32s",
+          "distance": 196,
+          "confidence": 0.24285714285714285,
+          "strategy": "ai-crop-2",
+          "art_inliers": 7,
+          "color_sim": 0.8040185282079619,
+          "ring_sim": 0.9258611376862973,
+          "click_blocked": false
+        },
+        {
+          "name": "Bontu's Last Reckoning",
+          "set": "phou",
+          "collector_number": "60s",
+          "scryfall_id": "9aae9aa6-b989-4bc8-ad04-51d833b91dcc",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/9/a/9aae9aa6-b989-4bc8-ad04-51d833b91dcc.jpg",
+          "scryfall_uri": "https://scryfall.com/card/phou/60s",
+          "distance": 196,
+          "confidence": 0.24285714285714285,
+          "strategy": "ai-crop-2",
+          "art_inliers": 6,
+          "color_sim": 0.9771925274981186,
+          "ring_sim": 0.9059319449297618,
+          "click_blocked": false
+        },
+        {
+          "name": "Sorin, Imperious Bloodlord",
+          "set": "pm20",
+          "collector_number": "115p",
+          "scryfall_id": "4a9452b7-799a-4834-bb1c-60fd050a9e07",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/4/a/4a9452b7-799a-4834-bb1c-60fd050a9e07.jpg",
+          "scryfall_uri": "https://scryfall.com/card/pm20/115p",
+          "distance": 198,
+          "confidence": 0.22857142857142856,
+          "strategy": "ai-crop-2",
+          "art_inliers": 6,
+          "color_sim": 0.9687994298365084,
+          "ring_sim": 0.9191983012133278,
+          "click_blocked": false
+        },
+        {
+          "name": "The Belligerent and Useless Island",
+          "set": "unk",
+          "collector_number": "RL01a",
+          "scryfall_id": "6ff8c834-9cac-471a-a317-b49e63bdd88e",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/6/f/6ff8c834-9cac-471a-a317-b49e63bdd88e.jpg",
+          "scryfall_uri": "https://scryfall.com/card/unk/RL01a",
+          "distance": 192,
+          "confidence": 0.2714285714285714,
+          "strategy": "ai-crop-2",
+          "art_inliers": 6,
+          "color_sim": 0.9668516903184354,
+          "ring_sim": 0.7052639117464423,
+          "click_blocked": false
+        },
+        {
+          "name": "Minnea, Planar Tourist",
+          "set": "unk",
+          "collector_number": "MG01",
+          "scryfall_id": "d06db963-9574-4e49-83e7-84e931ff7a28",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/d/0/d06db963-9574-4e49-83e7-84e931ff7a28.jpg",
+          "scryfall_uri": "https://scryfall.com/card/unk/MG01",
+          "distance": 189,
+          "confidence": 0.29285714285714287,
+          "strategy": "ai-crop-2",
+          "art_inliers": 6,
+          "color_sim": 0.9430094231156545,
+          "ring_sim": 0.8864840734750032,
+          "click_blocked": false
+        }
+      ],
+      "artBest": {
+        "name": "Kaya, Spirits' Justice",
+        "inliers": 18,
+        "color": 94,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 21,
+        "clickArtInliers": 20,
+        "clickTextInliers": 1
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 12,
+        "inferenceMs": 274,
+        "searchMs": 46,
+        "ms": 324,
+        "speculative": true,
+        "rescued": false,
+        "totalMs": 1010
+      },
+      "miloChecked": [
+        {
+          "name": "Guttersnipe",
+          "distance": 242,
+          "inliers": 5,
+          "color": 0.8492652290442493,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Ivory Tower",
+          "distance": 230,
+          "inliers": 1,
+          "color": 0.8119666213206074,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Dragonsguard Elite",
+          "distance": 238,
+          "inliers": 1,
+          "color": 0.11455942710017553,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Seize the Day",
+          "distance": 239,
+          "inliers": 7,
+          "color": 0.2882954899851029,
+          "clickInside": null,
+          "clickInliers": 10,
+          "clickArtInliers": 1,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Summon: Esper Ramuh",
+          "distance": 232,
+          "inliers": 0,
+          "color": 0.32900243061521905,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Kazuul, Tyrant of the Cliffs",
+          "distance": 245,
+          "inliers": 5,
+          "color": 0.9261484258749988,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Guttersnipe",
+          "distance": 231,
+          "inliers": 4,
+          "color": 0.6780971784646681,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Ivory Tower",
+          "distance": 232,
+          "inliers": 1,
+          "color": 0.9268539229451562,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Dragonsguard Elite",
+          "distance": 233,
+          "inliers": 1,
+          "color": 0.6248733296561113,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Seize the Day",
+          "distance": 235,
+          "inliers": 6,
+          "color": 0.34916432764657657,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Summon: Esper Ramuh",
+          "distance": 247,
+          "inliers": 7,
+          "color": 0.5201508859645401,
+          "clickInside": null,
+          "clickInliers": 5,
+          "clickArtInliers": 3,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Kazuul, Tyrant of the Cliffs",
+          "distance": 232,
+          "inliers": 0,
+          "color": 0.6622613563995401,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.03072667308151722,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.033911533653736115,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 174,
+        "fastMs": 468,
+        "fastHit": false,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.02231588400900364,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.04319758340716362,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.05219775438308716,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.04269428923726082,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 351
+        },
+        "retryHit": true,
+        "retryMs": 819
+      },
+      "stages": {
+        "prep": 22,
+        "rankSeeds": 77,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1,
+        "rank": 0,
+        "orb": 367,
+        "aiCrop": 174,
+        "aiAttempt": 468,
+        "milo": 1010,
+        "aiRetry": 819,
+        "total": 2472
+      }
+    }
+  ]
+}

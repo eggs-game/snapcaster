@@ -1,0 +1,28 @@
+{
+  "build": "milo-adaptive-16 (local vision)",
+  "checks": [
+    {
+      "command": "SNAPCAST_PYTHON=/private/tmp/snapcast-hash-python/bin/python node scripts/check.mjs --build",
+      "exitCode": 0
+    },
+    {
+      "command": "python scripts/test_milo_catalog.py",
+      "exitCode": 0
+    },
+    {
+      "command": "python scripts/verify_milo_catalog.py",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check_recognition_release.mjs candidate control",
+      "exitCode": 0
+    }
+  ],
+  "browserEvidence": [
+    "browser-checks.json",
+    "reference-features.json",
+    "crowded-regressions.json",
+    "whirlwing-fixed.json"
+  ],
+  "sourceFingerprintsVerifiedAfterBenchmarks": true
+}

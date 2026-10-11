@@ -37,7 +37,7 @@ function runMilo(type, images = []) {
   });
 }
 
-async function runProposal(bitmap, point) {
+async function runProposal(bitmap, point, retry = false) {
   if (!aiCropEnabled()) return { quads: [], diagnostic: { status: "off" } };
   if (disabled) return { quads: [], diagnostic: disabled };
   let copy;
@@ -69,7 +69,7 @@ async function runProposal(bitmap, point) {
         finish(data, data.diagnostic?.status === "failed");
       };
       worker.onerror = () => finish({ quads: [], diagnostic: { status: "failed", proposals: 0, error: "AI crop worker failed" } }, true);
-      worker.postMessage({ id, bmp: copy, point }, [copy]);
+      worker.postMessage({ id, bmp: copy, point, retry }, [copy]);
     } catch (error) {
       copy.close();
       finish({ quads: [], diagnostic: { status: "failed", proposals: 0, error: String(error?.message || error) } }, true);
@@ -80,8 +80,8 @@ async function runProposal(bitmap, point) {
 // Warmup and scans share one model worker; callbacks cannot overlap or replace
 // an active scan. Recognition keeps its own newest-click queue above this.
 let proposalQueue = Promise.resolve();
-export function proposeAiCrops(bitmap, point) {
-  const job = proposalQueue.then(() => runProposal(bitmap, point));
+export function proposeAiCrops(bitmap, point, retry = false) {
+  const job = proposalQueue.then(() => runProposal(bitmap, point, retry));
   proposalQueue = job.catch(() => {});
   return job;
 }

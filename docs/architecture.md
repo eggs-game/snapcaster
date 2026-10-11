@@ -29,7 +29,7 @@ data layer. Recognition remains in the browser.
 | Accounts | Supabase Auth + Postgres | Optional Discord identity, profiles, private contact data, and preferences |
 | Transport | WebRTC mesh (2–6 players) + Cloudflare TURN | Direct first; encrypted relay fallback for strict VPN/NAT/firewall paths |
 | Signaling | Supabase Realtime | Presence + broadcast, free tier, no server code |
-| Vision | OpenCV.js (WASM) in a Worker | Contour detection and ORB, off the main thread |
+| Vision | OpenCV.js and local ONNX models in Workers | Cornelius corners, Milo card retrieval and geometric ORB verification, off the main thread |
 | OCR | tesseract.js | Title reading, main thread, heavily gated (see below) |
 | Hosting | Vercel | Auto-deploys `main`; static files plus narrowly scoped stateless serverless routes |
 
@@ -148,6 +148,9 @@ src/
     recognizer.js       ★ Web Worker: OpenCV, crops, hashing, ORB
     matcher.js          main-thread front end: worker plumbing, OCR, gating
     hash.js             hashing reference implementation (see the note below)
+    aiCropWorker.js     serialized Cornelius/Milo inference in shared ONNX WASM
+    aiCropGeometry.js   bounded click-containing detector windows
+    miloLookup.js       catalog validation and diverse printing shortlist
   snaptest/
     scene.js            renders realistic multi-card table scenes
     degrade.js          single-card degradations
@@ -287,6 +290,17 @@ Everything expensive lives in the Worker (`recognizer.js`): OpenCV WASM,
 contour detection, all hashing, the 110k-printing scan, and ORB verification.
 The main thread (`matcher.js`) owns worker plumbing, the OCR pool, and the
 decision gates about which answer to trust.
+
+The separate `aiCropWorker.js` serializes Cornelius corner detection and Milo
+embedding lookup in one ONNX Runtime WASM instance. Both models and the complete
+printing-face embedding catalog are static, pinned assets; recognition does not
+call a paid inference API or send camera captures to a server. Catalog fingerprints
+must match the loaded `cards.json` before retrieved rows can be used. Learned
+shortlists enter the same clicked-card verification boundary as hash candidates.
+An eligible uncertain crop can start Milo alongside ordinary artwork verification;
+only the completed scan context can accept its result. The OpenCV worker retains
+at most sixty public-reference feature pairs and releases camera-query features
+after every check. See [recognition.md](recognition.md) for the full decision flow.
 
 This split exists because OpenCV's WASM compile froze the UI when it ran on
 the main thread — an early bug that made the lobby unresponsive.

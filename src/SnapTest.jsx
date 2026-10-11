@@ -529,6 +529,7 @@ export default function SnapTest() {
           rec.click = deg.click;
           degradedUrl = deg.url;
         }
+        rec.capturePoint = rec.click || { nx: 0.5, ny: 0.5 };
         let data;
         try {
           const identifyStarted = performance.now();

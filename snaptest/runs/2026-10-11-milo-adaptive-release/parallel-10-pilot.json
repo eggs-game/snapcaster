@@ -1,0 +1,3597 @@
+{
+  "build": "milo-parallel-pilot-10 (local vision)",
+  "suite": "realLife",
+  "sample": "authoritative SNAPTEST realLife sampler, seed 20260803, identical production captures",
+  "paired": true,
+  "completed": 20,
+  "baselineMilo": true,
+  "workerMemory": {
+    "start": [
+      {
+        "url": "http://127.0.0.1:4185/assets/aiCropWorker-rYVqruEM.js",
+        "usedSize": 2189744,
+        "totalSize": 6455296,
+        "embedderHeapUsedSize": 435392,
+        "backingStorageSize": 23087109
+      },
+      {
+        "url": "http://127.0.0.1:4185/assets/recognizer-BLHNk3EG.js",
+        "usedSize": 27357012,
+        "totalSize": 44826624,
+        "embedderHeapUsedSize": 707576,
+        "backingStorageSize": 69313302
+      },
+      {
+        "url": "http://127.0.0.1:4183/assets/aiCropWorker-rYVqruEM.js",
+        "usedSize": 2189756,
+        "totalSize": 6717440,
+        "embedderHeapUsedSize": 439104,
+        "backingStorageSize": 23087109
+      },
+      {
+        "url": "http://127.0.0.1:4183/assets/recognizer-CDrLKgr5.js",
+        "usedSize": 27338224,
+        "totalSize": 44564480,
+        "embedderHeapUsedSize": 2808512,
+        "backingStorageSize": 69313486
+      }
+    ],
+    "end": [
+      {
+        "url": "http://127.0.0.1:4185/assets/aiCropWorker-rYVqruEM.js",
+        "usedSize": 2629380,
+        "totalSize": 5668864,
+        "embedderHeapUsedSize": 621328,
+        "backingStorageSize": 36131283
+      },
+      {
+        "url": "http://127.0.0.1:4185/assets/recognizer-BLHNk3EG.js",
+        "usedSize": 40430036,
+        "totalSize": 64356352,
+        "embedderHeapUsedSize": 1244944,
+        "backingStorageSize": 212425964
+      },
+      {
+        "url": "http://127.0.0.1:4183/assets/aiCropWorker-rYVqruEM.js",
+        "usedSize": 2553012,
+        "totalSize": 5406720,
+        "embedderHeapUsedSize": 605608,
+        "backingStorageSize": 24334571
+      },
+      {
+        "url": "http://127.0.0.1:4183/assets/recognizer-CDrLKgr5.js",
+        "usedSize": 33164876,
+        "totalSize": 54984704,
+        "embedderHeapUsedSize": 1169664,
+        "backingStorageSize": 183050573
+      }
+    ]
+  },
+  "summary": {
+    "baseline": {
+      "n": 20,
+      "accuracy": 1,
+      "byOcclusion": {
+        "clear": {
+          "n": 17,
+          "ok": 17,
+          "acc": 1
+        },
+        "edge": {
+          "n": 3,
+          "ok": 3,
+          "acc": 1
+        }
+      },
+      "byPool": {
+        "card": {
+          "n": 16,
+          "ok": 16,
+          "acc": 1
+        },
+        "token": {
+          "n": 4,
+          "ok": 4,
+          "acc": 1
+        }
+      },
+      "byCoverage": {
+        "0 (clear)": {
+          "n": 20,
+          "ok": 20,
+          "acc": 1
+        }
+      },
+      "byClipped": {
+        "0-5% (whole)": {
+          "n": 17,
+          "ok": 17,
+          "acc": 1
+        },
+        "5-15%": {
+          "n": 3,
+          "ok": 3,
+          "acc": 1
+        }
+      },
+      "avgMs": 1040,
+      "neighbourMisses": [],
+      "attempted": 20,
+      "correct": 20,
+      "errors": 0,
+      "medianMs": 731,
+      "p90Ms": 1819,
+      "accepted": {
+        "n": 20,
+        "correct": 20
+      },
+      "byPathway": {
+        "art-match": {
+          "n": 20,
+          "ok": 20,
+          "acc": 1
+        }
+      },
+      "byRotation": {
+        "upright": {
+          "n": 17,
+          "ok": 17,
+          "acc": 1
+        },
+        "tapped": {
+          "n": 3,
+          "ok": 3,
+          "acc": 1
+        }
+      },
+      "byLayout": {
+        "side-by-side": {
+          "n": 10,
+          "ok": 10,
+          "acc": 1
+        },
+        "spaced": {
+          "n": 10,
+          "ok": 10,
+          "acc": 1
+        }
+      },
+      "absentMisses": 0,
+      "firstHalf": 10,
+      "secondHalf": 10,
+      "wasmHeapMB": [
+        134,
+        134
+      ]
+    },
+    "ai": {
+      "n": 20,
+      "accuracy": 1,
+      "byOcclusion": {
+        "clear": {
+          "n": 17,
+          "ok": 17,
+          "acc": 1
+        },
+        "edge": {
+          "n": 3,
+          "ok": 3,
+          "acc": 1
+        }
+      },
+      "byPool": {
+        "card": {
+          "n": 16,
+          "ok": 16,
+          "acc": 1
+        },
+        "token": {
+          "n": 4,
+          "ok": 4,
+          "acc": 1
+        }
+      },
+      "byCoverage": {
+        "0 (clear)": {
+          "n": 20,
+          "ok": 20,
+          "acc": 1
+        }
+      },
+      "byClipped": {
+        "0-5% (whole)": {
+          "n": 17,
+          "ok": 17,
+          "acc": 1
+        },
+        "5-15%": {
+          "n": 3,
+          "ok": 3,
+          "acc": 1
+        }
+      },
+      "avgMs": 996,
+      "neighbourMisses": [],
+      "attempted": 20,
+      "correct": 20,
+      "errors": 0,
+      "medianMs": 895,
+      "p90Ms": 1768,
+      "accepted": {
+        "n": 20,
+        "correct": 20
+      },
+      "byPathway": {
+        "art-match": {
+          "n": 20,
+          "ok": 20,
+          "acc": 1
+        }
+      },
+      "byRotation": {
+        "upright": {
+          "n": 17,
+          "ok": 17,
+          "acc": 1
+        },
+        "tapped": {
+          "n": 3,
+          "ok": 3,
+          "acc": 1
+        }
+      },
+      "byLayout": {
+        "side-by-side": {
+          "n": 10,
+          "ok": 10,
+          "acc": 1
+        },
+        "spaced": {
+          "n": 10,
+          "ok": 10,
+          "acc": 1
+        }
+      },
+      "absentMisses": 0,
+      "firstHalf": 10,
+      "secondHalf": 10,
+      "wasmHeapMB": [
+        134,
+        134
+      ]
+    },
+    "recovered": [],
+    "regressed": [],
+    "proposals": 20,
+    "fastHits": 13,
+    "miloLookups": 9,
+    "miloRescues": [
+      3,
+      5,
+      7,
+      8,
+      9,
+      10,
+      13
+    ],
+    "recoveredNeighbours": [],
+    "fastPrecision": {
+      "n": 13,
+      "correct": 13
+    }
+  },
+  "records": [
+    {
+      "name": "Mount Doom",
+      "pool": "card",
+      "id": "6ad857f8-3c78-4333-b6c9-ac57b6b70888",
+      "occ": "clear",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.27474003118929186
+      },
+      "scene": 16,
+      "rotation": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "clipped": 0,
+      "i": 0,
+      "baseline": {
+        "build": "milo-adaptive-9 (local vision)",
+        "ok": true,
+        "got": "Mount Doom",
+        "by": "art-match",
+        "strategy": "ai-crop-1",
+        "distance": 115,
+        "trueRank": 1,
+        "ms": 935,
+        "stages": {
+          "prep": 23,
+          "rankSeeds": 40,
+          "earlyOrbProbe": 0,
+          "rankRefine": 2,
+          "rank": 0,
+          "orb": 689,
+          "aiCrop": 177,
+          "aiAttempt": 755,
+          "total": 935
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.05542935058474541,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.058977968990802765,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 177,
+          "fastMs": 755,
+          "fastHit": true
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Mount Doom",
+          "inliers": 129,
+          "color": 87,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 129,
+          "clickArtInliers": 109,
+          "clickTextInliers": 14
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Mount Doom",
+            "distance": 115
+          },
+          {
+            "name": "Cat",
+            "distance": 192
+          },
+          {
+            "name": "Coastal Tower",
+            "distance": 194
+          }
+        ]
+      },
+      "ai": {
+        "build": "milo-parallel-pilot-10 (local vision)",
+        "ok": true,
+        "got": "Mount Doom",
+        "by": "art-match",
+        "strategy": "ai-crop-1",
+        "distance": 115,
+        "trueRank": 1,
+        "ms": 973,
+        "stages": {
+          "prep": 22,
+          "rankSeeds": 39,
+          "earlyOrbProbe": 0,
+          "rankRefine": 1,
+          "rank": 0,
+          "orb": 729,
+          "aiCrop": 177,
+          "aiAttempt": 793,
+          "total": 973
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.05542935058474541,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.058977968990802765,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 177,
+          "fastMs": 793,
+          "fastHit": true
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Mount Doom",
+          "inliers": 129,
+          "color": 87,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 129,
+          "clickArtInliers": 109,
+          "clickTextInliers": 14
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Mount Doom",
+            "distance": 115
+          },
+          {
+            "name": "Cat",
+            "distance": 192
+          },
+          {
+            "name": "Coastal Tower",
+            "distance": 194
+          }
+        ]
+      }
+    },
+    {
+      "name": "Hellkite Courser",
+      "pool": "card",
+      "id": "d33eca2e-fef0-42fd-9970-46d5bdb4bd4b",
+      "occ": "clear",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.24465627298068085
+      },
+      "scene": 16,
+      "rotation": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "clipped": 0,
+      "i": 1,
+      "ai": {
+        "build": "milo-parallel-pilot-10 (local vision)",
+        "ok": true,
+        "got": "Hellkite Courser",
+        "by": "art-match",
+        "strategy": "ai-crop-1",
+        "distance": 119,
+        "trueRank": 1,
+        "ms": 658,
+        "stages": {
+          "prep": 13,
+          "rankSeeds": 35,
+          "earlyOrbProbe": 0,
+          "rankRefine": 1,
+          "rank": 0,
+          "orb": 441,
+          "aiCrop": 165,
+          "aiAttempt": 491,
+          "total": 658
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.05234888195991516,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.06611021608114243,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 165,
+          "fastMs": 491,
+          "fastHit": true
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Hellkite Courser",
+          "inliers": 58,
+          "color": 78,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 58,
+          "clickArtInliers": 33,
+          "clickTextInliers": 23
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Hellkite Courser",
+            "distance": 119
+          },
+          {
+            "name": "Red Death, Shipwrecker",
+            "distance": 176
+          },
+          {
+            "name": "The Master of Lake-town",
+            "distance": 159
+          }
+        ]
+      },
+      "baseline": {
+        "build": "milo-adaptive-9 (local vision)",
+        "ok": true,
+        "got": "Hellkite Courser",
+        "by": "art-match",
+        "strategy": "ai-crop-1",
+        "distance": 119,
+        "trueRank": 1,
+        "ms": 731,
+        "stages": {
+          "prep": 13,
+          "rankSeeds": 36,
+          "earlyOrbProbe": 0,
+          "rankRefine": 1,
+          "rank": 0,
+          "orb": 513,
+          "aiCrop": 165,
+          "aiAttempt": 564,
+          "total": 731
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.05234888195991516,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.06611021608114243,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 165,
+          "fastMs": 564,
+          "fastHit": true
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Hellkite Courser",
+          "inliers": 58,
+          "color": 78,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 58,
+          "clickArtInliers": 33,
+          "clickTextInliers": 23
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Hellkite Courser",
+            "distance": 119
+          },
+          {
+            "name": "Red Death, Shipwrecker",
+            "distance": 176
+          },
+          {
+            "name": "The Master of Lake-town",
+            "distance": 159
+          }
+        ]
+      }
+    },
+    {
+      "name": "Scheming Symmetry",
+      "pool": "card",
+      "id": "01acc50b-856d-442d-9880-1a892b40643b",
+      "occ": "clear",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.20577665890791683
+      },
+      "scene": 16,
+      "rotation": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "clipped": 0,
+      "i": 2,
+      "baseline": {
+        "build": "milo-adaptive-9 (local vision)",
+        "ok": true,
+        "got": "Scheming Symmetry",
+        "by": "art-match",
+        "strategy": "ai-crop-2",
+        "distance": 158,
+        "trueRank": 1,
+        "ms": 514,
+        "stages": {
+          "prep": 24,
+          "rankSeeds": 77,
+          "earlyOrbProbe": 0,
+          "rankRefine": 1,
+          "rank": 0,
+          "orb": 242,
+          "aiCrop": 167,
+          "aiAttempt": 344,
+          "total": 513
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.04691960662603378,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.06508273631334305,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 167,
+          "fastMs": 344,
+          "fastHit": true
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Scheming Symmetry",
+          "inliers": 68,
+          "color": 78,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 68,
+          "clickArtInliers": 48,
+          "clickTextInliers": 20
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Scheming Symmetry",
+            "distance": 158
+          },
+          {
+            "name": "Riku and Riku",
+            "distance": 189
+          },
+          {
+            "name": "Sheoldred's Edict",
+            "distance": 178
+          }
+        ]
+      },
+      "ai": {
+        "build": "milo-parallel-pilot-10 (local vision)",
+        "ok": true,
+        "got": "Scheming Symmetry",
+        "by": "art-match",
+        "strategy": "ai-crop-2",
+        "distance": 158,
+        "trueRank": 1,
+        "ms": 895,
+        "stages": {
+          "prep": 21,
+          "rankSeeds": 72,
+          "earlyOrbProbe": 0,
+          "rankRefine": 3,
+          "rank": 0,
+          "orb": 290,
+          "aiCrop": 169,
+          "aiAttempt": 386,
+          "milo": 338,
+          "total": 895
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.04691960662603378,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.06508273631334305,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 169,
+          "fastMs": 386,
+          "fastHit": true
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 12,
+          "inferenceMs": 526,
+          "searchMs": 90,
+          "ms": 622,
+          "speculative": true,
+          "unused": true,
+          "rescued": false,
+          "totalMs": 338
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Scheming Symmetry",
+          "inliers": 68,
+          "color": 78,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 68,
+          "clickArtInliers": 48,
+          "clickTextInliers": 20
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Scheming Symmetry",
+            "distance": 158
+          },
+          {
+            "name": "Riku and Riku",
+            "distance": 189
+          },
+          {
+            "name": "Sheoldred's Edict",
+            "distance": 178
+          }
+        ]
+      }
+    },
+    {
+      "name": "Mistrise Village",
+      "pool": "card",
+      "id": "52f7e36c-87fb-4145-a5ca-6df7f55b3f1e",
+      "occ": "clear",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.2340209101004856
+      },
+      "scene": 16,
+      "rotation": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "clipped": 0,
+      "i": 3,
+      "ai": {
+        "build": "milo-parallel-pilot-10 (local vision)",
+        "ok": true,
+        "got": "Mistrise Village",
+        "by": "art-match",
+        "strategy": "milo",
+        "distance": 136,
+        "trueRank": 1,
+        "ms": 2333,
+        "stages": {
+          "prep": 21,
+          "rankSeeds": 74,
+          "earlyOrbProbe": 0,
+          "rankRefine": 0,
+          "rank": 0,
+          "orb": 348,
+          "aiCrop": 168,
+          "aiAttempt": 443,
+          "milo": 1721,
+          "total": 2333
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.05452603101730347,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.05767112225294113,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 168,
+          "fastMs": 443,
+          "fastHit": false
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 10,
+          "inferenceMs": 522,
+          "searchMs": 89,
+          "ms": 617,
+          "rescued": true,
+          "totalMs": 1721
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Mistrise Village",
+          "inliers": 27,
+          "color": 76,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 27,
+          "clickArtInliers": 26,
+          "clickTextInliers": 1
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Mistrise Village",
+            "distance": 136
+          },
+          {
+            "name": "Ash Barrens",
+            "distance": 173
+          },
+          {
+            "name": "Darksteel Juggernaut",
+            "distance": 174
+          }
+        ]
+      },
+      "baseline": {
+        "build": "milo-adaptive-9 (local vision)",
+        "ok": true,
+        "got": "Mistrise Village",
+        "by": "art-match",
+        "strategy": "milo",
+        "distance": 136,
+        "trueRank": 1,
+        "ms": 2386,
+        "stages": {
+          "prep": 21,
+          "rankSeeds": 73,
+          "earlyOrbProbe": 0,
+          "rankRefine": 0,
+          "rank": 0,
+          "orb": 417,
+          "aiCrop": 168,
+          "aiAttempt": 512,
+          "milo": 1704,
+          "total": 2386
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.05452603101730347,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.05767112225294113,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 168,
+          "fastMs": 512,
+          "fastHit": false
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 10,
+          "inferenceMs": 517,
+          "searchMs": 88,
+          "ms": 611,
+          "rescued": true,
+          "totalMs": 1704
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Mistrise Village",
+          "inliers": 27,
+          "color": 76,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 27,
+          "clickArtInliers": 26,
+          "clickTextInliers": 1
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Mistrise Village",
+            "distance": 136
+          },
+          {
+            "name": "Ash Barrens",
+            "distance": 173
+          },
+          {
+            "name": "Darksteel Juggernaut",
+            "distance": 174
+          }
+        ]
+      }
+    },
+    {
+      "name": "Deserted Beach",
+      "pool": "card",
+      "id": "cd4ae6af-22c3-4fa3-a7c1-5174382cda2f",
+      "occ": "clear",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "scene": 16,
+      "rotation": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "clipped": 0,
+      "i": 4,
+      "baseline": {
+        "build": "milo-adaptive-9 (local vision)",
+        "ok": true,
+        "got": "Deserted Beach",
+        "by": "art-match",
+        "strategy": "ai-crop-1",
+        "distance": 121,
+        "trueRank": 1,
+        "ms": 569,
+        "stages": {
+          "prep": 20,
+          "rankSeeds": 72,
+          "earlyOrbProbe": 0,
+          "rankRefine": 3,
+          "rank": 0,
+          "orb": 301,
+          "aiCrop": 170,
+          "aiAttempt": 396,
+          "total": 568
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.06449677050113678,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.04176400229334831,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 170,
+          "fastMs": 396,
+          "fastHit": true
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Deserted Beach",
+          "inliers": 56,
+          "color": 94,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 56,
+          "clickArtInliers": 0,
+          "clickTextInliers": 56
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Deserted Beach",
+            "distance": 121
+          },
+          {
+            "name": "Shipwreck Marsh",
+            "distance": 145
+          },
+          {
+            "name": "Haunted Ridge",
+            "distance": 171
+          }
+        ]
+      },
+      "ai": {
+        "build": "milo-parallel-pilot-10 (local vision)",
+        "ok": true,
+        "got": "Deserted Beach",
+        "by": "art-match",
+        "strategy": "ai-crop-1",
+        "distance": 121,
+        "trueRank": 1,
+        "ms": 540,
+        "stages": {
+          "prep": 20,
+          "rankSeeds": 83,
+          "earlyOrbProbe": 0,
+          "rankRefine": 1,
+          "rank": 0,
+          "orb": 263,
+          "aiCrop": 169,
+          "aiAttempt": 368,
+          "total": 539
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.06449677050113678,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.04176400229334831,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 169,
+          "fastMs": 368,
+          "fastHit": true
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Deserted Beach",
+          "inliers": 56,
+          "color": 94,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 56,
+          "clickArtInliers": 0,
+          "clickTextInliers": 56
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Deserted Beach",
+            "distance": 121
+          },
+          {
+            "name": "Shipwreck Marsh",
+            "distance": 145
+          },
+          {
+            "name": "Haunted Ridge",
+            "distance": 171
+          }
+        ]
+      }
+    },
+    {
+      "name": "Ogre",
+      "pool": "token",
+      "id": "efaa37e5-302e-4b4b-bb2d-6a0f9f80cd3f",
+      "occ": "clear",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "scene": 16,
+      "rotation": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "clipped": 0,
+      "i": 5,
+      "ai": {
+        "build": "milo-parallel-pilot-10 (local vision)",
+        "ok": true,
+        "got": "Ogre",
+        "by": "art-match",
+        "strategy": "milo",
+        "distance": 113,
+        "trueRank": 1,
+        "ms": 1768,
+        "stages": {
+          "prep": 24,
+          "rankSeeds": 72,
+          "earlyOrbProbe": 0,
+          "rankRefine": 0,
+          "rank": 0,
+          "orb": 474,
+          "aiCrop": 172,
+          "aiAttempt": 571,
+          "milo": 1023,
+          "total": 1768
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.06299193948507309,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.054873332381248474,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 172,
+          "fastMs": 571,
+          "fastHit": false
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 12,
+          "inferenceMs": 519,
+          "searchMs": 90,
+          "ms": 615,
+          "rescued": true,
+          "totalMs": 1023
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Ogre",
+          "inliers": 59,
+          "color": 39,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 59,
+          "clickArtInliers": 25,
+          "clickTextInliers": 25
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Ogre",
+            "distance": 113
+          },
+          {
+            "name": "Tear Asunder",
+            "distance": 195
+          },
+          {
+            "name": "Ghost Warden",
+            "distance": 185
+          }
+        ]
+      },
+      "baseline": {
+        "build": "milo-adaptive-9 (local vision)",
+        "ok": true,
+        "got": "Ogre",
+        "by": "art-match",
+        "strategy": "milo",
+        "distance": 113,
+        "trueRank": 1,
+        "ms": 1800,
+        "stages": {
+          "prep": 23,
+          "rankSeeds": 75,
+          "earlyOrbProbe": 0,
+          "rankRefine": 0,
+          "rank": 0,
+          "orb": 528,
+          "aiCrop": 167,
+          "aiAttempt": 627,
+          "milo": 1004,
+          "total": 1800
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.06299193948507309,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.054873332381248474,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 167,
+          "fastMs": 627,
+          "fastHit": false
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 12,
+          "inferenceMs": 516,
+          "searchMs": 91,
+          "ms": 612,
+          "rescued": true,
+          "totalMs": 1004
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Ogre",
+          "inliers": 59,
+          "color": 39,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 59,
+          "clickArtInliers": 25,
+          "clickTextInliers": 25
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Ogre",
+            "distance": 113
+          },
+          {
+            "name": "Tear Asunder",
+            "distance": 195
+          },
+          {
+            "name": "Ghost Warden",
+            "distance": 185
+          }
+        ]
+      }
+    },
+    {
+      "name": "Orcish Bowmasters",
+      "pool": "card",
+      "id": "7c024bae-5631-4e20-ac69-df392ac9e109",
+      "occ": "clear",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "scene": 16,
+      "rotation": "tapped",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "clipped": 0,
+      "i": 6,
+      "baseline": {
+        "build": "milo-adaptive-9 (local vision)",
+        "ok": true,
+        "got": "Orcish Bowmasters",
+        "by": "art-match",
+        "strategy": "ai-crop-1",
+        "distance": 98,
+        "trueRank": 1,
+        "ms": 669,
+        "stages": {
+          "prep": 11,
+          "rankSeeds": 35,
+          "earlyOrbProbe": 0,
+          "rankRefine": 1,
+          "rank": 0,
+          "orb": 454,
+          "aiCrop": 166,
+          "aiAttempt": 501,
+          "total": 669
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.06833627820014954,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.0674750804901123,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 166,
+          "fastMs": 501,
+          "fastHit": true
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Orcish Bowmasters",
+          "inliers": 45,
+          "color": 92,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 45,
+          "clickArtInliers": 10,
+          "clickTextInliers": 32
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Orcish Bowmasters",
+            "distance": 98
+          },
+          {
+            "name": "Nazgûl",
+            "distance": 158
+          },
+          {
+            "name": "Vraska's Contempt",
+            "distance": 155
+          }
+        ]
+      },
+      "ai": {
+        "build": "milo-parallel-pilot-10 (local vision)",
+        "ok": true,
+        "got": "Orcish Bowmasters",
+        "by": "art-match",
+        "strategy": "ai-crop-1",
+        "distance": 98,
+        "trueRank": 1,
+        "ms": 720,
+        "stages": {
+          "prep": 11,
+          "rankSeeds": 36,
+          "earlyOrbProbe": 0,
+          "rankRefine": 1,
+          "rank": 0,
+          "orb": 504,
+          "aiCrop": 166,
+          "aiAttempt": 551,
+          "total": 720
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.06833627820014954,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.0674750804901123,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 166,
+          "fastMs": 551,
+          "fastHit": true
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Orcish Bowmasters",
+          "inliers": 45,
+          "color": 92,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 45,
+          "clickArtInliers": 10,
+          "clickTextInliers": 32
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Orcish Bowmasters",
+            "distance": 98
+          },
+          {
+            "name": "Nazgûl",
+            "distance": 158
+          },
+          {
+            "name": "Vraska's Contempt",
+            "distance": 155
+          }
+        ]
+      }
+    },
+    {
+      "name": "Mox Diamond",
+      "pool": "card",
+      "id": "28028830-83ed-45e2-b495-3b9ad9d3e988",
+      "occ": "edge",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.618575970616466
+      },
+      "scene": 16,
+      "rotation": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "clipped": 0.103,
+      "i": 7,
+      "ai": {
+        "build": "milo-parallel-pilot-10 (local vision)",
+        "ok": true,
+        "got": "Mox Diamond",
+        "by": "art-match",
+        "strategy": "milo",
+        "distance": 192,
+        "trueRank": 1,
+        "ms": 1007,
+        "stages": {
+          "prep": 12,
+          "rankSeeds": 36,
+          "earlyOrbProbe": 0,
+          "rankRefine": 0,
+          "rank": 0,
+          "orb": 499,
+          "aiCrop": 173,
+          "aiAttempt": 547,
+          "milo": 285,
+          "total": 1007
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.04513555020093918,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.053602296859025955,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 173,
+          "fastMs": 547,
+          "fastHit": false
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 12,
+          "inferenceMs": 270,
+          "searchMs": 46,
+          "ms": 321,
+          "speculative": true,
+          "rescued": true,
+          "totalMs": 285
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Mox Diamond",
+          "inliers": 36,
+          "color": 71,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 36,
+          "clickArtInliers": 18,
+          "clickTextInliers": 18
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Mox Diamond",
+            "distance": 192
+          },
+          {
+            "name": "Seraph Sanctuary",
+            "distance": 182
+          },
+          {
+            "name": "Ghirapur Orrery",
+            "distance": 197
+          }
+        ]
+      },
+      "baseline": {
+        "build": "milo-adaptive-9 (local vision)",
+        "ok": true,
+        "got": "Mox Diamond",
+        "by": "art-match",
+        "strategy": "milo",
+        "distance": 192,
+        "trueRank": 1,
+        "ms": 1401,
+        "stages": {
+          "prep": 12,
+          "rankSeeds": 35,
+          "earlyOrbProbe": 0,
+          "rankRefine": 0,
+          "rank": 0,
+          "orb": 539,
+          "aiCrop": 167,
+          "aiAttempt": 587,
+          "milo": 645,
+          "total": 1401
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.04513555020093918,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.053602296859025955,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 167,
+          "fastMs": 587,
+          "fastHit": false
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 12,
+          "inferenceMs": 259,
+          "searchMs": 48,
+          "ms": 319,
+          "rescued": true,
+          "totalMs": 645
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Mox Diamond",
+          "inliers": 36,
+          "color": 71,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 36,
+          "clickArtInliers": 18,
+          "clickTextInliers": 18
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Mox Diamond",
+            "distance": 192
+          },
+          {
+            "name": "Seraph Sanctuary",
+            "distance": 182
+          },
+          {
+            "name": "Ghirapur Orrery",
+            "distance": 197
+          }
+        ]
+      }
+    },
+    {
+      "name": "Plaguecrafter",
+      "pool": "card",
+      "id": "0972aad9-c7a1-42e2-8d2f-aecbb5fd33b5",
+      "occ": "edge",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.6382315942531023
+      },
+      "scene": 16,
+      "rotation": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "clipped": 0.121,
+      "i": 8,
+      "baseline": {
+        "build": "milo-adaptive-9 (local vision)",
+        "ok": true,
+        "got": "Plaguecrafter",
+        "by": "art-match",
+        "strategy": "milo",
+        "distance": 217,
+        "trueRank": 1,
+        "ms": 1639,
+        "stages": {
+          "prep": 12,
+          "rankSeeds": 36,
+          "earlyOrbProbe": 0,
+          "rankRefine": 0,
+          "rank": 0,
+          "orb": 528,
+          "aiCrop": 166,
+          "aiAttempt": 576,
+          "milo": 895,
+          "total": 1639
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.03580421209335327,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.05466119199991226,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 166,
+          "fastMs": 576,
+          "fastHit": false
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 10,
+          "inferenceMs": 261,
+          "searchMs": 45,
+          "ms": 312,
+          "rescued": true,
+          "totalMs": 895
+        },
+        "regionalProof": false,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Plaguecrafter",
+          "inliers": 58,
+          "color": 78,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 58,
+          "clickArtInliers": 14,
+          "clickTextInliers": 39
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Plaguecrafter",
+            "distance": 217
+          },
+          {
+            "name": "Blood Seeker",
+            "distance": 195
+          },
+          {
+            "name": "Reckless Scholar",
+            "distance": 193
+          }
+        ]
+      },
+      "ai": {
+        "build": "milo-parallel-pilot-10 (local vision)",
+        "ok": true,
+        "got": "Plaguecrafter",
+        "by": "art-match",
+        "strategy": "milo",
+        "distance": 217,
+        "trueRank": 1,
+        "ms": 1339,
+        "stages": {
+          "prep": 12,
+          "rankSeeds": 38,
+          "earlyOrbProbe": 0,
+          "rankRefine": 0,
+          "rank": 0,
+          "orb": 578,
+          "aiCrop": 173,
+          "aiAttempt": 629,
+          "milo": 534,
+          "total": 1338
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.03580421209335327,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.05466119199991226,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 173,
+          "fastMs": 629,
+          "fastHit": false
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 10,
+          "inferenceMs": 265,
+          "searchMs": 45,
+          "ms": 315,
+          "speculative": true,
+          "rescued": true,
+          "totalMs": 534
+        },
+        "regionalProof": false,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Plaguecrafter",
+          "inliers": 58,
+          "color": 78,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 58,
+          "clickArtInliers": 14,
+          "clickTextInliers": 39
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Plaguecrafter",
+            "distance": 217
+          },
+          {
+            "name": "Blood Seeker",
+            "distance": 195
+          },
+          {
+            "name": "Reckless Scholar",
+            "distance": 193
+          }
+        ]
+      }
+    },
+    {
+      "name": "Nissa, Who Shakes the World",
+      "pool": "card",
+      "id": "83b22428-6ea9-4416-a589-c46aa626a2fb",
+      "occ": "edge",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.7894954482959198
+      },
+      "scene": 16,
+      "rotation": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "clipped": 0.103,
+      "i": 9,
+      "ai": {
+        "build": "milo-parallel-pilot-10 (local vision)",
+        "ok": true,
+        "got": "Nissa, Who Shakes the World",
+        "by": "art-match",
+        "strategy": "milo",
+        "distance": 206,
+        "trueRank": 1,
+        "ms": 1058,
+        "stages": {
+          "prep": 12,
+          "rankSeeds": 37,
+          "earlyOrbProbe": 0,
+          "rankRefine": 0,
+          "rank": 0,
+          "orb": 535,
+          "aiCrop": 171,
+          "aiAttempt": 585,
+          "milo": 300,
+          "total": 1058
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.047247808426618576,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.060895808041095734,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 171,
+          "fastMs": 585,
+          "fastHit": false
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 11,
+          "inferenceMs": 268,
+          "searchMs": 45,
+          "ms": 318,
+          "speculative": true,
+          "rescued": true,
+          "totalMs": 300
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Nissa, Who Shakes the World",
+          "inliers": 130,
+          "color": 89,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 130,
+          "clickArtInliers": 110,
+          "clickTextInliers": 20
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Nissa, Who Shakes the World",
+            "distance": 206
+          },
+          {
+            "name": "Dovin, Hand of Control",
+            "distance": 178
+          },
+          {
+            "name": "Firewake Sliver",
+            "distance": 194
+          }
+        ]
+      },
+      "baseline": {
+        "build": "milo-adaptive-9 (local vision)",
+        "ok": true,
+        "got": "Nissa, Who Shakes the World",
+        "by": "art-match",
+        "strategy": "milo",
+        "distance": 206,
+        "trueRank": 1,
+        "ms": 1506,
+        "stages": {
+          "prep": 12,
+          "rankSeeds": 49,
+          "earlyOrbProbe": 0,
+          "rankRefine": 0,
+          "rank": 0,
+          "orb": 594,
+          "aiCrop": 170,
+          "aiAttempt": 656,
+          "milo": 678,
+          "total": 1506
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.047247808426618576,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.060895808041095734,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 170,
+          "fastMs": 656,
+          "fastHit": false
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 11,
+          "inferenceMs": 266,
+          "searchMs": 44,
+          "ms": 315,
+          "rescued": true,
+          "totalMs": 678
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Nissa, Who Shakes the World",
+          "inliers": 130,
+          "color": 89,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 130,
+          "clickArtInliers": 110,
+          "clickTextInliers": 20
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Nissa, Who Shakes the World",
+            "distance": 206
+          },
+          {
+            "name": "Dovin, Hand of Control",
+            "distance": 178
+          },
+          {
+            "name": "Firewake Sliver",
+            "distance": 194
+          }
+        ]
+      }
+    },
+    {
+      "name": "Final Fortune",
+      "pool": "card",
+      "id": "f60b7014-3e29-4308-976c-0d92df5cec3a",
+      "occ": "clear",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.1612572550116659
+      },
+      "scene": 17,
+      "rotation": "upright",
+      "layout": "spaced",
+      "coverage": 0,
+      "clipped": 0,
+      "i": 10,
+      "baseline": {
+        "build": "milo-adaptive-9 (local vision)",
+        "ok": true,
+        "got": "Final Fortune",
+        "by": "art-match",
+        "strategy": "milo",
+        "distance": 213,
+        "trueRank": 1,
+        "ms": 1570,
+        "stages": {
+          "prep": 12,
+          "rankSeeds": 36,
+          "earlyOrbProbe": 0,
+          "rankRefine": 0,
+          "rank": 0,
+          "orb": 463,
+          "aiCrop": 170,
+          "aiAttempt": 512,
+          "milo": 886,
+          "total": 1570
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.060332830995321274,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.06504672020673752,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 170,
+          "fastMs": 512,
+          "fastHit": false
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 10,
+          "inferenceMs": 265,
+          "searchMs": 45,
+          "ms": 317,
+          "rescued": true,
+          "totalMs": 886
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Final Fortune",
+          "inliers": 37,
+          "color": 57,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 37,
+          "clickArtInliers": 34,
+          "clickTextInliers": 0
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Final Fortune",
+            "distance": 213
+          },
+          {
+            "name": "Blightning",
+            "distance": 193
+          },
+          {
+            "name": "Tidehollow Sculler",
+            "distance": 182
+          }
+        ]
+      },
+      "ai": {
+        "build": "milo-parallel-pilot-10 (local vision)",
+        "ok": true,
+        "got": "Final Fortune",
+        "by": "art-match",
+        "strategy": "milo",
+        "distance": 213,
+        "trueRank": 1,
+        "ms": 1252,
+        "stages": {
+          "prep": 12,
+          "rankSeeds": 37,
+          "earlyOrbProbe": 0,
+          "rankRefine": 0,
+          "rank": 0,
+          "orb": 508,
+          "aiCrop": 173,
+          "aiAttempt": 558,
+          "milo": 519,
+          "total": 1252
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.060332830995321274,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.06504672020673752,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 173,
+          "fastMs": 558,
+          "fastHit": false
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 10,
+          "inferenceMs": 268,
+          "searchMs": 45,
+          "ms": 319,
+          "speculative": true,
+          "rescued": true,
+          "totalMs": 519
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Final Fortune",
+          "inliers": 37,
+          "color": 57,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 37,
+          "clickArtInliers": 34,
+          "clickTextInliers": 0
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Final Fortune",
+            "distance": 213
+          },
+          {
+            "name": "Blightning",
+            "distance": 193
+          },
+          {
+            "name": "Tidehollow Sculler",
+            "distance": 182
+          }
+        ]
+      }
+    },
+    {
+      "name": "Tireless Tracker",
+      "pool": "card",
+      "id": "66444549-ad9b-49c6-a7c6-34e977c1085d",
+      "occ": "clear",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.26838454755893737
+      },
+      "scene": 17,
+      "rotation": "tapped",
+      "layout": "spaced",
+      "coverage": 0,
+      "clipped": 0,
+      "i": 11,
+      "ai": {
+        "build": "milo-parallel-pilot-10 (local vision)",
+        "ok": true,
+        "got": "Tireless Tracker",
+        "by": "art-match",
+        "strategy": "ai-crop-1",
+        "distance": 124,
+        "trueRank": 1,
+        "ms": 657,
+        "stages": {
+          "prep": 12,
+          "rankSeeds": 37,
+          "earlyOrbProbe": 0,
+          "rankRefine": 1,
+          "rank": 0,
+          "orb": 430,
+          "aiCrop": 174,
+          "aiAttempt": 481,
+          "total": 657
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.04720335453748703,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.06536716222763062,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 174,
+          "fastMs": 481,
+          "fastHit": true
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Tireless Tracker",
+          "inliers": 111,
+          "color": 89,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 111,
+          "clickArtInliers": 104,
+          "clickTextInliers": 7
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Tireless Tracker",
+            "distance": 124
+          },
+          {
+            "name": "Inexorable Blob",
+            "distance": 166
+          },
+          {
+            "name": "Sanctum Spirit",
+            "distance": 169
+          }
+        ]
+      },
+      "baseline": {
+        "build": "milo-adaptive-9 (local vision)",
+        "ok": true,
+        "got": "Tireless Tracker",
+        "by": "art-match",
+        "strategy": "ai-crop-1",
+        "distance": 124,
+        "trueRank": 1,
+        "ms": 700,
+        "stages": {
+          "prep": 12,
+          "rankSeeds": 40,
+          "earlyOrbProbe": 0,
+          "rankRefine": 1,
+          "rank": 0,
+          "orb": 473,
+          "aiCrop": 172,
+          "aiAttempt": 526,
+          "total": 700
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.04720335453748703,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.06536716222763062,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 172,
+          "fastMs": 526,
+          "fastHit": true
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Tireless Tracker",
+          "inliers": 111,
+          "color": 89,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 111,
+          "clickArtInliers": 104,
+          "clickTextInliers": 7
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Tireless Tracker",
+            "distance": 124
+          },
+          {
+            "name": "Inexorable Blob",
+            "distance": 166
+          },
+          {
+            "name": "Sanctum Spirit",
+            "distance": 169
+          }
+        ]
+      }
+    },
+    {
+      "name": "Sculpture",
+      "pool": "token",
+      "id": "7711a586-37f9-4560-b25d-4fb339d9cd55",
+      "occ": "clear",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.14037079996132715
+      },
+      "scene": 17,
+      "rotation": "upright",
+      "layout": "spaced",
+      "coverage": 0,
+      "clipped": 0,
+      "i": 12,
+      "baseline": {
+        "build": "milo-adaptive-9 (local vision)",
+        "ok": true,
+        "got": "Sculpture",
+        "by": "art-match",
+        "strategy": "ai-crop-1",
+        "distance": 117,
+        "trueRank": 1,
+        "ms": 456,
+        "stages": {
+          "prep": 12,
+          "rankSeeds": 40,
+          "earlyOrbProbe": 0,
+          "rankRefine": 1,
+          "rank": 0,
+          "orb": 230,
+          "aiCrop": 170,
+          "aiAttempt": 283,
+          "total": 456
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.035167962312698364,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.06105238199234009,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 170,
+          "fastMs": 283,
+          "fastHit": true
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Sculpture",
+          "inliers": 60,
+          "color": 77,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 60,
+          "clickArtInliers": 46,
+          "clickTextInliers": 14
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Sculpture",
+            "distance": 117
+          },
+          {
+            "name": "Gnarlwood Dryad",
+            "distance": 178
+          },
+          {
+            "name": "Iona's Judgment",
+            "distance": 180
+          }
+        ]
+      },
+      "ai": {
+        "build": "milo-parallel-pilot-10 (local vision)",
+        "ok": true,
+        "got": "Sculpture",
+        "by": "art-match",
+        "strategy": "ai-crop-1",
+        "distance": 117,
+        "trueRank": 1,
+        "ms": 511,
+        "stages": {
+          "prep": 11,
+          "rankSeeds": 36,
+          "earlyOrbProbe": 0,
+          "rankRefine": 1,
+          "rank": 0,
+          "orb": 290,
+          "aiCrop": 169,
+          "aiAttempt": 339,
+          "total": 510
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.035167962312698364,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.06105238199234009,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 169,
+          "fastMs": 339,
+          "fastHit": true
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Sculpture",
+          "inliers": 60,
+          "color": 77,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 60,
+          "clickArtInliers": 46,
+          "clickTextInliers": 14
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Sculpture",
+            "distance": 117
+          },
+          {
+            "name": "Gnarlwood Dryad",
+            "distance": 178
+          },
+          {
+            "name": "Iona's Judgment",
+            "distance": 180
+          }
+        ]
+      }
+    },
+    {
+      "name": "Dog Illusion",
+      "pool": "token",
+      "id": "ce3c0bd9-8a37-4164-9937-f35d1c210fe8",
+      "occ": "clear",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.2624147056220401
+      },
+      "scene": 17,
+      "rotation": "upright",
+      "layout": "spaced",
+      "coverage": 0,
+      "clipped": 0,
+      "i": 13,
+      "ai": {
+        "build": "milo-parallel-pilot-10 (local vision)",
+        "ok": true,
+        "got": "Dog Illusion",
+        "by": "art-match",
+        "strategy": "milo",
+        "distance": 137,
+        "trueRank": 1,
+        "ms": 1752,
+        "stages": {
+          "prep": 21,
+          "rankSeeds": 72,
+          "earlyOrbProbe": 0,
+          "rankRefine": 0,
+          "rank": 0,
+          "orb": 489,
+          "aiCrop": 170,
+          "aiAttempt": 583,
+          "milo": 996,
+          "total": 1752
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.03779175877571106,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.06348031759262085,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 170,
+          "fastMs": 583,
+          "fastHit": false
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 11,
+          "inferenceMs": 527,
+          "searchMs": 89,
+          "ms": 627,
+          "rescued": true,
+          "totalMs": 996
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Dog Illusion",
+          "inliers": 51,
+          "color": 65,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 51,
+          "clickArtInliers": 0,
+          "clickTextInliers": 51
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Dog Illusion",
+            "distance": 137
+          },
+          {
+            "name": "Vengeful Tracker",
+            "distance": 180
+          },
+          {
+            "name": "Crystal Barricade",
+            "distance": 175
+          }
+        ]
+      },
+      "baseline": {
+        "build": "milo-adaptive-9 (local vision)",
+        "ok": true,
+        "got": "Dog Illusion",
+        "by": "art-match",
+        "strategy": "milo",
+        "distance": 137,
+        "trueRank": 1,
+        "ms": 1819,
+        "stages": {
+          "prep": 21,
+          "rankSeeds": 74,
+          "earlyOrbProbe": 0,
+          "rankRefine": 0,
+          "rank": 0,
+          "orb": 540,
+          "aiCrop": 170,
+          "aiAttempt": 637,
+          "milo": 1011,
+          "total": 1819
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.03779175877571106,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.06348031759262085,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 170,
+          "fastMs": 637,
+          "fastHit": false
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 11,
+          "inferenceMs": 527,
+          "searchMs": 90,
+          "ms": 628,
+          "rescued": true,
+          "totalMs": 1011
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Dog Illusion",
+          "inliers": 51,
+          "color": 65,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 51,
+          "clickArtInliers": 0,
+          "clickTextInliers": 51
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Dog Illusion",
+            "distance": 137
+          },
+          {
+            "name": "Vengeful Tracker",
+            "distance": 180
+          },
+          {
+            "name": "Crystal Barricade",
+            "distance": 175
+          }
+        ]
+      }
+    },
+    {
+      "name": "Shadowy Backstreet",
+      "pool": "card",
+      "id": "2bbec54b-4ec5-4aa8-be53-69b7044d482f",
+      "occ": "clear",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "scene": 17,
+      "rotation": "upright",
+      "layout": "spaced",
+      "coverage": 0,
+      "clipped": 0,
+      "i": 14,
+      "baseline": {
+        "build": "milo-adaptive-9 (local vision)",
+        "ok": true,
+        "got": "Shadowy Backstreet",
+        "by": "art-match",
+        "strategy": "ai-crop-1",
+        "distance": 113,
+        "trueRank": 1,
+        "ms": 623,
+        "stages": {
+          "prep": 11,
+          "rankSeeds": 39,
+          "earlyOrbProbe": 0,
+          "rankRefine": 1,
+          "rank": 0,
+          "orb": 398,
+          "aiCrop": 172,
+          "aiAttempt": 449,
+          "total": 623
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.06909437477588654,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.06699904054403305,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 172,
+          "fastMs": 449,
+          "fastHit": true
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Shadowy Backstreet",
+          "inliers": 93,
+          "color": 97,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 93,
+          "clickArtInliers": 26,
+          "clickTextInliers": 64
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Shadowy Backstreet",
+            "distance": 113
+          },
+          {
+            "name": "Puppet Crafting",
+            "distance": 165
+          },
+          {
+            "name": "Sunken Hollow",
+            "distance": 172
+          }
+        ]
+      },
+      "ai": {
+        "build": "milo-parallel-pilot-10 (local vision)",
+        "ok": true,
+        "got": "Shadowy Backstreet",
+        "by": "art-match",
+        "strategy": "ai-crop-1",
+        "distance": 113,
+        "trueRank": 1,
+        "ms": 742,
+        "stages": {
+          "prep": 11,
+          "rankSeeds": 36,
+          "earlyOrbProbe": 0,
+          "rankRefine": 0,
+          "rank": 0,
+          "orb": 523,
+          "aiCrop": 170,
+          "aiAttempt": 571,
+          "total": 742
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.06909437477588654,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.06699904054403305,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 170,
+          "fastMs": 571,
+          "fastHit": true
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Shadowy Backstreet",
+          "inliers": 93,
+          "color": 97,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 93,
+          "clickArtInliers": 26,
+          "clickTextInliers": 64
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Shadowy Backstreet",
+            "distance": 113
+          },
+          {
+            "name": "Puppet Crafting",
+            "distance": 165
+          },
+          {
+            "name": "Sunken Hollow",
+            "distance": 172
+          }
+        ]
+      }
+    },
+    {
+      "name": "Artifact Zombie",
+      "pool": "token",
+      "id": "2a76c642-d1b4-404a-82d6-47dfec8cacd3",
+      "occ": "clear",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "scene": 17,
+      "rotation": "upright",
+      "layout": "spaced",
+      "coverage": 0,
+      "clipped": 0,
+      "i": 15,
+      "ai": {
+        "build": "milo-parallel-pilot-10 (local vision)",
+        "ok": true,
+        "got": "Artifact Zombie",
+        "by": "art-match",
+        "strategy": "ai-crop-1",
+        "distance": 155,
+        "trueRank": 1,
+        "ms": 901,
+        "stages": {
+          "prep": 22,
+          "rankSeeds": 73,
+          "earlyOrbProbe": 0,
+          "rankRefine": 0,
+          "rank": 0,
+          "orb": 272,
+          "aiCrop": 170,
+          "aiAttempt": 368,
+          "milo": 361,
+          "total": 901
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.057313092052936554,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.05914418771862984,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 170,
+          "fastMs": 368,
+          "fastHit": true
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 11,
+          "inferenceMs": 537,
+          "searchMs": 90,
+          "ms": 632,
+          "speculative": true,
+          "unused": true,
+          "rescued": false,
+          "totalMs": 361
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Artifact Zombie",
+          "inliers": 104,
+          "color": 87,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 104,
+          "clickArtInliers": 21,
+          "clickTextInliers": 75
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Artifact Zombie",
+            "distance": 155
+          },
+          {
+            "name": "Somberwald Beastmaster",
+            "distance": 190
+          },
+          {
+            "name": "Derelict Attic // Widow's Walk",
+            "distance": 177
+          }
+        ]
+      },
+      "baseline": {
+        "build": "milo-adaptive-9 (local vision)",
+        "ok": true,
+        "got": "Artifact Zombie",
+        "by": "art-match",
+        "strategy": "ai-crop-1",
+        "distance": 155,
+        "trueRank": 1,
+        "ms": 612,
+        "stages": {
+          "prep": 22,
+          "rankSeeds": 72,
+          "earlyOrbProbe": 0,
+          "rankRefine": 0,
+          "rank": 0,
+          "orb": 343,
+          "aiCrop": 172,
+          "aiAttempt": 438,
+          "total": 612
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.057313092052936554,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.05914418771862984,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 172,
+          "fastMs": 438,
+          "fastHit": true
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Artifact Zombie",
+          "inliers": 104,
+          "color": 87,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 104,
+          "clickArtInliers": 21,
+          "clickTextInliers": 75
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Artifact Zombie",
+            "distance": 155
+          },
+          {
+            "name": "Somberwald Beastmaster",
+            "distance": 190
+          },
+          {
+            "name": "Derelict Attic // Widow's Walk",
+            "distance": 177
+          }
+        ]
+      }
+    },
+    {
+      "name": "Teferi's Ageless Insight",
+      "pool": "card",
+      "id": "79833a2d-a27b-4319-9fe4-d68293c295c5",
+      "occ": "clear",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "scene": 17,
+      "rotation": "tapped",
+      "layout": "spaced",
+      "coverage": 0,
+      "clipped": 0,
+      "i": 16,
+      "baseline": {
+        "build": "milo-adaptive-9 (local vision)",
+        "ok": true,
+        "got": "Teferi's Ageless Insight",
+        "by": "art-match",
+        "strategy": "ai-crop-1",
+        "distance": 121,
+        "trueRank": 1,
+        "ms": 643,
+        "stages": {
+          "prep": 12,
+          "rankSeeds": 36,
+          "earlyOrbProbe": 0,
+          "rankRefine": 0,
+          "rank": 0,
+          "orb": 422,
+          "aiCrop": 170,
+          "aiAttempt": 471,
+          "total": 643
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.06675422936677933,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.06324923783540726,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 170,
+          "fastMs": 471,
+          "fastHit": true
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Teferi's Ageless Insight",
+          "inliers": 84,
+          "color": 94,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 84,
+          "clickArtInliers": 35,
+          "clickTextInliers": 40
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Teferi's Ageless Insight",
+            "distance": 121
+          },
+          {
+            "name": "Invasion of Alara",
+            "distance": 172
+          },
+          {
+            "name": "Cosi's Ravager",
+            "distance": 174
+          }
+        ]
+      },
+      "ai": {
+        "build": "milo-parallel-pilot-10 (local vision)",
+        "ok": true,
+        "got": "Teferi's Ageless Insight",
+        "by": "art-match",
+        "strategy": "ai-crop-1",
+        "distance": 121,
+        "trueRank": 1,
+        "ms": 692,
+        "stages": {
+          "prep": 12,
+          "rankSeeds": 37,
+          "earlyOrbProbe": 0,
+          "rankRefine": 0,
+          "rank": 0,
+          "orb": 470,
+          "aiCrop": 171,
+          "aiAttempt": 519,
+          "total": 692
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.06675422936677933,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.06324923783540726,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 171,
+          "fastMs": 519,
+          "fastHit": true
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Teferi's Ageless Insight",
+          "inliers": 84,
+          "color": 94,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 84,
+          "clickArtInliers": 35,
+          "clickTextInliers": 40
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Teferi's Ageless Insight",
+            "distance": 121
+          },
+          {
+            "name": "Invasion of Alara",
+            "distance": 172
+          },
+          {
+            "name": "Cosi's Ravager",
+            "distance": 174
+          }
+        ]
+      }
+    },
+    {
+      "name": "Platinum Angel",
+      "pool": "card",
+      "id": "f259e4e8-d50e-41ef-86d2-0046f55089a6",
+      "occ": "clear",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.7097943983330297
+      },
+      "scene": 17,
+      "rotation": "upright",
+      "layout": "spaced",
+      "coverage": 0,
+      "clipped": 0,
+      "i": 17,
+      "ai": {
+        "build": "milo-parallel-pilot-10 (local vision)",
+        "ok": true,
+        "got": "Platinum Angel",
+        "by": "art-match",
+        "strategy": "ai-crop-2",
+        "distance": 104,
+        "trueRank": 1,
+        "ms": 643,
+        "stages": {
+          "prep": 22,
+          "rankSeeds": 73,
+          "earlyOrbProbe": 0,
+          "rankRefine": 0,
+          "rank": 0,
+          "orb": 372,
+          "aiCrop": 173,
+          "aiAttempt": 468,
+          "total": 643
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.03777360916137695,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.06268751621246338,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 173,
+          "fastMs": 468,
+          "fastHit": true
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Platinum Angel",
+          "inliers": 51,
+          "color": 82,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 51,
+          "clickArtInliers": 28,
+          "clickTextInliers": 23
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Platinum Angel",
+            "distance": 104
+          },
+          {
+            "name": "Insectile Aberration",
+            "distance": 169
+          },
+          {
+            "name": "Paralyzing Grasp",
+            "distance": 170
+          }
+        ]
+      },
+      "baseline": {
+        "build": "milo-adaptive-9 (local vision)",
+        "ok": true,
+        "got": "Platinum Angel",
+        "by": "art-match",
+        "strategy": "ai-crop-2",
+        "distance": 104,
+        "trueRank": 1,
+        "ms": 683,
+        "stages": {
+          "prep": 21,
+          "rankSeeds": 73,
+          "earlyOrbProbe": 0,
+          "rankRefine": 0,
+          "rank": 0,
+          "orb": 413,
+          "aiCrop": 174,
+          "aiAttempt": 508,
+          "total": 683
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.03777360916137695,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.06268751621246338,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 174,
+          "fastMs": 508,
+          "fastHit": true
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Platinum Angel",
+          "inliers": 51,
+          "color": 82,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 51,
+          "clickArtInliers": 28,
+          "clickTextInliers": 23
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Platinum Angel",
+            "distance": 104
+          },
+          {
+            "name": "Insectile Aberration",
+            "distance": 169
+          },
+          {
+            "name": "Paralyzing Grasp",
+            "distance": 170
+          }
+        ]
+      }
+    },
+    {
+      "name": "Fate Unraveler",
+      "pool": "card",
+      "id": "30250c4d-2c16-4d03-874e-aec39d8e72a9",
+      "occ": "clear",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.6079494765884295
+      },
+      "scene": 17,
+      "rotation": "upright",
+      "layout": "spaced",
+      "coverage": 0,
+      "clipped": 0,
+      "i": 18,
+      "baseline": {
+        "build": "milo-adaptive-9 (local vision)",
+        "ok": true,
+        "got": "Fate Unraveler",
+        "by": "art-match",
+        "strategy": "ai-crop-1",
+        "distance": 119,
+        "trueRank": 1,
+        "ms": 726,
+        "stages": {
+          "prep": 21,
+          "rankSeeds": 74,
+          "earlyOrbProbe": 0,
+          "rankRefine": 0,
+          "rank": 0,
+          "orb": 451,
+          "aiCrop": 177,
+          "aiAttempt": 547,
+          "total": 726
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.06039303541183472,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.07017062604427338,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 177,
+          "fastMs": 547,
+          "fastHit": true
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Fate Unraveler",
+          "inliers": 84,
+          "color": 96,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 84,
+          "clickArtInliers": 40,
+          "clickTextInliers": 41
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Fate Unraveler",
+            "distance": 119
+          },
+          {
+            "name": "Bontu the Glorified",
+            "distance": 176
+          },
+          {
+            "name": "Hero's Downfall",
+            "distance": 179
+          }
+        ]
+      },
+      "ai": {
+        "build": "milo-parallel-pilot-10 (local vision)",
+        "ok": true,
+        "got": "Fate Unraveler",
+        "by": "art-match",
+        "strategy": "ai-crop-1",
+        "distance": 119,
+        "trueRank": 1,
+        "ms": 754,
+        "stages": {
+          "prep": 21,
+          "rankSeeds": 74,
+          "earlyOrbProbe": 0,
+          "rankRefine": 1,
+          "rank": 0,
+          "orb": 483,
+          "aiCrop": 173,
+          "aiAttempt": 578,
+          "total": 753
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.06039303541183472,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.07017062604427338,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 173,
+          "fastMs": 578,
+          "fastHit": true
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Fate Unraveler",
+          "inliers": 84,
+          "color": 96,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 84,
+          "clickArtInliers": 40,
+          "clickTextInliers": 41
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Fate Unraveler",
+            "distance": 119
+          },
+          {
+            "name": "Bontu the Glorified",
+            "distance": 176
+          },
+          {
+            "name": "Hero's Downfall",
+            "distance": 179
+          }
+        ]
+      }
+    },
+    {
+      "name": "Desperate Ritual",
+      "pool": "card",
+      "id": "0827c728-5526-4abe-ad21-311594a0bc13",
+      "occ": "clear",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5844522817121139
+      },
+      "scene": 17,
+      "rotation": "upright",
+      "layout": "spaced",
+      "coverage": 0,
+      "clipped": 0,
+      "i": 19,
+      "ai": {
+        "build": "milo-parallel-pilot-10 (local vision)",
+        "ok": true,
+        "got": "Desperate Ritual",
+        "by": "art-match",
+        "strategy": "ai-crop-1",
+        "distance": 96,
+        "trueRank": 1,
+        "ms": 731,
+        "stages": {
+          "prep": 22,
+          "rankSeeds": 86,
+          "earlyOrbProbe": 0,
+          "rankRefine": 0,
+          "rank": 0,
+          "orb": 449,
+          "aiCrop": 172,
+          "aiAttempt": 557,
+          "total": 731
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.07067414373159409,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.06874651461839676,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 172,
+          "fastMs": 557,
+          "fastHit": true
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Desperate Ritual",
+          "inliers": 31,
+          "color": 75,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 31,
+          "clickArtInliers": 13,
+          "clickTextInliers": 18
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Desperate Ritual",
+            "distance": 96
+          },
+          {
+            "name": "Sage-Eye Avengers",
+            "distance": 177
+          },
+          {
+            "name": "Honed Khopesh",
+            "distance": 162
+          }
+        ]
+      },
+      "baseline": {
+        "build": "milo-adaptive-9 (local vision)",
+        "ok": true,
+        "got": "Desperate Ritual",
+        "by": "art-match",
+        "strategy": "ai-crop-1",
+        "distance": 96,
+        "trueRank": 1,
+        "ms": 816,
+        "stages": {
+          "prep": 21,
+          "rankSeeds": 74,
+          "earlyOrbProbe": 0,
+          "rankRefine": 0,
+          "rank": 0,
+          "orb": 545,
+          "aiCrop": 173,
+          "aiAttempt": 641,
+          "total": 816
+        },
+        "aiCrop": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.07067414373159409,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.06874651461839676,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 173,
+          "fastMs": 641,
+          "fastHit": true
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "regionalProof": true,
+        "wasmHeapMB": 134,
+        "artBest": {
+          "name": "Desperate Ritual",
+          "inliers": 31,
+          "color": 75,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 31,
+          "clickArtInliers": 13,
+          "clickTextInliers": 18
+        },
+        "blockedNames": [],
+        "top3": [
+          {
+            "name": "Desperate Ritual",
+            "distance": 96
+          },
+          {
+            "name": "Sage-Eye Avengers",
+            "distance": 177
+          },
+          {
+            "name": "Honed Khopesh",
+            "distance": 162
+          }
+        ]
+      }
+    }
+  ]
+}

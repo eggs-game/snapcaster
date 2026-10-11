@@ -1,0 +1,618 @@
+[
+  {
+    "file": "000.jpg",
+    "name": "Spara's Headquarters",
+    "id": "59687afc-593a-4055-ba86-a3d8358447ed",
+    "got": "Ninja of the New Moon",
+    "dist": 180,
+    "conf": 0.36,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Ninja of the New Moon (d=180)",
+      "Lesser Masticore (d=182)",
+      "Highborn Vampire (d=184)"
+    ],
+    "i": 51,
+    "degradeIndex": 51,
+    "placement": "top-edge-clipped",
+    "rot": "upsidedown",
+    "occ": "none",
+    "ms": 3331,
+    "cv": "ready",
+    "tried": 104,
+    "dropped": 27,
+    "artBest": {
+      "name": "Ninja of the New Moon",
+      "inliers": 2,
+      "color": 75,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 5,
+      "clickArtInliers": 0,
+      "clickTextInliers": 0
+    },
+    "artChecked": 36,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-top-edge-6-27-68-179",
+        "score": 121.17
+      },
+      {
+        "strategy": "isolate-top-edge-6-28-65-176",
+        "score": 117.47
+      },
+      {
+        "strategy": "isolate-top-edge-4-27-62-179",
+        "score": 109.94
+      },
+      {
+        "strategy": "isolate-top-edge-8-30-68-170",
+        "score": 96.8
+      },
+      {
+        "strategy": "isolate-top-edge-6-30-62-170",
+        "score": 96.13
+      },
+      {
+        "strategy": "isolate-top-edge-6-27-44-179",
+        "score": 94.49
+      },
+      {
+        "strategy": "isolate-top-edge-4-28-59-176",
+        "score": 88.9
+      },
+      {
+        "strategy": "isolate-top-edge-8-27-50-179",
+        "score": 85.73
+      },
+      {
+        "strategy": "isolate-top-edge-4-27-44-179",
+        "score": 85.4
+      },
+      {
+        "strategy": "isolate-top-edge-6-27-50-179",
+        "score": 84.12
+      },
+      {
+        "strategy": "isolate-top-edge-4-27-38-179",
+        "score": 83.47
+      },
+      {
+        "strategy": "isolate-top-edge-6-27-56-179",
+        "score": 82.87
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 0,
+      "probes": [
+        {
+          "sharpness": 0.009596385061740875,
+          "accepted": false,
+          "reason": "weak"
+        },
+        {
+          "sharpness": 0.007621049415320158,
+          "accepted": false,
+          "reason": "weak"
+        }
+      ],
+      "ms": 176,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.007652576081454754,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.007705546449869871,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.007580824661999941,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.007469981908798218,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 350
+      },
+      "retryMs": 351
+    },
+    "truthGeometry": null,
+    "capturePoint": null,
+    "stages": {
+      "prep": 419,
+      "rankSeeds": 420,
+      "earlyOrbProbe": 0,
+      "rankRefine": 580,
+      "isolatePrep": 697,
+      "isolateScore": 297,
+      "rank": 0,
+      "orb": 338,
+      "aiCrop": 176,
+      "aiRetry": 351,
+      "total": 3281
+    },
+    "point": null,
+    "pointNote": "Original normalized capture point is not exported; retain geometry/click metadata rather than invent an exact point."
+  },
+  {
+    "file": "001.jpg",
+    "name": "Wall of Blossoms",
+    "id": "9e869157-ef9e-4118-92ab-9fa9a8d5daff",
+    "got": "Guildmark",
+    "dist": 192,
+    "conf": 0.27,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Guildmark (d=192)",
+      "Double-Faced Substitute Card (d=192)",
+      "Kamigawa Charm (d=194)"
+    ],
+    "i": 55,
+    "degradeIndex": 55,
+    "placement": "top-edge-clipped",
+    "rot": "upsidedown",
+    "occ": "fingers",
+    "ms": 3343,
+    "cv": "ready",
+    "tried": 105,
+    "dropped": 27,
+    "artBest": {
+      "name": "Guildmark",
+      "inliers": 5,
+      "color": 100,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 4,
+      "clickArtInliers": 0,
+      "clickTextInliers": 4
+    },
+    "artChecked": 36,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-top-edge--2-28-92-182",
+        "score": 67.03
+      },
+      {
+        "strategy": "isolate-top-edge--4-28-86-179",
+        "score": 53.88
+      },
+      {
+        "strategy": "isolate-top-edge--2-28-92-170",
+        "score": 52.61
+      },
+      {
+        "strategy": "isolate-top-edge--6-27-83-182",
+        "score": 52.31
+      },
+      {
+        "strategy": "isolate-top-edge--2-28-92-179",
+        "score": 52.08
+      },
+      {
+        "strategy": "isolate-top-edge--4-27-86-182",
+        "score": 51.74
+      },
+      {
+        "strategy": "isolate-top-edge--4-28-86-170",
+        "score": 51.35
+      },
+      {
+        "strategy": "isolate-top-edge--2-27-92-179",
+        "score": 51.03
+      },
+      {
+        "strategy": "isolate-top-edge--2-28-92-176",
+        "score": 50.99
+      },
+      {
+        "strategy": "isolate-top-edge--4-28-86-182",
+        "score": 50.62
+      },
+      {
+        "strategy": "isolate-top-edge--4-27-89-182",
+        "score": 49.9
+      },
+      {
+        "strategy": "isolate-top-edge--4-27-83-182",
+        "score": 48.98
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 0,
+      "probes": [
+        {
+          "sharpness": 0.04128778353333473,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        },
+        {
+          "sharpness": 0.007536739110946655,
+          "accepted": false,
+          "reason": "weak"
+        }
+      ],
+      "ms": 181,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.007862680591642857,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.034288518130779266,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.0070977890864014626,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.00729744415730238,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 349
+      },
+      "retryMs": 350
+    },
+    "truthGeometry": null,
+    "capturePoint": null,
+    "stages": {
+      "prep": 414,
+      "rankSeeds": 345,
+      "earlyOrbProbe": 0,
+      "rankRefine": 692,
+      "isolatePrep": 647,
+      "isolateScore": 312,
+      "rank": 0,
+      "orb": 282,
+      "aiCrop": 181,
+      "aiRetry": 350,
+      "total": 3223
+    },
+    "point": null,
+    "pointNote": "Original normalized capture point is not exported; retain geometry/click metadata rather than invent an exact point."
+  },
+  {
+    "file": "002.jpg",
+    "name": "Over the Top",
+    "id": "01eb9702-55c5-41b2-8bef-63d33dafa599",
+    "got": "Blot Out the Sky",
+    "dist": 155,
+    "conf": 0.54,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Blot Out the Sky (d=155)",
+      "Overwhelming Instinct (d=155)",
+      "Whispersilk Cloak (d=159)"
+    ],
+    "i": 118,
+    "degradeIndex": 118,
+    "placement": "top-edge-clipped",
+    "rot": "sideways",
+    "occ": "fingers",
+    "ms": 3450,
+    "cv": "ready",
+    "tried": 100,
+    "dropped": 27,
+    "artBest": {
+      "name": "Blot Out the Sky",
+      "inliers": 3,
+      "color": 82,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 6,
+      "clickArtInliers": 0,
+      "clickTextInliers": 0
+    },
+    "artChecked": 36,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-top-edge-6-28-92-179",
+        "score": 214.06
+      },
+      {
+        "strategy": "isolate-top-edge-6-28-92-182",
+        "score": 211.53
+      },
+      {
+        "strategy": "isolate-top-edge-4-28-86-182",
+        "score": 210.32
+      },
+      {
+        "strategy": "isolate-top-edge-4-28-86-179",
+        "score": 199.95
+      },
+      {
+        "strategy": "isolate-top-edge-6-28-92-176",
+        "score": 197.08
+      },
+      {
+        "strategy": "isolate-top-edge-6-30-92-182",
+        "score": 194.8
+      },
+      {
+        "strategy": "isolate-top-edge-4-28-86-176",
+        "score": 182.13
+      },
+      {
+        "strategy": "isolate-top-edge-6-28-92-173",
+        "score": 170.74
+      },
+      {
+        "strategy": "isolate-top-edge-4-30-86-182",
+        "score": 163.87
+      },
+      {
+        "strategy": "isolate-top-edge-4-30-92-182",
+        "score": 146.12
+      },
+      {
+        "strategy": "isolate-top-edge-4-28-86-173",
+        "score": 134.79
+      },
+      {
+        "strategy": "isolate-top-edge-2-30-77-182",
+        "score": 130.61
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 0,
+      "probes": [
+        {
+          "sharpness": 0.053405724465847015,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        },
+        {
+          "sharpness": 0.007615433540195227,
+          "accepted": false,
+          "reason": "weak"
+        }
+      ],
+      "ms": 181,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.007904442958533764,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.0178307443857193,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.00724429078400135,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.008349064737558365,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 350
+      },
+      "retryMs": 350
+    },
+    "truthGeometry": null,
+    "capturePoint": null,
+    "stages": {
+      "prep": 417,
+      "rankSeeds": 343,
+      "earlyOrbProbe": 0,
+      "rankRefine": 636,
+      "isolatePrep": 759,
+      "isolateScore": 317,
+      "rank": 0,
+      "orb": 335,
+      "aiCrop": 181,
+      "aiRetry": 350,
+      "total": 3341
+    },
+    "point": null,
+    "pointNote": "Original normalized capture point is not exported; retain geometry/click metadata rather than invent an exact point."
+  },
+  {
+    "file": "003.jpg",
+    "name": "Splashy Spellcaster",
+    "id": "3c69eda4-76a5-47d1-9df3-82292774097f",
+    "got": "Kessig Wolfrider",
+    "dist": 185,
+    "conf": 0.32,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Kessig Wolfrider (d=185)",
+      "Mu Yanling, Sky Dancer (d=192)",
+      "Knight of New Alara (d=192)"
+    ],
+    "i": 181,
+    "degradeIndex": 181,
+    "placement": "top-edge-clipped",
+    "rot": "tilt",
+    "occ": "fingers",
+    "ms": 3941,
+    "cv": "ready",
+    "tried": 104,
+    "dropped": 27,
+    "artBest": {
+      "name": "Kessig Wolfrider",
+      "inliers": 7,
+      "color": 89,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 7,
+      "clickArtInliers": 4,
+      "clickTextInliers": 3
+    },
+    "artChecked": 36,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-top-edge-6-30-44-182",
+        "score": 93.38
+      },
+      {
+        "strategy": "isolate-top-edge-6-30-44-176",
+        "score": 89.01
+      },
+      {
+        "strategy": "isolate-top-edge-6-30-44-173",
+        "score": 84.79
+      },
+      {
+        "strategy": "isolate-top-edge-12-30-68-176",
+        "score": 84.24
+      },
+      {
+        "strategy": "isolate-top-edge--12-30-20-173",
+        "score": 83
+      },
+      {
+        "strategy": "isolate-top-edge-6-39-74-146",
+        "score": 81.94
+      },
+      {
+        "strategy": "isolate-top-edge-8-28-50-182",
+        "score": 81.85
+      },
+      {
+        "strategy": "isolate-top-edge-6-39-74-134",
+        "score": 81.51
+      },
+      {
+        "strategy": "isolate-top-edge-4-28-56-179",
+        "score": 81
+      },
+      {
+        "strategy": "isolate-top-edge-6-30-44-179",
+        "score": 80.09
+      },
+      {
+        "strategy": "isolate-top-edge--2-34-47-164",
+        "score": 78.33
+      },
+      {
+        "strategy": "isolate-top-edge-14-28-74-179",
+        "score": 77.96
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 0,
+      "probes": [
+        {
+          "sharpness": 0.02060065232217312,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        },
+        {
+          "sharpness": 0.02969656139612198,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        }
+      ],
+      "ms": 180,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.007760869804769754,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.03626461699604988,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.024285538122057915,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.02613210119307041,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          }
+        ],
+        "ms": 349
+      },
+      "retryMs": 349
+    },
+    "truthGeometry": null,
+    "capturePoint": null,
+    "stages": {
+      "prep": 441,
+      "rankSeeds": 418,
+      "earlyOrbProbe": 0,
+      "rankRefine": 886,
+      "isolatePrep": 752,
+      "isolateScore": 302,
+      "rank": 0,
+      "orb": 511,
+      "aiCrop": 180,
+      "aiRetry": 349,
+      "total": 3843
+    },
+    "point": null,
+    "pointNote": "Original normalized capture point is not exported; retain geometry/click metadata rather than invent an exact point."
+  }
+]

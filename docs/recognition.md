@@ -3,7 +3,7 @@
 One click against 113,263 printing faces — without a recognition
 server or a per-scan inference charge.
 
-The `milo-rescue-7` pipeline adds local learned retrieval and a corner detector to
+The `milo-adaptive-16` pipeline adds local learned retrieval and a corner detector to
 perceptual hashing and geometric artwork verification. Tesseract remains the
 optional text fallback. No recognition API, API key, or per-scan inference
 charge is involved; camera captures stay in the browser.
@@ -45,6 +45,62 @@ or red cards. These variants do not reduce artwork or click-proof thresholds. We
 fall through to the full matcher, retaining the original twelve AI hash-trial
 supplement slots and at most twelve additional Milo slots. Ordinary seeds
 and their query-image budget remain independent.
+
+If ordinary Milo verification fails, a second pass applies local grayscale
+contrast equalization (CLAHE) to query and reference keypoints. It uses the
+same candidate budget, geometric registration, interior-content requirements,
+color agreement and decisive margins. A successful ordinary read skips this
+pass. Contrast recovery cannot replace missing or fully obscured pixels.
+
+If neither the initial learned crop nor Milo settles the card, Cornelius gets
+one bounded retry: four click-containing zooms shifted toward the possible
+card center for upright, inverted and tapped artwork clicks. At most two
+distinct click-containing proposals enter the same hash/Milo verification.
+A rejected retry preserves the original crops and candidate pool for the full
+fallback. Recent hints and already verified reads skip the retry.
+Retry artwork needs at least 24 inliers both within the crop and at the original
+source click, matching the existing full-source rescue strength. Extra crop
+hypotheses must not promote the thin coincidences acceptable as initial
+suggestions. Near-exact whole-card hashes retain their established gate.
+
+Reference downloads start concurrently, but verification awaits only images
+it actually inspects. The existing decisive early stop can finish while unused
+lower-ranked downloads are still pending. Milo's two-treatment shortlist uses
+bounded typed arrays and a six-identity insertion list instead of sorting every
+identity; tie-breaking and selected rows remain identical.
+
+The worker also reuses ORB keypoints and descriptors for public reference images,
+with separate raw and contrast entries. A sixty-entry LRU owns these native
+OpenCV allocations and frees an evicted pair before allocating another. Weak
+image references avoid extending the lifetime of reference pixels; camera query
+features still get released after each verification. Browsers without `WeakRef`
+use the original allocate-and-release path. Native browser checks compare all
+descriptor bytes and keypoint coordinates and stress eviction while measuring
+the actual WASM allocation.
+
+For one uncertain learned crop (best gray distance >150), Milo starts while the
+ordinary artwork verifier is still running. Its bounded reference shortlist
+prefetches thumbnails and the first four normal images after validating the
+catalog fingerprint. The final raw result and scan context must arrive before
+those rows can be verified; the early notification cannot settle recognition.
+The same exact crop pixels and identity gates apply. Two-crop scans keep the
+ordinary schedule because speculative inference delayed easy reads in the
+pilot. An unused speculative job drains before the next click enters the shared
+model worker, preserving callback ownership and honest end-to-end timing.
+
+Two different card names can reuse the same illustration. A bounded check
+compares the artwork leader's reference with up to two plausible rival names;
+strong interior-art registration in both directions identifies shared artwork.
+Shared artwork then requires registered text evidence for confident artwork
+acceptance. Otherwise stronger whole-card hash evidence stays in front and the
+normal fallback remains available. The reference-pair cache is bounded to 400
+entries. The saved Baxter event-card regression exercises this distinction;
+matching a clicked illustration alone had previously named its creature card.
+A poor whole-card hash plus global source-artwork registration also requires
+registered text, unless an independently detected card region registered the
+clicked footprint. This prevents an Art Series illustration from extrapolating
+a playable card body into blank table space and confidently naming that layout.
+That untrusted footprint also cannot exclude another card layout as a neighbour.
 
 `?milo=0` disables lookup while retaining Cornelius. `?aiCrop=0` disables both
 learned stages. The console hook also accepts `{milo:false}` as its fourth

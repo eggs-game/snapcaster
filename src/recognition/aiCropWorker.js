@@ -17,7 +17,7 @@ function session() {
   return sessionPromise;
 }
 
-self.onmessage = async ({ data: { id, bmp, point, type, images } }) => {
+self.onmessage = async ({ data: { id, bmp, point, type, images, retry } }) => {
   const started = performance.now();
   try {
     const model = await session();
@@ -34,7 +34,7 @@ self.onmessage = async ({ data: { id, bmp, point, type, images } }) => {
     const canvas = new OffscreenCanvas(SIZE, SIZE);
     const ctx = canvas.getContext("2d", { willReadFrequently: true });
     const quads = [], probes = [];
-    for (const window of aiCropWindows(bmp.width, bmp.height, point)) {
+    for (const window of aiCropWindows(bmp.width, bmp.height, point, retry)) {
       ctx.drawImage(bmp, window.x, window.y, window.w, window.h, 0, 0, SIZE, SIZE);
       const pixels = ctx.getImageData(0, 0, SIZE, SIZE).data;
       const tensor = new Float32Array(3 * SIZE * SIZE);

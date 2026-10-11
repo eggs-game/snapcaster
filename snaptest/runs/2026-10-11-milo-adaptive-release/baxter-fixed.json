@@ -1,0 +1,311 @@
+[
+  {
+    "build": "milo-adaptive-9 (local vision)",
+    "best": {
+      "name": "Event: Baxter's Experiments",
+      "set": "ttmc",
+      "collector_number": "15",
+      "scryfall_id": "cb231e4d-dbba-4475-a01b-212d83859722",
+      "face": 0,
+      "image": "https://cards.scryfall.io/normal/front/c/b/cb231e4d-dbba-4475-a01b-212d83859722.jpg",
+      "scryfall_uri": "https://scryfall.com/card/ttmc/15",
+      "distance": 104,
+      "confidence": 0.9,
+      "strategy": "outline-5",
+      "art_inliers": 13,
+      "color_sim": 0.6615260859107366,
+      "ring_sim": 0.8846217846876243,
+      "click_inliers": 12,
+      "click_art_inliers": 7,
+      "click_text_inliers": 5,
+      "click_inside": null,
+      "click_blocked": false,
+      "shared_artwork": true
+    },
+    "art": {
+      "name": "Event: Baxter's Experiments",
+      "inliers": 13,
+      "color": 66,
+      "weak": false,
+      "clickInside": null,
+      "clickInliers": 12,
+      "clickArtInliers": 7,
+      "clickTextInliers": 5
+    },
+    "crop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 2,
+      "probes": [
+        {
+          "sharpness": 0.04489186406135559,
+          "accepted": true,
+          "reason": "accepted"
+        },
+        {
+          "sharpness": 0.057647064328193665,
+          "accepted": true,
+          "reason": "accepted"
+        }
+      ],
+      "ms": 182,
+      "fastMs": 649,
+      "fastHit": false,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.05848967283964157,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.039903152734041214,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.05279077962040901,
+            "accepted": false,
+            "reason": "duplicate"
+          },
+          {
+            "sharpness": 0.05320409685373306,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 337,
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 8,
+          "inferenceMs": 522,
+          "searchMs": 91,
+          "ms": 619
+        }
+      },
+      "retryMs": 2185
+    },
+    "milo": {
+      "model": "milo1",
+      "status": "ready",
+      "crops": 2,
+      "proposals": 10,
+      "inferenceMs": 523,
+      "searchMs": 87,
+      "ms": 616,
+      "rescued": false,
+      "totalMs": 1258
+    }
+  },
+  {
+    "build": "milo-adaptive-9 (local vision)",
+    "best": {
+      "name": "Event: Baxter's Experiments",
+      "set": "ttmc",
+      "collector_number": "15",
+      "scryfall_id": "cb231e4d-dbba-4475-a01b-212d83859722",
+      "face": 0,
+      "image": "https://cards.scryfall.io/normal/front/c/b/cb231e4d-dbba-4475-a01b-212d83859722.jpg",
+      "scryfall_uri": "https://scryfall.com/card/ttmc/15",
+      "distance": 104,
+      "confidence": 0.9,
+      "strategy": "outline-5",
+      "art_inliers": 13,
+      "color_sim": 0.6615260859107366,
+      "ring_sim": 0.8846217846876243,
+      "click_inliers": 12,
+      "click_art_inliers": 7,
+      "click_text_inliers": 5,
+      "click_inside": null,
+      "click_blocked": false,
+      "shared_artwork": true
+    },
+    "art": {
+      "name": "Event: Baxter's Experiments",
+      "inliers": 13,
+      "color": 66,
+      "weak": false,
+      "clickInside": null,
+      "clickInliers": 12,
+      "clickArtInliers": 7,
+      "clickTextInliers": 5
+    },
+    "crop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 2,
+      "probes": [
+        {
+          "sharpness": 0.04489186406135559,
+          "accepted": true,
+          "reason": "accepted"
+        },
+        {
+          "sharpness": 0.057647064328193665,
+          "accepted": true,
+          "reason": "accepted"
+        }
+      ],
+      "ms": 172,
+      "fastMs": 244,
+      "fastHit": false,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.05848967283964157,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.039903152734041214,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.05279077962040901,
+            "accepted": false,
+            "reason": "duplicate"
+          },
+          {
+            "sharpness": 0.05320409685373306,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 338,
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 8,
+          "inferenceMs": 520,
+          "searchMs": 90,
+          "ms": 615
+        }
+      },
+      "retryMs": 2050
+    },
+    "milo": {
+      "model": "milo1",
+      "status": "ready",
+      "crops": 2,
+      "proposals": 10,
+      "inferenceMs": 516,
+      "searchMs": 87,
+      "ms": 615,
+      "rescued": false,
+      "totalMs": 1091
+    }
+  },
+  {
+    "build": "milo-adaptive-9 (local vision)",
+    "best": {
+      "name": "Event: Baxter's Experiments",
+      "set": "ttmc",
+      "collector_number": "15",
+      "scryfall_id": "cb231e4d-dbba-4475-a01b-212d83859722",
+      "face": 0,
+      "image": "https://cards.scryfall.io/normal/front/c/b/cb231e4d-dbba-4475-a01b-212d83859722.jpg",
+      "scryfall_uri": "https://scryfall.com/card/ttmc/15",
+      "distance": 104,
+      "confidence": 0.9,
+      "strategy": "outline-5",
+      "art_inliers": 13,
+      "color_sim": 0.6615260859107366,
+      "ring_sim": 0.8846217846876243,
+      "click_inliers": 12,
+      "click_art_inliers": 7,
+      "click_text_inliers": 5,
+      "click_inside": null,
+      "click_blocked": false,
+      "shared_artwork": true
+    },
+    "art": {
+      "name": "Event: Baxter's Experiments",
+      "inliers": 13,
+      "color": 66,
+      "weak": false,
+      "clickInside": null,
+      "clickInliers": 12,
+      "clickArtInliers": 7,
+      "clickTextInliers": 5
+    },
+    "crop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 2,
+      "probes": [
+        {
+          "sharpness": 0.04489186406135559,
+          "accepted": true,
+          "reason": "accepted"
+        },
+        {
+          "sharpness": 0.057647064328193665,
+          "accepted": true,
+          "reason": "accepted"
+        }
+      ],
+      "ms": 171,
+      "fastMs": 242,
+      "fastHit": false,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.05848967283964157,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.039903152734041214,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.05279077962040901,
+            "accepted": false,
+            "reason": "duplicate"
+          },
+          {
+            "sharpness": 0.05320409685373306,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 341,
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 8,
+          "inferenceMs": 523,
+          "searchMs": 91,
+          "ms": 619
+        }
+      },
+      "retryMs": 2052
+    },
+    "milo": {
+      "model": "milo1",
+      "status": "ready",
+      "crops": 2,
+      "proposals": 10,
+      "inferenceMs": 524,
+      "searchMs": 91,
+      "ms": 619,
+      "rescued": false,
+      "totalMs": 1098
+    }
+  }
+]

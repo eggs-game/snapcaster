@@ -1,0 +1,885 @@
+[
+  {
+    "file": "000.jpg",
+    "name": "Wurm",
+    "id": "54afe5d9-a6b6-46a2-89e9-470ad9e44a06",
+    "pool": "token",
+    "got": "Isamaru and Yoshimaru",
+    "dist": 191,
+    "conf": 0.28,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Isamaru and Yoshimaru (d=191)",
+      "Color Pie (d=192)",
+      "Pyre of Heroes (d=194)"
+    ],
+    "i": 54,
+    "degradeIndex": 54,
+    "placement": "top-edge-clipped",
+    "rot": "sideways",
+    "occ": "fingers",
+    "ms": 3416,
+    "cv": "ready",
+    "tried": 105,
+    "dropped": 27,
+    "artBest": {
+      "name": "Isamaru and Yoshimaru",
+      "inliers": 3,
+      "color": 100,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 5,
+      "clickArtInliers": 2,
+      "clickTextInliers": 3
+    },
+    "artChecked": 36,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-top-edge-0-36-26-152",
+        "score": 84.62
+      },
+      {
+        "strategy": "isolate-top-edge-0-36-26-155",
+        "score": 79.58
+      },
+      {
+        "strategy": "isolate-top-edge--2-36-20-158",
+        "score": 78.26
+      },
+      {
+        "strategy": "isolate-top-edge--2-33-23-161",
+        "score": 72.37
+      },
+      {
+        "strategy": "isolate-top-edge--4-46-11-121",
+        "score": 70.88
+      },
+      {
+        "strategy": "isolate-top-edge--2-33-23-164",
+        "score": 69.91
+      },
+      {
+        "strategy": "isolate-top-edge--2-42-17-137",
+        "score": 68.8
+      },
+      {
+        "strategy": "isolate-top-edge--4-46-11-124",
+        "score": 67.97
+      },
+      {
+        "strategy": "isolate-top-edge--2-46-17-121",
+        "score": 64.87
+      },
+      {
+        "strategy": "isolate-top-edge--2-36-20-155",
+        "score": 64.7
+      },
+      {
+        "strategy": "isolate-top-edge--2-36-20-152",
+        "score": 64.64
+      },
+      {
+        "strategy": "isolate-top-edge--2-33-23-158",
+        "score": 64.54
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 0,
+      "probes": [
+        {
+          "sharpness": 0.029242519289255142,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        },
+        {
+          "sharpness": 0.0074079809710383415,
+          "accepted": false,
+          "reason": "weak"
+        }
+      ],
+      "ms": 176,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.007484322879463434,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.015346123836934566,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.007841459475457668,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.007185235619544983,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 348
+      },
+      "retryMs": 349
+    },
+    "truthGeometry": null,
+    "capturePoint": null,
+    "stages": {
+      "prep": 432,
+      "rankSeeds": 342,
+      "earlyOrbProbe": 0,
+      "rankRefine": 776,
+      "isolatePrep": 692,
+      "isolateScore": 307,
+      "rank": 0,
+      "orb": 274,
+      "aiCrop": 176,
+      "aiRetry": 349,
+      "total": 3349
+    },
+    "point": null,
+    "pointNote": "Original normalized capture point is not exported; retain geometry/click metadata rather than invent an exact point."
+  },
+  {
+    "file": "001.jpg",
+    "name": "Soulless One",
+    "id": "410a214b-09c4-49bd-a461-3330d0249ae5",
+    "pool": "card",
+    "got": "Double-Faced Substitute Card",
+    "dist": 189,
+    "conf": 0.29,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Double-Faced Substitute Card (d=189)",
+      "Guildmark (d=192)",
+      "Kamigawa Charm (d=194)"
+    ],
+    "i": 55,
+    "degradeIndex": 55,
+    "placement": "top-edge-clipped",
+    "rot": "upsidedown",
+    "occ": "fingers",
+    "ms": 3471,
+    "cv": "ready",
+    "tried": 105,
+    "dropped": 27,
+    "artBest": {
+      "name": "Double-Faced Substitute Card",
+      "inliers": 3,
+      "color": 100,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 4,
+      "clickArtInliers": 0,
+      "clickTextInliers": 0
+    },
+    "artChecked": 36,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-top-edge--2-30-89-176",
+        "score": 89.41
+      },
+      {
+        "strategy": "isolate-top-edge--2-28-92-182",
+        "score": 88.31
+      },
+      {
+        "strategy": "isolate-top-edge--2-30-89-179",
+        "score": 88.13
+      },
+      {
+        "strategy": "isolate-top-edge--2-30-89-170",
+        "score": 81.94
+      },
+      {
+        "strategy": "isolate-top-edge--4-28-86-182",
+        "score": 77.56
+      },
+      {
+        "strategy": "isolate-top-edge--2-28-92-179",
+        "score": 76.8
+      },
+      {
+        "strategy": "isolate-top-edge--2-30-89-182",
+        "score": 71.33
+      },
+      {
+        "strategy": "isolate-top-edge--4-30-86-179",
+        "score": 62.09
+      },
+      {
+        "strategy": "isolate-top-edge--2-28-89-182",
+        "score": 59.74
+      },
+      {
+        "strategy": "isolate-top-edge--2-30-89-173",
+        "score": 58.07
+      },
+      {
+        "strategy": "isolate-top-edge--2-28-92-176",
+        "score": 54.77
+      },
+      {
+        "strategy": "isolate-top-edge--2-30-92-179",
+        "score": 54.09
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 0,
+      "probes": [
+        {
+          "sharpness": 0.038484085351228714,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        },
+        {
+          "sharpness": 0.007380588445812464,
+          "accepted": false,
+          "reason": "weak"
+        }
+      ],
+      "ms": 180,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.007862680591642857,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.04469047859311104,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.007382208481431007,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.007470943033695221,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 348
+      },
+      "retryMs": 349
+    },
+    "truthGeometry": null,
+    "capturePoint": null,
+    "stages": {
+      "prep": 417,
+      "rankSeeds": 344,
+      "earlyOrbProbe": 0,
+      "rankRefine": 745,
+      "isolatePrep": 641,
+      "isolateScore": 315,
+      "rank": 0,
+      "orb": 368,
+      "aiCrop": 180,
+      "aiRetry": 349,
+      "total": 3360
+    },
+    "point": null,
+    "pointNote": "Original normalized capture point is not exported; retain geometry/click metadata rather than invent an exact point."
+  },
+  {
+    "file": "002.jpg",
+    "name": "Whirlwing Stormbrood",
+    "id": "91e81f3a-6901-42dc-9c87-55419941101e",
+    "pool": "card",
+    "got": "Whirlwing Stormbrood // Dynamic Soar",
+    "by": "art-match",
+    "dist": 202,
+    "conf": 1,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Whirlwing Stormbrood // Dynamic Soar (d=202)",
+      "Icy Blast (d=203)",
+      "Mind Rot (d=200)"
+    ],
+    "i": 86,
+    "degradeIndex": 86,
+    "placement": "above-click",
+    "rot": "sideways",
+    "occ": "fingers",
+    "ms": 1838,
+    "cv": "ready",
+    "tried": 8,
+    "dropped": 16,
+    "artBest": {
+      "name": "Whirlwing Stormbrood // Dynamic Soar",
+      "inliers": 60,
+      "color": 84,
+      "weak": false,
+      "clickInside": true,
+      "clickInliers": 60,
+      "clickArtInliers": 60,
+      "clickTextInliers": 0
+    },
+    "artChecked": 36,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": null,
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 0,
+      "probes": [
+        {
+          "sharpness": 0.01899079605937004,
+          "accepted": false,
+          "reason": "weak"
+        },
+        {
+          "sharpness": 0.02034686505794525,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        }
+      ],
+      "ms": 177,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.007755131460726261,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.03624216467142105,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.016207322478294373,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.015456104651093483,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 349
+      },
+      "retryMs": 349
+    },
+    "truthGeometry": null,
+    "capturePoint": null,
+    "stages": {
+      "prep": 425,
+      "rankSeeds": 479,
+      "earlyOrbProbe": 0,
+      "rankRefine": 0,
+      "rank": 0,
+      "orb": 343,
+      "aiCrop": 177,
+      "aiRetry": 349,
+      "total": 1776
+    },
+    "point": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "pointNote": "Audited standard-degrade path: degradeIndex 86 uses degrade(), which returns no click; edh200 passes its default nx=0.5,ny=0.5. Derived from the executed production code, not from image geometry."
+  },
+  {
+    "file": "003.jpg",
+    "name": "Neutralize",
+    "id": "3a897be4-95e2-4fab-bd08-565afe19533b",
+    "pool": "card",
+    "got": "Azorius Traffic Enforcement",
+    "dist": 177,
+    "conf": 0.38,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Azorius Traffic Enforcement (d=177)",
+      "Double-Faced Substitute Card (d=182)",
+      "City Hall (d=190)"
+    ],
+    "i": 118,
+    "degradeIndex": 118,
+    "placement": "top-edge-clipped",
+    "rot": "sideways",
+    "occ": "fingers",
+    "ms": 3526,
+    "cv": "ready",
+    "tried": 100,
+    "dropped": 27,
+    "artBest": {
+      "name": "Azorius Traffic Enforcement",
+      "inliers": 5,
+      "color": 71,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 7,
+      "clickArtInliers": 0,
+      "clickTextInliers": 0
+    },
+    "artChecked": 36,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-top-edge-6-28-92-179",
+        "score": 215.23
+      },
+      {
+        "strategy": "isolate-top-edge-6-28-92-182",
+        "score": 208.76
+      },
+      {
+        "strategy": "isolate-top-edge-4-28-86-182",
+        "score": 206.04
+      },
+      {
+        "strategy": "isolate-top-edge-4-28-86-179",
+        "score": 200.59
+      },
+      {
+        "strategy": "isolate-top-edge-6-30-92-182",
+        "score": 195.53
+      },
+      {
+        "strategy": "isolate-top-edge-4-28-86-176",
+        "score": 194.09
+      },
+      {
+        "strategy": "isolate-top-edge-6-28-92-176",
+        "score": 188.81
+      },
+      {
+        "strategy": "isolate-top-edge-6-28-92-173",
+        "score": 166.65
+      },
+      {
+        "strategy": "isolate-top-edge-4-30-86-182",
+        "score": 161.58
+      },
+      {
+        "strategy": "isolate-top-edge-4-28-86-173",
+        "score": 157.74
+      },
+      {
+        "strategy": "isolate-top-edge-4-30-92-182",
+        "score": 144.17
+      },
+      {
+        "strategy": "isolate-top-edge-2-30-77-182",
+        "score": 132.19
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 0,
+      "probes": [
+        {
+          "sharpness": 0.04907592013478279,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        },
+        {
+          "sharpness": 0.007661541923880577,
+          "accepted": false,
+          "reason": "weak"
+        }
+      ],
+      "ms": 179,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.007907570339739323,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.021001657471060753,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.006994898896664381,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.007678593508899212,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 349
+      },
+      "retryMs": 350
+    },
+    "truthGeometry": null,
+    "capturePoint": null,
+    "stages": {
+      "prep": 419,
+      "rankSeeds": 377,
+      "earlyOrbProbe": 0,
+      "rankRefine": 626,
+      "isolatePrep": 761,
+      "isolateScore": 311,
+      "rank": 0,
+      "orb": 440,
+      "aiCrop": 179,
+      "aiRetry": 350,
+      "total": 3465
+    },
+    "point": null,
+    "pointNote": "Original normalized capture point is not exported; retain geometry/click metadata rather than invent an exact point."
+  },
+  {
+    "file": "004.jpg",
+    "name": "Aarakocra Sneak",
+    "id": "2a83882c-3e03-4e85-aaac-97fa1d08a772",
+    "pool": "card",
+    "got": "Dragonloft Idol",
+    "dist": 161,
+    "conf": 0.49,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Dragonloft Idol (d=161)",
+      "Coercion (d=173)",
+      "Rukarumel, Biologist (d=177)"
+    ],
+    "i": 127,
+    "degradeIndex": 127,
+    "placement": "top-edge-clipped",
+    "rot": "upsidedown",
+    "occ": "fingers-dice",
+    "ms": 3709,
+    "cv": "ready",
+    "tried": 84,
+    "dropped": 28,
+    "artBest": {
+      "name": "Dragonloft Idol",
+      "inliers": 11,
+      "color": 82,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 10,
+      "clickArtInliers": 9,
+      "clickTextInliers": 1
+    },
+    "artChecked": 36,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-portrait-6-53-89-92",
+        "score": 232.37
+      },
+      {
+        "strategy": "isolate-portrait-6-53-89-89",
+        "score": 163.64
+      },
+      {
+        "strategy": "isolate-portrait-6-53-89-62",
+        "score": 157.22
+      },
+      {
+        "strategy": "isolate-portrait-6-50-89-74",
+        "score": 149.14
+      },
+      {
+        "strategy": "isolate-portrait-6-50-86-74",
+        "score": 143.51
+      },
+      {
+        "strategy": "isolate-portrait-4-53-86-71",
+        "score": 140.19
+      },
+      {
+        "strategy": "isolate-portrait-4-53-86-92",
+        "score": 139.92
+      },
+      {
+        "strategy": "isolate-portrait-6-53-89-83",
+        "score": 127.73
+      },
+      {
+        "strategy": "isolate-portrait-6-53-89-71",
+        "score": 126.08
+      },
+      {
+        "strategy": "isolate-portrait-4-53-86-83",
+        "score": 122.32
+      },
+      {
+        "strategy": "isolate-portrait-4-53-86-80",
+        "score": 120.83
+      },
+      {
+        "strategy": "isolate-portrait-4-53-86-89",
+        "score": 120.42
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 0,
+      "probes": [
+        {
+          "sharpness": 0.03478460758924484,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        },
+        {
+          "sharpness": 0.029664406552910805,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        }
+      ],
+      "ms": 176,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.007666369900107384,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.034302279353141785,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.01132826879620552,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.0366530641913414,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          }
+        ],
+        "ms": 349
+      },
+      "retryMs": 349
+    },
+    "truthGeometry": null,
+    "capturePoint": null,
+    "stages": {
+      "prep": 444,
+      "rankSeeds": 411,
+      "earlyOrbProbe": 0,
+      "rankRefine": 841,
+      "isolatePrep": 666,
+      "isolateScore": 246,
+      "rank": 0,
+      "orb": 503,
+      "aiCrop": 176,
+      "aiRetry": 349,
+      "total": 3642
+    },
+    "point": null,
+    "pointNote": "Original normalized capture point is not exported; retain geometry/click metadata rather than invent an exact point."
+  },
+  {
+    "file": "005.jpg",
+    "name": "Crackling Cyclops",
+    "id": "6e5b899a-52f7-471b-ad50-4fa6566758fd",
+    "pool": "card",
+    "got": "Ragavan, Nimble Pilferer",
+    "dist": 199,
+    "conf": 0.22,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Ragavan, Nimble Pilferer (d=199)",
+      "Orcish Oriflamme (d=217)",
+      "Entity Tracker (d=220)"
+    ],
+    "i": 182,
+    "degradeIndex": 182,
+    "placement": "top-edge-clipped",
+    "rot": "sideways",
+    "occ": "fingers",
+    "ms": 3371,
+    "cv": "ready",
+    "tried": 100,
+    "dropped": 27,
+    "artBest": {
+      "name": "Ragavan, Nimble Pilferer",
+      "inliers": 4,
+      "color": 51,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 0,
+      "clickArtInliers": 0,
+      "clickTextInliers": 0
+    },
+    "artChecked": 36,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-top-edge--4-28-29-176",
+        "score": 109.18
+      },
+      {
+        "strategy": "isolate-top-edge--2-28-35-182",
+        "score": 104.94
+      },
+      {
+        "strategy": "isolate-top-edge-0-28-29-176",
+        "score": 96.47
+      },
+      {
+        "strategy": "isolate-top-edge--4-30-26-182",
+        "score": 95.69
+      },
+      {
+        "strategy": "isolate-top-edge--4-28-29-179",
+        "score": 91.94
+      },
+      {
+        "strategy": "isolate-top-edge--2-28-35-179",
+        "score": 91.39
+      },
+      {
+        "strategy": "isolate-top-edge--2-48-20-121",
+        "score": 88.33
+      },
+      {
+        "strategy": "isolate-top-edge--2-28-35-176",
+        "score": 88.1
+      },
+      {
+        "strategy": "isolate-top-edge--4-30-14-173",
+        "score": 87.29
+      },
+      {
+        "strategy": "isolate-top-edge--4-30-26-179",
+        "score": 86.63
+      },
+      {
+        "strategy": "isolate-top-edge--4-30-14-179",
+        "score": 85.63
+      },
+      {
+        "strategy": "isolate-top-edge--2-48-20-118",
+        "score": 85.1
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 0,
+      "probes": [
+        {
+          "sharpness": 0.048417214304208755,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        },
+        {
+          "sharpness": 0.007535880897194147,
+          "accepted": false,
+          "reason": "weak"
+        }
+      ],
+      "ms": 179,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.007682192139327526,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.0178716778755188,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.008299729786813259,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.007431404665112495,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 353
+      },
+      "retryMs": 353
+    },
+    "truthGeometry": null,
+    "capturePoint": null,
+    "stages": {
+      "prep": 418,
+      "rankSeeds": 374,
+      "earlyOrbProbe": 0,
+      "rankRefine": 679,
+      "isolatePrep": 657,
+      "isolateScore": 303,
+      "rank": 0,
+      "orb": 337,
+      "aiCrop": 179,
+      "aiRetry": 353,
+      "total": 3302
+    },
+    "point": null,
+    "pointNote": "Original normalized capture point is not exported; retain geometry/click metadata rather than invent an exact point."
+  }
+]

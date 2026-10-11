@@ -103,6 +103,24 @@ assert.equal(context.hasPositiveClickProof({...outsideLead,click_inside:true}),t
 assert.ok(worker.includes('const decisive = isDecisiveLead(best, rival) && (!source || !click || hasPositiveClickProof(best))'));
 assert.equal(outsideLead.click_blocked,undefined,"keep the off-centre guess selectable");
 assert.equal(context.isDecisiveLead({...outsideLead,click_inside:true},{art_inliers:6}),true);
+assert.equal(context.isDecisiveLead({...outsideLead,click_inside:true,shared_artwork:true,click_text_inliers:0},{art_inliers:6}),false,
+  "even overwhelming registered artwork cannot distinguish two names that reuse it");
+assert.equal(context.isDecisiveLead({...outsideLead,click_inside:true,shared_artwork:true,click_text_inliers:8},{art_inliers:6}),true);
+const globalArt={...outsideLead,click_inside:true,distance:202,art_inliers:60,click_text_inliers:0};
+assert.equal(context.hasPositiveClickProof(globalArt),false,
+  "an extrapolated artwork footprint cannot own the click or block the actual layout");
+assert.equal(context.hasPositiveClickProof({...globalArt,regional_proof:true}),true);
+assert.equal(context.hasPositiveClickProof({...globalArt,click_text_inliers:8}),true);
+const actualLayout={...proof("Actual Art Series",false,38,10),distance:202};
+context.excludeProvenNeighbours([globalArt,actualLayout],[globalArt,actualLayout]);
+assert.notEqual(actualLayout.click_blocked,true,
+  "an untrusted illustration anchor cannot exclude the actual Art Series card");
+assert.equal(context.isDecisiveLead(globalArt,{art_inliers:6}),false,
+  "a global illustration match cannot invent a missing printed card body at poor whole-card distance");
+assert.equal(context.isDecisiveLead({...globalArt,regional_proof:true},{art_inliers:6}),true,
+  "independent clicked-card region registration preserves legitimate artwork-only rescues");
+assert.equal(context.isDecisiveLead({...globalArt,click_text_inliers:8},{art_inliers:6}),true);
+assert.equal(context.isDecisiveLead({...globalArt,distance:180},{art_inliers:6}),true);
 const finishStart = matcher.indexOf("function hasOutsideClickProof(");
 const finishCode = matcher.slice(finishStart,matcher.indexOf("async function performIdentify(",finishStart));
 const finalContext = vm.createContext({ VISUAL_EXACT_DISTANCE:90, OCR_SKIP_DISTANCE:220, performance,

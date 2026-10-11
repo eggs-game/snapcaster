@@ -75,13 +75,19 @@ way a player does. See [testing.md](testing.md).
 
 Concretely, on the current benchmark of realistic table scenes:
 
-- **100%** of cards that do not overlap a neighbour are identified correctly
-- **~1.6s median** identification time
-- Both high-confidence paths (exact visual match, ORB art match) have been
-  **100% precise** across runs — when the app is confident, it is right
+- **189/200** correct identities, including **180/187** clear cards
+- **0.74s median**, **2.25s p90** identification time on a warmed M2 Max browser
+- **186/186** confident artwork answers correct in the paired primary run
 
-The remaining failures are concentrated in cards that physically overlap
-another card, which is uncommon in real play.
+The same current-main control identifies 184/200. All five additional correct
+answers preserve clicked-card verification; no previously correct identity is
+lost. Correct reads under one second increase from 129/200 to 136/200 in this
+run, so the goal of every card in less than one second remains unmet. Eleven
+captures still fail, including clear cards that the verifier cannot settle.
+Only one becomes correct through the same full verifier on an exact crop.
+These timings include decoding, detection and verification, but exclude camera
+transport and first-visit downloads. See [the release results](../snaptest/results.md)
+for the broader suites and separate photograph limitations.
 
 ## Constraints that shape everything
 

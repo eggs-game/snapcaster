@@ -3,6 +3,20 @@
 Written 2026-08-04, after a day of measuring the current pipeline stage by
 stage. Every number below was measured on the Real life suite unless stated.
 
+**2026-10-11 adaptive Milo follow-up:** a current-main paired comparison now
+scores **189/200 versus 184/200**, with five recovered cards and no individual
+regressions. All 186 accepted artwork results are correct. Local contrast
+recovery and bounded shifted detector crops settle more difficult reads;
+waiting only for inspected reference downloads reduces unnecessary latency.
+Warmed M2 Max median falls from 840ms to 741ms and p90 from 4871ms to 2249ms.
+Selective parallel lookup, reference prefetching and bounded descriptor reuse
+avoid repeated work. Correct reads under one second rise from 129/200 to
+136/200 in this run. Failed retries
+can increase worst-case time (8552ms control versus 9927ms candidate), so this
+is progress toward the target, not every-card sub-second identification.
+All model inference remains local with no per-scan API charge. See
+[the results and release matrix](../snaptest/results.md) for validation.
+
 **2026-10-10 Milo integration:** complete local retrieval now covers all
 113,263 current printing faces. The final paired full pipeline scores **184/200**
 against 171/200 current main, with 13 recovered and zero regressed cards;

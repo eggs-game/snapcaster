@@ -1,0 +1,50 @@
+{
+  "baseline": {
+    "correctUnderOneSecond": 126,
+    "maxMs": 7638
+  },
+  "ai": {
+    "correctUnderOneSecond": 130,
+    "maxMs": 10142
+  },
+  "recoveries": [
+    {
+      "i": 83,
+      "name": "As Foretold",
+      "rotation": "tapped",
+      "occlusion": "clear",
+      "retry": false
+    },
+    {
+      "i": 94,
+      "name": "Bat",
+      "rotation": "upright",
+      "occlusion": "overlapped",
+      "retry": true
+    },
+    {
+      "i": 96,
+      "name": "Exsanguinate",
+      "rotation": "upright",
+      "occlusion": "overlapped",
+      "retry": true
+    },
+    {
+      "i": 163,
+      "name": "Mistrise Village",
+      "rotation": "upright",
+      "occlusion": "clear",
+      "retry": false
+    },
+    {
+      "i": 188,
+      "name": "Geier Reach Sanitarium",
+      "rotation": "upright",
+      "occlusion": "clear",
+      "retry": true
+    }
+  ],
+  "retryAttempts": 22,
+  "retrySettled": 8,
+  "unusedSpeculative": 4
+}

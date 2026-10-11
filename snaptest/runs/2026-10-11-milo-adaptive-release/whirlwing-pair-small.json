@@ -1,0 +1,18 @@
+{
+  "id": 1,
+  "ab": {
+    "inliers": 14,
+    "inside": null,
+    "artInliers": 14,
+    "textInliers": 0,
+    "corners": null
+  },
+  "ba": {
+    "inliers": 15,
+    "inside": null,
+    "artInliers": 5,
+    "textInliers": 8,
+    "corners": null
+  },
+  "shared": false
+}

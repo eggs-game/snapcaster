@@ -78,6 +78,43 @@
       "source": "authoritative Real life sampler seed 20260803",
       "scene": 15,
       "index": 5
+    },
+    {
+      "name": "Event: Baxter's Experiments",
+      "id": "cb231e4d-dbba-4475-a01b-212d83859722",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.6193040045017879
+      },
+      "rotation": "tapped",
+      "coverage": 0,
+      "file": "baxter-shared-art-dice.jpg",
+      "source": "Actual failed tableauEdhDice10 capture, adaptive-8 candidate; exact exported click point. Same confident wrong identity reproduced three times on current main and three times on adaptive-8. The event card and creature card share artwork."
+    },
+    {
+      "name": "Kaya, Orzhov Usurper",
+      "id": "fdb4b2ef-5196-4f7f-88ff-64b2cdb36c6b",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.44576912608878816
+      },
+      "rotation": "tapped",
+      "coverage": 0.418,
+      "file": "kaya-overlap-weak-retry.jpg",
+      "expectedOutcome": "correct-or-unresolved",
+      "source": "Actual adaptive-13 tableauEdh10 failure with exact exported click. Current main gave a tentative wrong guess three times; adaptive-13 confidently named another Kaya on all three replays. Retry verification must reject this thin coincidence."
+    },
+    {
+      "name": "Whirlwing Stormbrood",
+      "id": "91e81f3a-6901-42dc-9c87-55419941101e",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "rotation": "sideways",
+      "file": "whirlwing-art-series.jpg",
+      "expectedOutcome": "correct-or-unresolved",
+      "source": "Actual adaptive-14 EDH 200 failure, degradeIndex 86. Standard degrade has no custom click, so the executed path supplies nx=0.5,ny=0.5. Art Series illustration lacks the playable Adventure card body. Do not count the playable printing as the same strict benchmark label."
     }
   ]
 }

@@ -164,18 +164,37 @@ Run the complete plan after any crop, retrieval, hashing, card-isolation, ORB,
 or OCR decision change and before releasing that recognition build:
 
 The sequential release driver also saves the actual failed gallery pixels before
-closing each context. Tableau result exports include the exact normalized point
-supplied to recognition; older exports mark that point unknown rather than
+closing each context. Result exports include the exact normalized point supplied
+to recognition, including the single-card default (0.5, 0.5); older exports mark that point unknown rather than
 reconstructing it from rounded truth metadata. These captures allow confident
 neighbour failures from random draws to be replayed faithfully.
+The driver rejects incomplete runs when a polling interval exceeds sixty seconds:
+machine sleep or long scheduling stalls invalidate latency evidence. Keep the
+machine awake for unattended runs and rerun a discarded suite in a fresh context.
 
 For Milo changes, `scripts/benchmark_milo_lookup.mjs` runs a paired control
-with Cornelius enabled in both arms and Milo disabled only in the control.
+with Cornelius enabled in both arms and Milo disabled only in the control by
+default. Use `--baselineMilo=1` and `--baselineUrl` pointing at a frozen current-main
+production build to compare improvements against a release that already has Milo.
+Both arms then use Milo and the same current catalogs; exports record that setting.
 The final candidate must pass the same complete release matrix as a crop change. `scripts/test_milo_browser.mjs`
 checks normal-reference retrieval on the saved new-face cases, missing-catalog
 fallback, and the actual shared WASM allocation across alternating corner and
 lookup jobs. Its wrapper is written only into a temporary compiled `dist`; it
 is not production instrumentation. Run it separately from timed benchmarks.
+`scripts/test_reference_features_browser.mjs BASE DIST OUTPUT` separately checks
+raw/contrast descriptor and keypoint parity, reuse after eviction, the sixty-entry
+bound, and actual OpenCV WASM allocation across 320 replacements. Its worker
+wrapper also lives only in the temporary build. The companion unit test checks
+native ownership and the older-browser fallback.
+The saved Kaya overlap fixture allows a correct result or an unresolved guess;
+it must never confidently name another card. Its exact pixels reproduce a
+thin-match retry error. `test_milo_lookup.mjs` checks the 24-inlier retry boundary
+in both crop and source coordinates, including unknown/outside click proof.
+The Art Series fixture likewise prevents confidently substituting the playable
+Adventure layout. `test_click_matching.mjs` checks that a poor whole-card match
+with only global illustration proof cannot anchor neighbour exclusions; regional
+registration or distinguishing printed text preserves legitimate rescues.
 Use frozen production builds, the authoritative Real life sampler and the
 same captures. Save every scan, recovered/regressed identities, accepted
 precision, rotations, overlaps, half-run accuracy, perfect-crop controls and

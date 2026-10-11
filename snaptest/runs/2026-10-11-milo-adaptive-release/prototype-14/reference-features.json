@@ -1,0 +1,25 @@
+{
+  "id": 1,
+  "parity": [
+    {
+      "contrast": false,
+      "equal": true,
+      "sameObject": true,
+      "keypoints": 291
+    },
+    {
+      "contrast": true,
+      "equal": true,
+      "sameObject": true,
+      "keypoints": 292
+    }
+  ],
+  "heaps": [
+    134217728,
+    134217728,
+    134217728,
+    134217728
+  ],
+  "afterEvictionEqual": true,
+  "entries": 60
+}

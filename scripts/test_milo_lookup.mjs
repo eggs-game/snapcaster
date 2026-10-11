@@ -10,6 +10,25 @@ assert.equal(ranked.length, 8);
 assert.equal(new Set(ranked.map(r => groups[r.row])).size, 6);
 assert.equal(ranked.filter(r => groups[r.row] === 0).length, 2);
 assert.equal(diverseMiloRows(new Float32Array([NaN, Infinity]), new Uint32Array(2)).length, 0);
+// Compare the faster two-treatment implementation against the original
+// exhaustive grouping, including ties, sparse groups and non-finite scores.
+function exhaustiveRows(scores, groups) {
+  const leaders = new Map();
+  for (let row = 0; row < scores.length; row++) {
+    if (!Number.isFinite(scores[row])) continue;
+    const entries = leaders.get(groups[row]) || [];
+    entries.push({ row, score: scores[row] });
+    entries.sort((a,b) => b.score - a.score || a.row - b.row);
+    entries.length = Math.min(entries.length, 2); leaders.set(groups[row], entries);
+  }
+  const chosen = [...leaders.values()].sort((a,b) => b[0].score-a[0].score || a[0].row-b[0].row).slice(0,6);
+  return [...chosen.map(entries => entries[0]), ...chosen.map(entries => entries[1]).filter(Boolean)];
+}
+for (const n of [1, 7, 127, 10000]) {
+  const scores = Float32Array.from({length:n}, (_,i) => i % 23 === 0 ? NaN : ((i * 71) % 101) / 100);
+  const groups = Uint32Array.from({length:n}, (_,i) => (i * 17) % 61);
+  assert.deepEqual(diverseMiloRows(scores, groups), exhaustiveRows(scores, groups));
+}
 const manifest = { version: 1, revision: MILO_REVISION, model_sha256: MILO_MODEL_SHA, preprocess: MILO_PREPROCESS,
   dimension: 128, count: 2, names: 2, cards_sha256: "a".repeat(64) };
 validateMiloCatalog(manifest, new Int8Array(256), new Float32Array([127,127]), new Uint32Array([0,1]));
@@ -61,25 +80,30 @@ assert.ok(colors.colorSimilarity(colors.colorSignature(colors.whiteBalance(green
   "one-sided lighting correction can falsely veto strong registered artwork");
 assert.ok(colors.registeredColorAgreement(greenCapture,greenReference).color > .99,
   "registered query and reference need the same lighting treatment");
-for (const evidence of ["weak", "neighbour", "unregistered", "verified"]) {
+for (const evidence of ["weak", "neighbour", "unregistered", "verified", "contrast", "contrast-neighbour"]) {
   const initial = { name: "Old guess", scryfall_id: "old", face: 0, distance: 190 };
   const winner = { name: "Retrieved card", scryfall_id: "new", milo_retrieval: true, face: 0, distance: 150,
-    click_inside: evidence === "unregistered" ? null : evidence !== "neighbour", click_inliers: 24, click_art_inliers: 12 };
+    click_inside: evidence === "unregistered" ? null : !evidence.includes("neighbour"), click_inliers: 24, click_art_inliers: 12 };
   let calls = 0;
   const context = vm.createContext({
     self: {}, cards: [[], []], cardsSha256: "current",
     lastMiloContext: { scanId: 7, base: [initial], images: [{}], queryImages: [{}], dists: [190,150], blockedNames: [],
       result: { matches: [initial], printingMatches: [initial], artChecked: 1 } },
     cardMeta: row => row === 1 ? { ...winner } : { ...initial },
-    verifyTopMatches: async (pool) => { calls++; assert.ok(pool.some(m => m.name === "Old guess")); return { matches: [winner], artDecisive: evidence !== "weak", artChecked: 2 }; },
+    verifyTopMatches: async (pool, _images, _shaped, _source, _click, _budget, _regions, contrast) => {
+      calls++; assert.ok(pool.some(m => m.name === "Old guess"));
+      if (evidence.startsWith("contrast")) assert.equal(!!contrast, calls === 2);
+      return { matches: [winner], artDecisive: evidence !== "weak" && (!evidence.startsWith("contrast") || !!contrast), artChecked: 2 };
+    },
   });
   vm.runInContext(helpers + boundary, context);
   await assert.rejects(context.verifyMiloRows(8, [{ row: 1, score: .999 }], "current"), /mismatch/);
   await assert.rejects(context.verifyMiloRows(7, [{ row: 1, score: .999 }], "stale"), /mismatch/);
   assert.equal(calls, 0, "stale rows must never reach the verifier");
   const result = await context.verifyMiloRows(7, [{ row: 1, score: .999 }, { row: -1, score: .99 }, { row: 1, score: NaN }], "current");
-  assert.equal(result.miloRescued, evidence === "verified");
-  assert.equal(result.matches[0].name, evidence === "verified" ? winner.name : initial.name, "a high model score alone cannot replace the established result");
+  const rescued = ["verified", "contrast"].includes(evidence);
+  assert.equal(result.miloRescued, rescued);
+  assert.equal(result.matches[0].name, rescued ? winner.name : initial.name, "a high model score alone cannot replace the established result");
   assert.equal(initial.milo_retrieval, undefined, "rescue verification must not mutate baseline matches");
 }
 console.log("Milo keeps a diverse bounded shortlist, rejects stale catalogs, and requires decisive artwork plus positive clicked-card proof");
@@ -117,7 +141,7 @@ for (const scenario of ["clear", "verified", "weak", "failed", "stale", "hint"])
   const context = vm.createContext({
     performance, VISUAL_EXACT_DISTANCE: 90,
     sourceToBitmap: async () => ({ close() { closed++; } }), createImageBitmap: async () => ({}),
-    proposeAiCrops: async () => ({ quads: [{}], diagnostic: { status: "ready", ms: 1 } }),
+    proposeAiCrops: async (_bmp, _point, retry) => ({ quads: retry ? [] : [{}], diagnostic: { status: "ready", ms: 1 } }),
     runOnWorker: async (_bmp, _point, _hints, _quads, aiOnly) => { if (!aiOnly) fallbacks++; return { ...base }; },
     lookupAiCrops: async () => { lookupCalls++; return { diagnostic: { status: scenario === "failed" ? "failed" : "ready" }, rows: scenario === "failed" ? [] : [{ row: 1, score: .999 }] }; },
     runMiloVerification: async () => {
@@ -136,3 +160,39 @@ for (const scenario of ["clear", "verified", "weak", "failed", "stale", "hint"])
   if (rescue || scenario === "clear") assert.equal(closed, 1);
 }
 console.log("Milo failures preserve cropping; fast reads/hints skip lookup; only verified rescues skip the full fallback");
+
+for (const scenario of ["verified", "weak", "error", "neighbour", "thin", "source-thin", "unregistered"]) {
+  const original = [{ crop: "original" }], retry = [{ crop: "retry" }];
+  let trial = 0, fallbacks = 0, closed = 0;
+  const result = { scan_id: 1, matches: [{ name: "Old guess", distance: 190 }], art_best: {}, stage_ms: {} };
+  const context = vm.createContext({
+    performance, VISUAL_EXACT_DISTANCE: 90,
+    sourceToBitmap: async () => ({ close() { closed++; } }), createImageBitmap: async () => ({}),
+    proposeAiCrops: async (_bmp, _point, shifted) => ({ quads: shifted ? retry : original, diagnostic: { status: "ready", ms: 1 } }),
+    runOnWorker: async (_bmp, _point, _hints, quads, aiOnly) => {
+      if (!aiOnly) { fallbacks++; assert.equal(quads, original, "a rejected retry must preserve the original fallback crops"); }
+      if (aiOnly && ++trial === 2) {
+        if (scenario === "error") throw new Error("retry failure");
+        return { ...result, scan_id: 2, milo_images: [{}], ...(scenario === "neighbour" ? {
+          art_decisive: true, art_best: {clickInside:false}, matches:[{name:"Neighbour",distance:70,identified_by:"art-match"}]
+        } : {}) };
+      }
+      return { ...result };
+    },
+    lookupAiCrops: async () => ({ rows: [{row:1,score:.99}], diagnostic: {status:"ready"} }),
+    runMiloVerification: async id => {
+      assert.equal(id, 2);
+      return { ...result, milo_rescued: ["verified", "thin", "source-thin", "unregistered"].includes(scenario),
+        art_best: {clickInside: scenario === "unregistered" ? null : true,
+          inliers: scenario === "thin" ? 23 : 24, clickInliers: scenario === "source-thin" ? 23 : 24},
+        matches: [{ name: "Retry verified", distance: 140 }], milo_verification: [] };
+    },
+    finishIdentify: async result => result,
+  });
+  vm.runInContext(perform, context);
+  const final = await context.performIdentify("capture", {}, [], true, true);
+  assert.equal(final.matches[0].name, scenario === "verified" ? "Retry verified" : "Old guess");
+  assert.equal(fallbacks, scenario === "verified" ? 0 : 1);
+  if (scenario === "verified") { assert.equal(closed,1); assert.equal(final.milo.rescued,true); assert.equal(final.ai_crop.retryHit,true); }
+}
+console.log("Adaptive crop rescues retain verified acceptance and preserve the original fallback after weak or failed retries");

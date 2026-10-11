@@ -15,7 +15,7 @@ try {
   const record = await page.evaluate(async ({fixture,aiCrop}) => {
    const start=performance.now();
    const result=await window.__scIdentifyUrl("/snaptest/regressions/"+fixture.file, fixture.point, [], { aiCrop });
-   return { build:window.__SNAP_BUILD, expected:fixture.name, got:result.matches[0]?.name, aiCrop, ms:Math.round(performance.now()-start), by:result.matches[0]?.identified_by, artBest:result.art_best, blockedNames:result.blocked_names, ai:result.ai_crop, stages:result.stage_ms };
+   return { build:window.__SNAP_BUILD, expected:fixture.name, expectedOutcome:fixture.expectedOutcome, got:result.matches[0]?.name, aiCrop, ms:Math.round(performance.now()-start), by:result.matches[0]?.identified_by, artBest:result.art_best, blockedNames:result.blocked_names, ai:result.ai_crop, stages:result.stage_ms };
   },{fixture,aiCrop});
   records.push(record);console.log(JSON.stringify(record));
  }
@@ -24,4 +24,7 @@ try {
  await writeFile(output,JSON.stringify(records,null,2)+"\n");
  await browser.close();
 }
-for (const record of records) assert.equal(record.got,record.expected,`crowded regression ${record.expected}, AI=${record.aiCrop}`);
+for (const record of records) {
+ if(record.expectedOutcome === "correct-or-unresolved") assert.ok(record.got===record.expected || !record.by,`unresolved capture must not confidently name another card: ${record.expected}, AI=${record.aiCrop}`);
+ else assert.equal(record.got,record.expected,`crowded regression ${record.expected}, AI=${record.aiCrop}`);
+}

@@ -59,6 +59,28 @@ export function miloCatalog(runtime) {
 // Keep two treatments of six different identities. Hundreds of reprints of
 // one basic land must not consume the rescue budget for all other names.
 export function diverseMiloRows(scores, groups, identityLimit = 6, treatmentLimit = 2) {
+  if (treatmentLimit === 2) {
+    let count = 0;
+    for (const group of groups) count = Math.max(count, group + 1);
+    const first = new Int32Array(count).fill(-1), second = new Int32Array(count).fill(-1);
+    const better = (row, other) => other < 0 || scores[row] > scores[other] || scores[row] === scores[other] && row < other;
+    for (let row = 0; row < scores.length; row++) {
+      if (!Number.isFinite(scores[row])) continue;
+      const group = groups[row];
+      if (better(row, first[group])) { second[group] = first[group]; first[group] = row; }
+      else if (better(row, second[group])) second[group] = row;
+    }
+    const chosen = [];
+    for (let group = 0; group < count; group++) {
+      if (first[group] < 0) continue;
+      const position = chosen.findIndex(other => better(first[group], first[other]));
+      if (position >= 0) chosen.splice(position, 0, group);
+      else if (chosen.length < identityLimit) chosen.push(group);
+      if (chosen.length > identityLimit) chosen.pop();
+    }
+    return [...chosen.map(group => first[group]), ...chosen.map(group => second[group]).filter(row => row >= 0)]
+      .map(row => ({ row, score: scores[row] }));
+  }
   const leaders = new Map();
   for (let row = 0; row < scores.length; row++) {
     if (!Number.isFinite(scores[row])) continue;

@@ -1,0 +1,916 @@
+{
+  "item": {
+    "file": "002.jpg",
+    "name": "Whirlwing Stormbrood",
+    "id": "91e81f3a-6901-42dc-9c87-55419941101e",
+    "pool": "card",
+    "got": "Whirlwing Stormbrood // Dynamic Soar",
+    "by": "art-match",
+    "dist": 202,
+    "conf": 1,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Whirlwing Stormbrood // Dynamic Soar (d=202)",
+      "Icy Blast (d=203)",
+      "Mind Rot (d=200)"
+    ],
+    "i": 86,
+    "degradeIndex": 86,
+    "placement": "above-click",
+    "rot": "sideways",
+    "occ": "fingers",
+    "ms": 1838,
+    "cv": "ready",
+    "tried": 8,
+    "dropped": 16,
+    "artBest": {
+      "name": "Whirlwing Stormbrood // Dynamic Soar",
+      "inliers": 60,
+      "color": 84,
+      "weak": false,
+      "clickInside": true,
+      "clickInliers": 60,
+      "clickArtInliers": 60,
+      "clickTextInliers": 0
+    },
+    "artChecked": 36,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": null,
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 0,
+      "probes": [
+        {
+          "sharpness": 0.01899079605937004,
+          "accepted": false,
+          "reason": "weak"
+        },
+        {
+          "sharpness": 0.02034686505794525,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        }
+      ],
+      "ms": 177,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.007755131460726261,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.03624216467142105,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.016207322478294373,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.015456104651093483,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 349
+      },
+      "retryMs": 349
+    },
+    "truthGeometry": null,
+    "capturePoint": null,
+    "stages": {
+      "prep": 425,
+      "rankSeeds": 479,
+      "earlyOrbProbe": 0,
+      "rankRefine": 0,
+      "rank": 0,
+      "orb": 343,
+      "aiCrop": 177,
+      "aiRetry": 349,
+      "total": 1776
+    },
+    "point": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "pointNote": "Original normalized capture point is not exported; retain geometry/click metadata rather than invent an exact point."
+  },
+  "records": [
+    {
+      "build": "milo-adaptive-14 (local vision)",
+      "got": "Whirlwing Stormbrood // Dynamic Soar",
+      "ok": false,
+      "by": "art-match",
+      "matches": [
+        {
+          "name": "Whirlwing Stormbrood // Dynamic Soar",
+          "set": "tdm",
+          "collector_number": "234",
+          "scryfall_id": "56a25eb1-bdb8-4f86-8d9a-3055ad1b2a13",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/5/6/56a25eb1-bdb8-4f86-8d9a-3055ad1b2a13.jpg",
+          "scryfall_uri": "https://scryfall.com/card/tdm/234",
+          "distance": 202,
+          "confidence": 1,
+          "strategy": "artf-65",
+          "art_inliers": 60,
+          "color_sim": 0.8445858144723388,
+          "ring_sim": 0.5886099338531494,
+          "click_inliers": 60,
+          "click_art_inliers": 60,
+          "click_text_inliers": 0,
+          "click_inside": true,
+          "click_blocked": false,
+          "identified_by": "art-match"
+        },
+        {
+          "name": "Icy Blast",
+          "set": "ktk",
+          "collector_number": "42",
+          "scryfall_id": "b098f029-6b5d-49e4-9a81-f497ebbdb5ce",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/b/0/b098f029-6b5d-49e4-9a81-f497ebbdb5ce.jpg",
+          "scryfall_uri": "https://scryfall.com/card/ktk/42",
+          "distance": 203,
+          "confidence": 0.19285714285714287,
+          "strategy": "artf-50",
+          "art_inliers": 7,
+          "color_sim": 0.970274279719888,
+          "ring_sim": 0.825936311557598,
+          "click_blocked": false
+        },
+        {
+          "name": "Mind Rot",
+          "set": "dtk",
+          "collector_number": "110",
+          "scryfall_id": "272180bd-6afc-4be6-993c-b761acdedec3",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/2/7/272180bd-6afc-4be6-993c-b761acdedec3.jpg",
+          "scryfall_uri": "https://scryfall.com/card/dtk/110",
+          "distance": 200,
+          "confidence": 0.21428571428571427,
+          "strategy": "center-45",
+          "art_inliers": 7,
+          "color_sim": 0.8514003036616486,
+          "ring_sim": 0.7814082673357916,
+          "click_blocked": false
+        },
+        {
+          "name": "Fog Elemental",
+          "set": "10e",
+          "collector_number": "85",
+          "scryfall_id": "95534175-0bf8-4460-8182-117dc1487dcb",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/9/5/95534175-0bf8-4460-8182-117dc1487dcb.jpg",
+          "scryfall_uri": "https://scryfall.com/card/10e/85",
+          "distance": 199,
+          "confidence": 0.22142857142857142,
+          "strategy": "center-45",
+          "art_inliers": 7,
+          "color_sim": 0.8318019158959942,
+          "ring_sim": 0.8056089673336828,
+          "click_blocked": false
+        },
+        {
+          "name": "Annie Joins Up",
+          "set": "potj",
+          "collector_number": "191p",
+          "scryfall_id": "a1aaa03c-7b2a-4820-a44c-039ad0536b66",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/a/1/a1aaa03c-7b2a-4820-a44c-039ad0536b66.jpg",
+          "scryfall_uri": "https://scryfall.com/card/potj/191p",
+          "distance": 201,
+          "confidence": 0.20714285714285716,
+          "strategy": "center-45",
+          "art_inliers": 7,
+          "color_sim": 0.8000348049281456,
+          "ring_sim": 0.7163473683031043,
+          "click_blocked": false
+        },
+        {
+          "name": "Slumbering Waterways",
+          "set": "mb2",
+          "collector_number": "618",
+          "scryfall_id": "20609bfa-c3d3-4985-bbbc-ecbc30c42e5f",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/2/0/20609bfa-c3d3-4985-bbbc-ecbc30c42e5f.jpg",
+          "scryfall_uri": "https://scryfall.com/card/mb2/618",
+          "distance": 201,
+          "confidence": 0.20714285714285716,
+          "strategy": "center-45",
+          "art_inliers": 7,
+          "color_sim": 0.7355133653436496,
+          "ring_sim": 0.8689824367102119,
+          "click_blocked": false
+        },
+        {
+          "name": "Swamp",
+          "set": "pca",
+          "collector_number": "145",
+          "scryfall_id": "db0a4140-b500-45ef-a91d-91cc3c88bb69",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/d/b/db0a4140-b500-45ef-a91d-91cc3c88bb69.jpg",
+          "scryfall_uri": "https://scryfall.com/card/pca/145",
+          "distance": 203,
+          "confidence": 0.19285714285714287,
+          "strategy": "center-45",
+          "art_inliers": 6,
+          "color_sim": 0.7818950022810895,
+          "ring_sim": 0.8699345909117255,
+          "click_blocked": false
+        },
+        {
+          "name": "Demon",
+          "set": "p03",
+          "collector_number": "6",
+          "scryfall_id": "084c3292-c3ec-431e-b162-309b5cf6309e",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/0/8/084c3292-c3ec-431e-b162-309b5cf6309e.jpg",
+          "scryfall_uri": "https://scryfall.com/card/p03/6",
+          "distance": 191,
+          "confidence": 0.2785714285714286,
+          "strategy": "center-45",
+          "art_inliers": 5,
+          "color_sim": 0.7646262736925564,
+          "ring_sim": 0.7900848965946352,
+          "click_blocked": false
+        },
+        {
+          "name": "Karfell Kennel-Master",
+          "set": "khm",
+          "collector_number": "101",
+          "scryfall_id": "f670c380-6faa-42ec-ab41-6be8137169b2",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/f/6/f670c380-6faa-42ec-ab41-6be8137169b2.jpg",
+          "scryfall_uri": "https://scryfall.com/card/khm/101",
+          "distance": 193,
+          "confidence": 0.2642857142857143,
+          "strategy": "artf-50",
+          "art_inliers": 4,
+          "color_sim": 0.8076523279596586,
+          "ring_sim": 0.7898819972906495,
+          "click_blocked": false
+        },
+        {
+          "name": "Wrath of God",
+          "set": "dmr",
+          "collector_number": "37",
+          "scryfall_id": "c3700519-b74c-4445-b42e-03690b8d4463",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/c/3/c3700519-b74c-4445-b42e-03690b8d4463.jpg",
+          "scryfall_uri": "https://scryfall.com/card/dmr/37",
+          "distance": 191,
+          "confidence": 0.2785714285714286,
+          "strategy": "center-45",
+          "click_blocked": false
+        },
+        {
+          "name": "Razortooth Rats",
+          "set": "9ed",
+          "collector_number": "158★",
+          "scryfall_id": "f128936c-e46d-46fb-993f-6df172f9bb7d",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/f/1/f128936c-e46d-46fb-993f-6df172f9bb7d.jpg",
+          "scryfall_uri": "https://scryfall.com/card/9ed/158★",
+          "distance": 198,
+          "confidence": 0.22857142857142856,
+          "strategy": "center-45",
+          "click_blocked": false
+        },
+        {
+          "name": "Ghastly Demise",
+          "set": "cmr",
+          "collector_number": "129",
+          "scryfall_id": "7fcfe11a-fcc9-41e1-91ef-755bb4e22389",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/7/f/7fcfe11a-fcc9-41e1-91ef-755bb4e22389.jpg",
+          "scryfall_uri": "https://scryfall.com/card/cmr/129",
+          "distance": 199,
+          "confidence": 0.22142857142857142,
+          "strategy": "center-45",
+          "click_blocked": false
+        }
+      ],
+      "artBest": {
+        "name": "Whirlwing Stormbrood // Dynamic Soar",
+        "inliers": 60,
+        "color": 84,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 60,
+        "clickArtInliers": 60,
+        "clickTextInliers": 0
+      },
+      "milo": {
+        "status": "skipped"
+      },
+      "miloChecked": [],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.01899079605937004,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.02034686505794525,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          }
+        ],
+        "ms": 176,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.007755131460726261,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.03624216467142105,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.016207322478294373,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.015456104651093483,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 330
+        },
+        "retryMs": 330
+      },
+      "stages": {
+        "prep": 452,
+        "rankSeeds": 466,
+        "earlyOrbProbe": 0,
+        "rankRefine": 0,
+        "rank": 0,
+        "orb": 521,
+        "aiCrop": 176,
+        "aiRetry": 330,
+        "total": 1949
+      }
+    },
+    {
+      "build": "milo-adaptive-14 (local vision)",
+      "got": "Whirlwing Stormbrood // Dynamic Soar",
+      "ok": false,
+      "by": "art-match",
+      "matches": [
+        {
+          "name": "Whirlwing Stormbrood // Dynamic Soar",
+          "set": "tdm",
+          "collector_number": "234",
+          "scryfall_id": "56a25eb1-bdb8-4f86-8d9a-3055ad1b2a13",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/5/6/56a25eb1-bdb8-4f86-8d9a-3055ad1b2a13.jpg",
+          "scryfall_uri": "https://scryfall.com/card/tdm/234",
+          "distance": 202,
+          "confidence": 1,
+          "strategy": "artf-65",
+          "art_inliers": 60,
+          "color_sim": 0.8445858144723388,
+          "ring_sim": 0.5886099338531494,
+          "click_inliers": 60,
+          "click_art_inliers": 60,
+          "click_text_inliers": 0,
+          "click_inside": true,
+          "click_blocked": false,
+          "identified_by": "art-match"
+        },
+        {
+          "name": "Icy Blast",
+          "set": "ktk",
+          "collector_number": "42",
+          "scryfall_id": "b098f029-6b5d-49e4-9a81-f497ebbdb5ce",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/b/0/b098f029-6b5d-49e4-9a81-f497ebbdb5ce.jpg",
+          "scryfall_uri": "https://scryfall.com/card/ktk/42",
+          "distance": 203,
+          "confidence": 0.19285714285714287,
+          "strategy": "artf-50",
+          "art_inliers": 7,
+          "color_sim": 0.970274279719888,
+          "ring_sim": 0.825936311557598,
+          "click_blocked": false
+        },
+        {
+          "name": "Mind Rot",
+          "set": "dtk",
+          "collector_number": "110",
+          "scryfall_id": "272180bd-6afc-4be6-993c-b761acdedec3",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/2/7/272180bd-6afc-4be6-993c-b761acdedec3.jpg",
+          "scryfall_uri": "https://scryfall.com/card/dtk/110",
+          "distance": 200,
+          "confidence": 0.21428571428571427,
+          "strategy": "center-45",
+          "art_inliers": 7,
+          "color_sim": 0.8514003036616486,
+          "ring_sim": 0.7814082673357916,
+          "click_blocked": false
+        },
+        {
+          "name": "Fog Elemental",
+          "set": "10e",
+          "collector_number": "85",
+          "scryfall_id": "95534175-0bf8-4460-8182-117dc1487dcb",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/9/5/95534175-0bf8-4460-8182-117dc1487dcb.jpg",
+          "scryfall_uri": "https://scryfall.com/card/10e/85",
+          "distance": 199,
+          "confidence": 0.22142857142857142,
+          "strategy": "center-45",
+          "art_inliers": 7,
+          "color_sim": 0.8318019158959942,
+          "ring_sim": 0.8056089673336828,
+          "click_blocked": false
+        },
+        {
+          "name": "Annie Joins Up",
+          "set": "potj",
+          "collector_number": "191p",
+          "scryfall_id": "a1aaa03c-7b2a-4820-a44c-039ad0536b66",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/a/1/a1aaa03c-7b2a-4820-a44c-039ad0536b66.jpg",
+          "scryfall_uri": "https://scryfall.com/card/potj/191p",
+          "distance": 201,
+          "confidence": 0.20714285714285716,
+          "strategy": "center-45",
+          "art_inliers": 7,
+          "color_sim": 0.8000348049281456,
+          "ring_sim": 0.7163473683031043,
+          "click_blocked": false
+        },
+        {
+          "name": "Slumbering Waterways",
+          "set": "mb2",
+          "collector_number": "618",
+          "scryfall_id": "20609bfa-c3d3-4985-bbbc-ecbc30c42e5f",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/2/0/20609bfa-c3d3-4985-bbbc-ecbc30c42e5f.jpg",
+          "scryfall_uri": "https://scryfall.com/card/mb2/618",
+          "distance": 201,
+          "confidence": 0.20714285714285716,
+          "strategy": "center-45",
+          "art_inliers": 7,
+          "color_sim": 0.7355133653436496,
+          "ring_sim": 0.8689824367102119,
+          "click_blocked": false
+        },
+        {
+          "name": "Swamp",
+          "set": "pca",
+          "collector_number": "145",
+          "scryfall_id": "db0a4140-b500-45ef-a91d-91cc3c88bb69",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/d/b/db0a4140-b500-45ef-a91d-91cc3c88bb69.jpg",
+          "scryfall_uri": "https://scryfall.com/card/pca/145",
+          "distance": 203,
+          "confidence": 0.19285714285714287,
+          "strategy": "center-45",
+          "art_inliers": 6,
+          "color_sim": 0.7818950022810895,
+          "ring_sim": 0.8699345909117255,
+          "click_blocked": false
+        },
+        {
+          "name": "Demon",
+          "set": "p03",
+          "collector_number": "6",
+          "scryfall_id": "084c3292-c3ec-431e-b162-309b5cf6309e",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/0/8/084c3292-c3ec-431e-b162-309b5cf6309e.jpg",
+          "scryfall_uri": "https://scryfall.com/card/p03/6",
+          "distance": 191,
+          "confidence": 0.2785714285714286,
+          "strategy": "center-45",
+          "art_inliers": 5,
+          "color_sim": 0.7646262736925564,
+          "ring_sim": 0.7900848965946352,
+          "click_blocked": false
+        },
+        {
+          "name": "Karfell Kennel-Master",
+          "set": "khm",
+          "collector_number": "101",
+          "scryfall_id": "f670c380-6faa-42ec-ab41-6be8137169b2",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/f/6/f670c380-6faa-42ec-ab41-6be8137169b2.jpg",
+          "scryfall_uri": "https://scryfall.com/card/khm/101",
+          "distance": 193,
+          "confidence": 0.2642857142857143,
+          "strategy": "artf-50",
+          "art_inliers": 4,
+          "color_sim": 0.8076523279596586,
+          "ring_sim": 0.7898819972906495,
+          "click_blocked": false
+        },
+        {
+          "name": "Wrath of God",
+          "set": "dmr",
+          "collector_number": "37",
+          "scryfall_id": "c3700519-b74c-4445-b42e-03690b8d4463",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/c/3/c3700519-b74c-4445-b42e-03690b8d4463.jpg",
+          "scryfall_uri": "https://scryfall.com/card/dmr/37",
+          "distance": 191,
+          "confidence": 0.2785714285714286,
+          "strategy": "center-45",
+          "click_blocked": false
+        },
+        {
+          "name": "Razortooth Rats",
+          "set": "9ed",
+          "collector_number": "158★",
+          "scryfall_id": "f128936c-e46d-46fb-993f-6df172f9bb7d",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/f/1/f128936c-e46d-46fb-993f-6df172f9bb7d.jpg",
+          "scryfall_uri": "https://scryfall.com/card/9ed/158★",
+          "distance": 198,
+          "confidence": 0.22857142857142856,
+          "strategy": "center-45",
+          "click_blocked": false
+        },
+        {
+          "name": "Ghastly Demise",
+          "set": "cmr",
+          "collector_number": "129",
+          "scryfall_id": "7fcfe11a-fcc9-41e1-91ef-755bb4e22389",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/7/f/7fcfe11a-fcc9-41e1-91ef-755bb4e22389.jpg",
+          "scryfall_uri": "https://scryfall.com/card/cmr/129",
+          "distance": 199,
+          "confidence": 0.22142857142857142,
+          "strategy": "center-45",
+          "click_blocked": false
+        }
+      ],
+      "artBest": {
+        "name": "Whirlwing Stormbrood // Dynamic Soar",
+        "inliers": 60,
+        "color": 84,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 60,
+        "clickArtInliers": 60,
+        "clickTextInliers": 0
+      },
+      "milo": {
+        "status": "skipped"
+      },
+      "miloChecked": [],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.01899079605937004,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.02034686505794525,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          }
+        ],
+        "ms": 163,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.007755131460726261,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.03624216467142105,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.016207322478294373,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.015456104651093483,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 322
+        },
+        "retryMs": 323
+      },
+      "stages": {
+        "prep": 406,
+        "rankSeeds": 447,
+        "earlyOrbProbe": 0,
+        "rankRefine": 0,
+        "rank": 0,
+        "orb": 133,
+        "aiCrop": 163,
+        "aiRetry": 323,
+        "total": 1475
+      }
+    },
+    {
+      "build": "milo-adaptive-14 (local vision)",
+      "got": "Whirlwing Stormbrood // Dynamic Soar",
+      "ok": false,
+      "by": "art-match",
+      "matches": [
+        {
+          "name": "Whirlwing Stormbrood // Dynamic Soar",
+          "set": "tdm",
+          "collector_number": "234",
+          "scryfall_id": "56a25eb1-bdb8-4f86-8d9a-3055ad1b2a13",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/5/6/56a25eb1-bdb8-4f86-8d9a-3055ad1b2a13.jpg",
+          "scryfall_uri": "https://scryfall.com/card/tdm/234",
+          "distance": 202,
+          "confidence": 1,
+          "strategy": "artf-65",
+          "art_inliers": 60,
+          "color_sim": 0.8445858144723388,
+          "ring_sim": 0.5886099338531494,
+          "click_inliers": 60,
+          "click_art_inliers": 60,
+          "click_text_inliers": 0,
+          "click_inside": true,
+          "click_blocked": false,
+          "identified_by": "art-match"
+        },
+        {
+          "name": "Icy Blast",
+          "set": "ktk",
+          "collector_number": "42",
+          "scryfall_id": "b098f029-6b5d-49e4-9a81-f497ebbdb5ce",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/b/0/b098f029-6b5d-49e4-9a81-f497ebbdb5ce.jpg",
+          "scryfall_uri": "https://scryfall.com/card/ktk/42",
+          "distance": 203,
+          "confidence": 0.19285714285714287,
+          "strategy": "artf-50",
+          "art_inliers": 7,
+          "color_sim": 0.970274279719888,
+          "ring_sim": 0.825936311557598,
+          "click_blocked": false
+        },
+        {
+          "name": "Mind Rot",
+          "set": "dtk",
+          "collector_number": "110",
+          "scryfall_id": "272180bd-6afc-4be6-993c-b761acdedec3",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/2/7/272180bd-6afc-4be6-993c-b761acdedec3.jpg",
+          "scryfall_uri": "https://scryfall.com/card/dtk/110",
+          "distance": 200,
+          "confidence": 0.21428571428571427,
+          "strategy": "center-45",
+          "art_inliers": 7,
+          "color_sim": 0.8514003036616486,
+          "ring_sim": 0.7814082673357916,
+          "click_blocked": false
+        },
+        {
+          "name": "Fog Elemental",
+          "set": "10e",
+          "collector_number": "85",
+          "scryfall_id": "95534175-0bf8-4460-8182-117dc1487dcb",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/9/5/95534175-0bf8-4460-8182-117dc1487dcb.jpg",
+          "scryfall_uri": "https://scryfall.com/card/10e/85",
+          "distance": 199,
+          "confidence": 0.22142857142857142,
+          "strategy": "center-45",
+          "art_inliers": 7,
+          "color_sim": 0.8318019158959942,
+          "ring_sim": 0.8056089673336828,
+          "click_blocked": false
+        },
+        {
+          "name": "Annie Joins Up",
+          "set": "potj",
+          "collector_number": "191p",
+          "scryfall_id": "a1aaa03c-7b2a-4820-a44c-039ad0536b66",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/a/1/a1aaa03c-7b2a-4820-a44c-039ad0536b66.jpg",
+          "scryfall_uri": "https://scryfall.com/card/potj/191p",
+          "distance": 201,
+          "confidence": 0.20714285714285716,
+          "strategy": "center-45",
+          "art_inliers": 7,
+          "color_sim": 0.8000348049281456,
+          "ring_sim": 0.7163473683031043,
+          "click_blocked": false
+        },
+        {
+          "name": "Slumbering Waterways",
+          "set": "mb2",
+          "collector_number": "618",
+          "scryfall_id": "20609bfa-c3d3-4985-bbbc-ecbc30c42e5f",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/2/0/20609bfa-c3d3-4985-bbbc-ecbc30c42e5f.jpg",
+          "scryfall_uri": "https://scryfall.com/card/mb2/618",
+          "distance": 201,
+          "confidence": 0.20714285714285716,
+          "strategy": "center-45",
+          "art_inliers": 7,
+          "color_sim": 0.7355133653436496,
+          "ring_sim": 0.8689824367102119,
+          "click_blocked": false
+        },
+        {
+          "name": "Swamp",
+          "set": "pca",
+          "collector_number": "145",
+          "scryfall_id": "db0a4140-b500-45ef-a91d-91cc3c88bb69",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/d/b/db0a4140-b500-45ef-a91d-91cc3c88bb69.jpg",
+          "scryfall_uri": "https://scryfall.com/card/pca/145",
+          "distance": 203,
+          "confidence": 0.19285714285714287,
+          "strategy": "center-45",
+          "art_inliers": 6,
+          "color_sim": 0.7818950022810895,
+          "ring_sim": 0.8699345909117255,
+          "click_blocked": false
+        },
+        {
+          "name": "Demon",
+          "set": "p03",
+          "collector_number": "6",
+          "scryfall_id": "084c3292-c3ec-431e-b162-309b5cf6309e",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/0/8/084c3292-c3ec-431e-b162-309b5cf6309e.jpg",
+          "scryfall_uri": "https://scryfall.com/card/p03/6",
+          "distance": 191,
+          "confidence": 0.2785714285714286,
+          "strategy": "center-45",
+          "art_inliers": 5,
+          "color_sim": 0.7646262736925564,
+          "ring_sim": 0.7900848965946352,
+          "click_blocked": false
+        },
+        {
+          "name": "Karfell Kennel-Master",
+          "set": "khm",
+          "collector_number": "101",
+          "scryfall_id": "f670c380-6faa-42ec-ab41-6be8137169b2",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/f/6/f670c380-6faa-42ec-ab41-6be8137169b2.jpg",
+          "scryfall_uri": "https://scryfall.com/card/khm/101",
+          "distance": 193,
+          "confidence": 0.2642857142857143,
+          "strategy": "artf-50",
+          "art_inliers": 4,
+          "color_sim": 0.8076523279596586,
+          "ring_sim": 0.7898819972906495,
+          "click_blocked": false
+        },
+        {
+          "name": "Wrath of God",
+          "set": "dmr",
+          "collector_number": "37",
+          "scryfall_id": "c3700519-b74c-4445-b42e-03690b8d4463",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/c/3/c3700519-b74c-4445-b42e-03690b8d4463.jpg",
+          "scryfall_uri": "https://scryfall.com/card/dmr/37",
+          "distance": 191,
+          "confidence": 0.2785714285714286,
+          "strategy": "center-45",
+          "click_blocked": false
+        },
+        {
+          "name": "Razortooth Rats",
+          "set": "9ed",
+          "collector_number": "158★",
+          "scryfall_id": "f128936c-e46d-46fb-993f-6df172f9bb7d",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/f/1/f128936c-e46d-46fb-993f-6df172f9bb7d.jpg",
+          "scryfall_uri": "https://scryfall.com/card/9ed/158★",
+          "distance": 198,
+          "confidence": 0.22857142857142856,
+          "strategy": "center-45",
+          "click_blocked": false
+        },
+        {
+          "name": "Ghastly Demise",
+          "set": "cmr",
+          "collector_number": "129",
+          "scryfall_id": "7fcfe11a-fcc9-41e1-91ef-755bb4e22389",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/7/f/7fcfe11a-fcc9-41e1-91ef-755bb4e22389.jpg",
+          "scryfall_uri": "https://scryfall.com/card/cmr/129",
+          "distance": 199,
+          "confidence": 0.22142857142857142,
+          "strategy": "center-45",
+          "click_blocked": false
+        }
+      ],
+      "artBest": {
+        "name": "Whirlwing Stormbrood // Dynamic Soar",
+        "inliers": 60,
+        "color": 84,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 60,
+        "clickArtInliers": 60,
+        "clickTextInliers": 0
+      },
+      "milo": {
+        "status": "skipped"
+      },
+      "miloChecked": [],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.01899079605937004,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.02034686505794525,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          }
+        ],
+        "ms": 163,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.007755131460726261,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.03624216467142105,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.016207322478294373,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.015456104651093483,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 323
+        },
+        "retryMs": 324
+      },
+      "stages": {
+        "prep": 390,
+        "rankSeeds": 442,
+        "earlyOrbProbe": 0,
+        "rankRefine": 0,
+        "rank": 0,
+        "orb": 131,
+        "aiCrop": 163,
+        "aiRetry": 324,
+        "total": 1452
+      }
+    }
+  ]
+}

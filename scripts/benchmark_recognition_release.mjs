@@ -16,9 +16,13 @@ try {
     await page.locator("select").selectOption(mode);
     await page.getByRole("button", { name: "▶ Run", exact: true }).click({ timeout: 90000 });
     const started = Date.now();
+    let previousPoll = started;
     console.log(`${mode}: started`);
     while (true) {
       await page.waitForTimeout(15000);
+      const pollNow = Date.now();
+      if (pollNow - previousPoll > 60000) throw new Error(`${mode}: scheduling stalled for ${Math.round((pollNow - previousPoll)/1000)}s; discard this incomplete timing run`);
+      previousPoll = pollNow;
       const result = await page.evaluate(() => window.__SNAPTEST_LAST_RESULT || null);
       if (result) {
         await writeFile(path.join(output, `${mode}.json`), JSON.stringify(result, null, 2) + "\n");

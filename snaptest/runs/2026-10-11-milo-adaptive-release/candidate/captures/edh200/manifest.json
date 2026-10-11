@@ -1,0 +1,968 @@
+[
+  {
+    "file": "000.jpg",
+    "name": "Snow-Covered Forest",
+    "id": "838c915d-8153-43c2-b513-dfbe4e9388a5",
+    "pool": "basic",
+    "got": "Double-Faced Substitute Card",
+    "dist": 189,
+    "conf": 0.29,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Double-Faced Substitute Card (d=189)",
+      "Guildmark (d=192)",
+      "Kamigawa Charm (d=194)"
+    ],
+    "i": 55,
+    "degradeIndex": 55,
+    "placement": "top-edge-clipped",
+    "rot": "upsidedown",
+    "occ": "fingers",
+    "ms": 3017,
+    "cv": "ready",
+    "tried": 105,
+    "dropped": 24,
+    "artBest": {
+      "name": "Double-Faced Substitute Card",
+      "inliers": 0,
+      "color": 100,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 7,
+      "clickArtInliers": 0,
+      "clickTextInliers": 0
+    },
+    "artChecked": 36,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-top-edge--2-28-92-182",
+        "score": 117.21
+      },
+      {
+        "strategy": "isolate-top-edge--2-28-92-179",
+        "score": 96.18
+      },
+      {
+        "strategy": "isolate-top-edge--2-30-89-179",
+        "score": 94.97
+      },
+      {
+        "strategy": "isolate-top-edge--4-28-86-182",
+        "score": 93.18
+      },
+      {
+        "strategy": "isolate-top-edge--2-30-89-176",
+        "score": 81.43
+      },
+      {
+        "strategy": "isolate-top-edge--4-28-89-182",
+        "score": 75.42
+      },
+      {
+        "strategy": "isolate-top-edge-2-39-77-137",
+        "score": 74.9
+      },
+      {
+        "strategy": "isolate-top-edge-2-39-77-146",
+        "score": 74.23
+      },
+      {
+        "strategy": "isolate-top-edge--6-28-77-179",
+        "score": 73.52
+      },
+      {
+        "strategy": "isolate-top-edge--2-28-92-176",
+        "score": 72.97
+      },
+      {
+        "strategy": "isolate-top-edge--2-30-89-170",
+        "score": 72.48
+      },
+      {
+        "strategy": "isolate-top-edge-2-40-74-140",
+        "score": 71.46
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 0,
+      "probes": [
+        {
+          "sharpness": 0.04171299189329147,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        },
+        {
+          "sharpness": 0.00783295463770628,
+          "accepted": false,
+          "reason": "weak"
+        }
+      ],
+      "ms": 175,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.007862680591642857,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.04618657007813454,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.007301401346921921,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.007272594608366489,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 353
+      },
+      "retryMs": 354
+    },
+    "truthGeometry": null,
+    "capturePoint": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "stages": {
+      "prep": 384,
+      "rankSeeds": 260,
+      "earlyOrbProbe": 0,
+      "rankRefine": 572,
+      "isolatePrep": 673,
+      "isolateScore": 316,
+      "rank": 0,
+      "orb": 234,
+      "aiCrop": 175,
+      "aiRetry": 354,
+      "total": 2971
+    },
+    "point": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "pointNote": "Exact normalized point supplied to identifyCard."
+  },
+  {
+    "file": "001.jpg",
+    "name": "Towering Viewpoint",
+    "id": "d19115bf-562c-4bef-967d-52ec1e54c82e",
+    "pool": "card",
+    "got": "Swamp",
+    "dist": 171,
+    "conf": 0.42,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Swamp (d=171)",
+      "Svyelun of Sea and Sky (d=174)",
+      "Liliana, Heretical Healer (d=179)"
+    ],
+    "i": 62,
+    "degradeIndex": 62,
+    "placement": "top-edge-clipped",
+    "rot": "sideways",
+    "occ": "fingers-dice",
+    "ms": 3622,
+    "cv": "ready",
+    "tried": 100,
+    "dropped": 27,
+    "artBest": {
+      "name": "Swamp",
+      "inliers": 5,
+      "color": 82,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 5,
+      "clickArtInliers": 3,
+      "clickTextInliers": 1
+    },
+    "artChecked": 36,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-top-edge--6-28-50-176",
+        "score": 176.1
+      },
+      {
+        "strategy": "isolate-top-edge--6-39-68-127",
+        "score": 165.48
+      },
+      {
+        "strategy": "isolate-top-edge--6-27-53-182",
+        "score": 153.69
+      },
+      {
+        "strategy": "isolate-top-edge--8-28-44-176",
+        "score": 148.24
+      },
+      {
+        "strategy": "isolate-top-edge--10-28-38-176",
+        "score": 144.57
+      },
+      {
+        "strategy": "isolate-top-edge--8-28-89-176",
+        "score": 143.28
+      },
+      {
+        "strategy": "isolate-top-edge--6-42-65-118",
+        "score": 134.54
+      },
+      {
+        "strategy": "isolate-top-edge--12-28-35-173",
+        "score": 133.33
+      },
+      {
+        "strategy": "isolate-top-edge--8-27-44-182",
+        "score": 133.12
+      },
+      {
+        "strategy": "isolate-top-edge--8-42-62-118",
+        "score": 128.89
+      },
+      {
+        "strategy": "isolate-top-edge--10-28-83-176",
+        "score": 126.67
+      },
+      {
+        "strategy": "isolate-top-edge--10-27-32-182",
+        "score": 125.15
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 0,
+      "probes": [
+        {
+          "sharpness": 0.05780729651451111,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        },
+        {
+          "sharpness": 0.007970308884978294,
+          "accepted": false,
+          "reason": "weak"
+        }
+      ],
+      "ms": 183,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.007687858305871487,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.030645612627267838,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.007476995699107647,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.007899031043052673,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 352
+      },
+      "retryMs": 353
+    },
+    "truthGeometry": null,
+    "capturePoint": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "stages": {
+      "prep": 436,
+      "rankSeeds": 383,
+      "earlyOrbProbe": 0,
+      "rankRefine": 762,
+      "isolatePrep": 708,
+      "isolateScore": 291,
+      "rank": 0,
+      "orb": 381,
+      "aiCrop": 183,
+      "aiRetry": 353,
+      "total": 3500
+    },
+    "point": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "pointNote": "Exact normalized point supplied to identifyCard."
+  },
+  {
+    "file": "002.jpg",
+    "name": "Faerie Rogue",
+    "id": "7df94cc3-fed3-493d-9aa5-c85d6a2aeb05",
+    "pool": "token",
+    "got": "Blank Card",
+    "dist": 167,
+    "conf": 0.45,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Blank Card (d=167)",
+      "The Dilu Horse (d=177)",
+      "Phyrexian Incubator (d=179)"
+    ],
+    "i": 118,
+    "degradeIndex": 118,
+    "placement": "top-edge-clipped",
+    "rot": "sideways",
+    "occ": "fingers",
+    "ms": 3207,
+    "cv": "ready",
+    "tried": 105,
+    "dropped": 24,
+    "artBest": {
+      "name": "Blank Card",
+      "inliers": 0,
+      "color": 96,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 0,
+      "clickArtInliers": 0,
+      "clickTextInliers": 0
+    },
+    "artChecked": 36,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-top-edge-6-30-92-182",
+        "score": 195.1
+      },
+      {
+        "strategy": "isolate-top-edge-4-30-86-182",
+        "score": 161.09
+      },
+      {
+        "strategy": "isolate-top-edge-6-34-92-161",
+        "score": 90.88
+      },
+      {
+        "strategy": "isolate-top-edge-4-28-86-176",
+        "score": 86.45
+      },
+      {
+        "strategy": "isolate-top-edge-4-33-92-152",
+        "score": 85.69
+      },
+      {
+        "strategy": "isolate-top-edge-4-33-92-164",
+        "score": 85.08
+      },
+      {
+        "strategy": "isolate-top-edge-6-30-92-173",
+        "score": 84.8
+      },
+      {
+        "strategy": "isolate-top-edge-2-30-80-182",
+        "score": 84.29
+      },
+      {
+        "strategy": "isolate-top-edge-6-28-92-179",
+        "score": 82.51
+      },
+      {
+        "strategy": "isolate-top-edge-4-30-86-173",
+        "score": 82.38
+      },
+      {
+        "strategy": "isolate-top-edge-4-30-86-179",
+        "score": 82.19
+      },
+      {
+        "strategy": "isolate-top-edge-6-30-92-176",
+        "score": 81.66
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 0,
+      "probes": [
+        {
+          "sharpness": 0.032127220183610916,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        },
+        {
+          "sharpness": 0.007785681169480085,
+          "accepted": false,
+          "reason": "weak"
+        }
+      ],
+      "ms": 180,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.007904622703790665,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.00894324854016304,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.0072292303666472435,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.007623411249369383,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 357
+      },
+      "retryMs": 358
+    },
+    "truthGeometry": null,
+    "capturePoint": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "stages": {
+      "prep": 393,
+      "rankSeeds": 272,
+      "earlyOrbProbe": 0,
+      "rankRefine": 632,
+      "isolatePrep": 731,
+      "isolateScore": 323,
+      "rank": 0,
+      "orb": 273,
+      "aiCrop": 180,
+      "aiRetry": 358,
+      "total": 3164
+    },
+    "point": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "pointNote": "Exact normalized point supplied to identifyCard."
+  },
+  {
+    "file": "003.jpg",
+    "name": "Rocksteady, Rowdy Rhino",
+    "id": "2bc1f3e9-f917-49c1-a207-720329600cc9",
+    "pool": "token",
+    "got": "Scholarship Sponsor",
+    "dist": 175,
+    "conf": 0.39,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Scholarship Sponsor (d=175)",
+      "Capture Sphere (d=175)",
+      "Lord of the Nazgûl (d=176)"
+    ],
+    "i": 119,
+    "degradeIndex": 119,
+    "placement": "top-edge-clipped",
+    "rot": "upsidedown",
+    "occ": "fingers",
+    "ms": 3683,
+    "cv": "ready",
+    "tried": 84,
+    "dropped": 28,
+    "artBest": {
+      "name": "Scholarship Sponsor",
+      "inliers": 3,
+      "color": 54,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 8,
+      "clickArtInliers": 2,
+      "clickTextInliers": 6
+    },
+    "artChecked": 36,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-portrait--2-44-23-92",
+        "score": 62.68
+      },
+      {
+        "strategy": "isolate-portrait--8-42-14-92",
+        "score": 62.08
+      },
+      {
+        "strategy": "isolate-portrait--6-42-14-92",
+        "score": 52.51
+      },
+      {
+        "strategy": "isolate-portrait--2-44-23-89",
+        "score": 49.81
+      },
+      {
+        "strategy": "isolate-portrait--8-42-11-92",
+        "score": 47.56
+      },
+      {
+        "strategy": "isolate-portrait--2-44-23-80",
+        "score": 46.98
+      },
+      {
+        "strategy": "isolate-portrait--6-42-17-92",
+        "score": 46.49
+      },
+      {
+        "strategy": "isolate-portrait--8-44-14-89",
+        "score": 44.64
+      },
+      {
+        "strategy": "isolate-portrait--6-44-17-89",
+        "score": 43.35
+      },
+      {
+        "strategy": "isolate-portrait--2-45-23-89",
+        "score": 43.01
+      },
+      {
+        "strategy": "isolate-portrait--8-44-17-89",
+        "score": 42.89
+      },
+      {
+        "strategy": "isolate-portrait--2-42-20-89",
+        "score": 42.78
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 0,
+      "probes": [
+        {
+          "sharpness": 0.015401485376060009,
+          "accepted": false,
+          "reason": "weak"
+        },
+        {
+          "sharpness": 0.01909751631319523,
+          "accepted": false,
+          "reason": "weak"
+        }
+      ],
+      "ms": 179,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.022665739059448242,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.01898062229156494,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.01973976567387581,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.02966330572962761,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          }
+        ],
+        "ms": 355
+      },
+      "retryMs": 355
+    },
+    "truthGeometry": null,
+    "capturePoint": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "stages": {
+      "prep": 447,
+      "rankSeeds": 385,
+      "earlyOrbProbe": 0,
+      "rankRefine": 729,
+      "isolatePrep": 649,
+      "isolateScore": 254,
+      "rank": 0,
+      "orb": 635,
+      "aiCrop": 179,
+      "aiRetry": 355,
+      "total": 3635
+    },
+    "point": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "pointNote": "Exact normalized point supplied to identifyCard."
+  },
+  {
+    "file": "004.jpg",
+    "name": "Corpse Harvester",
+    "id": "b49430a6-8572-4959-a8ae-4b6fdcef440f",
+    "pool": "card",
+    "got": "Ulamog's Crusher",
+    "dist": 186,
+    "conf": 0.31,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Ulamog's Crusher (d=186)",
+      "Ogre's Cleaver (d=187)",
+      "Aven Interrupter (d=188)"
+    ],
+    "i": 127,
+    "degradeIndex": 127,
+    "placement": "top-edge-clipped",
+    "rot": "upsidedown",
+    "occ": "fingers-dice",
+    "ms": 3458,
+    "cv": "ready",
+    "tried": 84,
+    "dropped": 28,
+    "artBest": {
+      "name": "Ulamog's Crusher",
+      "inliers": 4,
+      "color": 89,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 5,
+      "clickArtInliers": 3,
+      "clickTextInliers": 2
+    },
+    "artChecked": 36,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-portrait-6-53-89-92",
+        "score": 228.5
+      },
+      {
+        "strategy": "isolate-portrait-6-53-89-68",
+        "score": 165.63
+      },
+      {
+        "strategy": "isolate-portrait-4-53-86-68",
+        "score": 164.53
+      },
+      {
+        "strategy": "isolate-portrait-6-53-89-86",
+        "score": 147.63
+      },
+      {
+        "strategy": "isolate-portrait-6-44-86-80",
+        "score": 126.06
+      },
+      {
+        "strategy": "isolate-portrait-6-53-89-89",
+        "score": 124.94
+      },
+      {
+        "strategy": "isolate-portrait-4-53-86-92",
+        "score": 123.48
+      },
+      {
+        "strategy": "isolate-portrait-4-53-86-89",
+        "score": 122.16
+      },
+      {
+        "strategy": "isolate-portrait-4-53-86-83",
+        "score": 121.21
+      },
+      {
+        "strategy": "isolate-portrait-6-53-89-77",
+        "score": 121.06
+      },
+      {
+        "strategy": "isolate-portrait-6-51-89-92",
+        "score": 116.96
+      },
+      {
+        "strategy": "isolate-portrait-6-53-89-83",
+        "score": 116.54
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 0,
+      "probes": [
+        {
+          "sharpness": 0.042262233793735504,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        },
+        {
+          "sharpness": 0.029055552557110786,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        }
+      ],
+      "ms": 178,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.007870329543948174,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.045096494257450104,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.019211146980524063,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.0371633805334568,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          }
+        ],
+        "ms": 354
+      },
+      "retryMs": 355
+    },
+    "truthGeometry": null,
+    "capturePoint": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "stages": {
+      "prep": 449,
+      "rankSeeds": 386,
+      "earlyOrbProbe": 0,
+      "rankRefine": 714,
+      "isolatePrep": 609,
+      "isolateScore": 239,
+      "rank": 0,
+      "orb": 471,
+      "aiCrop": 178,
+      "aiRetry": 355,
+      "total": 3404
+    },
+    "point": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "pointNote": "Exact normalized point supplied to identifyCard."
+  },
+  {
+    "file": "005.jpg",
+    "name": "Magus of the Bazaar",
+    "id": "d117ed81-7b5c-4e29-b958-6126d48ac5a6",
+    "pool": "card",
+    "got": "Conduit of Ruin",
+    "dist": 166,
+    "conf": 0.46,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Conduit of Ruin (d=166)",
+      "Lore Weaver (d=176)",
+      "Shimmer Dragon (d=177)"
+    ],
+    "i": 180,
+    "degradeIndex": 180,
+    "placement": "top-edge-clipped",
+    "rot": "upright",
+    "occ": "fingers",
+    "ms": 3609,
+    "cv": "ready",
+    "tried": 94,
+    "dropped": 23,
+    "artBest": {
+      "name": "Conduit of Ruin",
+      "inliers": 5,
+      "color": 87,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 10,
+      "clickArtInliers": 1,
+      "clickTextInliers": 9
+    },
+    "artChecked": 36,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-portrait-6-51-50-89",
+        "score": 134.21
+      },
+      {
+        "strategy": "isolate-portrait-6-53-50-89",
+        "score": 120.03
+      },
+      {
+        "strategy": "isolate-portrait-6-53-50-86",
+        "score": 118.17
+      },
+      {
+        "strategy": "isolate-portrait-6-53-50-92",
+        "score": 118
+      },
+      {
+        "strategy": "isolate-portrait-6-51-50-86",
+        "score": 116.01
+      },
+      {
+        "strategy": "isolate-portrait-6-51-50-80",
+        "score": 113.22
+      },
+      {
+        "strategy": "isolate-portrait-4-51-47-92",
+        "score": 112.18
+      },
+      {
+        "strategy": "isolate-portrait-6-53-50-80",
+        "score": 111.28
+      },
+      {
+        "strategy": "isolate-portrait-6-53-50-83",
+        "score": 110.89
+      },
+      {
+        "strategy": "isolate-portrait-6-51-50-92",
+        "score": 109.52
+      },
+      {
+        "strategy": "isolate-portrait-6-51-50-83",
+        "score": 109.27
+      },
+      {
+        "strategy": "isolate-portrait-4-53-47-86",
+        "score": 108.17
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 0,
+      "probes": [
+        {
+          "sharpness": 0.052686162292957306,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        },
+        {
+          "sharpness": 0.0135162603110075,
+          "accepted": false,
+          "reason": "weak"
+        }
+      ],
+      "ms": 178,
+      "retry": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.009083257988095284,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.05794290080666542,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.013946001417934895,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.011834222823381424,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 346
+      },
+      "retryMs": 346
+    },
+    "truthGeometry": null,
+    "capturePoint": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "stages": {
+      "prep": 439,
+      "rankSeeds": 459,
+      "earlyOrbProbe": 0,
+      "rankRefine": 893,
+      "isolatePrep": 577,
+      "isolateScore": 238,
+      "rank": 0,
+      "orb": 431,
+      "aiCrop": 178,
+      "aiRetry": 346,
+      "total": 3563
+    },
+    "point": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "pointNote": "Exact normalized point supplied to identifyCard."
+  }
+]
