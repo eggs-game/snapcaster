@@ -109,6 +109,7 @@ export default async function handler(req, res) {
     const membershipId = String(body.membershipId || "");
     const participantToken = String(body.participantToken || "");
     const label = String(body.label || "").trim();
+    const deckId = String(body.deckId || "");
     if (body.action === "set_membership") {
       if (!UUID.test(membershipId) || participantToken.length < 32 || participantToken.length > 128) {
         return res.status(400).json({ error: "Invalid game membership" });
@@ -118,6 +119,21 @@ export default async function handler(req, res) {
       if (userData.user.is_anonymous) return res.status(403).json({ error: "Sign in to save a Commander deck" });
       if (!label || label.length > 48) return res.status(400).json({ error: "Deck label must be 1–48 characters" });
       await checkRateLimit(admin, userData.user.id, ip, "saved_commander_deck", 30, 86400);
+    } else if (body.action === "rename_deck") {
+      if (userData.user.is_anonymous) return res.status(403).json({ error: "Sign in to rename a Commander deck" });
+      if (!UUID.test(deckId)) return res.status(400).json({ error: "Invalid deck" });
+      if (!label || label.length > 48) return res.status(400).json({ error: "Deck label must be 1–48 characters" });
+      await checkRateLimit(admin, userData.user.id, ip, "saved_deck_rename", 60, 3600);
+
+      const { data, error } = await admin
+        .from("saved_commander_decks")
+        .update({ label })
+        .eq("id", deckId)
+        .eq("owner_id", userData.user.id)
+        .select("id, label")
+        .single();
+      if (error || !data) return res.status(404).json({ error: "Deck could not be renamed" });
+      return res.status(200).json({ deck: data });
     } else {
       return res.status(400).json({ error: "Unknown commander action" });
     }

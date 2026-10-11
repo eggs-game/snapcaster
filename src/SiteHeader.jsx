@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Bell, LogOut, Settings, Users, UserRound } from "lucide-react";
 import { accountDisplayName } from "./accountIdentity.js";
 import DiscordMark from "./DiscordMark.jsx";
@@ -14,9 +14,17 @@ export default function SiteHeader({
   onSignOut,
 }) {
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(() => window.scrollY > 8);
+
+  useEffect(() => {
+    const updateScrolled = () => setScrolled(window.scrollY > 8);
+    updateScrolled();
+    window.addEventListener("scroll", updateScrolled, { passive: true });
+    return () => window.removeEventListener("scroll", updateScrolled);
+  }, []);
 
   return (
-    <header className="site-header">
+    <header className={`site-header${scrolled ? " is-scrolled" : ""}`}>
       <a className="site-brand" href="/">Snapcast</a>
       <nav className="home-header-actions" aria-label="Game actions">
         <button className="home-header-create" type="button" onClick={onCreate}>Create</button>

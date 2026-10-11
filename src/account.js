@@ -551,6 +551,34 @@ export async function createSavedCommanderDeck(account, deck) {
   return payload.deck;
 }
 
+export async function renameSavedCommanderDeck(account, deckId, value) {
+  if (!account?.user?.id) throw new Error("Sign in to rename this deck.");
+  const label = String(value || "").trim();
+  if (!label || label.length > 48) throw new Error("Deck name must be 1–48 characters.");
+  if (isMockAccount(account)) {
+    let renamed = null;
+    await updateLocalMock((data) => {
+      const deck = data.saved_decks.find((item) => item.id === deckId);
+      if (!deck) throw new Error("Deck not found.");
+      deck.label = label;
+      renamed = { id: deck.id, label: deck.label };
+    });
+    return structuredClone(renamed);
+  }
+  if (!account.access_token) throw new Error("Sign in to rename this deck.");
+  const response = await fetch("/api/commanders", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${account.access_token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ action: "rename_deck", deckId, label }),
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload.error || "Deck could not be renamed.");
+  return payload.deck;
+}
+
 export async function deleteSavedCommanderDeck(account, deckId) {
   if (!account?.user?.id) throw new Error("Sign in to remove a Commander deck.");
   if (isMockAccount(account)) {

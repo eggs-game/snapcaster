@@ -174,7 +174,12 @@ wrong-card report’s Submit report action uses this pattern.
 The home header is transparent over the hero: Snapcast stays left-aligned and
 Discord sign-in or the signed-in profile stays right-aligned, without a filled
 bar, blur, border, or shadow. The image-free dark hero canvas provides its
-contrast. Hero copy and actions form a centered single-column stack. Its single continuous promise—online
+contrast. On sticky account, directory, and document surfaces, that same header
+gains an opaque `--bg-canvas` background, subtle bottom divider, and restrained
+shadow after the page begins scrolling so page content never shows through its
+controls. The transparent and scrolled states use the standard-duration motion
+token and do not change the header's dimensions. Hero copy and actions form a
+centered single-column stack. Its single continuous promise—online
 paper Magic with real table feel—caps at 60px, balances naturally across lines,
 and uses restrained `-0.025em` tracking so Geist stays compact without its
 letterforms colliding. The supporting line names recognition, emotes, sound
@@ -191,11 +196,11 @@ than ordinary controls (158px minimum width by 56px high, 18px type): Make game
 opens creation, while View games is a real link to the public lobby directory.
 The hero is deliberately shorter than a full viewport (roughly 70vh, capped at
 680px) so the product surface begins to enter the page sooner. The home header's
-40px controls sit immediately before the account control: Create is opaque warm
+32px compact-tier controls sit immediately before the account control: Create is opaque warm
 white, Join uses a strong white outline, and signed-out visitors get an equally
 tall Discord-blurple sign-in control with the official Discord mark. The
 signed-in profile control shows only the display name and notification badge
-(no avatar). On narrow phone layouts the Discord control becomes a 40px
+(no avatar). On narrow phone layouts the Discord control becomes a 32px
 icon-only target with the full accessible label intact. They open the same modal
 and account flows as the primary page actions.
 The notifications page reuses this shared header component rather than a
@@ -295,19 +300,45 @@ commander images are already present.
 The tiles have no inline destructive control, keeping this browsing surface
 focused on deck recognition rather than deletion.
 Each tile is a real link to a focused saved-deck editor rather than an inline
-management surface. The editor keeps the shared site header and a 1120px
+management surface. The editor keeps the shared site header and a 1280px
 content column. Its information hierarchy borrows the useful parts of a mature
-deck builder without copying marketplace UI: deck identity and total first, a
+deck builder without copying marketplace UI: deck identity first in a
+full-bleed hero with no card container, border, or radius. The commander's
+Scryfall art crop occupies the right side and deliberately runs past that edge,
+while layered canvas-colored gradients keep the title and commander readable
+on the left and dissolve the artwork completely into the black-blue page at
+the bottom. The artwork extends behind the deck-view tabs and begins a long,
+semi-transparent fade roughly 80px above their divider, resolving to the page
+canvas only at that line. Deck
+back-navigation sits directly above the title as part of the
+same lower-left identity block. The transparent site navigation sits over this artwork but remains
+non-sticky. The treatment uses Snapcast's lavender-blue accent and existing
+dark surfaces rather than copying the source artwork's color into the
+surrounding UI. The title is capped at
+56px so long deck names stay assertive without dominating the workspace; a
+deck owner can click that title to replace it with a same-size inline input.
+Enter or blur saves through the owner-checked deck API, Escape restores the
+previous name, and public viewers always see non-interactive text. A
 flat control row second, then the editing workspace. The control row has no
-surrounding surface or border: search, Group and Sort selects, and explicit
-Copy list, Import, and Add card actions read directly on the page, while the
-icon-only text/card segmented control anchors at the far right. A 28px gap
+surrounding surface or border: search, Group and Sort selects lead into one
+icon-only three-dot Deck actions menu containing Copy list and Import. Group
+and Sort labels use secondary text so their small type stays readable in both
+themes. Add card
+remains the explicit primary action, while the icon-only text/card segmented
+control anchors at the far right. A 28px gap
 below the row separates these filters and actions from the card workspace; an
 expanded Import or Add card panel occupies that same gap instead of adding a
 second margin. Grouping
 includes functional deck-local tags as well as card type, mana value, and deck
 section. Tag search matches both names and tags. The four summary metrics live
 only on the Analysis & hand tab rather than interrupting the deck list.
+Type grouping orders the primary card types as Creatures, Sorceries, Instants,
+Artifacts, Enchantments, then any remaining types. Planeswalkers sit above
+Creatures in the first desktop text column, Sorceries and Instants share the
+second, and Lands anchor the third. Remaining sections are then placed under
+the shortest column so small sections such as Artifacts do not leave uneven gaps.
+The deck editor header stays in normal document flow and scrolls away with the
+deck instead of consuming a persistent strip above long card lists.
 Import and add forms expand below that bar only while in use. Import leads with
 the manual Moxfield workflow. A validated Moxfield URL produces an “Open deck
 in Moxfield” link that opens in a separate tab; the user then chooses More →
@@ -334,10 +365,14 @@ flow.
 On desktop the workspace uses a compact sticky selected-card inspector and a
 three-column grouped text list. Sections are assigned to the currently
 lightest independent column, so the next section begins directly below the
-preceding one instead of inheriting the tallest section's grid-row gap. Text rows are 36px high with quantity at
-the left and mana value at the right, making a 100-card deck scannable without
-turning each card into a separate panel. The alternate card view uses compact
-image tiles. The selected-card inspector contains only artwork, the card name,
+preceding one instead of inheriting the tallest section's grid-row gap. Text rows are 36px high and show only
+the card name at 14px, making a 100-card deck scannable without turning each card into
+a separate panel. The commander is represented solely by the selected-card
+inspector, so it is omitted from the grouped text list. Section headers retain their aggregate card counts. The alternate card view uses compact
+image tiles. Card images in those tiles, the selected-card inspector, and the
+alternate-art picker use a physical-card-shaped `4.75% / 3.5%` elliptical
+radius. This clips occasional light source-image corners without rounding the
+surrounding tile or inspector to an exaggerated degree. The selected-card inspector contains only artwork, the card name,
 and one icon-only Card options disclosure for changing artwork or removing the
 card; type/mana metadata, quantity,
 section, tag, and swap forms do not crowd this browsing surface. The

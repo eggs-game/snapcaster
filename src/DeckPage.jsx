@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   BarChart3,
@@ -29,6 +29,7 @@ import {
   getSavedCommanderDeck,
   importSavedDeckFromText,
   importSavedDeckFromUrl,
+  renameSavedCommanderDeck,
   signInWithDiscord,
   signOutAccount,
   updateCardPrintingInSavedDeck,
@@ -50,7 +51,7 @@ const BOARD_LABELS = {
   maybeboard: "Considering",
 };
 const BOARD_ORDER = ["commander", "mainboard", "sideboard", "maybeboard"];
-const TYPE_ORDER = ["Commander", "Creature", "Planeswalker", "Battle", "Sorcery", "Instant", "Artifact", "Enchantment", "Land", "Other"];
+const TYPE_ORDER = ["Commander", "Creature", "Sorcery", "Instant", "Artifact", "Enchantment", "Planeswalker", "Battle", "Other", "Land"];
 const TYPE_LABELS = {
   Creature: "Creatures",
   Planeswalker: "Planeswalkers",
@@ -100,7 +101,9 @@ function groupSort(left, right, groupBy) {
   }
   const leftType = Object.keys(TYPE_LABELS).find((type) => TYPE_LABELS[type] === left.label) || left.label;
   const rightType = Object.keys(TYPE_LABELS).find((type) => TYPE_LABELS[type] === right.label) || right.label;
-  return TYPE_ORDER.indexOf(leftType) - TYPE_ORDER.indexOf(rightType);
+  const leftIndex = TYPE_ORDER.indexOf(leftType);
+  const rightIndex = TYPE_ORDER.indexOf(rightType);
+  return (leftIndex === -1 ? TYPE_ORDER.length - 1 : leftIndex) - (rightIndex === -1 ? TYPE_ORDER.length - 1 : rightIndex);
 }
 
 function printingImageUrl(printing) {
@@ -134,8 +137,13 @@ export default function DeckPage({ deckId }) {
   const [sampleLibrary, setSampleLibrary] = useState([]);
   const [working, setWorking] = useState(false);
   const [busyCardId, setBusyCardId] = useState(null);
+  const [editingDeckName, setEditingDeckName] = useState(false);
+  const [deckNameDraft, setDeckNameDraft] = useState("");
+  const [deckNameSaving, setDeckNameSaving] = useState(false);
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
+  const cancelDeckNameRef = useRef(false);
+  const deckNameSaveRef = useRef(false);
   const dismissStatus = useCallback(() => setStatus(""), []);
 
   useEffect(() => {
@@ -149,6 +157,7 @@ export default function DeckPage({ deckId }) {
         if (!active) return;
         setCanEdit(Boolean(ownedDeck));
         setDeck(nextDeck);
+        setDeckNameDraft(nextDeck?.label || "");
         setSourceAttribution(nextDeck?.source_url || "");
         setSourceUrl(nextDeck?.source_provider === "archidekt" ? nextDeck.source_url || "" : "");
         setSelectedCardId(nextDeck?.cards?.[0]?.id || null);
@@ -163,6 +172,7 @@ export default function DeckPage({ deckId }) {
   }, [deckId]);
 
   const cards = deck?.cards || EMPTY_CARDS;
+  const commanderCard = cards.find((card) => card.board === "commander") || cards[0] || null;
   const selectedCard = cards.find((card) => card.id === selectedCardId) || cards[0] || null;
   const totalCards = cards.reduce((sum, card) => sum + Number(card.quantity || 0), 0);
   const mainDeckCards = cards.filter((card) => card.board === "commander" || card.board === "mainboard")
@@ -219,15 +229,31 @@ export default function DeckPage({ deckId }) {
 
   const textGroupColumns = useMemo(() => {
     const columns = Array.from({ length: 3 }, () => ({ groups: [], weight: 0 }));
-    for (const group of groups) {
-      const column = columns.reduce((lightest, candidate) => (
-        candidate.weight < lightest.weight ? candidate : lightest
-      ));
+    const textGroups = groups.map((group) => ({
+      ...group,
+      cards: group.cards.filter((card) => card.board !== "commander"),
+    })).filter((group) => group.cards.length);
+    const addToColumn = (group, column) => {
       column.groups.push(group);
       column.weight += group.cards.length + 1;
+    };
+    const lightestColumn = () => columns.reduce((lightest, candidate) => (
+      candidate.weight < lightest.weight ? candidate : lightest
+    ));
+    if (groupBy === "type") {
+      const anchors = [["Planeswalkers", 0], ["Creatures", 0], ["Sorceries", 1], ["Instants", 1], ["Lands", 2]];
+      const anchoredKeys = new Set(anchors.map(([key]) => key));
+      for (const [key, columnIndex] of anchors) {
+        const group = textGroups.find((candidate) => candidate.key === key);
+        if (group) addToColumn(group, columns[columnIndex]);
+      }
+      const remaining = textGroups.filter((group) => !anchoredKeys.has(group.key));
+      for (const group of remaining) addToColumn(group, lightestColumn());
+    } else {
+      for (const group of textGroups) addToColumn(group, lightestColumn());
     }
     return columns.map((column) => column.groups);
-  }, [groups]);
+  }, [groupBy, groups]);
 
   const dealHand = useCallback(() => {
     const library = shuffleMainDeck(cards);
@@ -331,6 +357,57 @@ export default function DeckPage({ deckId }) {
     }
   };
 
+  const beginDeckNameEdit = () => {
+    if (!canEdit || deckNameSaving) return;
+    cancelDeckNameRef.current = false;
+    setDeckNameDraft(deck.label);
+    setEditingDeckName(true);
+  };
+
+  const saveDeckName = async () => {
+    if (deckNameSaveRef.current) return;
+    if (cancelDeckNameRef.current) {
+      cancelDeckNameRef.current = false;
+      return;
+    }
+    const label = deckNameDraft.trim();
+    if (label === deck.label) {
+      setEditingDeckName(false);
+      return;
+    }
+    if (!label || label.length > 48) {
+      setError("Deck name must be 1–48 characters.");
+      setDeckNameDraft(deck.label);
+      setEditingDeckName(false);
+      return;
+    }
+    deckNameSaveRef.current = true;
+    setDeckNameSaving(true);
+    setError("");
+    setStatus("");
+    try {
+      const renamed = await renameSavedCommanderDeck(account, deck.id, label);
+      setDeck((current) => ({ ...current, label: renamed.label }));
+      setDeckNameDraft(renamed.label);
+      setEditingDeckName(false);
+      setStatus("Deck name updated.");
+    } catch (renameError) {
+      setError(String(renameError?.message || "Deck could not be renamed."));
+      setDeckNameDraft(deck.label);
+      setEditingDeckName(false);
+    } finally {
+      deckNameSaveRef.current = false;
+      setDeckNameSaving(false);
+    }
+  };
+
+  const cancelDeckNameEdit = (input) => {
+    cancelDeckNameRef.current = true;
+    setDeckNameDraft(deck.label);
+    setEditingDeckName(false);
+    input.blur();
+  };
+
   const toggleArtPicker = async () => {
     if (!selectedCard) return;
     if (artPickerOpen) {
@@ -377,19 +454,43 @@ export default function DeckPage({ deckId }) {
           <div className="games-empty"><h1>Deck not found</h1><p>This deck may have been removed or belongs to another player.</p><a href="/profile">Back to profile</a></div>
         ) : (
           <>
-            <a className="deck-editor-back" href={canEdit ? "/profile" : `/profile?id=${encodeURIComponent(deck.owner?.id || "")}`}>
-              <ArrowLeft size={16} /> {canEdit ? "My decks" : `${deck.owner?.display_name || "Player"}'s profile`}
-            </a>
             <header className="deck-editor-hero">
-              <div>
-                <h1>{deck.label}</h1>
-                <p>{deck.commander_name}{deck.partner_name ? ` + ${deck.partner_name}` : ""}</p>
-                {!canEdit && deck.owner && <a className="deck-editor-owner" href={`/profile?id=${encodeURIComponent(deck.owner.id)}`}>Deck by {deck.owner.display_name}</a>}
-                {deck.source_url && <a className="deck-editor-source" href={deck.source_url} target="_blank" rel="noreferrer"><Link2 size={13} /> Imported from {deck.source_provider}</a>}
-              </div>
-              <div className="deck-editor-summary" aria-label={`${totalCards} cards`}>
-                <strong>{totalCards}</strong>
-                <span>{totalCards === 1 ? "card" : "cards"}</span>
+              {commanderCard && <img className="deck-editor-hero-art" src={cardImageUrl(commanderCard, "art_crop")} alt="" aria-hidden="true" draggable="false" />}
+              <div className="deck-editor-hero-inner">
+                <div className="deck-editor-hero-copy">
+                  <a className="deck-editor-back" href={canEdit ? "/profile" : `/profile?id=${encodeURIComponent(deck.owner?.id || "")}`}>
+                    <ArrowLeft size={16} /> {canEdit ? "My decks" : `${deck.owner?.display_name || "Player"}'s profile`}
+                  </a>
+                  <h1>
+                    {canEdit && editingDeckName ? (
+                      <input
+                        className="deck-editor-title-input"
+                        aria-label="Deck name"
+                        value={deckNameDraft}
+                        maxLength={48}
+                        disabled={deckNameSaving}
+                        autoFocus
+                        onFocus={(event) => event.currentTarget.select()}
+                        onChange={(event) => setDeckNameDraft(event.target.value)}
+                        onBlur={saveDeckName}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.preventDefault();
+                            event.currentTarget.blur();
+                          } else if (event.key === "Escape") {
+                            event.preventDefault();
+                            cancelDeckNameEdit(event.currentTarget);
+                          }
+                        }}
+                      />
+                    ) : canEdit ? (
+                      <button className="deck-editor-title-button" type="button" onClick={beginDeckNameEdit} title="Rename deck">{deck.label}</button>
+                    ) : deck.label}
+                  </h1>
+                  <p>{deck.commander_name}{deck.partner_name ? ` + ${deck.partner_name}` : ""}</p>
+                  {!canEdit && deck.owner && <a className="deck-editor-owner" href={`/profile?id=${encodeURIComponent(deck.owner.id)}`}>Deck by {deck.owner.display_name}</a>}
+                  {deck.source_url && <a className="deck-editor-source" href={deck.source_url} target="_blank" rel="noreferrer"><Link2 size={13} /> Imported from {deck.source_provider}</a>}
+                </div>
               </div>
             </header>
 
@@ -407,8 +508,13 @@ export default function DeckPage({ deckId }) {
               <label className="deck-builder-search"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find cards in this deck" /></label>
               <div className="deck-builder-select"><span>Group</span><AppDropdown label="Group cards" value={groupBy} onChange={setGroupBy} options={[{ value: "tag", label: "Tag" }, { value: "type", label: "Type" }, { value: "cmc", label: "Mana value" }, { value: "board", label: "Section" }]} /></div>
               <div className="deck-builder-select"><span>Sort</span><AppDropdown label="Sort cards" value={sortBy} onChange={setSortBy} options={[{ value: "name", label: "Name" }, { value: "cmc", label: "Mana value" }]} /></div>
-              <button type="button" className="deck-builder-action" onClick={copyDeckList}><Copy size={16} /> Copy list</button>
-              {canEdit && <button type="button" className="deck-builder-action" onClick={() => setPanel(panel === "import" ? null : "import")}><Download size={16} /> Import</button>}
+              <details className="deck-toolbar-actions">
+                <summary aria-label="Deck actions" data-tooltip="Deck actions"><MoreHorizontal size={17} aria-hidden="true" /></summary>
+                <div className="deck-toolbar-actions-menu">
+                  <button type="button" onClick={(event) => { event.currentTarget.closest("details")?.removeAttribute("open"); copyDeckList(); }}><Copy size={16} aria-hidden="true" /> Copy list</button>
+                  {canEdit && <button type="button" onClick={(event) => { event.currentTarget.closest("details")?.removeAttribute("open"); setPanel(panel === "import" ? null : "import"); }}><Download size={16} aria-hidden="true" /> Import</button>}
+                </div>
+              </details>
               {canEdit && <button type="button" className="deck-builder-action primary" onClick={() => setPanel(panel === "add" ? null : "add")}><Plus size={16} /> Add card</button>}
               <div className="deck-view-control" role="group" aria-label="Card view">
                 <button type="button" className={view === "text" ? "selected" : ""} onClick={() => setView("text")} aria-label="Text view" data-tooltip="Text view"><List size={17} /></button>
@@ -512,9 +618,7 @@ export default function DeckPage({ deckId }) {
                           <div className="deck-card-list">
                             {group.cards.map((card) => (
                               <button type="button" className={`deck-card-row${card.id === selectedCard?.id ? " selected" : ""}`} key={card.id} onClick={() => setSelectedCardId(card.id)}>
-                                <span className="deck-card-quantity">{card.quantity}</span>
                                 <span className="deck-card-row-copy"><strong>{card.name}</strong>{!!(card.tags || []).length && <small>{card.tags.join(" · ")}</small>}</span>
-                                <span className="deck-card-mana">{card.mana_value == null ? "—" : Number(card.mana_value)}</span>
                               </button>
                             ))}
                           </div>

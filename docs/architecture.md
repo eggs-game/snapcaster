@@ -179,7 +179,9 @@ moderator-checking RPCs.
 `api/commanders.js` revalidates both account and anonymous game sessions, loads
 current Oracle data from Scryfall, and applies the shared Commander/partner
 legality rules. It is the only writer for saved decks and live membership
-Commander fields. Presence heartbeats ignore their legacy Commander
+Commander fields; owner-scoped deck-name changes use the same authenticated,
+rate-limited boundary without refetching unchanged card identities. Presence
+heartbeats ignore their legacy Commander
 parameters, and peers refresh the database-authorized membership snapshot
 instead of accepting Commander names broadcast by another browser.
 
