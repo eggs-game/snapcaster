@@ -104,6 +104,26 @@ origins. Keep these aligned with the deployed domain redirect and the Supabase
 OAuth redirect allowlist so an account can use the app after returning from
 Discord.
 
+### Deck API configuration recovery
+
+The browser's `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` enable sign-in,
+but cannot authorize the server-only deck writers. Both `/api/commanders` and
+`/api/decks` also require `SUPABASE_SERVICE_ROLE_KEY`. On 2026-10-10, production
+was missing that variable; it was added as a **Secret**, scoped to **Production**,
+on Vercel's `snapcaster` project using the existing Supabase project's key.
+Keep the key in Vercel, never in Git or a `VITE_` variable. The server routes
+reuse the existing public URL and anon key when server-specific aliases are
+absent. Preview environments require separate explicit configuration.
+
+Environment updates take effect on the next deployment. After deploying and
+confirming the commit's Vercel status, run `npm run check:production-decks`.
+This sends empty, unauthenticated POSTs to the canonical production hostname:
+both routes must return 401, and unrelated origins must return 403. A 503 means
+server configuration is still missing; a successful static build alone cannot
+verify it. This check does not prove a privileged key is valid or perform any
+deck mutation. Also verify saving and importing through a signed-in account,
+and remove the temporary test deck afterward.
+
 Alert on repeated authorization errors, rate-limit spikes, public-room creation
 bursts, invitation/review/report spikes, maintenance failures, and growing due
 deletion queues. Vercel logs must not include bearer tokens, emails, invite

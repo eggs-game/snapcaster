@@ -462,6 +462,14 @@ boundary, while unrelated, spoofed, insecure and nonstandard-port origins
 remain rejected with 403. It runs in the fast policy set without contacting
 Supabase or modifying account data.
 
+After a production deployment, `npm run check:production-decks` verifies the
+live Commander and card-list APIs reject unauthenticated callers with 401 and
+foreign origins with 403. It catches missing server configuration (503) without
+tokens or mutations. Its offline fixture test runs in the fast policy set and
+deliberately injects the missing-configuration failure in each endpoint. An
+authenticated save/import smoke test is still needed to verify the privileged
+key and database writes; see `docs/security-operations.md`.
+
 CI (`.github/workflows/ci.yml`) runs on every push:
 
 - **`test_hash_compat.py`** — JS and Python must hash bit-identically, or the
