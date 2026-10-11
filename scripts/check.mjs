@@ -23,6 +23,7 @@ const checks = [
   [node, "scripts/test_game_controls.mjs"],
   [node, "scripts/test_local_commander_selection.mjs"],
   [node, "scripts/test_game_connection_reset.mjs"],
+  [node, "scripts/test_webrtc_signaling.mjs"],
   [node, "scripts/test_video_counter_contrast.mjs"],
   [node, "scripts/test_card_presentation.mjs"],
   [node, "scripts/test_chat_commands.mjs"],

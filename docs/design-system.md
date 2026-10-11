@@ -1139,6 +1139,12 @@ preview gains other controls.
 
 ## Video tile fit modes
 
+Camera tiles keep video playback muted so displaying a board does not depend on
+permission to autoplay sound. Each remote participant has one persistent audio
+element, independent of Tile, Hero or Active layout, so changing the view cannot
+duplicate or interrupt their voice. Media readiness and user interaction retry
+blocked playback without adding another control to the table.
+
 Commander color-identity pips sit directly after the commander name on the left
 of the 52px-tall video overlay. Only colored identity pips are shown — generic
 and colorless mana are not repeated — while a fully colorless commander gets a

@@ -16,6 +16,8 @@
     "test:ui:sidebar": "node scripts/test_card_sidebar_browser.mjs",
     "test:ui:pages": "node scripts/test_account_pages_browser.mjs",
     "test:media:setup": "node scripts/test_media_setup_browser.mjs",
+    "test:media:playback": "node scripts/test_media_playback_browser.mjs",
+    "test:webrtc": "node scripts/test_webrtc_browser.mjs",
     "check:production-decks": "node scripts/check_production_decks.mjs",
     "check": "node scripts/check.mjs --build"
   },

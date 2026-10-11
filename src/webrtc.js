@@ -94,6 +94,9 @@ const PEER_DISCONNECT_GRACE_MS = 15000;
 const PLAYER_STATE_KEY_PREFIX = "snapcast-room-player-state:";
 const LIFECYCLE_KEY_PREFIX = "snapcast-room-lifecycle:";
 const LIFECYCLE_HEARTBEAT_MS = 5000;
+const NEGOTIATION_TTL_MS = 30000;
+const MAX_PENDING_NEGOTIATION_PEERS = MAX_PLAYERS + MAX_VISITORS;
+const NEGOTIATION_TYPES = new Set(["offer", "answer", "ice"]);
 const SNAPSHOT_MESSAGE_TYPES = new Set([
   "identity",
   "life",
@@ -121,6 +124,9 @@ export class GameConnection {
     this.h = handlers;
     this.peers = new Map();     // peerId -> {pc, dc, chunks: Map}
     this.pending = new Map();   // requestId -> {resolve, reject, timer}
+    this.pendingSignals = new Map();
+    this.pendingIce = new Map();
+    this.lastSignalMembershipRefresh = 0;
     this.localStream = null;
     this.room = null;
     this.myId = null;
@@ -612,6 +618,8 @@ export class GameConnection {
     if (entry?.disconnectTimer) clearTimeout(entry.disconnectTimer);
     entry?.pc.close();
     if (entry) this.peers.delete(id);
+    this.pendingSignals.delete(id);
+    this.pendingIce.delete(id);
     this.knownIds.delete(id);
     this.roster = this.roster.filter((member) => member.id !== id);
     this.h.onPeerReconnecting?.(id, false);
@@ -775,7 +783,10 @@ export class GameConnection {
       if (r.id === this.myId || this.knownIds.has(r.id)) continue;
       snapshotTargets.add(r.id);
       this.knownIds.add(r.id);
-      if (me && r.joinedAt < me.joinedAt) this._makeOffer(r.id);
+      if (me && (r.joinedAt < me.joinedAt
+        || (r.joinedAt === me.joinedAt && r.id < me.id))) {
+        this._makeOffer(r.id).catch(() => this._diagnostic("peer-offer-failed", { subjectId: r.id }));
+      }
     }
     this.h.onRoster?.(this.roster);
     const messages = this._stateSnapshotMessages();
@@ -789,11 +800,78 @@ export class GameConnection {
         for (const message of messages) this.room?.send(message, targetId);
       }
     }
+    this._drainPendingSignals();
+  }
+
+  _queueSignal(msg) {
+    if (!NEGOTIATION_TYPES.has(msg?.type) || typeof msg.from !== "string"
+      || !msg.from || msg.from.length > 40 || msg.from === this.myId) return;
+    if (msg.type !== "ice" && (typeof msg.sdp !== "string" || msg.sdp.length > 65536)) return;
+    const candidate = msg.type === "ice" ? this._safeIceCandidate(msg.candidate) : null;
+    if (msg.type === "ice" && !candidate) return;
+    const now = Date.now();
+    for (const [id, pending] of this.pendingSignals) {
+      if (now - pending.at > NEGOTIATION_TTL_MS) this.pendingSignals.delete(id);
+    }
+    if (!this.pendingSignals.has(msg.from)) {
+      if (this.pendingSignals.size >= MAX_PENDING_NEGOTIATION_PEERS) return;
+      this.pendingSignals.set(msg.from, { at: now, messages: [] });
+    }
+    const pending = this.pendingSignals.get(msg.from);
+    if (msg.type !== "ice") pending.messages = pending.messages.filter((message) => message.type !== msg.type);
+    if (pending.messages.length >= 40) return;
+    pending.messages.push({ type: msg.type, from: msg.from, ...(candidate ? { candidate } : { sdp: msg.sdp }) });
+    if (now - this.lastSignalMembershipRefresh > 1000) {
+      this.lastSignalMembershipRefresh = now;
+      this.h.onMembershipRefresh?.();
+    }
+  }
+
+  _drainPendingSignals() {
+    if (this.closed || !this.room || !this.myId) return;
+    for (const [id, pending] of this.pendingSignals) {
+      if (Date.now() - pending.at > NEGOTIATION_TTL_MS) {
+        this.pendingSignals.delete(id);
+        continue;
+      }
+      const member = this.roster.find((item) => item.id === id);
+      if (!member || (this.allowedMembershipIds && !this.allowedMembershipIds.has(member.membershipId))) continue;
+      this.pendingSignals.delete(id);
+      for (const message of pending.messages) {
+        void this._onSignal(message).catch(() => this._diagnostic("peer-negotiation-failed", { subjectId: id }));
+      }
+    }
+  }
+
+  _safeIceCandidate(candidate) {
+    if (!candidate || typeof candidate.candidate !== "string" || candidate.candidate.length > 8192) return null;
+    return {
+      candidate: candidate.candidate,
+      sdpMid: typeof candidate.sdpMid === "string" ? candidate.sdpMid.slice(0, 64) : null,
+      sdpMLineIndex: Number.isInteger(candidate.sdpMLineIndex) ? candidate.sdpMLineIndex : null,
+      ...(typeof candidate.usernameFragment === "string" ? { usernameFragment: candidate.usernameFragment.slice(0, 256) } : {}),
+    };
+  }
+
+  async _flushIce(peerId) {
+    const entry = this.peers.get(peerId);
+    if (!entry?.pc.remoteDescription || this.closed) return;
+    const candidates = this.pendingIce.get(peerId) || [];
+    this.pendingIce.delete(peerId);
+    for (const candidate of candidates) {
+      if (this.peers.get(peerId) !== entry || this.closed) return;
+      try { await entry.pc.addIceCandidate(candidate); } catch { /* stale candidate from a replaced connection */ }
+    }
   }
 
   async _onSignal(msg) {
+    if (this.closed) return;
     const sender = this.roster.find((r) => r.id === msg.from);
-    if (this.allowedMembershipIds && !sender) return;
+    if ((NEGOTIATION_TYPES.has(msg.type) && (!this.room || !this.myId))
+      || (this.allowedMembershipIds && (!sender || !this.allowedMembershipIds.has(sender.membershipId)))) {
+      this._queueSignal(msg);
+      return;
+    }
     if (msg.type === "participant-leaving") {
       this.intentionalLeaves.set(String(msg.from || "").slice(0, 40), Date.now());
       return;
@@ -838,18 +916,34 @@ export class GameConnection {
       case "offer": {
         const p = this._getPeer(msg.from);
         await p.pc.setRemoteDescription({ type: "offer", sdp: msg.sdp });
+        await this._flushIce(msg.from);
         const answer = await p.pc.createAnswer();
         await p.pc.setLocalDescription(answer);
+        if (this.closed || this.peers.get(msg.from) !== p) break;
+        this.room?.send({ type: "answer", sdp: p.pc.localDescription.sdp }, msg.from);
         await this._tunePeerVideo(msg.from);
-        this.room.send({ type: "answer", sdp: answer.sdp }, msg.from);
         break;
       }
       case "answer":
         await this.peers.get(msg.from)?.pc.setRemoteDescription({ type: "answer", sdp: msg.sdp });
+        await this._flushIce(msg.from);
         break;
-      case "ice":
-        try { await this.peers.get(msg.from)?.pc.addIceCandidate(msg.candidate); } catch { /* ignore */ }
+      case "ice": {
+        const candidate = this._safeIceCandidate(msg.candidate);
+        if (!candidate) break;
+        const entry = this.peers.get(msg.from);
+        if (!entry?.pc.remoteDescription) {
+          if (!this.pendingIce.has(msg.from)) {
+            if (this.pendingIce.size >= MAX_PENDING_NEGOTIATION_PEERS) break;
+            this.pendingIce.set(msg.from, []);
+          }
+          const candidates = this.pendingIce.get(msg.from);
+          if (candidates.length < 40) candidates.push(candidate);
+        } else {
+          try { await entry.pc.addIceCandidate(candidate); } catch { /* stale candidate */ }
+        }
         break;
+      }
       case "video-quality": {
         if (!this.roster.some((member) => member.id === msg.from)) break;
         const quality = normalizeReceiverVideoQuality(msg.quality);
@@ -1027,6 +1121,8 @@ export class GameConnection {
       disconnectTimer: null,
       connectionWasInterrupted: false,
       failureReported: false,
+      remoteTracks: new Map(),
+      makingOffer: false,
     };
     this.peers.set(peerId, entry);
     for (const t of this.localStream?.getTracks() || []) {
@@ -1042,8 +1138,18 @@ export class GameConnection {
     // An audio-only visitor still needs a video m-line in offers so players
     // can send their camera feed back to the visitor.
     if (this.role === "visitor") pc.addTransceiver("video", { direction: "recvonly" });
-    pc.onicecandidate = (e) => e.candidate && this.room.send({ type: "ice", candidate: e.candidate }, peerId);
-    pc.ontrack = (e) => this.h.onRemoteStream?.(peerId, e.streams[0]);
+    pc.onicecandidate = (e) => e.candidate && !this.closed && this.room?.send({ type: "ice", candidate: e.candidate }, peerId);
+    pc.ontrack = (e) => {
+      if (this.closed || this.peers.get(peerId) !== entry) return;
+      // Audio/video can arrive in separate or streamless track events. Publish
+      // all of this connection's tracks together so an audio event cannot
+      // replace a working camera with an audio-only stream (a black tile).
+      entry.remoteTracks.set(e.track.id, e.track);
+      for (const stream of e.streams || []) {
+        for (const track of stream.getTracks()) entry.remoteTracks.set(track.id, track);
+      }
+      this.h.onRemoteStream?.(peerId, new MediaStream([...entry.remoteTracks.values()].filter((track) => track.readyState !== "ended")));
+    };
     pc.ondatachannel = (e) => this._setupDC(peerId, e.channel);
     pc.onconnectionstatechange = () => {
       if (this.closed || !this.peers.has(peerId)) return;
@@ -1110,12 +1216,20 @@ export class GameConnection {
   }
 
   async _makeOffer(peerId) {
+    if (this.closed || !this.room || !this.myId) return;
     const p = this._getPeer(peerId);
-    this._setupDC(peerId, p.pc.createDataChannel("ctrl"));
-    const offer = await p.pc.createOffer();
-    await p.pc.setLocalDescription(offer);
-    await this._tunePeerVideo(peerId);
-    this.room.send({ type: "offer", sdp: offer.sdp }, peerId);
+    if (p.makingOffer || p.pc.signalingState !== "stable") return;
+    p.makingOffer = true;
+    try {
+      if (!p.dc) this._setupDC(peerId, p.pc.createDataChannel("ctrl"));
+      const offer = await p.pc.createOffer();
+      await p.pc.setLocalDescription(offer);
+      if (this.closed || this.peers.get(peerId) !== p) return;
+      this.room.send({ type: "offer", sdp: p.pc.localDescription.sdp }, peerId);
+      await this._tunePeerVideo(peerId);
+    } finally {
+      p.makingOffer = false;
+    }
   }
 
   _setupDC(peerId, dc) {
@@ -1585,6 +1699,8 @@ export class GameConnection {
       p.pc.close();
     }
     this.peers.clear();
+    this.pendingSignals.clear();
+    this.pendingIce.clear();
     this.room?.leave();
     for (const t of this.localStream?.getTracks() || []) t.stop();
   }

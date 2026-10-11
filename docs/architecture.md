@@ -370,6 +370,19 @@ the main thread — an early bug that made the lobby unresponsive.
   every life, commander, counter, color, and camera field to the whole room.
   Presence advertises the protocol version; older open tabs receive targeted
   legacy messages during a rolling deploy.
+- **Negotiation tolerates asynchronous joins.** SDP/ICE received before the
+  room is ready or membership is verified waits in a bounded 30-second queue.
+  Nothing is negotiated until the sender's membership is admitted. Newcomers
+  trigger a rate-limited membership refresh, and equal join timestamps use the
+  participant ID to select exactly one offerer. ICE waits for remote SDP instead
+  of being discarded. SDP is sent before video-sender tuning can delay it.
+  Track events are combined per connection, including separate/streamless
+  audio and video tracks, so an audio-only event cannot replace the camera.
+  Removal and connection closure clear pending negotiation state.
+- **Video and audio playback are independent.** Displayed videos are muted and
+  explicitly started; one audio element per remote participant survives layout
+  changes. Playback retries on media readiness and user interaction, with
+  listeners and element bindings cleaned up on replacement or unmount.
 - **Connection failures are observable.** Supabase Realtime heartbeats run in
   its worker so a backgrounded tab is less likely to disappear from presence.
   The client keeps the latest 80 connection events locally at

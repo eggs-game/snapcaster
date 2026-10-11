@@ -16,6 +16,27 @@ cleanup on cancellation. It accesses no physical devices or production rooms.
 Use `SNAPCAST_CHROME_PATH` to select an installed Chrome executable; reports
 and screenshots are written to `.cache/media-setup/`.
 
+`npm run test:webrtc` runs the actual `GameConnection` with native browser peer
+connections and local fake camera/microphone tracks. Only signaling is replaced
+by an in-memory adapter. It requires received audio RTP bytes, decoded/presented
+non-black video frames, and open data channels across four-player mesh, late
+visitor, reconnect, equal-timestamp and separate/streamless-track cases. Forced
+delivery delays exercise ICE before SDP, offers before membership admission and
+offers before room initialization. It makes no production requests and does not
+test remote NAT/TURN or physical cameras. `SNAPCAST_CHROME_PATH` selects Chrome;
+reports are in `.cache/webrtc-browser/`.
+
+`scripts/test_webrtc_signaling.mjs` runs in the fast policy set. It reproduces
+early SDP/ICE ordering and verifies that pending messages remain bounded,
+expire, and cannot negotiate for an unapproved or removed membership.
+
+`npm run test:media:playback -- --url=http://127.0.0.1:5184` runs the actual tile
+and audio components against a loopback source preview. It checks autoplay
+retries, delayed tracks, remounts and cleanup; `--baseline=<commit>` reproduces
+controlled autoplay failures against older source. Browser autoplay rejection
+is deliberately injected and must not be presented as a diagnosis of a live
+network. Reports are in `.cache/ui-audit/media-playback/`.
+
 [The four-player practice table](ui-simulation.md) runs the real game interface
 with three simulated opponents on one computer. Use it for settings, chat,
 whispers, counters, dice, readiness, player controls and game management.

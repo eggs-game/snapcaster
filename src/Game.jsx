@@ -27,6 +27,7 @@ import CardSidebar, { cardFromScryfall, formatDiceResult, formatDiceSides } from
 import AppDropdown from "./AppDropdown.jsx";
 import AppToast from "./AppToast.jsx";
 import { isPlainSpaceShortcut, serializeCommanderDamage, suppressDragReleaseClick } from "./gameControls.js";
+import { bindMediaPlayback } from "./mediaPlayback.js";
 import { useConfirmDialog } from "./ConfirmDialog.jsx";
 import { getSoundEffect, playChatNotification, playSoundEffect, playTurnNotification } from "./soundEffects.js";
 import { getCounterTextColor, getVideoCounterType, normalizeVideoCounter } from "./videoCounters.js";
@@ -1909,15 +1910,10 @@ export default function Game({ session, account, onLeave, themePreference, onThe
   return (
     <div className="game">
       <AppToast message={actionError} kind="error" duration={0} onDismiss={() => setActionError("")} />
-      {visitors
-        .filter((visitor) => visitor.id !== myId && streams[visitor.id])
-        .map((visitor) => (
-          <RemoteAudio key={visitor.id} stream={streams[visitor.id]} muted={mutedPlayers[visitor.id]} />
-        ))}
-      {videoLayout === "follow" && players
-        .filter((player) => player.id !== resolvedActivePlayerId && player.id !== myId && streams[player.id])
-        .map((player) => (
-          <RemoteAudio key={`follow-audio-${player.id}`} stream={streams[player.id]} />
+      {roster
+        .filter((participant) => participant.id !== myId && streams[participant.id])
+        .map((participant) => (
+          <RemoteAudio key={participant.id} stream={streams[participant.id]} muted={mutedPlayers[participant.id]} />
         ))}
 
       <div className="main">
@@ -2187,16 +2183,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
 
 function RemoteAudio({ stream, muted = false }) {
   const ref = useRef(null);
-  useEffect(() => {
-    if (ref.current) {
-      ref.current.srcObject = stream;
-      ref.current.muted = muted;
-      ref.current.play().catch(() => {
-        // Browsers normally allow this after the explicit Join click. If one
-        // blocks autoplay, the element will retry when the stream updates.
-      });
-    }
-  }, [stream, muted]);
+  useEffect(() => bindMediaPlayback(ref.current, stream, { muted }), [stream, muted]);
   return <audio ref={ref} autoPlay playsInline />;
 }
 
@@ -2338,9 +2325,7 @@ const VideoTile = React.memo(function VideoTile({ tile, color, seatIndex, seatCo
     onChangeLife(delta);
   };
   useEffect(() => stopLifeHold, []);
-  useEffect(() => {
-    if (videoRef.current && tile.stream) videoRef.current.srcObject = tile.stream;
-  }, [tile.stream]);
+  useEffect(() => bindMediaPlayback(videoRef.current, tile.stream, { muted: true }), [tile.stream, tile.empty]);
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !tile.stream) {
@@ -2369,7 +2354,7 @@ const VideoTile = React.memo(function VideoTile({ tile, color, seatIndex, seatCo
       video.removeEventListener("resize", update);
       clearInterval(timer);
     };
-  }, [tile.stream, tile.isMe]);
+  }, [tile.stream, tile.isMe, tile.empty]);
 
   if (tile.empty) {
     return (
@@ -2427,7 +2412,7 @@ const VideoTile = React.memo(function VideoTile({ tile, color, seatIndex, seatCo
             ref={videoRef}
             autoPlay
             playsInline
-            muted={tile.isMe}
+            muted
             style={flipped ? { transform: "rotate(180deg)" } : undefined}
           />
         </div>
