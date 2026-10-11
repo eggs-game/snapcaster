@@ -7,6 +7,7 @@ import { normalizeRecognitionHint } from "./recognitionHints.js";
 import { RealtimeEpochRotator } from "./realtimeEpochRotation.js";
 import { getSoundEffect } from "./soundEffects.js";
 import { normalizeVideoCounter } from "./videoCounters.js";
+import { getUserMediaWithFallback } from "./mediaDevices.js";
 import {
   DEFAULT_OUTGOING_VIDEO_QUALITY,
   normalizeOutgoingVideoQuality,
@@ -425,7 +426,7 @@ export class GameConnection {
     // Ask for the camera's maximum resolution — recognition crops are taken
     // from the raw local track, so every native pixel directly improves card
     // identification (WebRTC scales the *sent* video down on its own).
-    this.localStream = await navigator.mediaDevices.getUserMedia({
+    this.localStream = await getUserMediaWithFallback({
       video: audioOnly
         ? false
         : {

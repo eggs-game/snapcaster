@@ -40,6 +40,8 @@ export default function AppDropdown({
     if (!open) return undefined;
     const close = (event) => {
       if (event.type === "keydown" && event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
         setOpen(false);
         triggerRef.current?.focus();
       }

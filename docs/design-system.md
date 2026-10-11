@@ -1024,7 +1024,9 @@ shared typeahead field automatically; commander and player-history filters opt
 in even when their current fixture is short so the interaction remains stable
 as history grows. Typing while a searchable trigger is focused opens the menu
 with that query, arrow keys move between filtered options, and Escape returns
-focus to the trigger. Base dropdown styles live with the component in
+focus to the trigger. When a dropdown is inside a modal, Escape closes only the
+dropdown and leaves the enclosing setup or account form open.
+Base dropdown styles live with the component in
 `src/AppDropdown.css`; feature-level trigger adaptations remain beside their
 own page or panel styles.
 

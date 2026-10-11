@@ -25,6 +25,7 @@ import SiteHeader from "./SiteHeader.jsx";
 import { accountDisplayName } from "./accountIdentity.js";
 import { resolveInitialLobbyModal } from "./authIntent.js";
 import { getLocalMockGame } from "./localMock.js";
+import { getUserMediaWithFallback } from "./mediaDevices.js";
 const GamePreview = lazy(() => import("./GamePreview.jsx"));
 import AppDropdown from "./AppDropdown.jsx";
 
@@ -238,7 +239,7 @@ export default function Lobby({
     const request = ++previewRequestRef.current;
     setMediaError("");
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
+      const stream = await getUserMediaWithFallback({
         video: joiningAsVisitor ? false : {
           ...(nextVideoId ? { deviceId: { exact: nextVideoId } } : {}),
           width: { ideal: 1920 },
@@ -265,6 +266,13 @@ export default function Lobby({
     } catch (mediaFailure) {
       if (request === previewRequestRef.current) {
         setMediaError(String(mediaFailure?.message || "Camera and microphone access failed."));
+        // A failed preferred device must not leave the pickers falsely empty.
+        try {
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          if (request !== previewRequestRef.current) return;
+          setCameras(devices.filter((device) => device.kind === "videoinput"));
+          setMics(devices.filter((device) => device.kind === "audioinput"));
+        } catch { /* retain the original acquisition error */ }
       }
     }
   };

@@ -10,6 +10,7 @@ const checks = [
   [node, "scripts/test_build_output_isolation.mjs"],
   [node, "scripts/test_metadata_evidence.mjs"],
   [node, "scripts/test_video_quality.mjs"],
+  [node, "scripts/test_media_devices.mjs"],
   [node, "scripts/test_card_search_cache.mjs"],
   [node, "scripts/test_deck_import.mjs"],
   [node, "scripts/test_deck_analysis.mjs"],

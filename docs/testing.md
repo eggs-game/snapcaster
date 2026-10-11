@@ -2,6 +2,20 @@
 
 ## Non-recognition UI regression checks
 
+`scripts/test_media_devices.mjs` reproduces stale saved-device failures against
+the shared acquisition helper and actual game transport. It verifies bounded
+recovery, actual selected IDs, preserved capture quality, visitor audio-only
+mode and permission/busy failures without repeated requests. It runs in the fast
+policy set.
+
+After `npm run check`, `npm run test:media:setup` checks the compiled create
+and visitor setup screens with Chrome's native fake camera/microphone backend.
+It reproduces an actual `OverconstrainedError` from stale saved IDs, requires a
+decoded preview and correctly resolved device selectors, and checks track
+cleanup on cancellation. It accesses no physical devices or production rooms.
+Use `SNAPCAST_CHROME_PATH` to select an installed Chrome executable; reports
+and screenshots are written to `.cache/media-setup/`.
+
 [The four-player practice table](ui-simulation.md) runs the real game interface
 with three simulated opponents on one computer. Use it for settings, chat,
 whispers, counters, dice, readiness, player controls and game management.

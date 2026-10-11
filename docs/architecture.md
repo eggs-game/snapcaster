@@ -37,6 +37,14 @@ The landing-page game illustration loads in a separate JavaScript chunk, with
 a reserved loading area. UI fixes must continue to satisfy the 80 KiB initial
 JavaScript gzip budget rather than pulling account/game code into the entry.
 
+Lobby preview and game startup share bounded media acquisition. They first try
+the selected camera/microphone and preferred capture resolution. A constraints
+failure retries saved device IDs as preferences, then basic constraints if
+needed; successful tracks provide the actual device IDs. This recovers from
+unplugged or browser-rotated saved IDs without reducing working-camera quality.
+Permission and busy-device failures are not retried. Visitor retries keep video
+disabled, and failed preview acquisition still refreshes the device pickers.
+
 Dependencies are deliberately few: `react`, `react-dom`, `@supabase/supabase-js`,
 `tesseract.js`, `lucide-react`. OpenCV loads at runtime from `docs.opencv.org`.
 
