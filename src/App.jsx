@@ -57,14 +57,17 @@ export default function App() {
   const [suppressInitialJoinModal] = useState(hasAccountOnlySignInIntent);
 
   useEffect(() => {
-    if (!suppressInitialJoinModal) return;
+    // OAuth and game invitations both use ?code=. The lazily loaded account
+    // client must finish reading/exchanging an OAuth code before we clean up
+    // any abandoned join intent from the landing URL.
+    if (!suppressInitialJoinModal || !accountReady) return;
     clearAccountOnlySignInIntent();
     if (window.location.pathname !== "/") return;
     const nextSearch = stripJoinIntentFromSearch(window.location.search);
     if (nextSearch !== window.location.search) {
       window.history.replaceState({}, "", `/${nextSearch}`);
     }
-  }, [suppressInitialJoinModal]);
+  }, [suppressInitialJoinModal, accountReady]);
 
   const startSession = (nextSession) => {
     const next = {

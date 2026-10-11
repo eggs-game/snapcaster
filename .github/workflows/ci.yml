@@ -56,5 +56,7 @@ jobs:
       - run: npm run check
       - name: Install Chromium for accessibility checks
         run: npx playwright install --with-deps chromium
+      - name: Verify Discord callback survives lazy account loading
+        run: npm run test:auth-callback
       - name: Verify accessibility and color contrast
         run: npm run test:a11y

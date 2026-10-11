@@ -11,6 +11,7 @@
     "preview": "vite preview",
     "test": "node scripts/check.mjs",
     "test:a11y": "node scripts/test_accessibility.mjs",
+    "test:auth-callback": "node scripts/test_auth_callback.mjs",
     "check": "node scripts/check.mjs --build"
   },
   "dependencies": {

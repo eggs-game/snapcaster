@@ -44,6 +44,12 @@ scopes and uses the PKCE authorization-code flow. The OAuth client secret stays
 in the Supabase provider configuration and is never shipped in the browser
 bundle.
 
+Game invitations and Supabase's OAuth callback both use the `code` query
+parameter. Account-only sign-in suppresses the lobby's join dialog immediately,
+but waits for account initialization to finish before removing abandoned join
+parameters. The account module is loaded lazily, so earlier URL cleanup would
+delete the authorization code before Supabase could exchange it.
+
 Guests receive an anonymous Supabase Auth identity solely to authorize a
 private Realtime room. The account trigger skips anonymous users, so they have
 no Snapcast profile, contact row, preferences, public history, or social

@@ -448,6 +448,14 @@ Full history with per-run analysis: [`snaptest/results.md`](../snaptest/results.
 
 ## Automated checks
 
+`npm run test:auth-callback` builds a production fixture using a fake Auth
+endpoint and the real Supabase client. It holds the PKCE exchange open, verifies
+the callback code stays in the URL until authentication finishes, then checks
+that the account appears, the consumed code is removed, and no game dialog
+opens. All external requests are intercepted; it does not contact production
+or change real accounts. `--baseline=<commit SHA>` can reproduce the failure
+against an earlier `App.jsx` while retaining the same fixture.
+
 `scripts/test_account_origins.mjs` exercises the real account API handlers with
 no auth token: both production hostnames must reach the 401 authentication
 boundary, while unrelated, spoofed, insecure and nonstandard-port origins
