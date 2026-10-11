@@ -1,0 +1,62 @@
+OK: metadata evidence compatibility gates
+video quality policy passed
+card search local index and request cache passed
+deck import parsing and source validation passed
+deck analysis tests passed
+account-only OAuth intent handling passed
+anonymous identity retention keeps recent guests and permanent accounts
+realtime epoch rotation is serialized and latest-wins
+game rejoin preserves membership and rotates its capability
+OK: recognition hints are bounded, spatial, sanitized, and confidence-gated
+recognition queue keeps one active and the newest waiting job
+AI crop gates reject neighbours; failures/weak reads fall back; strong reads bypass isolation; recent hints skip inference
+Milo keeps a diverse bounded shortlist, rejects stale catalogs, and requires decisive artwork plus positive clicked-card proof
+Milo failures preserve cropping; fast reads/hints skip lookup; only verified rescues skip the full fallback
+source/reference mappings distinguish the clicked card from neighbours, including rotation and perspective
+negative click proof survives printing selection, title OCR and visual re-search
+outside registration retains an off-centre guess without confidently naming an unreadable target's neighbour
+word-based distance is bit-exact for all variants, alignments and existing minima
+OK: 9 hashing functions identical in hash.js and recognizer.js
+account security guards passed (29 RLS tables)
+vite v6.4.3 building for production...
+transforming...
+✓ 1925 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                              0.84 kB │ gzip:  0.42 kB
+dist/assets/aiCropWorker-DnvHr6Vj.js         7.65 kB
+dist/assets/recognizer-Cd0-puhx.js          59.20 kB
+dist/assets/index-BXefblIR.css             191.20 kB │ gzip: 29.86 kB
+dist/assets/captureGeometry-BxES11FZ.js      0.28 kB │ gzip:  0.20 kB
+dist/assets/minus-Cl_GHuxO.js                0.29 kB │ gzip:  0.24 kB
+dist/assets/users-round-8menL8HV.js          0.42 kB │ gzip:  0.32 kB
+dist/assets/user-plus-DU-H6IUj.js            0.48 kB │ gzip:  0.34 kB
+dist/assets/LegalPage-BYq425di.js            0.56 kB │ gzip:  0.31 kB
+dist/assets/star-Dybe254z.js                 0.64 kB │ gzip:  0.40 kB
+dist/assets/RoutedSiteHeader-BQXDp9PM.js     0.70 kB │ gzip:  0.42 kB
+dist/assets/TurnTest-CXBigz2i.js             0.71 kB │ gzip:  0.46 kB
+dist/assets/list-CxH-3Jqa.js                 0.83 kB │ gzip:  0.38 kB
+dist/assets/cardNameIndex-Cw5hK1Kw.js        1.05 kB │ gzip:  0.62 kB
+dist/assets/FriendsPage-BLYhYwZd.js          1.68 kB │ gzip:  0.84 kB
+dist/assets/commanderRules-uZj6ZkIB.js       1.95 kB │ gzip:  0.85 kB
+dist/assets/SettingsPage-B9kbaBSP.js         2.07 kB │ gzip:  1.01 kB
+dist/assets/Community-DOakQi7d.js            2.55 kB │ gzip:  1.18 kB
+dist/assets/cardSearch-DDmaEd6F.js           4.17 kB │ gzip:  1.76 kB
+dist/assets/ModerationPage-B6kzz1kr.js       5.70 kB │ gzip:  1.78 kB
+dist/assets/PublicGames-RMphJvcj.js          7.75 kB │ gzip:  2.94 kB
+dist/assets/NotificationsPage-DeHWlRbo.js    8.75 kB │ gzip:  2.74 kB
+dist/assets/gameRooms-D7jBpG-L.js            8.76 kB │ gzip:  2.72 kB
+dist/assets/Privacy-DWLVSoOI.js             11.70 kB │ gzip:  4.31 kB
+dist/assets/ProfilePage-tGs4tKKY.js         11.82 kB │ gzip:  3.61 kB
+dist/assets/Terms-CwgzgjFL.js               15.34 kB │ gzip:  5.62 kB
+dist/assets/index-L5QW1yCJ.js               15.89 kB │ gzip:  6.87 kB
+dist/assets/matcher-B2db2hto.js             24.99 kB │ gzip:  8.99 kB
+dist/assets/DeckPage-BqjTU8Zr.js            26.42 kB │ gzip:  8.04 kB
+dist/assets/account-i6ovXPzh.js             31.65 kB │ gzip:  9.92 kB
+dist/assets/AccountProfile-kas4numI.js      39.94 kB │ gzip: 10.82 kB
+dist/assets/SnapTest-DW8domPD.js            44.83 kB │ gzip: 16.42 kB
+dist/assets/webrtc-CAGs6NV3.js              61.14 kB │ gzip: 19.01 kB
+dist/assets/Game-C_UgTqG3.js               121.96 kB │ gzip: 36.73 kB
+dist/assets/supabase-yCBHX_AS.js           218.79 kB │ gzip: 57.12 kB
+dist/assets/index-CenM-52m.js              264.05 kB │ gzip: 82.34 kB
+✓ built in 1.70s

@@ -1,0 +1,29 @@
+{
+  "baseCommit": "f9fbbbec634eaef51821c547fff8ee74c99e0d46",
+  "build": "milo-rescue-7 (local vision)",
+  "sourceSha256": {
+    "src/main.jsx": "5c1db479fef7a8d63ef06eb3d7d35a88c1ad8402c29d943a28c99e8b2b6da69d",
+    "src/SnapTest.jsx": "d380fa05950c612195199390a2a65a3564812f2ef0d3630620327d42431433c8",
+    "src/snaptest/scene.js": "c3aed501c5787dea50b752ba35d959b5e71caf93f617eb7b24790e86ab62e345",
+    "src/snaptest/degrade.js": "ef006310323143b974fe29847c48d7dd3ed3cb077bc41683cbce8203eaf675d2",
+    "src/recognition/aiCrop.js": "41d4323877d1a230471b9ac6eed82a30f6a5fb110a57defe15108b0d93a0c7fa",
+    "src/recognition/aiCropWorker.js": "7083c3217e6c293130fdfb2d81a58e64d78b8b31dcd36c11b2d7ab9ba19be28f",
+    "src/recognition/matcher.js": "f7da7658ff882ca8720810459fdf2e4a7be9a9363c748a0e15005674bf8dabcb",
+    "src/recognition/recognizer.js": "0a9f803d760572ca46d4ba3bb5d6e62100ab4ed768dc6d8e320b13d320791139",
+    "src/recognition/miloLookup.js": "01a91f02472e001dc7ee9afdd74a92248a939cef1ca85b7dea1a40633829442f",
+    "public/carddata/cards.json": "79f0775b3b84f509edc614170e325607bd0f7245b9c9006f029e8adc6553cadc",
+    "public/carddata/milo/manifest.json": "d2d0efc1a39b150ff350b38657b443d14c4f6a260f3af35dd2cd2929f01ddcee",
+    "public/vendor/vision/milo1/model.onnx": "bd13d8d60383c69da04dce261f32e93fdaeaa8fd618fbc991e7385f71b3d45df"
+  },
+  "timingScope": "warmed production browser pipeline on Apple M2 Max, identical authoritative generated captures; no camera transport or phone measurement",
+  "latestScryfallVerified": {
+    "checkedAt": "2026-10-11T01:21:46.015345+00:00",
+    "type": "default_cards",
+    "updated_at": "2026-10-10T21:06:04.155+00:00",
+    "matchesCurrentIndexSource": true
+  },
+  "requiredReleaseGates": "passed: all six accuracy suites plus recentHint20; see release-gates.txt",
+  "supplementalPhotographs": "additional Arcane medium test, supplied labels retained; not a substitute for clicked-card benchmark",
+  "deploymentParent": "9a0bd7facca2c3f2fe22817fbffb7eaa774f1127",
+  "interveningRefresh": "Only manifest generation timestamp and names.json ordering changed; identical names, card rows, hash/color/art tables, and Scryfall source snapshot. Measured control code and recognition tables remain identical."
+}

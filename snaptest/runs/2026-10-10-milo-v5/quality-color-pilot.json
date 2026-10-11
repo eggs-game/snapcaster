@@ -1,0 +1,500 @@
+{
+  "scope": "frozen prior research captures, selected v1 misses plus rotation controls; supplemental, not a release gate",
+  "records": [
+    {
+      "i": 48,
+      "name": "Deathrite Shaman",
+      "build": "milo-rescue-5 (local vision)",
+      "got": "Deathrite Shaman",
+      "ok": true,
+      "by": "art-match",
+      "regionalProof": true,
+      "artBest": {
+        "name": "Deathrite Shaman",
+        "inliers": 28,
+        "color": 31,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 28,
+        "clickArtInliers": 11,
+        "clickTextInliers": 17
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 2,
+        "proposals": 12,
+        "inferenceMs": 532,
+        "searchMs": 91,
+        "ms": 649,
+        "rescued": true,
+        "totalMs": 1452
+      },
+      "miloChecked": [
+        {
+          "name": "Deathrite Shaman",
+          "distance": 143,
+          "inliers": 28,
+          "color": 0.30589588754810393,
+          "clickInside": true,
+          "clickInliers": 28,
+          "clickArtInliers": 11,
+          "regionalProof": true,
+          "blocked": false
+        },
+        {
+          "name": "Circle of Protection: Black",
+          "distance": 218,
+          "inliers": 4,
+          "color": 0.8617085923669947,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Forest",
+          "distance": 215,
+          "inliers": 2,
+          "color": 0.26063159396835545,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Stonework Puma",
+          "distance": 201,
+          "inliers": 6,
+          "color": 0.9403502455006674,
+          "clickInside": null,
+          "clickInliers": 5,
+          "clickArtInliers": 1,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Selesnya Loft Gardens",
+          "distance": 204,
+          "inliers": 5,
+          "color": 0.394293555733384,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Shoot the Sheriff",
+          "distance": 230,
+          "inliers": 3,
+          "color": 0.44547600925398,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Deathrite Shaman",
+          "distance": 150,
+          "inliers": 19,
+          "color": 0.16164093604311347,
+          "clickInside": null,
+          "clickInliers": 9,
+          "clickArtInliers": 4,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Circle of Protection: Black",
+          "distance": 216,
+          "inliers": 3,
+          "color": 0.9520345591045043,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Forest",
+          "distance": 230,
+          "inliers": 4,
+          "color": 0.6799804896436399,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Stonework Puma",
+          "distance": 213,
+          "inliers": 6,
+          "color": 0.9118062681282026,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Selesnya Loft Gardens",
+          "distance": 200,
+          "inliers": 4,
+          "color": 0.45193724506498256,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Shoot the Sheriff",
+          "distance": 225,
+          "inliers": 3,
+          "color": 0.04997990862648294,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        }
+      ],
+      "ms": 2491
+    },
+    {
+      "i": 165,
+      "name": "Ogre",
+      "build": "milo-rescue-5 (local vision)",
+      "got": "Ogre",
+      "ok": true,
+      "by": "art-match",
+      "regionalProof": true,
+      "artBest": {
+        "name": "Ogre",
+        "inliers": 59,
+        "color": 39,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 59,
+        "clickArtInliers": 25,
+        "clickTextInliers": 25
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 2,
+        "proposals": 12,
+        "inferenceMs": 540,
+        "searchMs": 88,
+        "ms": 648,
+        "rescued": true,
+        "totalMs": 1079
+      },
+      "miloChecked": [
+        {
+          "name": "Ogre",
+          "distance": 113,
+          "inliers": 59,
+          "color": 0.38839954870491056,
+          "clickInside": true,
+          "clickInliers": 59,
+          "clickArtInliers": 25,
+          "regionalProof": true,
+          "blocked": false
+        },
+        {
+          "name": "Goblin",
+          "distance": 178,
+          "inliers": 7,
+          "color": 0.13830671062714828,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Beast",
+          "distance": 214,
+          "inliers": 7,
+          "color": 0.42924511513228936,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Soldier",
+          "distance": 185,
+          "inliers": 6,
+          "color": 0.8470628093546111,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Satyr",
+          "distance": 199,
+          "inliers": 9,
+          "color": 0.38347252064522763,
+          "clickInside": null,
+          "clickInliers": 11,
+          "clickArtInliers": 2,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Ooze",
+          "distance": 212,
+          "inliers": 7,
+          "color": 0.30100734565894527,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Ogre",
+          "distance": 185,
+          "inliers": 7,
+          "color": 0.2418721522171836,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Goblin",
+          "distance": 165,
+          "inliers": 10,
+          "color": 0.1000658345346892,
+          "clickInside": null,
+          "clickInliers": 10,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Beast",
+          "distance": 197,
+          "inliers": 6,
+          "color": 0.5579885332463164,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Soldier",
+          "distance": 196,
+          "inliers": 4,
+          "color": 0.7071061973310862,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Satyr",
+          "distance": 214,
+          "inliers": 0,
+          "color": 0,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Ooze",
+          "distance": 199,
+          "inliers": 0,
+          "color": 0,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        }
+      ],
+      "ms": 1927
+    },
+    {
+      "i": 180,
+      "name": "Ghalta, Stampede Tyrant",
+      "build": "milo-rescue-5 (local vision)",
+      "got": "Ghalta, Stampede Tyrant",
+      "ok": true,
+      "by": "art-match",
+      "regionalProof": true,
+      "artBest": {
+        "name": "Ghalta, Stampede Tyrant",
+        "inliers": 86,
+        "color": 86,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 86,
+        "clickArtInliers": 59,
+        "clickTextInliers": 21
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 12,
+        "inferenceMs": 263,
+        "searchMs": 42,
+        "ms": 328,
+        "rescued": true,
+        "totalMs": 689
+      },
+      "miloChecked": [
+        {
+          "name": "Ghalta, Stampede Tyrant",
+          "distance": 179,
+          "inliers": 86,
+          "color": 0.8636201686149434,
+          "clickInside": true,
+          "clickInliers": 86,
+          "clickArtInliers": 59,
+          "regionalProof": true,
+          "blocked": false
+        },
+        {
+          "name": "Sanctifier en-Vec",
+          "distance": 228,
+          "inliers": 5,
+          "color": 0.45715915482651326,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Elemental",
+          "distance": 246,
+          "inliers": 4,
+          "color": 0.30628814583724306,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Valgavoth, Terror Eater",
+          "distance": 256,
+          "inliers": 3,
+          "color": 0.7088271843658731,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Kutzil, Malamet Exemplar",
+          "distance": 250,
+          "inliers": 4,
+          "color": 0.5335619149918784,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Dragonback Assault",
+          "distance": 247,
+          "inliers": 2,
+          "color": 0.06912157341866987,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Ghalta, Stampede Tyrant",
+          "distance": 241,
+          "inliers": 3,
+          "color": 0.777404703265347,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Sanctifier en-Vec",
+          "distance": 258,
+          "inliers": 4,
+          "color": 0.8287260696015437,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Elemental",
+          "distance": 247,
+          "inliers": 3,
+          "color": 0.19961135527955776,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Valgavoth, Terror Eater",
+          "distance": 249,
+          "inliers": 2,
+          "color": 0.9416370521594217,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Kutzil, Malamet Exemplar",
+          "distance": 255,
+          "inliers": 0,
+          "color": 0,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Dragonback Assault",
+          "distance": 246,
+          "inliers": 0,
+          "color": 0,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        }
+      ],
+      "ms": 1372
+    }
+  ]
+}

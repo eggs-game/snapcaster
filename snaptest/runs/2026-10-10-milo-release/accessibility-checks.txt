@@ -1,0 +1,5 @@
+accessibility passed: home (dark)
+accessibility passed: home (light)
+accessibility passed: public profile
+accessibility passed: shared confirmation dialog
+accessibility passed: game settings panel

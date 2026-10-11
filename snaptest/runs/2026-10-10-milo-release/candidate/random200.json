@@ -1,0 +1,675 @@
+{
+  "build": "milo-rescue-7 (local vision)",
+  "aiCropEnabled": true,
+  "mode": "random200",
+  "summary": {
+    "n": 200,
+    "errors": 0,
+    "accuracy": 0.975,
+    "avgMs": 1555,
+    "medianMs": 852,
+    "byRotation": {
+      "upright": {
+        "n": 50,
+        "ok": 50,
+        "acc": 1
+      },
+      "tilt": {
+        "n": 50,
+        "ok": 49,
+        "acc": 0.98
+      },
+      "sideways": {
+        "n": 50,
+        "ok": 48,
+        "acc": 0.96
+      },
+      "upsidedown": {
+        "n": 50,
+        "ok": 48,
+        "acc": 0.96
+      }
+    },
+    "byOcclusion": {
+      "none": {
+        "n": 52,
+        "ok": 51,
+        "acc": 0.981
+      },
+      "fingers": {
+        "n": 52,
+        "ok": 49,
+        "acc": 0.942
+      },
+      "dice": {
+        "n": 48,
+        "ok": 48,
+        "acc": 1
+      },
+      "fingers-dice": {
+        "n": 48,
+        "ok": 47,
+        "acc": 0.979
+      }
+    },
+    "firstHalfAcc": 0.98,
+    "secondHalfAcc": 0.97,
+    "peakHeapMB": 39,
+    "wasmHeapStartMB": 134,
+    "wasmHeapEndMB": 134,
+    "wasmHeapPeakMB": 134,
+    "errorsByStage": {},
+    "stageAvgMs": {
+      "prep": 175,
+      "rank": 0,
+      "orb": 542,
+      "total": 1463
+    },
+    "p90Ms": 3664,
+    "maxMs": 5706,
+    "byPathway": {
+      "art-match": {
+        "n": 126,
+        "ok": 126,
+        "acc": 1
+      },
+      "(no match)": {
+        "n": 71,
+        "ok": 66,
+        "acc": 0.93
+      },
+      "visual-exact": {
+        "n": 3,
+        "ok": 3,
+        "acc": 1
+      }
+    },
+    "byPlacement": {
+      "mild-centered-a": {
+        "n": 56,
+        "ok": 56,
+        "acc": 1
+      },
+      "above-click": {
+        "n": 48,
+        "ok": 47,
+        "acc": 0.979
+      },
+      "mild-centered-b": {
+        "n": 48,
+        "ok": 48,
+        "acc": 1
+      },
+      "top-edge-clipped": {
+        "n": 48,
+        "ok": 44,
+        "acc": 0.917
+      }
+    },
+    "missTrueRank": {
+      "rank 2": 0,
+      "rank 3-5": 0,
+      "rank 6+": 1,
+      "absent": 4
+    },
+    "missAvgDist": 180,
+    "ranAt": "2026-10-11T01:47:43.253Z"
+  },
+  "misses": [
+    {
+      "name": "Wolf",
+      "id": "7a49607c-427a-474c-ad77-60cd05844b3c",
+      "got": "Guildmark",
+      "dist": 192,
+      "conf": 0.27,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Guildmark (d=192)",
+        "Oozeavite (d=192)",
+        "Double-Faced Substitute Card (d=193)"
+      ],
+      "i": 55,
+      "degradeIndex": 55,
+      "placement": "top-edge-clipped",
+      "rot": "upsidedown",
+      "occ": "fingers",
+      "ms": 3057,
+      "cv": "ready",
+      "tried": 105,
+      "dropped": 24,
+      "artBest": {
+        "name": "Guildmark",
+        "inliers": 1,
+        "color": 100,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 5,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "artChecked": 36,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-top-edge--2-27-89-179",
+          "score": 88.18
+        },
+        {
+          "strategy": "isolate-top-edge--2-30-89-179",
+          "score": 87.83
+        },
+        {
+          "strategy": "isolate-top-edge--2-28-92-170",
+          "score": 84.02
+        },
+        {
+          "strategy": "isolate-top-edge--2-30-89-176",
+          "score": 79.08
+        },
+        {
+          "strategy": "isolate-top-edge--2-28-92-182",
+          "score": 77.95
+        },
+        {
+          "strategy": "isolate-top-edge--2-30-89-182",
+          "score": 74.85
+        },
+        {
+          "strategy": "isolate-top-edge--4-28-86-170",
+          "score": 71.27
+        },
+        {
+          "strategy": "isolate-top-edge--2-30-89-170",
+          "score": 71.13
+        },
+        {
+          "strategy": "isolate-top-edge--2-28-89-170",
+          "score": 69.32
+        },
+        {
+          "strategy": "isolate-top-edge--4-27-83-179",
+          "score": 67.84
+        },
+        {
+          "strategy": "isolate-top-edge--4-27-92-179",
+          "score": 66.52
+        },
+        {
+          "strategy": "isolate-top-edge--2-28-92-179",
+          "score": 66.01
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.0460132360458374,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.0076740519143640995,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 184
+      },
+      "truthGeometry": null,
+      "capturePoint": null,
+      "stages": {
+        "prep": 392,
+        "rankSeeds": 303,
+        "earlyOrbProbe": 0,
+        "rankRefine": 657,
+        "isolatePrep": 678,
+        "isolateScore": 314,
+        "rank": 0,
+        "orb": 402,
+        "aiCrop": 184,
+        "total": 2933
+      }
+    },
+    {
+      "name": "Blaze",
+      "id": "5ab9da23-624e-4c33-ab5d-82a30015b0e7",
+      "got": "Force Spike",
+      "dist": 173,
+      "conf": 0.41,
+      "trueRank": 13,
+      "trueDist": 119,
+      "top3": [
+        "Force Spike (d=173)",
+        "Arrogant Vampire (d=179)",
+        "Greed (d=180)"
+      ],
+      "i": 93,
+      "degradeIndex": 93,
+      "placement": "above-click",
+      "rot": "tilt",
+      "occ": "fingers-dice",
+      "ms": 2181,
+      "cv": "ready",
+      "tried": 28,
+      "dropped": 14,
+      "artBest": {
+        "name": "Force Spike",
+        "inliers": 5,
+        "color": 55,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "artChecked": 36,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": null,
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.05726516246795654,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.04755494371056557,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          }
+        ],
+        "ms": 180
+      },
+      "truthGeometry": null,
+      "capturePoint": null,
+      "stages": {
+        "prep": 433,
+        "rankSeeds": 549,
+        "earlyOrbProbe": 0,
+        "rankRefine": 144,
+        "rank": 0,
+        "orb": 761,
+        "aiCrop": 180,
+        "total": 2070
+      }
+    },
+    {
+      "name": "Jolrael, Empress of Beasts",
+      "id": "ad0ea1c3-e920-467b-a3c8-a6b1097c3e8d",
+      "got": "Anticipate",
+      "dist": 183,
+      "conf": 0.34,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Anticipate (d=183)",
+        "Angry Mob (d=186)",
+        "Great Wall (d=188)"
+      ],
+      "i": 119,
+      "degradeIndex": 119,
+      "placement": "top-edge-clipped",
+      "rot": "upsidedown",
+      "occ": "fingers",
+      "ms": 3847,
+      "cv": "ready",
+      "tried": 84,
+      "dropped": 28,
+      "artBest": {
+        "name": "Anticipate",
+        "inliers": 8,
+        "color": 82,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 9,
+        "clickArtInliers": 5,
+        "clickTextInliers": 4
+      },
+      "artChecked": 36,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-portrait--4-44-20-83",
+          "score": 134.17
+        },
+        {
+          "strategy": "isolate-portrait--2-44-23-83",
+          "score": 104.75
+        },
+        {
+          "strategy": "isolate-portrait--2-44-23-80",
+          "score": 102.14
+        },
+        {
+          "strategy": "isolate-portrait--2-44-23-92",
+          "score": 99
+        },
+        {
+          "strategy": "isolate-portrait--2-44-23-89",
+          "score": 98.23
+        },
+        {
+          "strategy": "isolate-portrait--4-44-20-92",
+          "score": 97.7
+        },
+        {
+          "strategy": "isolate-portrait--4-44-20-89",
+          "score": 93.42
+        },
+        {
+          "strategy": "isolate-portrait--4-44-20-80",
+          "score": 91.17
+        },
+        {
+          "strategy": "isolate-portrait--6-44-17-89",
+          "score": 90.66
+        },
+        {
+          "strategy": "isolate-portrait--4-41-20-89",
+          "score": 87.74
+        },
+        {
+          "strategy": "isolate-portrait--4-44-20-86",
+          "score": 87.6
+        },
+        {
+          "strategy": "isolate-portrait--4-41-14-89",
+          "score": 83.58
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.033066265285015106,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.018318824470043182,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 179
+      },
+      "truthGeometry": null,
+      "capturePoint": null,
+      "stages": {
+        "prep": 440,
+        "rankSeeds": 417,
+        "earlyOrbProbe": 0,
+        "rankRefine": 926,
+        "isolatePrep": 640,
+        "isolateScore": 249,
+        "rank": 0,
+        "orb": 923,
+        "aiCrop": 179,
+        "total": 3776
+      }
+    },
+    {
+      "name": "Armored Pegasus",
+      "id": "3f021a79-a182-4914-9ff4-d6fcba7c1d22",
+      "got": "Double-Faced Substitute Card",
+      "dist": 186,
+      "conf": 0.31,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Double-Faced Substitute Card (d=186)",
+        "Fear (split card) // Loathing (d=189)",
+        "Segovian Sword (d=191)"
+      ],
+      "i": 178,
+      "degradeIndex": 178,
+      "placement": "top-edge-clipped",
+      "rot": "sideways",
+      "occ": "none",
+      "ms": 3210,
+      "cv": "ready",
+      "tried": 111,
+      "dropped": 18,
+      "artBest": {
+        "name": "Double-Faced Substitute Card",
+        "inliers": 1,
+        "color": 100,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 5,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "artChecked": 36,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-top-edge-6-33-80-140",
+          "score": 216.53
+        },
+        {
+          "strategy": "isolate-top-edge-6-36-74-137",
+          "score": 212.31
+        },
+        {
+          "strategy": "isolate-top-edge-6-36-65-137",
+          "score": 195.59
+        },
+        {
+          "strategy": "isolate-top-edge-6-33-80-146",
+          "score": 193.13
+        },
+        {
+          "strategy": "isolate-top-edge-6-36-74-143",
+          "score": 184.01
+        },
+        {
+          "strategy": "isolate-top-edge-6-34-77-140",
+          "score": 181.62
+        },
+        {
+          "strategy": "isolate-top-edge-4-34-71-140",
+          "score": 181.44
+        },
+        {
+          "strategy": "isolate-top-edge-6-36-65-143",
+          "score": 180
+        },
+        {
+          "strategy": "isolate-top-edge-8-36-77-137",
+          "score": 176.07
+        },
+        {
+          "strategy": "isolate-top-edge-4-36-68-143",
+          "score": 173.64
+        },
+        {
+          "strategy": "isolate-top-edge-6-33-71-146",
+          "score": 172.51
+        },
+        {
+          "strategy": "isolate-top-edge-6-33-71-140",
+          "score": 171.42
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.06664533168077469,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.012667404487729073,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 186
+      },
+      "truthGeometry": null,
+      "capturePoint": null,
+      "stages": {
+        "prep": 416,
+        "rankSeeds": 337,
+        "earlyOrbProbe": 0,
+        "rankRefine": 704,
+        "isolatePrep": 653,
+        "isolateScore": 320,
+        "rank": 0,
+        "orb": 415,
+        "aiCrop": 186,
+        "total": 3034
+      }
+    },
+    {
+      "name": "Emeria, the Sky Ruin",
+      "id": "bb89c14b-028a-4bef-ae94-703198ef0376",
+      "got": "Double-Faced Substitute Card",
+      "dist": 167,
+      "conf": 0.45,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Double-Faced Substitute Card (d=167)",
+        "Fear (split card) // Loathing (d=171)",
+        "Tyvar Kell (d=186)"
+      ],
+      "i": 182,
+      "degradeIndex": 182,
+      "placement": "top-edge-clipped",
+      "rot": "sideways",
+      "occ": "fingers",
+      "ms": 3628,
+      "cv": "ready",
+      "tried": 105,
+      "dropped": 27,
+      "artBest": {
+        "name": "Double-Faced Substitute Card",
+        "inliers": 6,
+        "color": 97,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 5,
+        "clickArtInliers": 1,
+        "clickTextInliers": 4
+      },
+      "artChecked": 36,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-top-edge--2-28-35-176",
+          "score": 114.01
+        },
+        {
+          "strategy": "isolate-top-edge--4-28-29-176",
+          "score": 106.82
+        },
+        {
+          "strategy": "isolate-top-edge--6-28-23-176",
+          "score": 91.34
+        },
+        {
+          "strategy": "isolate-top-edge--2-28-35-182",
+          "score": 88.04
+        },
+        {
+          "strategy": "isolate-top-edge--2-28-23-176",
+          "score": 87.94
+        },
+        {
+          "strategy": "isolate-top-edge-0-28-41-176",
+          "score": 87.4
+        },
+        {
+          "strategy": "isolate-top-edge--4-28-17-176",
+          "score": 86.25
+        },
+        {
+          "strategy": "isolate-top-edge--4-28-29-179",
+          "score": 84.96
+        },
+        {
+          "strategy": "isolate-top-edge--2-48-20-121",
+          "score": 84.26
+        },
+        {
+          "strategy": "isolate-top-edge--4-28-29-182",
+          "score": 83.81
+        },
+        {
+          "strategy": "isolate-top-edge--2-28-35-179",
+          "score": 83.66
+        },
+        {
+          "strategy": "isolate-top-edge--4-30-26-182",
+          "score": 83.55
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.055177345871925354,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.007451260928064585,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 174
+      },
+      "truthGeometry": null,
+      "capturePoint": null,
+      "stages": {
+        "prep": 414,
+        "rankSeeds": 341,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1038,
+        "isolatePrep": 660,
+        "isolateScore": 300,
+        "rank": 0,
+        "orb": 582,
+        "aiCrop": 174,
+        "total": 3511
+      }
+    }
+  ],
+  "errors": []
+}

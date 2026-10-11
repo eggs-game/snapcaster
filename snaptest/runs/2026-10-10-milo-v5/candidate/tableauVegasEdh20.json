@@ -1,0 +1,1721 @@
+{
+  "build": "milo-rescue-5 (local vision)",
+  "aiCropEnabled": true,
+  "mode": "tableauVegasEdh20",
+  "summary": {
+    "n": 200,
+    "errors": 0,
+    "accuracy": 0.945,
+    "avgMs": 1272,
+    "medianMs": 718,
+    "byRotation": {
+      "upright": {
+        "n": 114,
+        "ok": 108,
+        "acc": 0.947
+      },
+      "tapped": {
+        "n": 53,
+        "ok": 49,
+        "acc": 0.925
+      },
+      "upsidedown": {
+        "n": 33,
+        "ok": 32,
+        "acc": 0.97
+      }
+    },
+    "byOcclusion": {
+      "clear": {
+        "n": 188,
+        "ok": 180,
+        "acc": 0.957
+      },
+      "overlapped": {
+        "n": 10,
+        "ok": 7,
+        "acc": 0.7
+      },
+      "edge": {
+        "n": 2,
+        "ok": 2,
+        "acc": 1
+      }
+    },
+    "firstHalfAcc": 0.95,
+    "secondHalfAcc": 0.94,
+    "peakHeapMB": 23,
+    "wasmHeapStartMB": 134,
+    "wasmHeapEndMB": 134,
+    "wasmHeapPeakMB": 134,
+    "errorsByStage": {},
+    "stageAvgMs": {
+      "prep": 78,
+      "rank": 0,
+      "orb": 486,
+      "total": 1259
+    },
+    "p90Ms": 4461,
+    "maxMs": 7556,
+    "byPathway": {
+      "art-match": {
+        "n": 177,
+        "ok": 177,
+        "acc": 1
+      },
+      "(no match)": {
+        "n": 16,
+        "ok": 5,
+        "acc": 0.313
+      },
+      "visual-exact": {
+        "n": 7,
+        "ok": 7,
+        "acc": 1
+      }
+    },
+    "byLayout": {
+      "side-by-side": {
+        "n": 120,
+        "ok": 114,
+        "acc": 0.95
+      },
+      "spaced": {
+        "n": 60,
+        "ok": 58,
+        "acc": 0.967
+      },
+      "overlapping": {
+        "n": 20,
+        "ok": 17,
+        "acc": 0.85
+      }
+    },
+    "byPool": {
+      "card": {
+        "n": 140,
+        "ok": 134,
+        "acc": 0.957
+      },
+      "token": {
+        "n": 52,
+        "ok": 47,
+        "acc": 0.904
+      },
+      "basic": {
+        "n": 8,
+        "ok": 8,
+        "acc": 1
+      }
+    },
+    "byClipped": {
+      "0-5% (whole)": {
+        "n": 198,
+        "ok": 187,
+        "acc": 0.944
+      },
+      "5-15%": {
+        "n": 2,
+        "ok": 2,
+        "acc": 1
+      }
+    },
+    "perfectCropControl": {
+      "n": 11,
+      "ok": 8,
+      "acc": 0.727
+    },
+    "missTrueRank": {
+      "rank 2": 0,
+      "rank 3-5": 0,
+      "rank 6+": 4,
+      "absent": 7
+    },
+    "missAvgDist": 175,
+    "byCoverage": {
+      "0 (clear)": {
+        "n": 185,
+        "ok": 177,
+        "acc": 0.957
+      },
+      "15-30%": {
+        "n": 6,
+        "ok": 4,
+        "acc": 0.667
+      },
+      "0-15%": {
+        "n": 8,
+        "ok": 8,
+        "acc": 1
+      },
+      "30%+": {
+        "n": 1,
+        "ok": 0,
+        "acc": 0
+      }
+    },
+    "ranAt": "2026-10-11T00:24:22.161Z"
+  },
+  "misses": [
+    {
+      "name": "Wirewood Savage",
+      "id": "c066535f-a6d1-4189-b54b-8f096516d990",
+      "pool": "card",
+      "got": "Blank Card",
+      "dist": 147,
+      "conf": 0.59,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Blank Card (d=147)",
+        "Double-Faced Substitute Card (d=161)",
+        "Pin Trading (d=167)"
+      ],
+      "rot": "upright",
+      "occ": "clear",
+      "ms": 5692,
+      "cv": "ready",
+      "tried": 106,
+      "dropped": 8,
+      "artBest": {
+        "name": "Blank Card",
+        "inliers": 0,
+        "color": 90,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "artChecked": 55,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": {
+        "ok": true,
+        "top": "Wirewood Savage",
+        "dist": 109,
+        "trueRank": 1,
+        "trueDist": 109,
+        "ms": 2855
+      },
+      "isolationDebug": [
+        {
+          "strategy": "isolate-portrait--10-56-53-32",
+          "score": 129.16
+        },
+        {
+          "strategy": "isolate-portrait--8-56-77-32",
+          "score": 128.13
+        },
+        {
+          "strategy": "isolate-portrait--10-56-77-32",
+          "score": 126.86
+        },
+        {
+          "strategy": "isolate-portrait--10-56-44-32",
+          "score": 115.66
+        },
+        {
+          "strategy": "isolate-portrait--10-56-47-32",
+          "score": 114.4
+        },
+        {
+          "strategy": "isolate-portrait--10-56-80-32",
+          "score": 110.07
+        },
+        {
+          "strategy": "isolate-portrait--10-56-56-32",
+          "score": 109.13
+        },
+        {
+          "strategy": "isolate-portrait--10-56-53-38",
+          "score": 108.33
+        },
+        {
+          "strategy": "isolate-portrait--10-53-56-35",
+          "score": 107.9
+        },
+        {
+          "strategy": "isolate-portrait--8-56-53-32",
+          "score": 105.37
+        },
+        {
+          "strategy": "isolate-portrait--10-54-53-38",
+          "score": 104.95
+        },
+        {
+          "strategy": "isolate-portrait--10-56-71-32",
+          "score": 103.94
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.06380859762430191,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.06323768943548203,
+            "accepted": false,
+            "reason": "duplicate"
+          }
+        ],
+        "ms": 176,
+        "fastMs": 444,
+        "fastHit": false
+      },
+      "truthGeometry": {
+        "angle": -9.83,
+        "center": {
+          "x": 0.489,
+          "y": 0.555
+        },
+        "card": {
+          "w": 0.358,
+          "h": 0.501
+        }
+      },
+      "stages": {
+        "prep": 578,
+        "rankSeeds": 674,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1043,
+        "isolatePrep": 643,
+        "isolateScore": 265,
+        "rank": 0,
+        "orb": 1015,
+        "aiCrop": 176,
+        "aiAttempt": 444,
+        "milo": 849,
+        "total": 5689
+      },
+      "scene": 1,
+      "coverage": 0,
+      "clipped": 0,
+      "click": {
+        "u": 0.56,
+        "v": 0.4,
+        "covered": false
+      },
+      "layout": "side-by-side",
+      "diceColor": null,
+      "diceFace": null,
+      "diceCoverage": 0
+    },
+    {
+      "name": "Gloom Ripper",
+      "id": "e9ee5d4f-05d1-4e3a-b8d6-f22d0fddedf7",
+      "pool": "card",
+      "got": "Find the Assassin (cont'd)",
+      "dist": 174,
+      "conf": 0.4,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Find the Assassin (cont'd) (d=174)",
+        "Shamanic Revelation (d=179)",
+        "Riven Turnbull and Princess Lucrezia (d=190)"
+      ],
+      "rot": "tapped",
+      "occ": "clear",
+      "ms": 5583,
+      "cv": "ready",
+      "tried": 95,
+      "dropped": 18,
+      "artBest": {
+        "name": "Find the Assassin (cont'd)",
+        "inliers": 6,
+        "color": 99,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "artChecked": 60,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": {
+        "ok": true,
+        "top": "Gloom Ripper",
+        "dist": 98,
+        "trueRank": 1,
+        "trueDist": 98,
+        "ms": 1699
+      },
+      "isolationDebug": [
+        {
+          "strategy": "isolate-sideways-raw-2-41-17-11",
+          "score": 87.3
+        },
+        {
+          "strategy": "isolate-sideways-raw-2-39-14-8",
+          "score": 84.17
+        },
+        {
+          "strategy": "isolate-sideways-raw-0-39-14-17",
+          "score": 78.77
+        },
+        {
+          "strategy": "isolate-sideways-raw-0-41-17-8",
+          "score": 73.9
+        },
+        {
+          "strategy": "isolate-sideways-raw-2-39-14-20",
+          "score": 73.75
+        },
+        {
+          "strategy": "isolate-sideways-rotated-90-56-8-83",
+          "score": 72.73
+        },
+        {
+          "strategy": "isolate-sideways-rotated-90-53-14-89",
+          "score": 72.24
+        },
+        {
+          "strategy": "isolate-portrait-2-51-11-29",
+          "score": 71.83
+        },
+        {
+          "strategy": "isolate-sideways-rotated-90-56-86-92",
+          "score": 71.46
+        },
+        {
+          "strategy": "isolate-sideways-raw-2-41-8-89",
+          "score": 70.63
+        },
+        {
+          "strategy": "isolate-sideways-raw-0-39-14-20",
+          "score": 70.42
+        },
+        {
+          "strategy": "isolate-sideways-raw-2-41-8-80",
+          "score": 69.84
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.02604423649609089,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.028827641159296036,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 175,
+        "fastMs": 442,
+        "fastHit": false
+      },
+      "truthGeometry": {
+        "angle": 84.58,
+        "center": {
+          "x": 0.464,
+          "y": 0.606
+        },
+        "card": {
+          "w": 0.334,
+          "h": 0.466
+        }
+      },
+      "stages": {
+        "prep": 517,
+        "rankSeeds": 601,
+        "earlyOrbProbe": 0,
+        "rankRefine": 791,
+        "isolatePrep": 657,
+        "isolateScore": 238,
+        "rank": 0,
+        "orb": 964,
+        "aiCrop": 175,
+        "aiAttempt": 442,
+        "milo": 1192,
+        "total": 5580
+      },
+      "scene": 2,
+      "coverage": 0,
+      "clipped": 0,
+      "click": {
+        "u": 0.19,
+        "v": 0.4,
+        "covered": false
+      },
+      "layout": "spaced",
+      "diceColor": null,
+      "diceFace": null,
+      "diceCoverage": 0
+    },
+    {
+      "name": "Lathliss, Dragon Queen",
+      "id": "0f0cdff4-c81e-4e53-8721-748eb71d9e81",
+      "pool": "card",
+      "got": "Elturgard Ranger",
+      "dist": 157,
+      "conf": 0.52,
+      "trueRank": 30,
+      "trueDist": 89,
+      "top3": [
+        "Elturgard Ranger (d=157)",
+        "Overseer of the Damned (d=161)",
+        "Murmuring Phantasm (d=164)"
+      ],
+      "rot": "upright",
+      "occ": "clear",
+      "ms": 5064,
+      "cv": "ready",
+      "tried": 40,
+      "dropped": 2,
+      "artBest": {
+        "name": "Elturgard Ranger",
+        "inliers": 7,
+        "color": 83,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 11,
+        "clickArtInliers": 9,
+        "clickTextInliers": 2
+      },
+      "artChecked": 54,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": {
+        "ok": false,
+        "top": "Elturgard Ranger",
+        "dist": 152,
+        "trueRank": 29,
+        "trueDist": 88,
+        "ms": 2986
+      },
+      "isolationDebug": null,
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.06294165551662445,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.0558428056538105,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 176,
+        "fastMs": 866,
+        "fastHit": false
+      },
+      "truthGeometry": {
+        "angle": 6.57,
+        "center": {
+          "x": 0.507,
+          "y": 0.667
+        },
+        "card": {
+          "w": 0.33,
+          "h": 0.461
+        }
+      },
+      "stages": {
+        "prep": 522,
+        "rankSeeds": 623,
+        "earlyOrbProbe": 0,
+        "rankRefine": 285,
+        "rank": 0,
+        "orb": 1154,
+        "aiCrop": 176,
+        "aiAttempt": 866,
+        "milo": 1433,
+        "total": 5061
+      },
+      "scene": 5,
+      "coverage": 0,
+      "clipped": 0,
+      "click": {
+        "u": 0.42,
+        "v": 0.14,
+        "covered": false
+      },
+      "layout": "spaced",
+      "diceColor": null,
+      "diceFace": null,
+      "diceCoverage": 0
+    },
+    {
+      "name": "Iroh",
+      "id": "d9417d50-bbfe-4569-b80a-49b3a843631c",
+      "pool": "token",
+      "got": "Deluge",
+      "dist": 180,
+      "conf": 0.36,
+      "trueRank": 34,
+      "trueDist": 67,
+      "top3": [
+        "Deluge (d=180)",
+        "Rout (d=182)",
+        "Knowing // Half the Battle (d=183)"
+      ],
+      "rot": "upright",
+      "occ": "clear",
+      "ms": 6533,
+      "cv": "ready",
+      "tried": 131,
+      "dropped": 4,
+      "artBest": {
+        "name": "Deluge",
+        "inliers": 7,
+        "color": 88,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 7,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "artChecked": 57,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": {
+        "ok": true,
+        "top": "Iroh",
+        "by": "visual-exact",
+        "dist": 55,
+        "trueRank": 1,
+        "trueDist": 55,
+        "ms": 1283
+      },
+      "isolationDebug": [
+        {
+          "strategy": "isolate-portrait-8-50-74-44",
+          "score": 89.11
+        },
+        {
+          "strategy": "isolate-sideways-rotated-96-48-65-26",
+          "score": 87.11
+        },
+        {
+          "strategy": "isolate-portrait-8-54-68-41",
+          "score": 86.88
+        },
+        {
+          "strategy": "isolate-portrait-6-51-74-44",
+          "score": 85.64
+        },
+        {
+          "strategy": "isolate-sideways-raw-6-35-80-65",
+          "score": 85.63
+        },
+        {
+          "strategy": "isolate-sideways-raw-6-35-74-65",
+          "score": 85.63
+        },
+        {
+          "strategy": "isolate-sideways-rotated-96-50-59-20",
+          "score": 85.26
+        },
+        {
+          "strategy": "isolate-portrait-6-50-74-44",
+          "score": 84.83
+        },
+        {
+          "strategy": "isolate-portrait-6-54-68-41",
+          "score": 83.7
+        },
+        {
+          "strategy": "isolate-sideways-rotated-98-50-62-20",
+          "score": 83.39
+        },
+        {
+          "strategy": "isolate-sideways-rotated-96-50-62-20",
+          "score": 83.05
+        },
+        {
+          "strategy": "isolate-sideways-raw-6-36-80-62",
+          "score": 82.31
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.05194246396422386,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.038822855800390244,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 175,
+        "fastMs": 542,
+        "fastHit": false
+      },
+      "truthGeometry": {
+        "angle": 6.78,
+        "center": {
+          "x": 0.413,
+          "y": 0.296
+        },
+        "card": {
+          "w": 0.362,
+          "h": 0.506
+        }
+      },
+      "stages": {
+        "prep": 642,
+        "rankSeeds": 646,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1039,
+        "isolatePrep": 803,
+        "isolateScore": 332,
+        "rank": 0,
+        "orb": 1095,
+        "aiCrop": 175,
+        "aiAttempt": 542,
+        "milo": 1252,
+        "total": 6528
+      },
+      "scene": 8,
+      "coverage": 0,
+      "clipped": 0,
+      "click": {
+        "u": 0.73,
+        "v": 0.44,
+        "covered": false
+      },
+      "layout": "side-by-side",
+      "diceColor": null,
+      "diceFace": null,
+      "diceCoverage": 0
+    },
+    {
+      "name": "Monster Territory",
+      "id": "010f8016-1f62-4628-aac6-9108015374b0",
+      "pool": "token",
+      "got": "City Hall",
+      "dist": 189,
+      "conf": 0.29,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "City Hall (d=189)",
+        "Hauken's Insight (d=190)",
+        "Huntmaster of the Fells (d=190)"
+      ],
+      "rot": "upright",
+      "occ": "overlapped",
+      "ms": 4943,
+      "cv": "ready",
+      "tried": 116,
+      "dropped": 3,
+      "artBest": {
+        "name": "City Hall",
+        "inliers": 3,
+        "color": 68,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 6,
+        "clickArtInliers": 0,
+        "clickTextInliers": 6
+      },
+      "artChecked": 36,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": {
+        "ok": true,
+        "top": "Monster Territory",
+        "by": "art-match",
+        "dist": 120,
+        "trueRank": 1,
+        "trueDist": 120,
+        "ms": 3198
+      },
+      "isolationDebug": [
+        {
+          "strategy": "isolate-portrait--4-54-26-32",
+          "score": 106.62
+        },
+        {
+          "strategy": "isolate-sideways-rotated-86-53-38-80",
+          "score": 104.28
+        },
+        {
+          "strategy": "isolate-sideways-rotated-84-53-38-80",
+          "score": 101.65
+        },
+        {
+          "strategy": "isolate-portrait--4-47-32-32",
+          "score": 100.46
+        },
+        {
+          "strategy": "isolate-sideways-raw--4-38-20-38",
+          "score": 99.35
+        },
+        {
+          "strategy": "isolate-sideways-raw--6-38-20-38",
+          "score": 96.22
+        },
+        {
+          "strategy": "isolate-portrait--10-53-47-26",
+          "score": 95.72
+        },
+        {
+          "strategy": "isolate-portrait--10-54-50-26",
+          "score": 92.32
+        },
+        {
+          "strategy": "isolate-sideways-raw--4-38-20-47",
+          "score": 92.11
+        },
+        {
+          "strategy": "isolate-portrait--4-54-41-26",
+          "score": 90.9
+        },
+        {
+          "strategy": "isolate-sideways-raw--10-44-74-11",
+          "score": 90.7
+        },
+        {
+          "strategy": "isolate-portrait--4-54-35-32",
+          "score": 89.98
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.016479678452014923,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.023543301969766617,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          }
+        ],
+        "ms": 177
+      },
+      "truthGeometry": {
+        "angle": -3.97,
+        "center": {
+          "x": 0.583,
+          "y": 0.408
+        },
+        "card": {
+          "w": 0.391,
+          "h": 0.546
+        }
+      },
+      "stages": {
+        "prep": 681,
+        "rankSeeds": 667,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1463,
+        "isolatePrep": 673,
+        "isolateScore": 230,
+        "rank": 0,
+        "orb": 1045,
+        "aiCrop": 177,
+        "total": 4939
+      },
+      "scene": 9,
+      "coverage": 0.2,
+      "clipped": 0,
+      "click": {
+        "u": 0.31,
+        "v": 0.3,
+        "covered": false
+      },
+      "layout": "overlapping",
+      "diceColor": null,
+      "diceFace": null,
+      "diceCoverage": 0
+    },
+    {
+      "name": "Frenzied Saddlebrute",
+      "id": "61dbc046-0782-4ac4-ae44-9464e39f7b73",
+      "pool": "card",
+      "got": "Verdant Confluence",
+      "dist": 171,
+      "conf": 0.42,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Verdant Confluence (d=171)",
+        "Blank Card (d=173)",
+        "Double-Faced Substitute Card (d=179)"
+      ],
+      "rot": "tapped",
+      "occ": "clear",
+      "ms": 5742,
+      "cv": "ready",
+      "tried": 95,
+      "dropped": 23,
+      "artBest": {
+        "name": "Verdant Confluence",
+        "inliers": 5,
+        "color": 88,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "artChecked": 60,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": {
+        "ok": true,
+        "top": "Frenzied Saddlebrute",
+        "dist": 130,
+        "trueRank": 1,
+        "trueDist": 130,
+        "ms": 4200
+      },
+      "isolationDebug": [
+        {
+          "strategy": "isolate-portrait--2-44-8-29",
+          "score": 61.52
+        },
+        {
+          "strategy": "isolate-sideways-rotated-88-51-14-56",
+          "score": 59.76
+        },
+        {
+          "strategy": "isolate-sideways-raw-2-36-38-14",
+          "score": 57.38
+        },
+        {
+          "strategy": "isolate-sideways-rotated-88-51-17-56",
+          "score": 57.14
+        },
+        {
+          "strategy": "isolate-sideways-rotated-94-50-14-62",
+          "score": 56.64
+        },
+        {
+          "strategy": "isolate-portrait-2-47-8-35",
+          "score": 56.2
+        },
+        {
+          "strategy": "isolate-sideways-raw--2-39-44-32",
+          "score": 55.5
+        },
+        {
+          "strategy": "isolate-sideways-rotated-92-50-14-62",
+          "score": 55.25
+        },
+        {
+          "strategy": "isolate-sideways-raw--2-39-44-38",
+          "score": 55.21
+        },
+        {
+          "strategy": "isolate-portrait-4-47-8-35",
+          "score": 55.17
+        },
+        {
+          "strategy": "isolate-portrait-2-45-14-32",
+          "score": 54.43
+        },
+        {
+          "strategy": "isolate-portrait--2-47-14-32",
+          "score": 53.98
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.03136331960558891,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.022882509976625443,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 174,
+        "fastMs": 452,
+        "fastHit": false
+      },
+      "truthGeometry": {
+        "angle": 89.31,
+        "center": {
+          "x": 0.335,
+          "y": 0.575
+        },
+        "card": {
+          "w": 0.362,
+          "h": 0.506
+        }
+      },
+      "stages": {
+        "prep": 481,
+        "rankSeeds": 593,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1014,
+        "isolatePrep": 611,
+        "isolateScore": 233,
+        "rank": 0,
+        "orb": 995,
+        "aiCrop": 174,
+        "aiAttempt": 452,
+        "milo": 1183,
+        "total": 5738
+      },
+      "scene": 10,
+      "coverage": 0,
+      "clipped": 0,
+      "click": {
+        "u": 0.3,
+        "v": 0.17,
+        "covered": false
+      },
+      "layout": "side-by-side",
+      "diceColor": null,
+      "diceFace": null,
+      "diceCoverage": 0
+    },
+    {
+      "name": "Cat Warrior",
+      "id": "ce5c5bcf-1fdd-4d73-a92b-223292da00ca",
+      "pool": "token",
+      "got": "Look at Me, I'm R&D",
+      "dist": 160,
+      "conf": 0.5,
+      "trueRank": 27,
+      "trueDist": 87,
+      "top3": [
+        "Look at Me, I'm R&D (d=160)",
+        "Riku and Riku (d=161)",
+        "Pools of Becoming (d=170)"
+      ],
+      "rot": "upsidedown",
+      "occ": "clear",
+      "ms": 4461,
+      "cv": "ready",
+      "tried": 39,
+      "dropped": 8,
+      "artBest": {
+        "name": "Look at Me, I'm R&D",
+        "inliers": 7,
+        "color": 99,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 5,
+        "clickArtInliers": 3,
+        "clickTextInliers": 2
+      },
+      "artChecked": 57,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": {
+        "ok": false,
+        "top": "Crow Scarer",
+        "dist": 168,
+        "trueRank": 29,
+        "trueDist": 82,
+        "ms": 1602
+      },
+      "isolationDebug": null,
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.03916017338633537,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.02927606739103794,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 175,
+        "fastMs": 501,
+        "fastHit": false
+      },
+      "truthGeometry": {
+        "angle": 184.98,
+        "center": {
+          "x": 0.581,
+          "y": 0.713
+        },
+        "card": {
+          "w": 0.356,
+          "h": 0.497
+        }
+      },
+      "stages": {
+        "prep": 543,
+        "rankSeeds": 644,
+        "earlyOrbProbe": 0,
+        "rankRefine": 337,
+        "rank": 0,
+        "orb": 990,
+        "aiCrop": 175,
+        "aiAttempt": 501,
+        "milo": 1266,
+        "total": 4458
+      },
+      "scene": 11,
+      "coverage": 0,
+      "clipped": 0,
+      "click": {
+        "u": 0.7,
+        "v": 0.29,
+        "covered": false
+      },
+      "layout": "side-by-side",
+      "diceColor": null,
+      "diceFace": null,
+      "diceCoverage": 0
+    },
+    {
+      "name": "Krang, Dimension X Overlord",
+      "id": "8742baf6-2bf9-48ac-af68-6427704b3593",
+      "pool": "token",
+      "got": "Groom's Finery",
+      "dist": 185,
+      "conf": 0.32,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Groom's Finery (d=185)",
+        "Gates of Istfell (d=185)",
+        "Honeymoon Hearse (d=188)"
+      ],
+      "rot": "upright",
+      "occ": "clear",
+      "ms": 4750,
+      "cv": "ready",
+      "tried": 94,
+      "dropped": 20,
+      "artBest": {
+        "name": "Groom's Finery",
+        "inliers": 0,
+        "color": 100,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "artChecked": 60,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": {
+        "ok": true,
+        "top": "Krang, Dimension X Overlord",
+        "dist": 99,
+        "trueRank": 1,
+        "trueDist": 99,
+        "ms": 1471
+      },
+      "isolationDebug": [
+        {
+          "strategy": "isolate-sideways-raw-8-42-38-14",
+          "score": 44.08
+        },
+        {
+          "strategy": "isolate-sideways-raw-8-42-62-17",
+          "score": 41.38
+        },
+        {
+          "strategy": "isolate-sideways-raw-8-44-38-20",
+          "score": 39.89
+        },
+        {
+          "strategy": "isolate-sideways-raw-8-41-32-11",
+          "score": 39.46
+        },
+        {
+          "strategy": "isolate-sideways-raw-6-44-41-8",
+          "score": 38.18
+        },
+        {
+          "strategy": "isolate-sideways-raw-8-42-38-17",
+          "score": 37.98
+        },
+        {
+          "strategy": "isolate-sideways-raw-6-44-68-8",
+          "score": 37.88
+        },
+        {
+          "strategy": "isolate-sideways-raw-6-42-38-14",
+          "score": 37.74
+        },
+        {
+          "strategy": "isolate-portrait-6-50-65-29",
+          "score": 37.12
+        },
+        {
+          "strategy": "isolate-sideways-raw-6-44-74-8",
+          "score": 37.06
+        },
+        {
+          "strategy": "isolate-sideways-raw-6-44-38-8",
+          "score": 36.5
+        },
+        {
+          "strategy": "isolate-sideways-raw-6-41-65-14",
+          "score": 36.5
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.038381997495889664,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.0070763989351689816,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 175,
+        "fastMs": 382,
+        "fastHit": false
+      },
+      "truthGeometry": {
+        "angle": 8.14,
+        "center": {
+          "x": 0.449,
+          "y": 0.642
+        },
+        "card": {
+          "w": 0.35,
+          "h": 0.489
+        }
+      },
+      "stages": {
+        "prep": 426,
+        "rankSeeds": 538,
+        "earlyOrbProbe": 0,
+        "rankRefine": 826,
+        "isolatePrep": 578,
+        "isolateScore": 249,
+        "rank": 0,
+        "orb": 729,
+        "aiCrop": 175,
+        "aiAttempt": 382,
+        "milo": 842,
+        "total": 4747
+      },
+      "scene": 18,
+      "coverage": 0,
+      "clipped": 0,
+      "click": {
+        "u": 0.59,
+        "v": 0.2,
+        "covered": false
+      },
+      "layout": "side-by-side",
+      "diceColor": null,
+      "diceFace": null,
+      "diceCoverage": 0
+    },
+    {
+      "name": "Spinerock Tyrant",
+      "id": "6bcc2ead-ad34-4844-9b90-181dc74acace",
+      "pool": "card",
+      "got": "Blank Card",
+      "dist": 182,
+      "conf": 0.34,
+      "trueRank": 22,
+      "trueDist": 148,
+      "top3": [
+        "Blank Card (d=182)",
+        "Wrath of God (d=185)",
+        "Black Tulip (d=188)"
+      ],
+      "rot": "upright",
+      "occ": "clear",
+      "ms": 5860,
+      "cv": "ready",
+      "tried": 115,
+      "dropped": 4,
+      "artBest": {
+        "name": "Blank Card",
+        "inliers": 0,
+        "color": 96,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "artChecked": 54,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": {
+        "ok": false,
+        "top": "Sacred Excavation",
+        "dist": 159,
+        "trueRank": 23,
+        "trueDist": 131,
+        "ms": 4856
+      },
+      "isolationDebug": [
+        {
+          "strategy": "isolate-sideways-raw-0-42-59-14",
+          "score": 92.57
+        },
+        {
+          "strategy": "isolate-sideways-raw-0-44-23-17",
+          "score": 88.82
+        },
+        {
+          "strategy": "isolate-sideways-raw-0-44-56-17",
+          "score": 87.98
+        },
+        {
+          "strategy": "isolate-sideways-raw-2-42-59-14",
+          "score": 86.89
+        },
+        {
+          "strategy": "isolate-sideways-raw-0-42-20-14",
+          "score": 84.41
+        },
+        {
+          "strategy": "isolate-sideways-raw-0-39-14-8",
+          "score": 83.36
+        },
+        {
+          "strategy": "isolate-sideways-raw-2-42-59-17",
+          "score": 81.61
+        },
+        {
+          "strategy": "isolate-sideways-raw-2-44-56-17",
+          "score": 79.29
+        },
+        {
+          "strategy": "isolate-portrait--2-54-89-35",
+          "score": 77.73
+        },
+        {
+          "strategy": "isolate-sideways-rotated-90-54-8-86",
+          "score": 77.21
+        },
+        {
+          "strategy": "isolate-portrait--2-54-86-35",
+          "score": 75.3
+        },
+        {
+          "strategy": "isolate-sideways-raw-2-44-56-20",
+          "score": 75.18
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.06394708156585693,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.06330472230911255,
+            "accepted": false,
+            "reason": "duplicate"
+          }
+        ],
+        "ms": 176,
+        "fastMs": 470,
+        "fastHit": false
+      },
+      "truthGeometry": {
+        "angle": 3.78,
+        "center": {
+          "x": 0.587,
+          "y": 0.69
+        },
+        "card": {
+          "w": 0.35,
+          "h": 0.489
+        }
+      },
+      "stages": {
+        "prep": 611,
+        "rankSeeds": 649,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1307,
+        "isolatePrep": 640,
+        "isolateScore": 248,
+        "rank": 0,
+        "orb": 910,
+        "aiCrop": 176,
+        "aiAttempt": 470,
+        "milo": 844,
+        "total": 5857
+      },
+      "scene": 18,
+      "coverage": 0,
+      "clipped": 0,
+      "click": {
+        "u": 0.24,
+        "v": 0.34,
+        "covered": false
+      },
+      "layout": "side-by-side",
+      "diceColor": null,
+      "diceFace": null,
+      "diceCoverage": 0
+    },
+    {
+      "name": "Nervous Gardener",
+      "id": "93b747c7-b342-47f8-a190-16c393b20607",
+      "pool": "card",
+      "got": "Chromatic Lantern",
+      "dist": 193,
+      "conf": 0.26,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Chromatic Lantern (d=193)",
+        "Spined Wurm (d=195)",
+        "Combat Medic (d=196)"
+      ],
+      "rot": "tapped",
+      "occ": "overlapped",
+      "ms": 7556,
+      "cv": "ready",
+      "tried": 118,
+      "dropped": 1,
+      "artBest": {
+        "name": "Chromatic Lantern",
+        "inliers": 8,
+        "color": 84,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 6,
+        "clickArtInliers": 3,
+        "clickTextInliers": 3
+      },
+      "artChecked": 60,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": {
+        "ok": true,
+        "top": "Nervous Gardener",
+        "by": "art-match",
+        "dist": 109,
+        "trueRank": 1,
+        "trueDist": 109,
+        "ms": 3479
+      },
+      "isolationDebug": [
+        {
+          "strategy": "isolate-sideways-raw--4-30-59-86",
+          "score": 157.7
+        },
+        {
+          "strategy": "isolate-portrait--2-41-86-86",
+          "score": 156.48
+        },
+        {
+          "strategy": "isolate-sideways-rotated-86-42-80-41",
+          "score": 155.2
+        },
+        {
+          "strategy": "isolate-sideways-raw--4-38-47-71",
+          "score": 155.11
+        },
+        {
+          "strategy": "isolate-sideways-rotated-86-42-86-41",
+          "score": 154.15
+        },
+        {
+          "strategy": "isolate-sideways-raw--4-32-56-83",
+          "score": 153.99
+        },
+        {
+          "strategy": "isolate-sideways-rotated-86-42-83-41",
+          "score": 152.95
+        },
+        {
+          "strategy": "isolate-sideways-rotated-80-42-86-38",
+          "score": 152.4
+        },
+        {
+          "strategy": "isolate-sideways-raw--4-30-59-83",
+          "score": 151.34
+        },
+        {
+          "strategy": "isolate-sideways-raw--2-36-50-77",
+          "score": 150.95
+        },
+        {
+          "strategy": "isolate-portrait--10-51-23-50",
+          "score": 150.32
+        },
+        {
+          "strategy": "isolate-sideways-raw--4-30-59-80",
+          "score": 150.31
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.0351092591881752,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.04358554631471634,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 176,
+        "fastMs": 678,
+        "fastHit": false
+      },
+      "truthGeometry": {
+        "angle": 258.55,
+        "center": {
+          "x": 0.612,
+          "y": 0.375
+        },
+        "card": {
+          "w": 0.337,
+          "h": 0.471
+        }
+      },
+      "stages": {
+        "prep": 673,
+        "rankSeeds": 662,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1539,
+        "isolatePrep": 678,
+        "isolateScore": 229,
+        "rank": 0,
+        "orb": 1836,
+        "aiCrop": 176,
+        "aiAttempt": 678,
+        "milo": 1079,
+        "total": 7553
+      },
+      "scene": 19,
+      "coverage": 0.255,
+      "clipped": 0,
+      "click": {
+        "u": 0.2,
+        "v": 0.21,
+        "covered": false
+      },
+      "layout": "overlapping",
+      "diceColor": null,
+      "diceFace": null,
+      "diceCoverage": 0
+    },
+    {
+      "name": "Steadfast Sentinel",
+      "id": "872694ba-0666-43c1-8884-47a2e92a127c",
+      "pool": "token",
+      "got": "Wave of Rats",
+      "dist": 187,
+      "conf": 0.31,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Wave of Rats (d=187)",
+        "Oblivion Ring (d=189)",
+        "Whalebone Glider (d=196)"
+      ],
+      "rot": "tapped",
+      "occ": "overlapped",
+      "ms": 7277,
+      "cv": "ready",
+      "tried": 118,
+      "dropped": 1,
+      "artBest": {
+        "name": "Wave of Rats",
+        "inliers": 6,
+        "color": 81,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 8,
+        "clickArtInliers": 5,
+        "clickTextInliers": 3
+      },
+      "artChecked": 60,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": {
+        "ok": true,
+        "top": "Steadfast Sentinel",
+        "by": "art-match",
+        "dist": 105,
+        "trueRank": 1,
+        "trueDist": 105,
+        "ms": 3248
+      },
+      "isolationDebug": [
+        {
+          "strategy": "isolate-sideways-raw-4-44-80-26",
+          "score": 150.23
+        },
+        {
+          "strategy": "isolate-sideways-raw-4-42-80-26",
+          "score": 148.92
+        },
+        {
+          "strategy": "isolate-sideways-raw-2-44-80-26",
+          "score": 143.15
+        },
+        {
+          "strategy": "isolate-sideways-raw-2-44-80-20",
+          "score": 139.33
+        },
+        {
+          "strategy": "isolate-sideways-raw-4-44-80-14",
+          "score": 134.27
+        },
+        {
+          "strategy": "isolate-sideways-raw-2-42-80-26",
+          "score": 133.3
+        },
+        {
+          "strategy": "isolate-sideways-raw-4-44-80-23",
+          "score": 132.87
+        },
+        {
+          "strategy": "isolate-sideways-raw-2-42-80-23",
+          "score": 132.67
+        },
+        {
+          "strategy": "isolate-sideways-raw-6-44-80-14",
+          "score": 132.46
+        },
+        {
+          "strategy": "isolate-sideways-raw-4-44-80-32",
+          "score": 131.82
+        },
+        {
+          "strategy": "isolate-portrait-4-47-62-23",
+          "score": 131.55
+        },
+        {
+          "strategy": "isolate-sideways-raw-2-44-80-14",
+          "score": 130.16
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.015825342386960983,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.03567473962903023,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 175,
+        "fastMs": 605,
+        "fastHit": false
+      },
+      "truthGeometry": {
+        "angle": 276.64,
+        "center": {
+          "x": 0.547,
+          "y": 0.615
+        },
+        "card": {
+          "w": 0.337,
+          "h": 0.471
+        }
+      },
+      "stages": {
+        "prep": 644,
+        "rankSeeds": 681,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1476,
+        "isolatePrep": 716,
+        "isolateScore": 235,
+        "rank": 0,
+        "orb": 1732,
+        "aiCrop": 175,
+        "aiAttempt": 605,
+        "milo": 1003,
+        "total": 7274
+      },
+      "scene": 19,
+      "coverage": 0.364,
+      "clipped": 0,
+      "click": {
+        "u": 0.82,
+        "v": 0.37,
+        "covered": false
+      },
+      "layout": "overlapping",
+      "diceColor": null,
+      "diceFace": null,
+      "diceCoverage": 0
+    }
+  ],
+  "errors": []
+}

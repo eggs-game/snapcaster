@@ -12,7 +12,7 @@ try {
     const context = await browser.newContext();
     const page = await context.newPage();
     page.on("pageerror", e => console.error(mode, e.message));
-    await page.goto(`${flags.url || "http://127.0.0.1:5173"}/snaptest?aiCrop=${flags.ai || "1"}`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${flags.url || "http://127.0.0.1:5173"}/snaptest?aiCrop=${flags.ai || "1"}&milo=${flags.milo || "1"}`, { waitUntil: "domcontentloaded" });
     await page.locator("select").selectOption(mode);
     await page.getByRole("button", { name: "▶ Run", exact: true }).click({ timeout: 90000 });
     const started = Date.now();
@@ -22,6 +22,20 @@ try {
       const result = await page.evaluate(() => window.__SNAPTEST_LAST_RESULT || null);
       if (result) {
         await writeFile(path.join(output, `${mode}.json`), JSON.stringify(result, null, 2) + "\n");
+        // Preserve the actual failed pixels before closing the context. The
+        // random suites cannot recreate a specific failure from names alone.
+        const images = await page.locator('img[title="what we scanned"]').evaluateAll(nodes => nodes.map(n => n.currentSrc || n.src));
+        const captureDir = path.join(output,"captures",mode); await mkdir(captureDir,{recursive:true});
+        const captures = [];
+        for (let i = 0; i < images.length; i++) {
+          const match = /^data:image\/(jpeg|png);base64,(.*)$/.exec(images[i]);
+          if (!match) continue;
+          const file = `${String(i).padStart(3,"0")}.${match[1] === "jpeg" ? "jpg" : "png"}`;
+          await writeFile(path.join(captureDir,file),Buffer.from(match[2],"base64"));
+          captures.push({ file, ...result.misses[i], point: result.misses[i]?.capturePoint || null,
+            pointNote: result.misses[i]?.capturePoint ? "Exact normalized point supplied to identifyCard." : "Original normalized capture point is not exported; retain geometry/click metadata rather than invent an exact point." });
+        }
+        await writeFile(path.join(captureDir,"manifest.json"),JSON.stringify(captures,null,2)+"\n");
         console.log(`${mode}: completed ${JSON.stringify(result.summary)}`);
         break;
       }

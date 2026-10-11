@@ -7,6 +7,35 @@ export function aiCropEnabled() {
 let worker;
 let disabled;
 let sequence = 0;
+let miloDisabled, miloWarmup;
+
+export function miloEnabled() {
+  return aiCropEnabled() && new URLSearchParams(globalThis.location?.search || "").get("milo") !== "0";
+}
+
+function runMilo(type, images = []) {
+  if (!miloEnabled()) return Promise.resolve({ rows: [], diagnostic: { status: "off" } });
+  if (miloDisabled || disabled) return Promise.resolve({ rows: [], diagnostic: miloDisabled || disabled });
+  return new Promise(resolve => {
+    const id = ++sequence, started = performance.now(); let settled = false;
+    const finish = (result, fatal = false) => {
+      if (settled) return;
+      settled = true; clearTimeout(timer);
+      if (result.diagnostic?.status !== "ready") miloDisabled = result.diagnostic;
+      if (fatal) { worker?.terminate(); worker = null; }
+      resolve(result);
+    };
+    // A cold model download must never hold up an uncertain click. Warm it in
+    // the lobby; slow/unavailable inference falls back for the page lifetime.
+    const timer = setTimeout(() => finish({ rows: [], diagnostic: { model: "milo1", status: "timeout", ms: Math.round(performance.now() - started) } }, true), type === "milo-warmup" ? 30000 : 2500);
+    try {
+      if (!worker) worker = new Worker(new URL("./aiCropWorker.js", import.meta.url), { type: "module" });
+      worker.onmessage = ({ data }) => { if (data.id === id) finish(data); };
+      worker.onerror = () => finish({ rows: [], diagnostic: { model: "milo1", status: "failed", error: "AI lookup worker failed" } }, true);
+      worker.postMessage({ id, type, images });
+    } catch (error) { finish({ rows: [], diagnostic: { model: "milo1", status: "failed", error: String(error?.message || error) } }, true); }
+  });
+}
 
 async function runProposal(bitmap, point) {
   if (!aiCropEnabled()) return { quads: [], diagnostic: { status: "off" } };
@@ -55,6 +84,19 @@ export function proposeAiCrops(bitmap, point) {
   const job = proposalQueue.then(() => runProposal(bitmap, point));
   proposalQueue = job.catch(() => {});
   return job;
+}
+export function lookupAiCrops(images) {
+  const job = proposalQueue.then(() => runMilo("milo-lookup", images));
+  proposalQueue = job.catch(() => {});
+  return job;
+}
+export function preloadMilo() {
+  if (!miloEnabled()) return Promise.resolve();
+  if (!miloWarmup) {
+    miloWarmup = proposalQueue.then(() => runMilo("milo-warmup"));
+    proposalQueue = miloWarmup.catch(() => {});
+  }
+  return miloWarmup;
 }
 let warmupPromise;
 export function preloadAiCrop() {

@@ -1,0 +1,979 @@
+{
+  "build": "milo-rescue-5 (local vision)",
+  "aiCropEnabled": true,
+  "mode": "tableauEdhDice10",
+  "summary": {
+    "n": 100,
+    "errors": 0,
+    "accuracy": 0.94,
+    "avgMs": 1256,
+    "medianMs": 687,
+    "byRotation": {
+      "upright": {
+        "n": 61,
+        "ok": 57,
+        "acc": 0.934
+      },
+      "tapped": {
+        "n": 23,
+        "ok": 21,
+        "acc": 0.913
+      },
+      "upsidedown": {
+        "n": 16,
+        "ok": 16,
+        "acc": 1
+      }
+    },
+    "byOcclusion": {
+      "clear": {
+        "n": 93,
+        "ok": 91,
+        "acc": 0.978
+      },
+      "overlapped": {
+        "n": 7,
+        "ok": 3,
+        "acc": 0.429
+      }
+    },
+    "firstHalfAcc": 0.98,
+    "secondHalfAcc": 0.9,
+    "peakHeapMB": 25,
+    "wasmHeapStartMB": 134,
+    "wasmHeapEndMB": 134,
+    "wasmHeapPeakMB": 134,
+    "errorsByStage": {},
+    "stageAvgMs": {
+      "prep": 72,
+      "rank": 0,
+      "orb": 476,
+      "total": 1243
+    },
+    "p90Ms": 3749,
+    "maxMs": 8099,
+    "byPathway": {
+      "art-match": {
+        "n": 91,
+        "ok": 90,
+        "acc": 0.989
+      },
+      "(no match)": {
+        "n": 9,
+        "ok": 4,
+        "acc": 0.444
+      }
+    },
+    "byLayout": {
+      "side-by-side": {
+        "n": 60,
+        "ok": 59,
+        "acc": 0.983
+      },
+      "spaced": {
+        "n": 30,
+        "ok": 29,
+        "acc": 0.967
+      },
+      "overlapping": {
+        "n": 10,
+        "ok": 6,
+        "acc": 0.6
+      }
+    },
+    "byPool": {
+      "token": {
+        "n": 25,
+        "ok": 22,
+        "acc": 0.88
+      },
+      "card": {
+        "n": 71,
+        "ok": 68,
+        "acc": 0.958
+      },
+      "basic": {
+        "n": 4,
+        "ok": 4,
+        "acc": 1
+      }
+    },
+    "byDiceColor": {
+      "white": {
+        "n": 20,
+        "ok": 18,
+        "acc": 0.9
+      },
+      "black": {
+        "n": 20,
+        "ok": 17,
+        "acc": 0.85
+      },
+      "blue": {
+        "n": 20,
+        "ok": 19,
+        "acc": 0.95
+      },
+      "red": {
+        "n": 20,
+        "ok": 20,
+        "acc": 1
+      },
+      "pink": {
+        "n": 20,
+        "ok": 20,
+        "acc": 1
+      }
+    },
+    "byClipped": {
+      "0-5% (whole)": {
+        "n": 100,
+        "ok": 94,
+        "acc": 0.94
+      }
+    },
+    "missTrueRank": {
+      "rank 2": 0,
+      "rank 3-5": 0,
+      "rank 6+": 1,
+      "absent": 5
+    },
+    "missAvgDist": 176,
+    "byCoverage": {
+      "0 (clear)": {
+        "n": 91,
+        "ok": 89,
+        "acc": 0.978
+      },
+      "15-30%": {
+        "n": 5,
+        "ok": 2,
+        "acc": 0.4
+      },
+      "30%+": {
+        "n": 1,
+        "ok": 0,
+        "acc": 0
+      },
+      "0-15%": {
+        "n": 3,
+        "ok": 3,
+        "acc": 1
+      }
+    },
+    "ranAt": "2026-10-11T00:26:42.029Z"
+  },
+  "misses": [
+    {
+      "name": "Tempered Sliver",
+      "id": "88b074f3-13fc-44df-84e1-e557b045fb4f",
+      "pool": "card",
+      "got": "Blank Card",
+      "dist": 151,
+      "conf": 0.56,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Blank Card (d=151)",
+        "Double-Faced Substitute Card (d=153)",
+        "Find the Assassin (cont'd) (d=168)"
+      ],
+      "rot": "upright",
+      "occ": "clear",
+      "ms": 5195,
+      "cv": "ready",
+      "tried": 108,
+      "dropped": 6,
+      "artBest": {
+        "name": "Blank Card",
+        "inliers": 7,
+        "color": 91,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 6,
+        "clickArtInliers": 3,
+        "clickTextInliers": 3
+      },
+      "artChecked": 57,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-portrait--8-44-59-44",
+          "score": 73.02
+        },
+        {
+          "strategy": "isolate-portrait--10-44-59-44",
+          "score": 70.77
+        },
+        {
+          "strategy": "isolate-portrait--8-45-62-44",
+          "score": 70.7
+        },
+        {
+          "strategy": "isolate-portrait--10-42-59-41",
+          "score": 68.75
+        },
+        {
+          "strategy": "isolate-portrait--8-45-59-44",
+          "score": 64.8
+        },
+        {
+          "strategy": "isolate-portrait--10-45-62-44",
+          "score": 63.9
+        },
+        {
+          "strategy": "isolate-portrait--6-45-59-44",
+          "score": 62.98
+        },
+        {
+          "strategy": "isolate-portrait--8-51-65-38",
+          "score": 62.92
+        },
+        {
+          "strategy": "isolate-portrait--8-47-62-35",
+          "score": 60.05
+        },
+        {
+          "strategy": "isolate-portrait--10-45-65-44",
+          "score": 59.6
+        },
+        {
+          "strategy": "isolate-portrait--10-41-56-41",
+          "score": 59.25
+        },
+        {
+          "strategy": "isolate-portrait--10-51-65-38",
+          "score": 58.87
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.052322376519441605,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.044778913259506226,
+            "accepted": false,
+            "reason": "duplicate"
+          }
+        ],
+        "ms": 177,
+        "fastMs": 426,
+        "fastHit": false
+      },
+      "truthGeometry": {
+        "angle": -9.03,
+        "center": {
+          "x": 0.458,
+          "y": 0.558
+        },
+        "card": {
+          "w": 0.334,
+          "h": 0.467
+        }
+      },
+      "stages": {
+        "prep": 496,
+        "rankSeeds": 622,
+        "earlyOrbProbe": 0,
+        "rankRefine": 730,
+        "isolatePrep": 537,
+        "isolateScore": 318,
+        "rank": 0,
+        "orb": 1083,
+        "aiCrop": 177,
+        "aiAttempt": 426,
+        "milo": 799,
+        "total": 5192
+      },
+      "scene": 2,
+      "coverage": 0,
+      "clipped": 0,
+      "click": {
+        "u": 0.65,
+        "v": 0.39,
+        "covered": false
+      },
+      "layout": "spaced",
+      "diceColor": "black",
+      "diceFace": 6,
+      "diceCoverage": 0.038
+    },
+    {
+      "name": "Tentacle",
+      "id": "eea4e628-4ae2-4e33-a3b6-176ed87c1840",
+      "pool": "token",
+      "got": "Twinferno",
+      "dist": 173,
+      "conf": 0.41,
+      "trueRank": 31,
+      "trueDist": 93,
+      "top3": [
+        "Twinferno (d=173)",
+        "Negate (d=173)",
+        "Quakebringer (d=175)"
+      ],
+      "rot": "upright",
+      "occ": "clear",
+      "ms": 3352,
+      "cv": "ready",
+      "tried": 21,
+      "dropped": 21,
+      "artBest": {
+        "name": "Twinferno",
+        "inliers": 2,
+        "color": 100,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 2,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "artChecked": 59,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": null,
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.02101573348045349,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.029038432985544205,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 173,
+        "fastMs": 501,
+        "fastHit": false
+      },
+      "truthGeometry": {
+        "angle": -9.3,
+        "center": {
+          "x": 0.62,
+          "y": 0.538
+        },
+        "card": {
+          "w": 0.361,
+          "h": 0.504
+        }
+      },
+      "stages": {
+        "prep": 416,
+        "rankSeeds": 522,
+        "earlyOrbProbe": 0,
+        "rankRefine": 85,
+        "rank": 0,
+        "orb": 577,
+        "aiCrop": 173,
+        "aiAttempt": 501,
+        "milo": 1072,
+        "total": 3349
+      },
+      "scene": 8,
+      "coverage": 0,
+      "clipped": 0,
+      "click": {
+        "u": 0.19,
+        "v": 0.39,
+        "covered": false
+      },
+      "layout": "side-by-side",
+      "diceColor": "black",
+      "diceFace": 2,
+      "diceCoverage": 0.035
+    },
+    {
+      "name": "Drone",
+      "id": "3fcf8950-117a-4587-8522-79001dffa500",
+      "pool": "token",
+      "got": "Rotting Fensnake",
+      "dist": 198,
+      "conf": 0.23,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Rotting Fensnake (d=198)",
+        "Dreadhorde Arcanist (d=199)",
+        "Choked Estuary (d=201)"
+      ],
+      "rot": "upright",
+      "occ": "overlapped",
+      "ms": 6769,
+      "cv": "ready",
+      "tried": 115,
+      "dropped": 4,
+      "artBest": {
+        "name": "Rotting Fensnake",
+        "inliers": 6,
+        "color": 87,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 8,
+        "clickArtInliers": 2,
+        "clickTextInliers": 6
+      },
+      "artChecked": 60,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-portrait--12-44-50-23",
+          "score": 125.66
+        },
+        {
+          "strategy": "isolate-portrait--12-44-53-23",
+          "score": 121.39
+        },
+        {
+          "strategy": "isolate-portrait--10-44-50-23",
+          "score": 118.67
+        },
+        {
+          "strategy": "isolate-portrait--10-50-44-26",
+          "score": 116.63
+        },
+        {
+          "strategy": "isolate-portrait--12-45-50-23",
+          "score": 116.44
+        },
+        {
+          "strategy": "isolate-sideways-raw--10-44-26-23",
+          "score": 115.53
+        },
+        {
+          "strategy": "isolate-portrait--10-47-47-26",
+          "score": 114.83
+        },
+        {
+          "strategy": "isolate-portrait--12-48-47-20",
+          "score": 114.23
+        },
+        {
+          "strategy": "isolate-portrait--10-44-50-29",
+          "score": 113.85
+        },
+        {
+          "strategy": "isolate-portrait--10-44-50-20",
+          "score": 112.93
+        },
+        {
+          "strategy": "isolate-portrait--12-47-47-26",
+          "score": 112.82
+        },
+        {
+          "strategy": "isolate-portrait--10-45-47-23",
+          "score": 112.25
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.024091973900794983,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.03597525134682655,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 174,
+        "fastMs": 544,
+        "fastHit": false
+      },
+      "truthGeometry": {
+        "angle": -10.9,
+        "center": {
+          "x": 0.554,
+          "y": 0.456
+        },
+        "card": {
+          "w": 0.357,
+          "h": 0.498
+        }
+      },
+      "stages": {
+        "prep": 531,
+        "rankSeeds": 610,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1280,
+        "isolatePrep": 679,
+        "isolateScore": 234,
+        "rank": 0,
+        "orb": 1565,
+        "aiCrop": 174,
+        "aiAttempt": 544,
+        "milo": 1050,
+        "total": 6672
+      },
+      "scene": 9,
+      "coverage": 0.291,
+      "clipped": 0,
+      "click": {
+        "u": 0.42,
+        "v": 0.23,
+        "covered": false
+      },
+      "layout": "overlapping",
+      "diceColor": "white",
+      "diceFace": 4,
+      "diceCoverage": 0.039
+    },
+    {
+      "name": "Jarad, Golgari Lich Lord",
+      "id": "02ef18d1-fd05-4dbc-9fa7-a383799b34e9",
+      "pool": "card",
+      "got": "Dwarven Mattock",
+      "dist": 174,
+      "conf": 0.4,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Dwarven Mattock (d=174)",
+        "Magister of Worth (d=188)",
+        "Might of Old Krosa (d=190)"
+      ],
+      "rot": "tapped",
+      "occ": "overlapped",
+      "ms": 8099,
+      "cv": "ready",
+      "tried": 118,
+      "dropped": 1,
+      "artBest": {
+        "name": "Dwarven Mattock",
+        "inliers": 7,
+        "color": 94,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 7,
+        "clickArtInliers": 6,
+        "clickTextInliers": 1
+      },
+      "artChecked": 56,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-sideways-rotated-86-51-38-26",
+          "score": 140.57
+        },
+        {
+          "strategy": "isolate-sideways-rotated-98-50-41-50",
+          "score": 122.99
+        },
+        {
+          "strategy": "isolate-portrait-6-45-59-32",
+          "score": 122.41
+        },
+        {
+          "strategy": "isolate-sideways-raw--2-38-11-38",
+          "score": 118.04
+        },
+        {
+          "strategy": "isolate-sideways-rotated-86-51-38-20",
+          "score": 117.45
+        },
+        {
+          "strategy": "isolate-sideways-rotated-88-53-38-86",
+          "score": 116.8
+        },
+        {
+          "strategy": "isolate-sideways-rotated-88-53-38-89",
+          "score": 116.76
+        },
+        {
+          "strategy": "isolate-sideways-raw--6-36-80-41",
+          "score": 116.42
+        },
+        {
+          "strategy": "isolate-sideways-rotated-88-51-38-26",
+          "score": 116.02
+        },
+        {
+          "strategy": "isolate-sideways-raw--2-38-14-38",
+          "score": 115.69
+        },
+        {
+          "strategy": "isolate-sideways-rotated-86-51-41-26",
+          "score": 115.48
+        },
+        {
+          "strategy": "isolate-sideways-raw--4-36-74-38",
+          "score": 113.13
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.028703462332487106,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.039074257016181946,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 174,
+        "fastMs": 788,
+        "fastHit": false
+      },
+      "truthGeometry": {
+        "angle": 98.12,
+        "center": {
+          "x": 0.5,
+          "y": 0.483
+        },
+        "card": {
+          "w": 0.357,
+          "h": 0.498
+        }
+      },
+      "stages": {
+        "prep": 606,
+        "rankSeeds": 656,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1429,
+        "isolatePrep": 688,
+        "isolateScore": 243,
+        "rank": 0,
+        "orb": 1955,
+        "aiCrop": 174,
+        "aiAttempt": 788,
+        "milo": 1550,
+        "total": 8094
+      },
+      "scene": 9,
+      "coverage": 0.418,
+      "clipped": 0,
+      "click": {
+        "u": 0.4,
+        "v": 0.51,
+        "covered": false
+      },
+      "layout": "overlapping",
+      "diceColor": "black",
+      "diceFace": 3,
+      "diceCoverage": 0.038
+    },
+    {
+      "name": "Spawn",
+      "id": "bc938f2e-2d6e-4afd-9a88-34eeaf0b51e3",
+      "pool": "token",
+      "got": "Snow-Covered Plains",
+      "by": "art-match",
+      "dist": 166,
+      "conf": 1,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Snow-Covered Plains (d=166)",
+        "Tazeem Raptor (d=200)",
+        "Isamaru, Hound of Konda (d=208)"
+      ],
+      "rot": "tapped",
+      "occ": "overlapped",
+      "ms": 3749,
+      "cv": "ready",
+      "tried": 118,
+      "dropped": 1,
+      "artBest": {
+        "name": "Snow-Covered Plains",
+        "inliers": 98,
+        "color": 71,
+        "weak": false,
+        "clickInside": false,
+        "clickInliers": 38,
+        "clickArtInliers": 10,
+        "clickTextInliers": 25
+      },
+      "artChecked": 36,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-sideways-rotated-98-44-92-89",
+          "score": 130.96
+        },
+        {
+          "strategy": "isolate-sideways-rotated-98-41-89-89",
+          "score": 130.17
+        },
+        {
+          "strategy": "isolate-sideways-rotated-84-56-50-44",
+          "score": 129.99
+        },
+        {
+          "strategy": "isolate-sideways-rotated-98-42-86-86",
+          "score": 128.02
+        },
+        {
+          "strategy": "isolate-sideways-raw-6-28-8-89",
+          "score": 121.57
+        },
+        {
+          "strategy": "isolate-sideways-raw-8-30-8-86",
+          "score": 121.51
+        },
+        {
+          "strategy": "isolate-sideways-raw-8-30-14-86",
+          "score": 121.32
+        },
+        {
+          "strategy": "isolate-portrait--4-51-86-38",
+          "score": 119.14
+        },
+        {
+          "strategy": "isolate-sideways-rotated-98-44-92-83",
+          "score": 118.72
+        },
+        {
+          "strategy": "isolate-sideways-raw--4-41-50-50",
+          "score": 118.55
+        },
+        {
+          "strategy": "isolate-sideways-raw-8-28-8-92",
+          "score": 116.14
+        },
+        {
+          "strategy": "isolate-sideways-raw-2-38-92-47",
+          "score": 115.29
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.025108251720666885,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.03286748751997948,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          }
+        ],
+        "ms": 177
+      },
+      "truthGeometry": {
+        "angle": 85.7,
+        "center": {
+          "x": 0.377,
+          "y": 0.474
+        },
+        "card": {
+          "w": 0.357,
+          "h": 0.498
+        }
+      },
+      "stages": {
+        "prep": 565,
+        "rankSeeds": 658,
+        "earlyOrbProbe": 0,
+        "rankRefine": 992,
+        "isolatePrep": 667,
+        "isolateScore": 224,
+        "rank": 0,
+        "orb": 455,
+        "aiCrop": 177,
+        "total": 3743
+      },
+      "scene": 9,
+      "coverage": 0.206,
+      "clipped": 0,
+      "click": {
+        "u": 0.54,
+        "v": 0.25,
+        "covered": false
+      },
+      "layout": "overlapping",
+      "diceColor": "blue",
+      "diceFace": 4,
+      "diceCoverage": 0.036
+    },
+    {
+      "name": "Glacial Chasm",
+      "id": "c5d439cb-50bc-4a33-bb1e-7bb2b81bfce7",
+      "pool": "card",
+      "got": "Etali, Primal Storm",
+      "dist": 193,
+      "conf": 0.26,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Etali, Primal Storm (d=193)",
+        "Greenwood Sentinel (d=196)",
+        "Glasses of Urza (d=197)"
+      ],
+      "rot": "upright",
+      "occ": "overlapped",
+      "ms": 7647,
+      "cv": "ready",
+      "tried": 134,
+      "dropped": 1,
+      "artBest": {
+        "name": "Etali, Primal Storm",
+        "inliers": 7,
+        "color": 95,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 13,
+        "clickArtInliers": 10,
+        "clickTextInliers": 3
+      },
+      "artChecked": 59,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-portrait-2-44-77-44",
+          "score": 153.53
+        },
+        {
+          "strategy": "isolate-portrait-2-44-74-44",
+          "score": 148.17
+        },
+        {
+          "strategy": "isolate-portrait-2-51-80-38",
+          "score": 138.23
+        },
+        {
+          "strategy": "isolate-portrait-2-44-71-44",
+          "score": 137.52
+        },
+        {
+          "strategy": "isolate-portrait-2-44-68-44",
+          "score": 135.6
+        },
+        {
+          "strategy": "isolate-portrait-2-44-80-44",
+          "score": 130.86
+        },
+        {
+          "strategy": "isolate-sideways-raw-2-44-29-44",
+          "score": 126.77
+        },
+        {
+          "strategy": "isolate-sideways-raw-4-36-14-20",
+          "score": 126.08
+        },
+        {
+          "strategy": "isolate-sideways-raw-2-36-14-20",
+          "score": 121.83
+        },
+        {
+          "strategy": "isolate-sideways-raw-4-38-17-23",
+          "score": 117.86
+        },
+        {
+          "strategy": "isolate-sideways-raw-6-42-86-41",
+          "score": 116.09
+        },
+        {
+          "strategy": "isolate-sideways-raw-4-38-17-26",
+          "score": 114.87
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.042048245668411255,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.039364732801914215,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 176,
+        "fastMs": 670,
+        "fastHit": false
+      },
+      "truthGeometry": {
+        "angle": 1.6,
+        "center": {
+          "x": 0.432,
+          "y": 0.536
+        },
+        "card": {
+          "w": 0.357,
+          "h": 0.498
+        }
+      },
+      "stages": {
+        "prep": 715,
+        "rankSeeds": 655,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1465,
+        "isolatePrep": 838,
+        "isolateScore": 301,
+        "rank": 0,
+        "orb": 1693,
+        "aiCrop": 176,
+        "aiAttempt": 670,
+        "milo": 1127,
+        "total": 7643
+      },
+      "scene": 9,
+      "coverage": 0.158,
+      "clipped": 0,
+      "click": {
+        "u": 0.69,
+        "v": 0.42,
+        "covered": false
+      },
+      "layout": "overlapping",
+      "diceColor": "white",
+      "diceFace": 4,
+      "diceCoverage": 0.036
+    }
+  ],
+  "errors": []
+}

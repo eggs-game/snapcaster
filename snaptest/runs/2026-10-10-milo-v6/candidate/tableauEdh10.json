@@ -1,0 +1,660 @@
+{
+  "build": "milo-rescue-6 (local vision)",
+  "aiCropEnabled": true,
+  "mode": "tableauEdh10",
+  "summary": {
+    "n": 100,
+    "errors": 0,
+    "accuracy": 0.96,
+    "avgMs": 1327,
+    "medianMs": 806,
+    "byRotation": {
+      "upright": {
+        "n": 61,
+        "ok": 59,
+        "acc": 0.967
+      },
+      "tapped": {
+        "n": 23,
+        "ok": 21,
+        "acc": 0.913
+      },
+      "upsidedown": {
+        "n": 16,
+        "ok": 16,
+        "acc": 1
+      }
+    },
+    "byOcclusion": {
+      "clear": {
+        "n": 93,
+        "ok": 92,
+        "acc": 0.989
+      },
+      "overlapped": {
+        "n": 7,
+        "ok": 4,
+        "acc": 0.571
+      }
+    },
+    "firstHalfAcc": 1,
+    "secondHalfAcc": 0.92,
+    "peakHeapMB": 23,
+    "wasmHeapStartMB": 134,
+    "wasmHeapEndMB": 134,
+    "wasmHeapPeakMB": 134,
+    "errorsByStage": {},
+    "stageAvgMs": {
+      "prep": 86,
+      "rank": 0,
+      "orb": 595,
+      "total": 1313
+    },
+    "p90Ms": 2406,
+    "maxMs": 8737,
+    "byPathway": {
+      "art-match": {
+        "n": 87,
+        "ok": 87,
+        "acc": 1
+      },
+      "(no match)": {
+        "n": 10,
+        "ok": 6,
+        "acc": 0.6
+      },
+      "visual-exact": {
+        "n": 3,
+        "ok": 3,
+        "acc": 1
+      }
+    },
+    "byLayout": {
+      "side-by-side": {
+        "n": 60,
+        "ok": 59,
+        "acc": 0.983
+      },
+      "spaced": {
+        "n": 30,
+        "ok": 30,
+        "acc": 1
+      },
+      "overlapping": {
+        "n": 10,
+        "ok": 7,
+        "acc": 0.7
+      }
+    },
+    "byPool": {
+      "card": {
+        "n": 67,
+        "ok": 65,
+        "acc": 0.97
+      },
+      "token": {
+        "n": 30,
+        "ok": 28,
+        "acc": 0.933
+      },
+      "basic": {
+        "n": 3,
+        "ok": 3,
+        "acc": 1
+      }
+    },
+    "byClipped": {
+      "0-5% (whole)": {
+        "n": 100,
+        "ok": 96,
+        "acc": 0.96
+      }
+    },
+    "missTrueRank": {
+      "rank 2": 0,
+      "rank 3-5": 0,
+      "rank 6+": 1,
+      "absent": 3
+    },
+    "missAvgDist": 174,
+    "byCoverage": {
+      "0 (clear)": {
+        "n": 91,
+        "ok": 90,
+        "acc": 0.989
+      },
+      "15-30%": {
+        "n": 5,
+        "ok": 3,
+        "acc": 0.6
+      },
+      "30%+": {
+        "n": 1,
+        "ok": 0,
+        "acc": 0
+      },
+      "0-15%": {
+        "n": 3,
+        "ok": 3,
+        "acc": 1
+      }
+    },
+    "ranAt": "2026-10-11T00:51:35.898Z"
+  },
+  "misses": [
+    {
+      "name": "Ravenous Brute Head",
+      "id": "a76d49f7-2860-4972-ab97-1e798ea017d1",
+      "pool": "token",
+      "got": "Child of Night",
+      "dist": 170,
+      "conf": 0.43,
+      "trueRank": 27,
+      "trueDist": 89,
+      "top3": [
+        "Child of Night (d=170)",
+        "Fraying Line (d=174)",
+        "Paladin en-Vec (d=176)"
+      ],
+      "rot": "upright",
+      "occ": "clear",
+      "ms": 2406,
+      "cv": "ready",
+      "tried": 18,
+      "dropped": 22,
+      "artBest": {
+        "name": "Child of Night",
+        "inliers": 6,
+        "color": 91,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 7,
+        "clickArtInliers": 0,
+        "clickTextInliers": 7
+      },
+      "artChecked": 36,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": null,
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.013944079168140888,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.0071126604452729225,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 173
+      },
+      "truthGeometry": {
+        "angle": -9.3,
+        "center": {
+          "x": 0.582,
+          "y": 0.646
+        },
+        "card": {
+          "w": 0.361,
+          "h": 0.504
+        }
+      },
+      "stages": {
+        "prep": 517,
+        "rankSeeds": 478,
+        "earlyOrbProbe": 0,
+        "rankRefine": 85,
+        "rank": 0,
+        "orb": 1147,
+        "aiCrop": 173,
+        "total": 2403
+      },
+      "scene": 8,
+      "coverage": 0,
+      "clipped": 0,
+      "click": {
+        "u": 0.34,
+        "v": 0.19,
+        "covered": false
+      },
+      "layout": "side-by-side",
+      "diceColor": null,
+      "diceFace": null,
+      "diceCoverage": 0
+    },
+    {
+      "name": "The Hunter Maze",
+      "id": "6389c242-2139-4f12-af30-2b080a1c5e83",
+      "pool": "card",
+      "got": "Shy Town",
+      "dist": 178,
+      "conf": 0.37,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Shy Town (d=178)",
+        "Nether Traitor (d=189)",
+        "Ohran Frostfang (d=192)"
+      ],
+      "rot": "tapped",
+      "occ": "overlapped",
+      "ms": 8737,
+      "cv": "ready",
+      "tried": 118,
+      "dropped": 1,
+      "artBest": {
+        "name": "Shy Town",
+        "inliers": 6,
+        "color": 91,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 6,
+        "clickArtInliers": 0,
+        "clickTextInliers": 4
+      },
+      "artChecked": 55,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-sideways-raw-8-35-44-41",
+          "score": 157.96
+        },
+        {
+          "strategy": "isolate-sideways-raw-6-35-44-41",
+          "score": 148.65
+        },
+        {
+          "strategy": "isolate-sideways-raw--6-35-47-38",
+          "score": 139.11
+        },
+        {
+          "strategy": "isolate-sideways-raw-8-30-50-38",
+          "score": 135.02
+        },
+        {
+          "strategy": "isolate-sideways-raw-6-35-44-35",
+          "score": 132.86
+        },
+        {
+          "strategy": "isolate-sideways-raw-8-32-47-41",
+          "score": 131.6
+        },
+        {
+          "strategy": "isolate-portrait--4-41-11-35",
+          "score": 129.22
+        },
+        {
+          "strategy": "isolate-sideways-raw--4-38-50-38",
+          "score": 129.15
+        },
+        {
+          "strategy": "isolate-sideways-raw--2-38-50-38",
+          "score": 128.87
+        },
+        {
+          "strategy": "isolate-sideways-rotated-86-47-41-56",
+          "score": 128.26
+        },
+        {
+          "strategy": "isolate-sideways-raw--4-35-53-38",
+          "score": 127.21
+        },
+        {
+          "strategy": "isolate-sideways-raw-8-39-38-38",
+          "score": 126.37
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.026612993329763412,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.03539072349667549,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 174,
+        "fastMs": 705,
+        "fastHit": false
+      },
+      "truthGeometry": {
+        "angle": 98.12,
+        "center": {
+          "x": 0.5,
+          "y": 0.483
+        },
+        "card": {
+          "w": 0.357,
+          "h": 0.498
+        }
+      },
+      "stages": {
+        "prep": 808,
+        "rankSeeds": 660,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1783,
+        "isolatePrep": 785,
+        "isolateScore": 341,
+        "rank": 0,
+        "orb": 1906,
+        "aiCrop": 174,
+        "aiAttempt": 705,
+        "milo": 1569,
+        "total": 8734
+      },
+      "scene": 9,
+      "coverage": 0.418,
+      "clipped": 0,
+      "click": {
+        "u": 0.4,
+        "v": 0.51,
+        "covered": false
+      },
+      "layout": "overlapping",
+      "diceColor": null,
+      "diceFace": null,
+      "diceCoverage": 0
+    },
+    {
+      "name": "Awakening Zone",
+      "id": "fa1fade1-821a-42bb-8df6-b77870138985",
+      "pool": "card",
+      "got": "Valley Mightcaller",
+      "dist": 144,
+      "conf": 0.61,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Valley Mightcaller (d=144)",
+        "Taiga Stadium (d=212)",
+        "Leyline of the Void (d=191)"
+      ],
+      "rot": "tapped",
+      "occ": "overlapped",
+      "ms": 5589,
+      "cv": "ready",
+      "tried": 133,
+      "dropped": 2,
+      "artBest": {
+        "name": "Valley Mightcaller",
+        "inliers": 129,
+        "color": 85,
+        "weak": true,
+        "clickInside": false,
+        "clickInliers": 38,
+        "clickArtInliers": 27,
+        "clickTextInliers": 10
+      },
+      "artChecked": 36,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-sideways-rotated-98-42-86-92",
+          "score": 131.53
+        },
+        {
+          "strategy": "isolate-sideways-raw-8-30-8-86",
+          "score": 129.93
+        },
+        {
+          "strategy": "isolate-sideways-rotated-98-42-86-86",
+          "score": 129.62
+        },
+        {
+          "strategy": "isolate-sideways-rotated-98-44-92-89",
+          "score": 129.51
+        },
+        {
+          "strategy": "isolate-sideways-raw-8-42-35-62",
+          "score": 118.77
+        },
+        {
+          "strategy": "isolate-sideways-raw-8-30-14-86",
+          "score": 116.66
+        },
+        {
+          "strategy": "isolate-sideways-raw-10-41-32-65",
+          "score": 115.16
+        },
+        {
+          "strategy": "isolate-sideways-raw-8-41-32-62",
+          "score": 113.56
+        },
+        {
+          "strategy": "isolate-sideways-raw-8-41-32-59",
+          "score": 111.99
+        },
+        {
+          "strategy": "isolate-sideways-rotated-98-41-89-89",
+          "score": 111.06
+        },
+        {
+          "strategy": "isolate-sideways-raw-8-41-32-65",
+          "score": 109.37
+        },
+        {
+          "strategy": "isolate-sideways-rotated-86-54-50-8",
+          "score": 108.66
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.05140875652432442,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.0226755328476429,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          }
+        ],
+        "ms": 175
+      },
+      "truthGeometry": {
+        "angle": 85.7,
+        "center": {
+          "x": 0.377,
+          "y": 0.474
+        },
+        "card": {
+          "w": 0.357,
+          "h": 0.498
+        }
+      },
+      "stages": {
+        "prep": 720,
+        "rankSeeds": 653,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1645,
+        "isolatePrep": 966,
+        "isolateScore": 411,
+        "rank": 0,
+        "orb": 1012,
+        "aiCrop": 175,
+        "total": 5585
+      },
+      "scene": 9,
+      "coverage": 0.206,
+      "clipped": 0,
+      "click": {
+        "u": 0.54,
+        "v": 0.25,
+        "covered": false
+      },
+      "layout": "overlapping",
+      "diceColor": null,
+      "diceFace": null,
+      "diceCoverage": 0
+    },
+    {
+      "name": "Varmint",
+      "id": "dcefb329-b93d-41a1-88d3-8058afebeca8",
+      "pool": "token",
+      "got": "Prismatic Lens",
+      "dist": 204,
+      "conf": 0.19,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Prismatic Lens (d=204)",
+        "Gurmag Angler (d=218)",
+        "Ancestor's Chosen (d=193)"
+      ],
+      "rot": "upright",
+      "occ": "overlapped",
+      "ms": 5765,
+      "cv": "ready",
+      "tried": 132,
+      "dropped": 3,
+      "artBest": {
+        "name": "Prismatic Lens",
+        "inliers": 13,
+        "color": 92,
+        "weak": false,
+        "clickInside": null,
+        "clickInliers": 13,
+        "clickArtInliers": 12,
+        "clickTextInliers": 1
+      },
+      "artChecked": 36,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-sideways-raw--2-42-50-47",
+          "score": 134.62
+        },
+        {
+          "strategy": "isolate-top-edge--4-33-32-164",
+          "score": 132.75
+        },
+        {
+          "strategy": "isolate-sideways-rotated-86-54-50-44",
+          "score": 132.29
+        },
+        {
+          "strategy": "isolate-sideways-raw--6-41-53-47",
+          "score": 130.75
+        },
+        {
+          "strategy": "isolate-sideways-raw--6-39-56-50",
+          "score": 129.54
+        },
+        {
+          "strategy": "isolate-sideways-raw--4-39-56-50",
+          "score": 129.39
+        },
+        {
+          "strategy": "isolate-sideways-raw--4-41-53-47",
+          "score": 125.78
+        },
+        {
+          "strategy": "isolate-sideways-rotated-86-56-50-50",
+          "score": 125.1
+        },
+        {
+          "strategy": "isolate-sideways-raw--2-41-53-50",
+          "score": 124.43
+        },
+        {
+          "strategy": "isolate-portrait--4-47-89-44",
+          "score": 124.1
+        },
+        {
+          "strategy": "isolate-sideways-raw--2-42-47-47",
+          "score": 123.55
+        },
+        {
+          "strategy": "isolate-portrait--4-47-89-53",
+          "score": 123.01
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.03226184844970703,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.033118486404418945,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          }
+        ],
+        "ms": 175
+      },
+      "truthGeometry": {
+        "angle": -4.78,
+        "center": {
+          "x": 0.389,
+          "y": 0.539
+        },
+        "card": {
+          "w": 0.357,
+          "h": 0.498
+        }
+      },
+      "stages": {
+        "prep": 812,
+        "rankSeeds": 663,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1614,
+        "isolatePrep": 998,
+        "isolateScore": 403,
+        "rank": 0,
+        "orb": 1093,
+        "aiCrop": 175,
+        "total": 5761
+      },
+      "scene": 9,
+      "coverage": 0.236,
+      "clipped": 0,
+      "click": {
+        "u": 0.82,
+        "v": 0.44,
+        "covered": false
+      },
+      "layout": "overlapping",
+      "diceColor": null,
+      "diceFace": null,
+      "diceCoverage": 0
+    }
+  ],
+  "errors": []
+}

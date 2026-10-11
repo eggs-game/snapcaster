@@ -1,12 +1,66 @@
 # How Snapcast identifies cards quickly
 
-One click, ~1.8s median, against 110,592 printings — without a recognition
+One click against 113,263 printing faces — without a recognition
 server or a per-scan inference charge.
 
-The `click-match-1` release candidate adds a local learned corner detector to
+The `milo-rescue-7` pipeline adds local learned retrieval and a corner detector to
 perceptual hashing and geometric artwork verification. Tesseract remains the
 optional text fallback. No recognition API, API key, or per-scan inference
 charge is involved; camera captures stay in the browser.
+
+### Local Milo lookup
+
+Milo 1 is a purpose-trained MobileViT card embedder, pinned to revision
+`9bcc5e809e936b8c5630d1e7101aae1de1e76621`. It shares the corner detector's
+serialized worker and ONNX Runtime WASM instance. Lobby warmup loads the
+5.2 MB model and complete, roughly 15.4 MB quantized reference catalog.
+There is no API key, capture upload or per-scan inference charge. Model and
+runtime licenses, checksums and corresponding-source links ship with the app.
+
+Clear, verified hash/artwork results and room hints retain their fast paths.
+When the initial learned crop cannot settle identity, Milo embeds up to two
+rectified crops in both portrait orientations. Cosine retrieval keeps two
+treatments of six different card names; a card's many reprints cannot exhaust
+the verification budget. Retrieval scores are not confidence labels.
+
+Every confident artwork result with a source click must pass the existing
+decisive artwork margins **and** positive
+source-space clicked-card registration. For a rectified crop, the exact camera-to-crop
+transform composes with artwork registration back into original camera coordinates.
+Both learned and ordinary outline crops retain this transform. This
+concentrates keypoints on the clicked card and validates the physical footprint
+in the original frame, including cards that were under-cropped. An unknown footprint cannot support
+artwork confidence; an explicitly outside footprint cannot receive a confident artwork or
+near-exact label, even when the target itself has too little visible content to
+register. An off-centre guess remains selectable; positive clicked-card proof
+still excludes proven neighbours across their printings. A strong model score, shared template,
+unregistered match or proven neighbour cannot replace the baseline result.
+Both crop hypotheses are available to artwork verification. The first four
+retrieved printings also compare a normal-resolution reference, preserving
+small-reference matches while recovering features lost in the thumbnail.
+After positive regional registration, color and frame-ring agreement compare
+matching raw and white-balanced versions of both the physical card and its
+reference. Balancing only the query can otherwise veto strongly matched green
+or red cards. These variants do not reduce artwork or click-proof thresholds. Weak proposals
+fall through to the full matcher, retaining the original twelve AI hash-trial
+supplement slots and at most twelve additional Milo slots. Ordinary seeds
+and their query-image budget remain independent.
+
+`?milo=0` disables lookup while retaining Cornelius. `?aiCrop=0` disables both
+learned stages. The console hook also accepts `{milo:false}` as its fourth
+argument. Failed downloads, incompatible catalogs and inference timeouts
+fall back to ordinary recognition. A failed lookup does not disable cropping.
+Cold loading and difficult fallbacks are separate from warmed fast-path time;
+sub-second recognition is not guaranteed on every device or capture.
+
+`scripts/build_milo_catalog.py` reuses the SHA256-verified compatible upstream
+gallery and locally embeds **all** new card faces, including reverse faces.
+The daily card-index workflow updates both catalogs in the same commit.
+Publication refuses incomplete embeddings. `verify_milo_catalog.py` checks
+coverage, groups, quantization norms, model/table checksums and the exact
+`cards.json` fingerprint. The runtime checks that fingerprint again before
+interpreting any row number, so stale/mixed deployments cannot identify the
+wrong printing. Cached additions avoid re-embedding the entire catalog daily.
 
 ### Local AI-assisted cropping
 

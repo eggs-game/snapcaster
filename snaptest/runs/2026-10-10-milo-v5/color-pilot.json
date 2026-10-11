@@ -1,0 +1,2708 @@
+{
+  "scope": "frozen prior research captures, selected v1 misses plus rotation controls; supplemental, not a release gate",
+  "records": [
+    {
+      "i": 0,
+      "name": "Trailblazer's Boots",
+      "build": "milo-rescue-4 (local vision)",
+      "got": "Trailblazer's Boots",
+      "ok": true,
+      "by": "art-match",
+      "regionalProof": false,
+      "artBest": {
+        "name": "Trailblazer's Boots",
+        "inliers": 70,
+        "color": 76,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 34,
+        "clickArtInliers": 27,
+        "clickTextInliers": 7
+      },
+      "milo": {
+        "status": "skipped"
+      },
+      "miloChecked": [],
+      "ms": 997
+    },
+    {
+      "i": 15,
+      "name": "Reprieve",
+      "build": "milo-rescue-4 (local vision)",
+      "got": "Reprieve",
+      "ok": true,
+      "by": "art-match",
+      "regionalProof": false,
+      "artBest": {
+        "name": "Reprieve",
+        "inliers": 95,
+        "color": 87,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 91,
+        "clickArtInliers": 66,
+        "clickTextInliers": 25
+      },
+      "milo": {
+        "status": "skipped"
+      },
+      "miloChecked": [],
+      "ms": 467
+    },
+    {
+      "i": 167,
+      "name": "Mox Diamond",
+      "build": "milo-rescue-4 (local vision)",
+      "got": "Mox Diamond",
+      "ok": true,
+      "by": "art-match",
+      "regionalProof": true,
+      "artBest": {
+        "name": "Mox Diamond",
+        "inliers": 36,
+        "color": 71,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 36,
+        "clickArtInliers": 18,
+        "clickTextInliers": 18
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 12,
+        "inferenceMs": 262,
+        "searchMs": 42,
+        "ms": 325,
+        "rescued": true,
+        "totalMs": 590
+      },
+      "miloChecked": [
+        {
+          "name": "Mox Diamond",
+          "distance": 192,
+          "inliers": 36,
+          "color": 0.7087823509791633,
+          "clickInside": true,
+          "clickInliers": 36,
+          "clickArtInliers": 18,
+          "regionalProof": true,
+          "blocked": false
+        },
+        {
+          "name": "Dreadwurm",
+          "distance": 236,
+          "inliers": 5,
+          "color": 0.5372813985304674,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Ondu Skyruins",
+          "distance": 221,
+          "inliers": 4,
+          "color": 0.7645413183345227,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Swamp",
+          "distance": 243,
+          "inliers": 2,
+          "color": 0.6383795013898634,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Traverse the Outlands",
+          "distance": 221,
+          "inliers": 7,
+          "color": 0.5931769074959448,
+          "clickInside": null,
+          "clickInliers": 8,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Wayward Guide-Beast",
+          "distance": 225,
+          "inliers": 7,
+          "color": 0.5232901754752675,
+          "clickInside": null,
+          "clickInliers": 6,
+          "clickArtInliers": 4,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Mox Diamond",
+          "distance": 230,
+          "inliers": 6,
+          "color": 0.6968841194466222,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Dreadwurm",
+          "distance": 233,
+          "inliers": 5,
+          "color": 0.5373372450558236,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Ondu Skyruins",
+          "distance": 217,
+          "inliers": 6,
+          "color": 0.6062745122326305,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Swamp",
+          "distance": 218,
+          "inliers": 6,
+          "color": 0.8487152137458907,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Traverse the Outlands",
+          "distance": 220,
+          "inliers": 0,
+          "color": 0,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Wayward Guide-Beast",
+          "distance": 221,
+          "inliers": 0,
+          "color": 0,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        }
+      ],
+      "ms": 1318
+    },
+    {
+      "i": 26,
+      "name": "Valakut, the Molten Pinnacle",
+      "build": "milo-rescue-4 (local vision)",
+      "got": "Blank Card",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Blank Card",
+        "inliers": 0,
+        "color": 96,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 2,
+        "proposals": 11,
+        "inferenceMs": 532,
+        "searchMs": 91,
+        "ms": 645,
+        "rescued": false,
+        "totalMs": 1054
+      },
+      "miloChecked": [
+        {
+          "name": "Valakut, the Molten Pinnacle",
+          "distance": 169,
+          "inliers": 0,
+          "color": 0.22563905937568052,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Airbender's Reversal",
+          "distance": 212,
+          "inliers": 0,
+          "color": 0.48279313666716916,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Imprisoned in the Moon",
+          "distance": 209,
+          "inliers": 0,
+          "color": 0.4347812737360073,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Snow-Covered Plains",
+          "distance": 188,
+          "inliers": 0,
+          "color": 0.19192376656428678,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Scarlet Witch, Chaotic Avenger",
+          "distance": 214,
+          "inliers": 0,
+          "color": 0.32820899708167417,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Rhino",
+          "distance": 213,
+          "inliers": 0,
+          "color": 0.4577814183940063,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Valakut, the Molten Pinnacle",
+          "distance": 206,
+          "inliers": 0,
+          "color": 0.09557881874934537,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Imprisoned in the Moon",
+          "distance": 205,
+          "inliers": 0,
+          "color": 0.7196773597461288,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Snow-Covered Plains",
+          "distance": 172,
+          "inliers": 0,
+          "color": 0.10022523922816617,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Scarlet Witch, Chaotic Avenger",
+          "distance": 210,
+          "inliers": 1,
+          "color": 0.33326215965644224,
+          "clickInside": null,
+          "clickInliers": 6,
+          "clickArtInliers": 4,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Rhino",
+          "distance": 215,
+          "inliers": 1,
+          "color": 0.6682126067389618,
+          "clickInside": null,
+          "clickInliers": 7,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        }
+      ],
+      "ms": 5305
+    },
+    {
+      "i": 48,
+      "name": "Deathrite Shaman",
+      "build": "milo-rescue-4 (local vision)",
+      "got": "Unknown Event",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Unknown Event",
+        "inliers": 2,
+        "color": 94,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 6,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 2,
+        "proposals": 12,
+        "inferenceMs": 521,
+        "searchMs": 91,
+        "ms": 635,
+        "rescued": false,
+        "totalMs": 1247
+      },
+      "miloChecked": [
+        {
+          "name": "Deathrite Shaman",
+          "distance": 143,
+          "inliers": 23,
+          "color": 0.1557000337397767,
+          "clickInside": null,
+          "clickInliers": 8,
+          "clickArtInliers": 7,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Circle of Protection: Black",
+          "distance": 218,
+          "inliers": 4,
+          "color": 0.8617085923669947,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Forest",
+          "distance": 215,
+          "inliers": 0,
+          "color": 0.26063159396835545,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Stonework Puma",
+          "distance": 201,
+          "inliers": 5,
+          "color": 0.9403502455006674,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Selesnya Loft Gardens",
+          "distance": 204,
+          "inliers": 5,
+          "color": 0.394293555733384,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Shoot the Sheriff",
+          "distance": 230,
+          "inliers": 3,
+          "color": 0.44547600925398,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Deathrite Shaman",
+          "distance": 150,
+          "inliers": 19,
+          "color": 0.16164093604311347,
+          "clickInside": null,
+          "clickInliers": 9,
+          "clickArtInliers": 4,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Circle of Protection: Black",
+          "distance": 216,
+          "inliers": 3,
+          "color": 0.9520345591045043,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Forest",
+          "distance": 230,
+          "inliers": 4,
+          "color": 0.6799804896436399,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Stonework Puma",
+          "distance": 213,
+          "inliers": 6,
+          "color": 0.9118062681282026,
+          "clickInside": null,
+          "clickInliers": 5,
+          "clickArtInliers": 3,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Selesnya Loft Gardens",
+          "distance": 200,
+          "inliers": 4,
+          "color": 0.45193724506498256,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Shoot the Sheriff",
+          "distance": 225,
+          "inliers": 3,
+          "color": 0.04997990862648294,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        }
+      ],
+      "ms": 7079
+    },
+    {
+      "i": 55,
+      "name": "Path to Exile",
+      "build": "milo-rescue-4 (local vision)",
+      "got": "Patrician Geist",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Patrician Geist",
+        "inliers": 0,
+        "color": 86,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 12,
+        "inferenceMs": 260,
+        "searchMs": 45,
+        "ms": 324,
+        "rescued": false,
+        "totalMs": 768
+      },
+      "miloChecked": [
+        {
+          "name": "Path to Exile",
+          "distance": 220,
+          "inliers": 1,
+          "color": 0.55692378571257,
+          "clickInside": null,
+          "clickInliers": 3,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Ephemerate",
+          "distance": 248,
+          "inliers": 0,
+          "color": 0.1479092240333557,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Gleeful Demolition",
+          "distance": 244,
+          "inliers": 0,
+          "color": 0.0902849305421114,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Brightclimb Pathway",
+          "distance": 225,
+          "inliers": 0,
+          "color": 0,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Stensia",
+          "distance": 243,
+          "inliers": 0,
+          "color": 0.8862651586532593,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Rise from the Tides",
+          "distance": 211,
+          "inliers": 1,
+          "color": 0.07308564335107803,
+          "clickInside": null,
+          "clickInliers": 6,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Path to Exile",
+          "distance": 231,
+          "inliers": 0,
+          "color": 0.03741708770394325,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Ephemerate",
+          "distance": 183,
+          "inliers": 0,
+          "color": 0.9975420832633972,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Gleeful Demolition",
+          "distance": 214,
+          "inliers": 0,
+          "color": 0.9975420832633972,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Brightclimb Pathway",
+          "distance": 228,
+          "inliers": 0,
+          "color": 0.3137603998184204,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Stensia",
+          "distance": 236,
+          "inliers": 1,
+          "color": 0.45024573802948,
+          "clickInside": null,
+          "clickInliers": 6,
+          "clickArtInliers": 4,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Rise from the Tides",
+          "distance": 223,
+          "inliers": 0,
+          "color": 0.7903354297413898,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        }
+      ],
+      "ms": 5205
+    },
+    {
+      "i": 83,
+      "name": "As Foretold",
+      "build": "milo-rescue-4 (local vision)",
+      "got": "Panopticon",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Panopticon",
+        "inliers": 8,
+        "color": 88,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 6,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 12,
+        "inferenceMs": 262,
+        "searchMs": 45,
+        "ms": 324,
+        "rescued": false,
+        "totalMs": 744
+      },
+      "miloChecked": [
+        {
+          "name": "As Foretold",
+          "distance": 163,
+          "inliers": 8,
+          "color": 0.3305189448874444,
+          "clickInside": null,
+          "clickInliers": 8,
+          "clickArtInliers": 5,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Cresting Mosasaurus",
+          "distance": 255,
+          "inliers": 3,
+          "color": 0.5457122984807938,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Primal Vigor",
+          "distance": 209,
+          "inliers": 6,
+          "color": 0.4703446470666677,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Rampaging Aetherhood",
+          "distance": 242,
+          "inliers": 7,
+          "color": 0.605226807994768,
+          "clickInside": null,
+          "clickInliers": 6,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Slumbering Walker",
+          "distance": 239,
+          "inliers": 0,
+          "color": 0.7790525340242311,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Food",
+          "distance": 249,
+          "inliers": 0,
+          "color": 0.23768312274478376,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "As Foretold",
+          "distance": 157,
+          "inliers": 8,
+          "color": 0.28263403358869255,
+          "clickInside": true,
+          "clickInliers": 13,
+          "clickArtInliers": 11,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Cresting Mosasaurus",
+          "distance": 251,
+          "inliers": 2,
+          "color": 0.6315458926837891,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Primal Vigor",
+          "distance": 242,
+          "inliers": 5,
+          "color": 0.5152590799843892,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Rampaging Aetherhood",
+          "distance": 231,
+          "inliers": 3,
+          "color": 0.6238022379111499,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Slumbering Walker",
+          "distance": 248,
+          "inliers": 3,
+          "color": 0.5492556591052562,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Food",
+          "distance": 212,
+          "inliers": 6,
+          "color": 0.04084318387322128,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        }
+      ],
+      "ms": 5494
+    },
+    {
+      "i": 86,
+      "name": "Malcolm, Alluring Scoundrel",
+      "build": "milo-rescue-4 (local vision)",
+      "got": "Unbounded Potential",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Unbounded Potential",
+        "inliers": 0,
+        "color": 100,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 12,
+        "inferenceMs": 259,
+        "searchMs": 45,
+        "ms": 322,
+        "rescued": false,
+        "totalMs": 661
+      },
+      "miloChecked": [
+        {
+          "name": "Mirrodin Besieged",
+          "distance": 213,
+          "inliers": 0,
+          "color": 0.9991940855979919,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Enduring Sliver",
+          "distance": 207,
+          "inliers": 0,
+          "color": 0.9992543458938599,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Throatseeker",
+          "distance": 220,
+          "inliers": 0,
+          "color": 0.9989147186279297,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Mind Rake",
+          "distance": 206,
+          "inliers": 0,
+          "color": 0.998383104801178,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Ephemerate",
+          "distance": 216,
+          "inliers": 0,
+          "color": 0.9987743496894836,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Scour All Possibilities",
+          "distance": 213,
+          "inliers": 0,
+          "color": 0.9990084767341614,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Mirrodin Besieged",
+          "distance": 229,
+          "inliers": 0,
+          "color": 0.835845947265625,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Enduring Sliver",
+          "distance": 262,
+          "inliers": 0,
+          "color": 0.05280265212059021,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Throatseeker",
+          "distance": 235,
+          "inliers": 0,
+          "color": 0.9756879806518555,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Mind Rake",
+          "distance": 185,
+          "inliers": 0,
+          "color": 0.5201023817062378,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Ephemerate",
+          "distance": 207,
+          "inliers": 0,
+          "color": 0.9988770484924316,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Scour All Possibilities",
+          "distance": 205,
+          "inliers": 0,
+          "color": 0.3745422959327698,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        }
+      ],
+      "ms": 4401
+    },
+    {
+      "i": 92,
+      "name": "Sacred Foundry",
+      "build": "milo-rescue-4 (local vision)",
+      "got": "Beast Walkers",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Beast Walkers",
+        "inliers": 6,
+        "color": 87,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 8,
+        "clickArtInliers": 6,
+        "clickTextInliers": 2
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 12,
+        "inferenceMs": 270,
+        "searchMs": 45,
+        "ms": 335,
+        "rescued": false,
+        "totalMs": 908
+      },
+      "miloChecked": [
+        {
+          "name": "Fiery Islet",
+          "distance": 244,
+          "inliers": 2,
+          "color": 0.4804442254389869,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Mountain",
+          "distance": 254,
+          "inliers": 1,
+          "color": 0.15720994722505566,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Plains",
+          "distance": 255,
+          "inliers": 6,
+          "color": 0.5346950889288564,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Mind Spiral",
+          "distance": 236,
+          "inliers": 3,
+          "color": 0.2547639348267694,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Initiate of Blood // Goka the Unjust",
+          "distance": 235,
+          "inliers": 3,
+          "color": 0.3989047793766076,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Hardlight Containment",
+          "distance": 256,
+          "inliers": 5,
+          "color": 0.6375907450710656,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Fiery Islet",
+          "distance": 248,
+          "inliers": 6,
+          "color": 0.2908571444786503,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Mountain",
+          "distance": 248,
+          "inliers": 5,
+          "color": 0.1775557888977346,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Plains",
+          "distance": 259,
+          "inliers": 2,
+          "color": 0.3309320601983927,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Mind Spiral",
+          "distance": 216,
+          "inliers": 6,
+          "color": 0.6181379624758847,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Initiate of Blood // Goka the Unjust",
+          "distance": 237,
+          "inliers": 4,
+          "color": 0.4551513744008844,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Hardlight Containment",
+          "distance": 245,
+          "inliers": 4,
+          "color": 0.5643655041549209,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        }
+      ],
+      "ms": 7002
+    },
+    {
+      "i": 94,
+      "name": "Bat",
+      "build": "milo-rescue-4 (local vision)",
+      "got": "Plains",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Plains",
+        "inliers": 7,
+        "color": 81,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 12,
+        "clickArtInliers": 5,
+        "clickTextInliers": 7
+      },
+      "milo": {
+        "status": "skipped"
+      },
+      "miloChecked": [],
+      "ms": 4657
+    },
+    {
+      "i": 95,
+      "name": "High Market",
+      "build": "milo-rescue-4 (local vision)",
+      "got": "Moorland Inquisitor",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Moorland Inquisitor",
+        "inliers": 5,
+        "color": 90,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 8,
+        "clickArtInliers": 3,
+        "clickTextInliers": 5
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 12,
+        "inferenceMs": 266,
+        "searchMs": 46,
+        "ms": 333,
+        "rescued": false,
+        "totalMs": 930
+      },
+      "miloChecked": [
+        {
+          "name": "High Market",
+          "distance": 218,
+          "inliers": 10,
+          "color": 0.7325290557291737,
+          "clickInside": null,
+          "clickInliers": 10,
+          "clickArtInliers": 1,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Grafted Butcher",
+          "distance": 233,
+          "inliers": 4,
+          "color": 0.6094690081026783,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Ninth Bridge Patrol",
+          "distance": 242,
+          "inliers": 3,
+          "color": 0.5141195174601307,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Swamp",
+          "distance": 223,
+          "inliers": 1,
+          "color": 0.8102727648165455,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Chromatic Lantern",
+          "distance": 234,
+          "inliers": 3,
+          "color": 0.41159249509837537,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Rakdos, the Muscle",
+          "distance": 224,
+          "inliers": 0,
+          "color": 0.19383607472445874,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "High Market",
+          "distance": 211,
+          "inliers": 17,
+          "color": 0.17503329779174237,
+          "clickInside": null,
+          "clickInliers": 5,
+          "clickArtInliers": 5,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Grafted Butcher",
+          "distance": 230,
+          "inliers": 1,
+          "color": 0.5559016581919423,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Ninth Bridge Patrol",
+          "distance": 245,
+          "inliers": 3,
+          "color": 0.47714091505076794,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Swamp",
+          "distance": 217,
+          "inliers": 0,
+          "color": 0.8042047139551869,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Chromatic Lantern",
+          "distance": 228,
+          "inliers": 2,
+          "color": 0.6197596904185048,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Rakdos, the Muscle",
+          "distance": 217,
+          "inliers": 2,
+          "color": 0.38702064105928,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        }
+      ],
+      "ms": 6808
+    },
+    {
+      "i": 96,
+      "name": "Exsanguinate",
+      "build": "milo-rescue-4 (local vision)",
+      "got": "Mortician Beetle",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Mortician Beetle",
+        "inliers": 7,
+        "color": 89,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 6,
+        "clickArtInliers": 2,
+        "clickTextInliers": 4
+      },
+      "milo": {
+        "status": "skipped"
+      },
+      "miloChecked": [],
+      "ms": 4784
+    },
+    {
+      "i": 98,
+      "name": "Arasta of the Endless Web",
+      "build": "milo-rescue-4 (local vision)",
+      "got": "Tangle Mantis",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Tangle Mantis",
+        "inliers": 7,
+        "color": 87,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 5,
+        "clickArtInliers": 3,
+        "clickTextInliers": 2
+      },
+      "milo": {
+        "status": "skipped"
+      },
+      "miloChecked": [],
+      "ms": 4614
+    },
+    {
+      "i": 100,
+      "name": "Cat",
+      "build": "milo-rescue-4 (local vision)",
+      "got": "Blank Card",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Blank Card",
+        "inliers": 9,
+        "color": 94,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "milo": {
+        "status": "skipped"
+      },
+      "miloChecked": [],
+      "ms": 3369
+    },
+    {
+      "i": 104,
+      "name": "The Fire Crystal",
+      "build": "milo-rescue-4 (local vision)",
+      "got": "Double-Faced Substitute Card",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Double-Faced Substitute Card",
+        "inliers": 5,
+        "color": 99,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 7,
+        "clickArtInliers": 1,
+        "clickTextInliers": 6
+      },
+      "milo": {
+        "status": "skipped"
+      },
+      "miloChecked": [],
+      "ms": 3304
+    },
+    {
+      "i": 119,
+      "name": "Anger",
+      "build": "milo-rescue-4 (local vision)",
+      "got": "Blank Card",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Blank Card",
+        "inliers": 0,
+        "color": 93,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 11,
+        "inferenceMs": 263,
+        "searchMs": 46,
+        "ms": 333,
+        "rescued": false,
+        "totalMs": 752
+      },
+      "miloChecked": [
+        {
+          "name": "Stingmoggie",
+          "distance": 190,
+          "inliers": 0,
+          "color": 0.550240159034729,
+          "clickInside": null,
+          "clickInliers": 7,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Living Lands",
+          "distance": 197,
+          "inliers": 0,
+          "color": 0.327006459236145,
+          "clickInside": null,
+          "clickInliers": 5,
+          "clickArtInliers": 3,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Plains",
+          "distance": 233,
+          "inliers": 0,
+          "color": 0.1828029900789261,
+          "clickInside": null,
+          "clickInliers": 4,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "G'raha Tia, Scion Reborn",
+          "distance": 222,
+          "inliers": 0,
+          "color": 0.36642372608184814,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Man-o'-War",
+          "distance": 277,
+          "inliers": 0,
+          "color": 0.3798249065876007,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Land's Edge",
+          "distance": 269,
+          "inliers": 0,
+          "color": 0.07614784687757492,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Living Lands",
+          "distance": 201,
+          "inliers": 0,
+          "color": 0.228368878364563,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Plains",
+          "distance": 232,
+          "inliers": 0,
+          "color": 0.18264071643352509,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "G'raha Tia, Scion Reborn",
+          "distance": 214,
+          "inliers": 0,
+          "color": 0.3342313766479492,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Man-o'-War",
+          "distance": 209,
+          "inliers": 0,
+          "color": 0.4234170615673065,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Land's Edge",
+          "distance": 201,
+          "inliers": 0,
+          "color": 0.09445926547050476,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        }
+      ],
+      "ms": 4669
+    },
+    {
+      "i": 158,
+      "name": "Wastes",
+      "build": "milo-rescue-4 (local vision)",
+      "got": "Astor, Bearer of Blades",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Astor, Bearer of Blades",
+        "inliers": 5,
+        "color": 100,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 12,
+        "inferenceMs": 268,
+        "searchMs": 42,
+        "ms": 331,
+        "rescued": false,
+        "totalMs": 715
+      },
+      "miloChecked": [
+        {
+          "name": "Wastes",
+          "distance": 138,
+          "inliers": 0,
+          "color": 0.2348225445530261,
+          "clickInside": null,
+          "clickInliers": 5,
+          "clickArtInliers": 4,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Martyred Rusalka",
+          "distance": 205,
+          "inliers": 0,
+          "color": 0.6943607705616159,
+          "clickInside": null,
+          "clickInliers": 5,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Deathcap Marionette",
+          "distance": 213,
+          "inliers": 0,
+          "color": 0.18686093697760953,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Overlord of the Balemurk",
+          "distance": 200,
+          "inliers": 0,
+          "color": 0.2571805753541412,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Dig Through Time",
+          "distance": 253,
+          "inliers": 0,
+          "color": 0.5662055046341266,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Expedition Diviner",
+          "distance": 243,
+          "inliers": 0,
+          "color": 0.4158635170242633,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Wastes",
+          "distance": 203,
+          "inliers": 0,
+          "color": 0.42676073620532406,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Martyred Rusalka",
+          "distance": 208,
+          "inliers": 0,
+          "color": 0.6414349109909381,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Deathcap Marionette",
+          "distance": 224,
+          "inliers": 0,
+          "color": 0.365588515996933,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Overlord of the Balemurk",
+          "distance": 250,
+          "inliers": 0,
+          "color": 0.3239260117334197,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Dig Through Time",
+          "distance": 260,
+          "inliers": 0,
+          "color": 0.9028996072847804,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Expedition Diviner",
+          "distance": 252,
+          "inliers": 0,
+          "color": 0.9985978138010978,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        }
+      ],
+      "ms": 4702
+    },
+    {
+      "i": 163,
+      "name": "Mistrise Village",
+      "build": "milo-rescue-4 (local vision)",
+      "got": "Double-Faced Substitute Card",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Double-Faced Substitute Card",
+        "inliers": 5,
+        "color": 99,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 2,
+        "proposals": 10,
+        "inferenceMs": 532,
+        "searchMs": 87,
+        "ms": 638,
+        "rescued": false,
+        "totalMs": 1078
+      },
+      "miloChecked": [
+        {
+          "name": "Mistrise Village",
+          "distance": 136,
+          "inliers": 1,
+          "color": 0.17838352790568024,
+          "clickInside": null,
+          "clickInliers": 3,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Chandra Nalaar",
+          "distance": 193,
+          "inliers": 1,
+          "color": 0.08797586639411747,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Stone by Sunlight",
+          "distance": 211,
+          "inliers": 0,
+          "color": 0.8306242295075208,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Winged Coatl",
+          "distance": 193,
+          "inliers": 0,
+          "color": 0.5996117063332349,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Stenchskipper",
+          "distance": 206,
+          "inliers": 1,
+          "color": 0.5507988276076503,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Velis Vel",
+          "distance": 213,
+          "inliers": 0,
+          "color": 0.7085685060592368,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Mistrise Village",
+          "distance": 127,
+          "inliers": 2,
+          "color": 0.17453261208720505,
+          "clickInside": null,
+          "clickInliers": 6,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Chandra Nalaar",
+          "distance": 250,
+          "inliers": 0,
+          "color": 0.42652513459324837,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Winged Coatl",
+          "distance": 190,
+          "inliers": 1,
+          "color": 0.6362910338211805,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Velis Vel",
+          "distance": 216,
+          "inliers": 1,
+          "color": 0.6937505391688319,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        }
+      ],
+      "ms": 5367
+    },
+    {
+      "i": 165,
+      "name": "Ogre",
+      "build": "milo-rescue-4 (local vision)",
+      "got": "Ogre",
+      "ok": true,
+      "by": "art-match",
+      "regionalProof": true,
+      "artBest": {
+        "name": "Ogre",
+        "inliers": 59,
+        "color": 39,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 59,
+        "clickArtInliers": 25,
+        "clickTextInliers": 25
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 2,
+        "proposals": 12,
+        "inferenceMs": 533,
+        "searchMs": 89,
+        "ms": 644,
+        "rescued": true,
+        "totalMs": 951
+      },
+      "miloChecked": [
+        {
+          "name": "Ogre",
+          "distance": 113,
+          "inliers": 59,
+          "color": 0.38839954870491056,
+          "clickInside": true,
+          "clickInliers": 59,
+          "clickArtInliers": 25,
+          "regionalProof": true,
+          "blocked": false
+        },
+        {
+          "name": "Goblin",
+          "distance": 178,
+          "inliers": 7,
+          "color": 0.13830671062714828,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Beast",
+          "distance": 214,
+          "inliers": 7,
+          "color": 0.42924511513228936,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Soldier",
+          "distance": 185,
+          "inliers": 6,
+          "color": 0.8470628093546111,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Satyr",
+          "distance": 199,
+          "inliers": 9,
+          "color": 0.38347252064522763,
+          "clickInside": null,
+          "clickInliers": 11,
+          "clickArtInliers": 2,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Ooze",
+          "distance": 212,
+          "inliers": 7,
+          "color": 0.30100734565894527,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Ogre",
+          "distance": 185,
+          "inliers": 7,
+          "color": 0.2418721522171836,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Goblin",
+          "distance": 165,
+          "inliers": 10,
+          "color": 0.1000658345346892,
+          "clickInside": null,
+          "clickInliers": 10,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Beast",
+          "distance": 197,
+          "inliers": 6,
+          "color": 0.5579885332463164,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Soldier",
+          "distance": 196,
+          "inliers": 4,
+          "color": 0.7071061973310862,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Satyr",
+          "distance": 214,
+          "inliers": 0,
+          "color": 0,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Ooze",
+          "distance": 199,
+          "inliers": 0,
+          "color": 0,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        }
+      ],
+      "ms": 1845
+    },
+    {
+      "i": 180,
+      "name": "Ghalta, Stampede Tyrant",
+      "build": "milo-rescue-4 (local vision)",
+      "got": "Ghalta, Stampede Tyrant",
+      "ok": true,
+      "by": "art-match",
+      "regionalProof": true,
+      "artBest": {
+        "name": "Ghalta, Stampede Tyrant",
+        "inliers": 80,
+        "color": 87,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 80,
+        "clickArtInliers": 44,
+        "clickTextInliers": 30
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 12,
+        "inferenceMs": 265,
+        "searchMs": 46,
+        "ms": 330,
+        "rescued": true,
+        "totalMs": 607
+      },
+      "miloChecked": [
+        {
+          "name": "Ghalta, Stampede Tyrant",
+          "distance": 179,
+          "inliers": 80,
+          "color": 0.8656072596877493,
+          "clickInside": true,
+          "clickInliers": 80,
+          "clickArtInliers": 44,
+          "regionalProof": true,
+          "blocked": false
+        },
+        {
+          "name": "Sanctifier en-Vec",
+          "distance": 228,
+          "inliers": 5,
+          "color": 0.45715915482651326,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Elemental",
+          "distance": 246,
+          "inliers": 4,
+          "color": 0.30628814583724306,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Valgavoth, Terror Eater",
+          "distance": 256,
+          "inliers": 1,
+          "color": 0.7088271843658731,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Kutzil, Malamet Exemplar",
+          "distance": 250,
+          "inliers": 4,
+          "color": 0.5335619149918784,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Dragonback Assault",
+          "distance": 247,
+          "inliers": 2,
+          "color": 0.06912157341866987,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Ghalta, Stampede Tyrant",
+          "distance": 241,
+          "inliers": 3,
+          "color": 0.777404703265347,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Sanctifier en-Vec",
+          "distance": 258,
+          "inliers": 4,
+          "color": 0.8287260696015437,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Elemental",
+          "distance": 247,
+          "inliers": 3,
+          "color": 0.19961135527955776,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Valgavoth, Terror Eater",
+          "distance": 249,
+          "inliers": 2,
+          "color": 0.9416370521594217,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Kutzil, Malamet Exemplar",
+          "distance": 255,
+          "inliers": 0,
+          "color": 0,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Dragonback Assault",
+          "distance": 246,
+          "inliers": 0,
+          "color": 0,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        }
+      ],
+      "ms": 1315
+    },
+    {
+      "i": 181,
+      "name": "Corrupted Conviction",
+      "build": "milo-rescue-4 (local vision)",
+      "got": "Corrupted Conviction",
+      "ok": true,
+      "by": "art-match",
+      "regionalProof": true,
+      "artBest": {
+        "name": "Corrupted Conviction",
+        "inliers": 52,
+        "color": 67,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 52,
+        "clickArtInliers": 6,
+        "clickTextInliers": 46
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 12,
+        "inferenceMs": 266,
+        "searchMs": 45,
+        "ms": 330,
+        "rescued": true,
+        "totalMs": 847
+      },
+      "miloChecked": [
+        {
+          "name": "Corrupted Conviction",
+          "distance": 165,
+          "inliers": 52,
+          "color": 0.6726190224726452,
+          "clickInside": true,
+          "clickInliers": 52,
+          "clickArtInliers": 6,
+          "regionalProof": true,
+          "blocked": false
+        },
+        {
+          "name": "Talisman of Progress",
+          "distance": 209,
+          "inliers": 6,
+          "color": 0.8472805935107317,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Languish",
+          "distance": 226,
+          "inliers": 1,
+          "color": 0.5980229696815513,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Amulet of Vigor",
+          "distance": 240,
+          "inliers": 3,
+          "color": 0.5471094046024518,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Blood Moon",
+          "distance": 212,
+          "inliers": 2,
+          "color": 0.20072934965173772,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Hymn of the Wilds",
+          "distance": 213,
+          "inliers": 6,
+          "color": 0.6649266090480523,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Corrupted Conviction",
+          "distance": 162,
+          "inliers": 52,
+          "color": 0.6727189794619335,
+          "clickInside": true,
+          "clickInliers": 52,
+          "clickArtInliers": 6,
+          "regionalProof": true,
+          "blocked": false
+        },
+        {
+          "name": "Talisman of Progress",
+          "distance": 197,
+          "inliers": 5,
+          "color": 0.8567771185134916,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Languish",
+          "distance": 212,
+          "inliers": 5,
+          "color": 0.7257117873959942,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Amulet of Vigor",
+          "distance": 206,
+          "inliers": 5,
+          "color": 0.7083263788608747,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Blood Moon",
+          "distance": 218,
+          "inliers": 3,
+          "color": 0.1976795736936765,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Hymn of the Wilds",
+          "distance": 214,
+          "inliers": 6,
+          "color": 0.6649266090480523,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        }
+      ],
+      "ms": 1588
+    },
+    {
+      "i": 188,
+      "name": "Geier Reach Sanitarium",
+      "build": "milo-rescue-4 (local vision)",
+      "got": "Blank Card",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Blank Card",
+        "inliers": 0,
+        "color": 93,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 2,
+        "proposals": 12,
+        "inferenceMs": 527,
+        "searchMs": 89,
+        "ms": 634,
+        "rescued": false,
+        "totalMs": 1079
+      },
+      "miloChecked": [
+        {
+          "name": "Necrogen Mists",
+          "distance": 227,
+          "inliers": 0,
+          "color": 0.5417277216911316,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Geier Reach Sanitarium",
+          "distance": 208,
+          "inliers": 1,
+          "color": 0.6709965467453003,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Cathartic Reunion",
+          "distance": 234,
+          "inliers": 0,
+          "color": 0.06164348125457764,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Accumulated Knowledge",
+          "distance": 243,
+          "inliers": 0,
+          "color": 0.22738303244113922,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Brokkos, Apex of Forever",
+          "distance": 227,
+          "inliers": 0,
+          "color": 0.2551242411136627,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Fearless Swashbuckler",
+          "distance": 233,
+          "inliers": 2,
+          "color": 0.42446061968803406,
+          "clickInside": null,
+          "clickInliers": 6,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Necrogen Mists",
+          "distance": 244,
+          "inliers": 0,
+          "color": 0.2652130424976349,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Geier Reach Sanitarium",
+          "distance": 217,
+          "inliers": 0,
+          "color": 0.9182989001274109,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Cathartic Reunion",
+          "distance": 245,
+          "inliers": 0,
+          "color": 0.040184974670410156,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Accumulated Knowledge",
+          "distance": 226,
+          "inliers": 0,
+          "color": 0.49700990319252014,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Brokkos, Apex of Forever",
+          "distance": 236,
+          "inliers": 0,
+          "color": 0.6561177372932434,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Fearless Swashbuckler",
+          "distance": 226,
+          "inliers": 0,
+          "color": 0.13334044814109802,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        }
+      ],
+      "ms": 5409
+    },
+    {
+      "i": 195,
+      "name": "Kai Budde Bio",
+      "build": "milo-rescue-4 (local vision)",
+      "got": "Ash Barrens",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Ash Barrens",
+        "inliers": 7,
+        "color": 96,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 7,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 8,
+        "inferenceMs": 267,
+        "searchMs": 45,
+        "ms": 334,
+        "rescued": false,
+        "totalMs": 943
+      },
+      "miloChecked": [
+        {
+          "name": "Elvish Impersonation Contest",
+          "distance": 226,
+          "inliers": 5,
+          "color": 0.8423150181770325,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Asmoranomardicadaistinaculdacar's Kitchen",
+          "distance": 223,
+          "inliers": 0,
+          "color": 0.8423982791500748,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Clamilton Estate",
+          "distance": 232,
+          "inliers": 4,
+          "color": 0.8423150181770325,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Pin Collector's Booth",
+          "distance": 248,
+          "inliers": 6,
+          "color": 0.8423150181770325,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Preston's Stage",
+          "distance": 237,
+          "inliers": 4,
+          "color": 0.8423150181770325,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Plains",
+          "distance": 239,
+          "inliers": 1,
+          "color": 0.20371152984444052,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Pin Collector's Booth",
+          "distance": 217,
+          "inliers": 4,
+          "color": 0.8985377642275125,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        },
+        {
+          "name": "Plains",
+          "distance": 236,
+          "inliers": 1,
+          "color": 0.22075202493579127,
+          "clickInside": null,
+          "clickInliers": 0,
+          "clickArtInliers": 0,
+          "regionalProof": false,
+          "blocked": false
+        }
+      ],
+      "ms": 7042
+    }
+  ]
+}

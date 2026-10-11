@@ -1,0 +1,23 @@
+case 0: py-vs-js distance = 8 / 512
+case 1: py-vs-js distance = 4 / 512
+case 2: py-vs-js distance = 6 / 512
+case 3: py-vs-js distance = 7 / 512
+case 4: py-vs-js distance = 1 / 512
+case 5: py-vs-js distance = 7 / 512
+max self-distance: 8, min cross-distance: 176
+COMPAT OK
+ 
+OK: 9 hashing functions identical in hash.js and recognizer.js
+OK: v4 card metadata and v3 visual reuse
+Downloading bulk metadata (0 MB)...
+Downloading bulk metadata (0 MB)...
+Downloading bulk metadata (0 MB)...
+Downloading bulk metadata (0 MB)...
+Downloading bulk metadata...
+Downloading bulk metadata...
+Downloading bulk metadata...
+OK: compressed JSONL, legacy JSON, immutable snapshot cache, complete publication, provenance and corruption rejection
+OK: 113263 unique printing faces, 35648 names, all shard/binary rows aligned
+Milo publication refuses incomplete/corrupt catalogs and preserves the last valid output
+OK: complete Milo catalog: 113263 faces, 35648 names, model/table/index checksums verified
+OK: metadata discriminativeness analysis

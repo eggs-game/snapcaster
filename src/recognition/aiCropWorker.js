@@ -1,4 +1,5 @@
 import { AI_CROP_MAX_QUADS, AI_CROP_MODEL, aiCropWindows, sameAiQuad, validateAiQuad } from "./aiCropGeometry.js";
+import { lookupMilo, miloCatalog } from "./miloLookup.js";
 
 const BASE = new URL("/vendor/vision/cornelius-2.12-ort-1.30.0/", self.location.origin).href;
 const SIZE = 384;
@@ -16,10 +17,20 @@ function session() {
   return sessionPromise;
 }
 
-self.onmessage = async ({ data: { id, bmp, point } }) => {
+self.onmessage = async ({ data: { id, bmp, point, type, images } }) => {
   const started = performance.now();
   try {
     const model = await session();
+    // Both sessions share the same ORT WASM runtime and serialized job queue.
+    if (type === "milo-warmup") {
+      const catalog = await miloCatalog(ort);
+      self.postMessage({ id, ...catalog, diagnostic: { model: "milo1", status: "ready", ms: Math.round(performance.now() - started) } });
+      return;
+    }
+    if (type === "milo-lookup") {
+      self.postMessage({ id, ...await lookupMilo(images || [], ort) });
+      return;
+    }
     const canvas = new OffscreenCanvas(SIZE, SIZE);
     const ctx = canvas.getContext("2d", { willReadFrequently: true });
     const quads = [], probes = [];
@@ -52,8 +63,8 @@ self.onmessage = async ({ data: { id, bmp, point } }) => {
     canvas.width = canvas.height = 0;
     self.postMessage({ id, quads, diagnostic: { model: AI_CROP_MODEL, status: "ready", proposals: quads.length, probes, ms: Math.round(performance.now() - started) } });
   } catch (error) {
-    self.postMessage({ id, quads: [], diagnostic: { model: AI_CROP_MODEL, status: "failed", proposals: 0, ms: Math.round(performance.now() - started), error: String(error?.message || error) } });
+    self.postMessage({ id, quads: [], rows: [], diagnostic: { model: type?.startsWith("milo-") ? "milo1" : AI_CROP_MODEL, status: "failed", proposals: 0, ms: Math.round(performance.now() - started), error: String(error?.message || error) } });
   } finally {
-    bmp.close();
+    bmp?.close();
   }
 };

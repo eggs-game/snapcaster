@@ -163,6 +163,31 @@ recognition failure, never a coverage gap.
 Run the complete plan after any crop, retrieval, hashing, card-isolation, ORB,
 or OCR decision change and before releasing that recognition build:
 
+The sequential release driver also saves the actual failed gallery pixels before
+closing each context. Tableau result exports include the exact normalized point
+supplied to recognition; older exports mark that point unknown rather than
+reconstructing it from rounded truth metadata. These captures allow confident
+neighbour failures from random draws to be replayed faithfully.
+
+For Milo changes, `scripts/benchmark_milo_lookup.mjs` runs a paired control
+with Cornelius enabled in both arms and Milo disabled only in the control.
+The final candidate must pass the same complete release matrix as a crop change. `scripts/test_milo_browser.mjs`
+checks normal-reference retrieval on the saved new-face cases, missing-catalog
+fallback, and the actual shared WASM allocation across alternating corner and
+lookup jobs. Its wrapper is written only into a temporary compiled `dist`; it
+is not production instrumentation. Run it separately from timed benchmarks.
+Use frozen production builds, the authoritative Real life sampler and the
+same captures. Save every scan, recovered/regressed identities, accepted
+precision, rotations, overlaps, half-run accuracy, perfect-crop controls and
+memory. Then complete every release suite below. A descriptor's top-k recall
+alone cannot satisfy a recognition release gate.
+
+Run `scripts/test_milo_lookup.mjs`, `scripts/test_milo_catalog.py` and
+`scripts/verify_milo_catalog.py` as well. They check failed-model fallback,
+clicked-card evidence, stale row rejection, shortlist diversity and publication
+refusal for corrupt/incomplete face catalogs. A new database snapshot must
+keep **both** visual catalogs aligned and complete.
+
 | Order | Suite | Release gate |
 | --- | --- | --- |
 | 1 | **Real life (200 cards)** | The headline suite. Deterministic draw, so compare card-for-card against the last recorded run rather than against a gate alone. `art-match` and `visual-exact` must stay ≥99% precise; inspect `byOcclusion`, `byRotation` and the perfect-crop control. |

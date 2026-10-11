@@ -1,0 +1,7 @@
+{
+  "deployed": false,
+  "reason": "Rejected despite 184/200 primary: Dice 100 confidently labelled Inga and Esika as Phelddagrif from isolated query features without registered source ownership. Random 200 also fell below its 95% gate. The final rule separates tentative ranking from positive clicked-card artwork acceptance, and registers initial outline/learned queries.",
+  "preservedFailedPixels": true,
+  "exactNormalizedPointExported": false,
+  "arcaneSupplemental": "Stopped before completion; this superseded prototype is not release evidence."
+}

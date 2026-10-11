@@ -172,6 +172,7 @@ function buildResultPayload(mode, summary, results) {
       isolationDebug: r.isolationDebug || null,
       aiCrop: r.aiCrop,
       truthGeometry: r.truthGeometry || null,
+      capturePoint: r.capturePoint || null,
       stages: r.stages,
       ...(r.scene !== undefined ? {
         scene: r.scene, coverage: r.coverage, clipped: r.clipped,
@@ -405,6 +406,7 @@ export default function SnapTest() {
         try {
           const crop = cropScene(scene.canvas, p.nx, p.ny);
           cropUrl = crop.url;
+          rec.capturePoint = { nx: crop.px, ny: crop.py };
           rec.truthGeometry = {
             angle: +p.angle.toFixed(2),
             center: {

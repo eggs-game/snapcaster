@@ -360,6 +360,14 @@ let index = null, cards = null, manifest = null, shardedIndex = false, indexProm
 let globalIndexPromise = null;
 let colorIndex = null, artIndex = null; // v3 companion tables
 let printingIndexByKey = null;
+let cardsSha256 = null;
+async function readCardRows(response) {
+  const bytes = await response.arrayBuffer();
+  cardsSha256 = globalThis.crypto?.subtle
+    ? Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)), b => b.toString(16).padStart(2, "0")).join("")
+    : null;
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
 const COLOR_BYTES = 13, ART_BYTES = 32;
 
 // Multi-table Hamming retrieval for crop proposals. Each table keys 8 pHash
@@ -455,7 +463,7 @@ function loadIndex() {
     const [h, c] = await Promise.all([fetch("/carddata/hashes.bin", { cache: "no-cache" }), fetch("/carddata/cards.json", { cache: "no-cache" })]);
     if (!h.ok || !c.ok) throw new Error("Card index not found");
     index = new Uint8Array(await h.arrayBuffer());
-    cards = await c.json();
+    cards = await readCardRows(c);
     if (index.length !== cards.length * VEC_BYTES) throw new Error("Card index corrupted");
     return cards.length;
   })();
@@ -490,7 +498,7 @@ function loadGlobalIndex() {
       ]);
       if (!hashResponse.ok || !cardsResponse.ok) throw new Error("Global fallback index not found");
       index = new Uint8Array(await hashResponse.arrayBuffer());
-      cards = await cardsResponse.json();
+      cards = await readCardRows(cardsResponse);
       if (index.length !== cards.length * VEC_BYTES) throw new Error("Global fallback index corrupted");
     }
     ensurePrintingIndex();
@@ -878,7 +886,24 @@ function matToImageData(mat) {
   return new ImageData(new Uint8ClampedArray(mat.data), mat.cols, mat.rows);
 }
 
-function rectifyCard(srcImageData, corners) {
+function rectifiedClick(transform, click, outputHeight, landscape) {
+  if (!transform || transform.length !== 9 || !click || Array.from(transform).some(v => !Number.isFinite(v))) return null;
+  const w = transform[6] * click.x + transform[7] * click.y + transform[8];
+  if (!Number.isFinite(w) || Math.abs(w) < 1e-8) return null;
+  const x = (transform[0] * click.x + transform[1] * click.y + transform[2]) / w;
+  const y = (transform[3] * click.x + transform[4] * click.y + transform[5]) / w;
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+  // cv.rotate(ROTATE_90_CLOCKWISE) maps pixel centres, including the -1.
+  return landscape ? { x: outputHeight - 1 - y, y: x } : { x, y };
+}
+
+function multiplyHomographies(a, b) {
+  const out = new Array(9).fill(0);
+  for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) for (let k = 0; k < 3; k++) out[r*3+c] += a[r*3+k] * b[k*3+c];
+  return out;
+}
+
+function rectifyCard(srcImageData, corners, click = null) {
   const cv = self.cv;
   const [tl, tr, br, bl] = corners;
   const wTop = Math.hypot(tr.x - tl.x, tr.y - tl.y);
@@ -907,9 +932,13 @@ function rectifyCard(srcImageData, corners) {
     finalMat = rotated;
   }
   const id = matToImageData(finalMat);
+  const sourceClick = click ? rectifiedClick(m.data64F, click, dh, landscape) : null;
+  const cameraToCrop = click ? (landscape
+    ? multiplyHomographies([0,-1,dh-1,1,0,0,0,0,1], m.data64F)
+    : Array.from(m.data64F)) : null;
   src.delete(); srcPts.delete(); dstPts.delete(); m.delete(); out.delete();
   if (rotated) rotated.delete();
-  return id;
+  return click ? { image: id, sourceClick, cameraToCrop } : id;
 }
 
 // Click-guided fallback at card aspect ratio -> CARD_W x CARD_H. Trying several
@@ -1713,7 +1742,7 @@ function waitForCV(ms) {
   });
 }
 
-async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads = [], aiOnly = false, aiCandidates = []) {
+async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads = [], aiOnly = false, aiCandidates = [], useMilo = false) {
   await loadIndex();
   // Prefer the accurate OpenCV pipeline, but don't hang the first scan forever
   // if it's still compiling — fall back to center-crop this once; the diagnostic
@@ -1742,6 +1771,11 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads =
     if (!sourceImageData) sourceImageData = bitmapToImageData(bmp);
     return sourceImageData;
   };
+  const queryRegionsFor = (images) => images.map(image => {
+    const candidate = candidates.find(c => c.image === image && c.sourceClick && c.cameraToCrop);
+    return candidate ? { mappedClick: candidate.sourceClick, cameraToCrop: candidate.cameraToCrop,
+      click, width: bmp.width, height: bmp.height } : null;
+  });
   const preparedCache = new WeakMap();
   let hintedQuads = null;
   let hintedOutlineCandidates = null;
@@ -1842,7 +1876,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads =
         }
         for (let i = 0; i < hintedQuads.length; i++) {
           hintedOutlineCandidates.push({
-            image: rectifyCard(srcImageData, hintedQuads[i]),
+            ...rectifyCard(srcImageData, hintedQuads[i], click),
             strategy: `outline-${i + 1}`,
           });
         }
@@ -1874,7 +1908,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads =
       if (!geometry.valid || !geometry.containsClick || geometry.aspect < 1.1 || geometry.aspect > 2.4) continue;
       const quad = geometry.corners;
       try {
-        candidates.push({ image: rectifyCard(getSourceImageData(), quad), strategy: `ai-crop-${candidates.length + 1}` });
+        candidates.push({ ...rectifyCard(getSourceImageData(), quad, click), strategy: `ai-crop-${candidates.length + 1}` });
       } catch (error) { console.warn("[snapcast worker] AI crop rectification failed", error); }
     }
   }
@@ -1897,7 +1931,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads =
           candidates.push({ image: srcImageData, strategy: "full-frame" });
         }
         for (let i = 0; i < quads.length; i++) {
-          candidates.push({ image: rectifyCard(srcImageData, quads[i]), strategy: `outline-${i + 1}` });
+          candidates.push({ ...rectifyCard(srcImageData, quads[i], click), strategy: `outline-${i + 1}` });
         }
       }
     } catch (e) {
@@ -2405,7 +2439,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads =
         prepared.find((p) => p.candidate.strategy === "art-50")?.candidate.image,
       ].filter((image, i, all) => image && all.indexOf(image) === i);
       try {
-        const verified = await verifyTopMatches(pool, images, cardShapedStrategy(bestCandidateStrategy), getSourceImageData(), click);
+        const verified = await verifyTopMatches(pool, images, cardShapedStrategy(bestCandidateStrategy), getSourceImageData(), click, 0, queryRegionsFor(images));
         const best = verified.matches[0];
         if (verified.artDecisive && best?.click_inside === true
           && best.click_inliers >= 24 && hasClickProof(best)) earlyVerified = verified;
@@ -2588,11 +2622,16 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads =
   // v2/grayscale fallback, or duplicate art candidates, may leave spare ORB
   // slots. Fill them from the deeper combined pool without name deduplication.
   for (const match of printingMatches.slice(24)) addVerification(match);
-  const verificationPool = extendAiVerification(verificationCandidates, aiOnly ? [] : aiCandidates);
+  // Preserve the former twelve hash-trial slots when Milo also contributes.
+  const hasMiloCandidates = !aiOnly && aiCandidates.some(m => m.milo_retrieval);
+  const supplements = hasMiloCandidates
+    ? [...aiCandidates.filter(m => !m.milo_retrieval).slice(0, 12), ...aiCandidates.filter(m => m.milo_retrieval).slice(0, 12)]
+    : aiCandidates;
+  const verificationPool = extendAiVerification(verificationCandidates, aiOnly ? [] : supplements, hasMiloCandidates ? 24 : 12);
   // Stage C: verify the top hash guesses against the real card images by
   // matching art keypoints. A decisive art match settles identity outright.
   let matchesOut = matches;
-  let artBest = null, artChecked = 0, artDecisive = false, blockedNames = [];
+  let artBest = null, artChecked = 0, artDecisive = false, blockedNames = [], miloContext = null;
   if (cvReady && verificationCandidates.length && bestCandidateImage) {
     try {
       // Feed ORB a DIVERSE crop set. Outline rectifications exclude the
@@ -2633,7 +2672,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads =
       if (!aiOnly) for (const candidate of candidates.filter(c => c.strategy.startsWith("ai-crop-")).slice(0, 2)) {
         if (!queryImages.includes(candidate.image)) queryImages.push(candidate.image);
       }
-      const verified = earlyVerified || await verifyTopMatches(verificationPool, queryImages, cardShaped, getSourceImageData(), click, verificationPool.length - verificationCandidates.length);
+      const verified = earlyVerified || await verifyTopMatches(verificationPool, queryImages, cardShaped, getSourceImageData(), click, verificationPool.length - verificationCandidates.length, queryRegionsFor(queryImages));
       // Keep the result UI compact after printing-level verification. The best
       // verified treatment wins for each name, and a decisive exact artwork
       // remains first.
@@ -2647,6 +2686,16 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads =
       artChecked = verified.artChecked;
       artDecisive = verified.artDecisive;
       blockedNames = verified.blockedNames || [];
+      if (aiOnly && useMilo && !artDecisive && (matchesOut[0]?.distance ?? Infinity) > CONF_GOOD) {
+        miloContext = { queryImages, cardShaped, source: getSourceImageData(), click,
+          base: verified.matches, dists, blockedNames,
+          hashes: candidates.filter(c => c.strategy.startsWith("ai-crop-")).flatMap(c => prepareCandidate(c).variants),
+          sourceRegions: new Map(candidates.filter(c => c.sourceClick && c.cameraToCrop).map(c => [c.image, {
+            mappedClick: c.sourceClick, cameraToCrop: c.cameraToCrop, click,
+            width: getSourceImageData().width, height: getSourceImageData().height,
+          }])),
+          images: candidates.filter(c => c.strategy.startsWith("ai-crop-")).slice(0, 2).map(c => c.image) };
+      }
     } catch (e) {
       console.warn("[snapcast worker] art verification failed", e);
     }
@@ -2668,7 +2717,8 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads =
   }
   preferredTitleCandidates.push(...candidates.filter(c => c.strategy.startsWith("ai-crop-")).slice(0, 2));
   return {
-    matches: matchesOut, printingMatches, queryCandidates,
+    matches: matchesOut, printingMatches, queryCandidates, miloContext,
+    miloImages: miloContext?.images || [],
     titleSource: preferredTitleCandidates,
     titleCount: preferredTitleCandidates.length,
     cardFound, cvStatus, candidatesTried, shardedIndex,
@@ -2715,20 +2765,22 @@ async function makeTitleStrips(titleSource) {
 // agreeing keypoints, a wrong one under 10.
 const refCache = new Map(); // "id/face" -> Promise<ImageData|null>
 
-function fetchReference(id, face) {
-  const key = `${id}/${face}`;
+function fetchReference(id, face, size = "small") {
+  const key = `${id}/${face}/${size}`;
   if (!refCache.has(key)) {
     if (refCache.size > 400) refCache.delete(refCache.keys().next().value);
     refCache.set(key, (async () => {
       const side = face === 1 ? "back" : "front";
-      const resp = await fetch(`https://cards.scryfall.io/small/${side}/${id[0]}/${id[1]}/${id}.jpg`);
+      const resp = await fetch(`https://cards.scryfall.io/${size}/${side}/${id[0]}/${id[1]}/${id}.jpg`);
       if (!resp.ok) throw new Error("ref fetch failed");
       const bmp = await createImageBitmap(await resp.blob());
       const canvas = new OffscreenCanvas(CARD_W, CARD_H);
       const ctx = canvas.getContext("2d");
       ctx.drawImage(bmp, 0, 0, CARD_W, CARD_H);
       if (bmp.close) bmp.close();
-      return ctx.getImageData(0, 0, CARD_W, CARD_H);
+      const pixels = ctx.getImageData(0, 0, CARD_W, CARD_H);
+      canvas.width = canvas.height = 0;
+      return pixels;
     })().catch(() => null));
   }
   return refCache.get(key);
@@ -2751,7 +2803,7 @@ function orbFeatures(imageData, nfeatures) {
   return { kp, desc, width: imageData.width, height: imageData.height };
 }
 
-function orbAlignment(query, ref, click = null) {
+function orbAlignment(query, ref, click = null, sourceRegion = null) {
   const cv = self.cv;
   if (!query.desc.rows || !ref.desc.rows) return { inliers: 0, inside: null, artInliers: 0 };
   const bf = new cv.BFMatcher(cv.NORM_HAMMING, false);
@@ -2800,15 +2852,21 @@ function orbAlignment(query, ref, click = null) {
           if (rx > 0.12 && rx < 0.88 && ((ry > 0.04 && ry < 0.13) || (ry > 0.58 && ry < 0.9))) textInliers++;
         }
         if (click && inliers >= 12 && contentSupportsIdentity({inliers,artInliers,textInliers}) && H?.rows === 3) {
-          const corners = homographySourceQuad(H.data64F, CARD_W, CARD_H);
-          const geometry = corners && quadGeometry(corners, query.width, query.height, 1, click);
+          // Crop -> reference composed with camera -> crop is a genuine
+          // source-space registration. Validate the footprint in the original
+          // frame, where an under-cropped card can still be fully present.
+          const transform = sourceRegion ? multiplyHomographies(H.data64F, sourceRegion.cameraToCrop) : H.data64F;
+          const width = sourceRegion?.width || query.width, height = sourceRegion?.height || query.height;
+          const sourceClick = sourceRegion?.click || click;
+          const corners = homographySourceQuad(transform, CARD_W, CARD_H);
+          const geometry = corners && quadGeometry(corners, width, height, 1, sourceClick);
           if (geometry?.valid && geometry.aspect >= 0.9 && geometry.aspect <= 2.5) {
             const area = Math.abs(corners.reduce((sum, p, i) => {
               const next = corners[(i + 1) % 4];
               return sum + p.x * next.y - next.x * p.y;
             }, 0)) / 2;
-            if (area >= query.width * query.height * 0.01 && area <= query.width * query.height * 1.2) {
-              inside = homographyContainsClick(H.data64F, click, CARD_W, CARD_H);
+            if (area >= width * height * 0.01 && area <= width * height * 1.2) {
+              inside = homographyContainsClick(transform, sourceClick, CARD_W, CARD_H);
               sourceCorners = geometry.corners;
             }
           }
@@ -2842,19 +2900,32 @@ function hasClickProof(match) {
     inliers: match.click_inliers, artInliers: match.click_art_inliers, textInliers: match.click_text_inliers,
   }, 8);
 }
+function hasPositiveClickProof(match) { return match?.click_inside === true && hasClickProof(match); }
 function orbScore(query, ref) { return artworkInlierScore(orbAlignment(query, ref)); }
 
-function extendAiVerification(base, proposals) {
+function recordRegionalProof(match, alignment) {
+  if (typeof alignment.inside !== "boolean" || alignment.inliers < 24 || !contentSupportsIdentity(alignment, 8)) return false;
+  if (match.regional_proof && (match.click_inside === true && alignment.inside === false
+    || match.click_inside === alignment.inside && (match.click_inliers || 0) >= alignment.inliers)) return false;
+  match.click_inside = alignment.inside;
+  match.click_inliers = alignment.inliers;
+  match.click_art_inliers = alignment.artInliers;
+  match.click_text_inliers = alignment.textInliers;
+  match.regional_proof = true;
+  return true;
+}
+
+function extendAiVerification(base, proposals, budget = 12) {
   const result = [...base];
   const keys = new Set(base.map(m => `${m.scryfall_id}:${m.face || 0}`));
   for (const match of Array.isArray(proposals) ? proposals : []) {
-    if (result.length >= base.length + 12) break;
+    if (result.length >= base.length + budget) break;
     const key = `${match.scryfall_id}:${match.face || 0}`;
     if (!match.scryfall_id || !match.name || keys.has(key)) continue;
     keys.add(key);
     result.push({ ...match, ai_supplement: true, identified_by: undefined,
       art_inliers: 0, color_sim: 0, ring_sim: undefined, click_inside: null,
-      click_inliers: 0, click_art_inliers: 0, click_text_inliers: 0, click_blocked: false });
+      click_inliers: 0, click_art_inliers: 0, click_text_inliers: 0, click_blocked: false, regional_proof: false });
   }
   return result;
 }
@@ -2993,15 +3064,30 @@ function ringSignature(imageData) {
   return hist;
 }
 
-async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source = null, click = null, extraBudget = 0) {
+function registeredColorAgreement(frame, reference) {
+  // Apply matching illumination variants only after the camera footprint is
+  // registered. Balancing a single-color card alone can erase its true hue.
+  const balancedFrame = whiteBalance(frame), balancedRef = whiteBalance(reference);
+  return {
+    color: Math.max(colorSimilarity(colorSignature(frame), colorSignature(reference)),
+      colorSimilarity(colorSignature(balancedFrame), colorSignature(balancedRef))),
+    ring: Math.max(colorSimilarity(ringSignature(frame), ringSignature(reference)),
+      colorSimilarity(ringSignature(balancedFrame), ringSignature(balancedRef))),
+  };
+}
+
+async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source = null, click = null, extraBudget = 0, queryRegions = []) {
   // The first 24 entries come from combined ranking; the remaining bounded
   // slots are pure-art rescues that the old 24-item slice silently discarded.
-  const limit = ORB_SHORTLIST + Math.min(12, Math.max(0, extraBudget));
+  const limit = ORB_SHORTLIST + Math.min(24, Math.max(0, extraBudget));
   const shortlist = matches.slice(0, limit);
   orbTiming.fetch = 0; orbTiming.queryFeat = 0; orbTiming.refFeat = 0;
   orbTiming.match = 0; orbTiming.refs = shortlist.length;
   const tFetch = performance.now();
-  const refs = await Promise.all(shortlist.map((m) => fetchReference(m.scryfall_id, m.face || 0)));
+  const [refs, detailed] = await Promise.all([
+    Promise.all(shortlist.map((m) => fetchReference(m.scryfall_id, m.face || 0))),
+    Promise.all(shortlist.map(m => m.milo_highres ? fetchReference(m.scryfall_id, m.face || 0, "normal") : null)),
+  ]);
   orbTiming.fetch = performance.now() - tFetch;
   const tQF = performance.now();
   const queryFeats = queryImages.map((img) => orbFeatures(img, 500));
@@ -3015,20 +3101,32 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source 
     let lead = 0, second = 0;
     for (let i = 0; i < shortlist.length; i++) {
       if (!refs[i]) { shortlist[i].art_inliers = 0; shortlist[i].color_sim = 0; continue; }
-      const tRF = performance.now();
-      const rf = orbFeatures(refs[i], 300);
-      orbTiming.refFeat += performance.now() - tRF;
-      let inliers = 0;
-      try {
-        const tM = performance.now();
-        for (const qf of queryFeats) inliers = Math.max(inliers, orbScore(qf, rf));
-        orbTiming.match += performance.now() - tM;
-        shortlist[i].art_inliers = inliers;
-      } finally {
-        rf.kp.delete(); rf.desc.delete();
+      let inliers = 0, registeredFrame = null;
+      for (const reference of [refs[i], detailed[i]].filter(Boolean)) {
+        const tRF = performance.now();
+        const rf = orbFeatures(reference, 300);
+        orbTiming.refFeat += performance.now() - tRF;
+        try {
+          const tM = performance.now();
+          for (let j = 0; j < queryFeats.length; j++) {
+            const region = queryRegions[j];
+            const alignment = orbAlignment(queryFeats[j], rf, region?.mappedClick || null, region || null);
+            inliers = Math.max(inliers, artworkInlierScore(alignment));
+            if (region && recordRegionalProof(shortlist[i], alignment) && alignment.inside === true && alignment.corners) {
+              registeredFrame = rectifyCard(source, alignment.corners);
+            }
+          }
+          orbTiming.match += performance.now() - tM;
+          shortlist[i].art_inliers = inliers;
+        } finally { rf.kp.delete(); rf.desc.delete(); }
       }
       shortlist[i].color_sim = colorSimilarity(querySig, colorSignature(refs[i]));
       if (queryRing) shortlist[i].ring_sim = colorSimilarity(queryRing, ringSignature(refs[i]));
+      if (registeredFrame) {
+        const agreement = registeredColorAgreement(registeredFrame, refs[i]);
+        shortlist[i].color_sim = agreement.color;
+        shortlist[i].ring_sim = agreement.ring;
+      }
       if (inliers > lead) { second = lead; lead = inliers; orbTiming.winRank = i; }
       else if (inliers > second) second = inliers;
       // Early stop: after the top-ranked references, an overwhelming keypoint
@@ -3046,18 +3144,30 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source 
     for (const item of [...shortlist].sort((a, b) => a.distance - b.distance).slice(0, 3)) {
       if (!probes.includes(item)) probes.push(item);
     }
-    const full = orbFeatures(source, 1600);
+    const needsFull = probes.some(item => !(item.regional_proof && hasPositiveClickProof(item)));
+    const full = needsFull ? orbFeatures(source, 1600) : null;
     try {
       for (const item of probes) {
+        // These keypoints already map the original source click through the
+        // exact crop transform. A dominant duplicate elsewhere in the full
+        // scene must not erase a positively registered clicked copy.
+        if (item.regional_proof && hasPositiveClickProof(item)) continue;
         const ref = refs[shortlist.indexOf(item)];
         if (!ref) continue;
         const rf = orbFeatures(ref, 300);
         try {
           const alignment = orbAlignment(full, rf, click);
-          item.click_inliers = alignment.inliers;
-          item.click_art_inliers = alignment.artInliers;
-          item.click_text_inliers = alignment.textInliers;
-          item.click_inside = alignment.inside;
+          // A weak/unknown global match cannot erase a crop's registered
+          // neighbour. Positive source proof may establish a clicked duplicate.
+          const retainedRegional = item.regional_proof && hasClickProof(item);
+          const positive = alignment.inside === true && alignment.inliers >= 16 && contentSupportsIdentity(alignment, 8);
+          if (!retainedRegional || positive) {
+            item.click_inliers = alignment.inliers;
+            item.click_art_inliers = alignment.artInliers;
+            item.click_text_inliers = alignment.textInliers;
+            item.click_inside = alignment.inside;
+            if (positive && retainedRegional) item.regional_proof = false;
+          }
           // Moderate template coincidences must not invent an artwork lead
           // or skip OCR. Genuine source-space rescues need stronger evidence.
           if (alignment.inside === true && alignment.inliers >= 24 && contentSupportsIdentity(alignment, 8)) {
@@ -3071,8 +3181,8 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source 
           if (alignment.inside === true && alignment.inliers >= 16 && contentSupportsIdentity(alignment, 8)) break;
         } finally { rf.kp.delete(); rf.desc.delete(); }
       }
-      excludeProvenNeighbours(shortlist, probes);
-    } finally { full.kp.delete(); full.desc.delete(); }
+      excludeProvenNeighbours(shortlist, [...probes, ...shortlist.filter(item => item.regional_proof)]);
+    } finally { if (full) { full.kp.delete(); full.desc.delete(); } }
   }
   let eligible = shortlist.filter((match) => !match.click_blocked);
   // Coarse color agreement bands: same color identity, plausible, or clashing.
@@ -3094,8 +3204,8 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source 
   // Weak AI retrieval must not reorder the established fallback. Supplements
   // enter only when artwork beats every competing card by the normal margin.
   const allEligible = eligible;
-  eligible = eligible.filter(match => !match.ai_supplement || isDecisiveLead(match,
-    [...allEligible].filter(other => other.name !== match.name).sort((a,b) => (b.art_inliers || 0)-(a.art_inliers || 0))[0]));
+  eligible = eligible.filter(match => !match.ai_supplement || ((!match.milo_retrieval || (match.click_inside === true && hasClickProof(match))) && isDecisiveLead(match,
+    [...allEligible].filter(other => other.name !== match.name).sort((a,b) => (b.art_inliers || 0)-(a.art_inliers || 0))[0])));
   const maxInliers = Math.max(...eligible.map(m => m.art_inliers || 0), 0);
   let ranked;
   if (maxInliers >= 12) {
@@ -3136,12 +3246,15 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source 
   // other, and a certain identification was presented as "possible match, not
   // certain". Being unsure WHICH PRINTING is not being unsure which card.
   const rival = ranked.find((m) => m.name !== best?.name);
-  const decisive = isDecisiveLead(best, rival);
+  // Ranking may retain an off-centre guess. Confident artwork identity also
+  // requires evidence that the matched printing owns the actual source click.
+  const decisive = isDecisiveLead(best, rival) && (!source || !click || hasPositiveClickProof(best));
   if (decisive) {
     best.identified_by = "art-match";
     best.confidence = Math.max(best.confidence || 0, Math.min(1, best.art_inliers / 40));
   }
   return {
+    checkedMatches: shortlist,
     matches: [...ranked, ...matches.slice(limit).filter((match) => !shortlist.some((candidate) => candidate.click_blocked && candidate.name === match.name))],
     artBest: best ? {
       name: best.name,
@@ -3215,6 +3328,51 @@ loadCV().catch(() => {});
 // Candidate images for the latest scan, retained so title strips can be
 // rendered on demand. Only the newest scan is kept (bounded memory).
 let lastTitleSource = { scanId: null, candidates: [] };
+let lastMiloContext = null;
+
+async function verifyMiloRows(scanId, rows, fingerprint) {
+  const context = lastMiloContext;
+  // A row number is meaningful only for the exact cards.json used to build it.
+  if (!context || context.scanId !== scanId || !cardsSha256 || fingerprint !== cardsSha256) throw new Error("Milo catalog/scan mismatch");
+  const blocked = new Set(context.blockedNames), seen = new Set(), proposals = [];
+  for (const entry of Array.isArray(rows) ? rows.slice(0, 12) : []) {
+    if (!Number.isInteger(entry.row) || entry.row < 0 || entry.row >= cards.length || !Number.isFinite(entry.score) || seen.has(entry.row)) continue;
+    seen.add(entry.row);
+    let distance = context.dists[entry.row];
+    for (const vector of context.hashes || []) {
+      let d = 0;
+      for (let b = 0; b < VEC_BYTES; b++) d += POPCOUNT[vector[b] ^ index[entry.row * VEC_BYTES + b]];
+      distance = Math.min(distance, d);
+    }
+    const match = cardMeta(entry.row, distance);
+    if (!blocked.has(match.name)) proposals.push({ ...match, strategy: "milo", milo_retrieval: true, milo_highres: proposals.length < 4 });
+  }
+  const proposedKeys = new Set(proposals.map(m => `${m.scryfall_id}:${m.face || 0}`));
+  const base = context.base.filter(match => !proposedKeys.has(`${match.scryfall_id}:${match.face || 0}`)).map(match => ({ ...match }));
+  const added = extendAiVerification([], proposals);
+  // Already-verified hash candidates remain competitors. Model candidates
+  // get their own bounded slots rather than displacing the ordinary shortlist.
+  const queries = [...new Set([...context.queryImages, ...context.images])].slice(0, 2);
+  const verified = await verifyTopMatches([...added, ...base], queries,
+    context.cardShaped, context.source, context.click, added.length, queries.map(image => context.sourceRegions?.get(image) || null));
+  const winner = verified.matches[0];
+  const rescued = verified.artDecisive && winner?.milo_retrieval && winner.click_inside === true && hasClickProof(winner);
+  const names = new Set();
+  const matches = verified.matches.filter(m => { if (names.has(m.name) || blocked.has(m.name)) return false; names.add(m.name); return true; }).slice(0, 36);
+  return { ...context.result, matches: rescued ? matches : context.result.matches,
+    printingMatches: [...proposals, ...context.result.printingMatches],
+    artBest: rescued ? verified.artBest : context.result.artBest,
+    artChecked: context.result.artChecked + verified.artChecked,
+    artDecisive: rescued ? true : context.result.artDecisive,
+    wasmHeapMB: self.cv?.HEAPU8 ? Math.round(self.cv.HEAPU8.length / 1e6) : null,
+    blockedNames: [...new Set([...context.blockedNames, ...(verified.blockedNames || [])])],
+    miloVerification: (verified.checkedMatches || []).filter(m => m.milo_retrieval).map(m => ({
+      name: m.name, distance: m.distance, inliers: m.art_inliers || 0, color: m.color_sim || 0,
+      clickInside: m.click_inside, clickInliers: m.click_inliers || 0, clickArtInliers: m.click_art_inliers || 0,
+      regionalProof: !!m.regional_proof, blocked: !!m.click_blocked,
+    })),
+    miloRescued: rescued };
+}
 
 self.onmessage = async (e) => {
   const { id, type, bmp, point, hints, aiQuads, aiOnly, aiCandidates, queryCandidates, scanId, enabled } = e.data || {};
@@ -3275,11 +3433,21 @@ self.onmessage = async (e) => {
     } catch (err) {
       self.postMessage({ id, error: String((err && err.message) || err), cvStatus });
     }
+  } else if (type === "milo-verify") {
+    try {
+      const res = await verifyMiloRows(scanId, e.data.rows, e.data.cards_sha256);
+      lastTitleSource.scanId = id;
+      self.postMessage({ id, ...res });
+    } catch (err) { self.postMessage({ id, error: String(err?.message || err) }); }
   } else if (type === "identify") {
     try {
-      const res = await identify(bmp, point, hints, aiQuads, aiOnly, aiCandidates);
+      lastMiloContext = null;
+      const res = await identify(bmp, point, hints, aiQuads, aiOnly, aiCandidates, e.data.milo);
       lastTitleSource = { scanId: id, candidates: res.titleSource || [] };
       delete res.titleSource; // ImageData payloads stay in-worker
+      const context = res.miloContext;
+      delete res.miloContext;
+      if (context) lastMiloContext = { ...context, scanId: id, result: { ...res, miloImages: [] } };
       self.postMessage({ id, ...res });
     } catch (err) {
       if (bmp && bmp.close) bmp.close();

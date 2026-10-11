@@ -1,0 +1,15 @@
+{
+  "build": "milo-rescue-7 (local vision)",
+  "requiredReleaseGates": "passed",
+  "productionBuild": "passed",
+  "hashParityAndDuplication": "passed",
+  "cardIndexAndMiloCompleteCoverage": "passed",
+  "corruptPublicationRejection": "passed",
+  "accessibility": "passed",
+  "sampledNewFaces": "20/20",
+  "frozenAiOnOffRegressions": "12/12",
+  "sharedModelMemoryAndUnavailableMiloFallback": "passed",
+  "primary": "184/200; 13 recovered; zero regressed; 174/174 accepted correct",
+  "additionalPhotographs": "159/200; known shared-overlay confident error remains; no near-perfect photographic accuracy claim",
+  "unrelatedUserEditsPreserved": true
+}

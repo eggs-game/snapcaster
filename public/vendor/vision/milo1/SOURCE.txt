@@ -1,0 +1,12 @@
+Milo 1 — unmodified MobileViT-XXS ONNX weights by HanClinto.
+Model source: https://huggingface.co/HanClinto/milo/tree/9bcc5e809e936b8c5630d1e7101aae1de1e76621
+Model SHA256: bd13d8d60383c69da04dce261f32e93fdaeaa8fd618fbc991e7385f71b3d45df
+Compatible seed catalog: milo1-scryfall-mtg-2026-07-09.npz
+Seed SHA256: c5cb0dc150eb9f5b183396dd25aecaa9efc5ce3d001dd8bef282fcc73ee778be
+Corresponding source: https://github.com/HanClinto/CollectorVision/tree/8b295ab80a997766afc00c640a616c1f2716df21
+License: AGPL-3.0 (included). No changes to the upstream weights.
+Snapcast's adapter, offline catalog updater and int8 reference encoding:
+https://github.com/eggs-game/snapcaster
+Runtime: the existing pinned ONNX Runtime Web 1.30.0 package alongside
+Cornelius, with its MIT license and third-party notices preserved there.
+No card captures are uploaded and no paid inference API is used.

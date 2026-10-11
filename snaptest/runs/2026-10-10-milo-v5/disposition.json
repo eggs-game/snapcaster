@@ -1,0 +1,150 @@
+{
+  "deployed": false,
+  "reason": "Dice accepted-pathway precision failed: 90/91 art matches correct.",
+  "failedCases": [
+    {
+      "name": "Spawn",
+      "id": "bc938f2e-2d6e-4afd-9a88-34eeaf0b51e3",
+      "pool": "token",
+      "got": "Snow-Covered Plains",
+      "by": "art-match",
+      "dist": 166,
+      "conf": 1,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Snow-Covered Plains (d=166)",
+        "Tazeem Raptor (d=200)",
+        "Isamaru, Hound of Konda (d=208)"
+      ],
+      "rot": "tapped",
+      "occ": "overlapped",
+      "ms": 3749,
+      "cv": "ready",
+      "tried": 118,
+      "dropped": 1,
+      "artBest": {
+        "name": "Snow-Covered Plains",
+        "inliers": 98,
+        "color": 71,
+        "weak": false,
+        "clickInside": false,
+        "clickInliers": 38,
+        "clickArtInliers": 10,
+        "clickTextInliers": 25
+      },
+      "artChecked": 36,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-sideways-rotated-98-44-92-89",
+          "score": 130.96
+        },
+        {
+          "strategy": "isolate-sideways-rotated-98-41-89-89",
+          "score": 130.17
+        },
+        {
+          "strategy": "isolate-sideways-rotated-84-56-50-44",
+          "score": 129.99
+        },
+        {
+          "strategy": "isolate-sideways-rotated-98-42-86-86",
+          "score": 128.02
+        },
+        {
+          "strategy": "isolate-sideways-raw-6-28-8-89",
+          "score": 121.57
+        },
+        {
+          "strategy": "isolate-sideways-raw-8-30-8-86",
+          "score": 121.51
+        },
+        {
+          "strategy": "isolate-sideways-raw-8-30-14-86",
+          "score": 121.32
+        },
+        {
+          "strategy": "isolate-portrait--4-51-86-38",
+          "score": 119.14
+        },
+        {
+          "strategy": "isolate-sideways-rotated-98-44-92-83",
+          "score": 118.72
+        },
+        {
+          "strategy": "isolate-sideways-raw--4-41-50-50",
+          "score": 118.55
+        },
+        {
+          "strategy": "isolate-sideways-raw-8-28-8-92",
+          "score": 116.14
+        },
+        {
+          "strategy": "isolate-sideways-raw-2-38-92-47",
+          "score": 115.29
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.025108251720666885,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.03286748751997948,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          }
+        ],
+        "ms": 177
+      },
+      "truthGeometry": {
+        "angle": 85.7,
+        "center": {
+          "x": 0.377,
+          "y": 0.474
+        },
+        "card": {
+          "w": 0.357,
+          "h": 0.498
+        }
+      },
+      "stages": {
+        "prep": 565,
+        "rankSeeds": 658,
+        "earlyOrbProbe": 0,
+        "rankRefine": 992,
+        "isolatePrep": 667,
+        "isolateScore": 224,
+        "rank": 0,
+        "orb": 455,
+        "aiCrop": 177,
+        "total": 3743
+      },
+      "scene": 9,
+      "coverage": 0.206,
+      "clipped": 0,
+      "click": {
+        "u": 0.54,
+        "v": 0.25,
+        "covered": false
+      },
+      "layout": "overlapping",
+      "diceColor": "blue",
+      "diceFace": 4,
+      "diceCoverage": 0.036
+    }
+  ],
+  "originalPixelsSaved": false,
+  "reproduction": "scripts/test_click_matching.mjs replays the reported strong outside-click confidence state; gallery captures are saved by the updated release harness for subsequent random runs.",
+  "fix": "A strongly registered outside footprint stays a tentative guess and cannot receive an artwork or near-exact confidence label without confirming the clicked card."
+}

@@ -19,6 +19,7 @@ const checks = [
   [node, "scripts/test_recognition_hints.mjs"],
   [node, "scripts/test_recognition_queue.mjs"],
   [node, "scripts/test_ai_crop.mjs"],
+  [node, "scripts/test_milo_lookup.mjs"],
   [node, "scripts/test_click_matching.mjs"],
   [node, "scripts/test_hash_distance.mjs"],
   [python, "scripts/check_hash_duplication.py"],

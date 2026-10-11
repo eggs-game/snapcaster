@@ -1,0 +1,240 @@
+{
+  "scope": "Research-only descriptor comparison, not verified identification or a deployment",
+  "target": "one clicked card in less than one second",
+  "computer": "Apple M2 Max",
+  "sourceCommit": "92f86f2",
+  "missingRows": 881,
+  "missingNames": 103,
+  "suites": {
+    "realLife": {
+      "n": 200,
+      "withProposal": 192,
+      "summaryConditionalOnCrop": {
+        "capture": {
+          "hash": {
+            "n": 200,
+            "top1": 0,
+            "top5": 0,
+            "top12": 0,
+            "top36": 0
+          },
+          "milo": {
+            "n": 200,
+            "top1": 0,
+            "top5": 1,
+            "top12": 1,
+            "top36": 3
+          },
+          "miloInt8": {
+            "n": 200,
+            "top1": 0,
+            "top5": 1,
+            "top12": 1,
+            "top36": 3
+          },
+          "artHash": {
+            "n": 200,
+            "top1": 0,
+            "top5": 0,
+            "top12": 0,
+            "top36": 0
+          },
+          "combinedHash": {
+            "n": 200,
+            "top1": 0,
+            "top5": 0,
+            "top12": 0,
+            "top36": 0
+          }
+        },
+        "perfect": {
+          "hash": {
+            "n": 200,
+            "top1": 124,
+            "top5": 136,
+            "top12": 144,
+            "top36": 150
+          },
+          "milo": {
+            "n": 200,
+            "top1": 193,
+            "top5": 194,
+            "top12": 194,
+            "top36": 195
+          },
+          "miloInt8": {
+            "n": 200,
+            "top1": 194,
+            "top5": 194,
+            "top12": 194,
+            "top36": 195
+          },
+          "artHash": {
+            "n": 200,
+            "top1": 95,
+            "top5": 102,
+            "top12": 107,
+            "top36": 114
+          },
+          "combinedHash": {
+            "n": 200,
+            "top1": 110,
+            "top5": 116,
+            "top12": 120,
+            "top36": 128
+          }
+        },
+        "learnedCombined": {
+          "hash": {
+            "n": 192,
+            "top1": 165,
+            "top5": 171,
+            "top12": 173,
+            "top36": 175
+          },
+          "milo": {
+            "n": 192,
+            "top1": 178,
+            "top5": 184,
+            "top12": 186,
+            "top36": 187
+          },
+          "miloInt8": {
+            "n": 192,
+            "top1": 177,
+            "top5": 184,
+            "top12": 186,
+            "top36": 187
+          },
+          "artHash": {
+            "n": 192,
+            "top1": 49,
+            "top5": 59,
+            "top12": 61,
+            "top36": 68
+          },
+          "combinedHash": {
+            "n": 192,
+            "top1": 108,
+            "top5": 119,
+            "top12": 123,
+            "top36": 132
+          }
+        }
+      },
+      "grayToMiloRecovered": 20,
+      "grayToMiloRegressed": 7
+    },
+    "overlap": {
+      "n": 100,
+      "withProposal": 93,
+      "summaryConditionalOnCrop": {
+        "perfect": {
+          "hash": {
+            "n": 100,
+            "top1": 99,
+            "top5": 99,
+            "top12": 100,
+            "top36": 100
+          },
+          "milo": {
+            "n": 100,
+            "top1": 94,
+            "top5": 96,
+            "top12": 96,
+            "top36": 98
+          },
+          "miloInt8": {
+            "n": 100,
+            "top1": 94,
+            "top5": 96,
+            "top12": 96,
+            "top36": 98
+          },
+          "artHash": {
+            "n": 100,
+            "top1": 97,
+            "top5": 97,
+            "top12": 97,
+            "top36": 97
+          },
+          "combinedHash": {
+            "n": 100,
+            "top1": 96,
+            "top5": 96,
+            "top12": 97,
+            "top36": 99
+          }
+        },
+        "learnedCombined": {
+          "hash": {
+            "n": 93,
+            "top1": 40,
+            "top5": 42,
+            "top12": 42,
+            "top36": 44
+          },
+          "milo": {
+            "n": 93,
+            "top1": 65,
+            "top5": 68,
+            "top12": 70,
+            "top36": 74
+          },
+          "miloInt8": {
+            "n": 93,
+            "top1": 65,
+            "top5": 68,
+            "top12": 70,
+            "top36": 74
+          },
+          "artHash": {
+            "n": 93,
+            "top1": 27,
+            "top5": 27,
+            "top12": 30,
+            "top36": 31
+          },
+          "combinedHash": {
+            "n": 93,
+            "top1": 33,
+            "top5": 33,
+            "top12": 35,
+            "top36": 36
+          }
+        }
+      },
+      "grayToMiloRecovered": 26,
+      "grayToMiloRegressed": 1
+    }
+  },
+  "browser": {
+    "computer": "Apple M2 Max",
+    "n": 31,
+    "captures": 16,
+    "backend": "ONNX Runtime Web 1.30.0 WASM, one thread; int8 gallery; portrait+180 degrees",
+    "coldLoopbackLoadMsBeforeWarmup": 258,
+    "medianMs": 317.0,
+    "p90Ms": 322.0,
+    "maxMs": 363,
+    "embeddingCosineMedian": 0.9998238797394372,
+    "embeddingCosineMin": 0.9917554660247196,
+    "top1Parity": 31,
+    "excludes": [
+      "capture/transport",
+      "PNG decoding",
+      "corner detection",
+      "reference fetches and verification"
+    ]
+  },
+  "sourceSha256": {
+    "src/SnapTest.jsx": "8472d6e48b528ea2d26a62f36a3247887f93f1a3ceac1e9c8465ec16e8f0fdee",
+    "src/snaptest/scene.js": "c3aed501c5787dea50b752ba35d959b5e71caf93f617eb7b24790e86ab62e345",
+    "src/recognition/recognizer.js": "f4fff7cf30628f8267ded5529b3e74433d2f45bf5e9bc22ecb8982d9392ef740",
+    "src/recognition/hash.js": "6c3bfa012e82927b783c021886b669eece2c75712e11eaa9039a5e51794b6ea6",
+    "public/carddata/cards.json": "647e2434f06eb20383441e02033e1622a51d4eb00f5f772a9b33c3df7ace1a60",
+    "public/carddata/hashes.bin": "494e5be3f4b00e7aa6e0b83ed16d3aec365ed79cdaa0317342060bedd25ddcf4",
+    "public/carddata/arthashes.bin": "ff08c916a11466dd6520c915c4e0cf4049ab006cb0c4776ee7c5a89bb2654206",
+    "public/carddata/colors.bin": "0bf239fce6fffdf8d9586403cbb4cc45657f5ffb42e006da57691fdcd75c38f6"
+  }
+}

@@ -32,6 +32,10 @@ jobs:
         run: python3 scripts/test_bulk_index.py
       - name: Verify published card index alignment
         run: python3 scripts/verify_card_index.py
+      - name: Verify Milo catalog publication and complete face coverage
+        run: |
+          python3 scripts/test_milo_catalog.py
+          python3 scripts/verify_milo_catalog.py
       - name: Verify metadata analysis
         run: python3 scripts/test_metadata_analysis.py
       - name: Verify metadata evidence gates

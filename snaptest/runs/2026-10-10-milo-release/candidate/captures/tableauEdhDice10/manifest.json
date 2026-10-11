@@ -1,0 +1,918 @@
+[
+  {
+    "file": "000.jpg",
+    "name": "Paul McCabe Bio",
+    "id": "09901fef-3daf-4890-9d8f-466881326cbd",
+    "pool": "token",
+    "got": "Blank Card",
+    "dist": 165,
+    "conf": 0.46,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Blank Card (d=165)",
+      "Double-Faced Substitute Card (d=180)",
+      "Vamping Vampire (d=188)"
+    ],
+    "rot": "upright",
+    "occ": "clear",
+    "ms": 4386,
+    "cv": "ready",
+    "tried": 107,
+    "dropped": 23,
+    "artBest": {
+      "name": "Blank Card",
+      "inliers": 0,
+      "color": 92,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 0,
+      "clickArtInliers": 0,
+      "clickTextInliers": 0
+    },
+    "artChecked": 59,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-portrait--6-53-29-23",
+        "score": 29.2
+      },
+      {
+        "strategy": "isolate-portrait--6-53-32-23",
+        "score": 26.61
+      },
+      {
+        "strategy": "isolate-sideways-raw--10-39-50-26",
+        "score": 26.37
+      },
+      {
+        "strategy": "isolate-sideways-rotated-80-54-26-50",
+        "score": 26.31
+      },
+      {
+        "strategy": "isolate-portrait--6-54-32-26",
+        "score": 25.69
+      },
+      {
+        "strategy": "isolate-sideways-rotated-82-56-29-50",
+        "score": 25.43
+      },
+      {
+        "strategy": "isolate-portrait--4-47-11-14",
+        "score": 25.22
+      },
+      {
+        "strategy": "isolate-portrait--10-45-17-35",
+        "score": 25.19
+      },
+      {
+        "strategy": "isolate-portrait--8-47-17-38",
+        "score": 25.06
+      },
+      {
+        "strategy": "isolate-portrait--10-47-20-38",
+        "score": 25.02
+      },
+      {
+        "strategy": "isolate-sideways-raw--8-39-50-26",
+        "score": 24.86
+      },
+      {
+        "strategy": "isolate-sideways-rotated-82-54-26-50",
+        "score": 24.08
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 1,
+      "probes": [
+        {
+          "sharpness": 0.021517422050237656,
+          "accepted": true,
+          "reason": "accepted"
+        },
+        {
+          "sharpness": 0.00912236887961626,
+          "accepted": false,
+          "reason": "weak"
+        }
+      ],
+      "ms": 176,
+      "fastMs": 476,
+      "fastHit": false
+    },
+    "truthGeometry": {
+      "angle": -9.3,
+      "center": {
+        "x": 0.62,
+        "y": 0.538
+      },
+      "card": {
+        "w": 0.361,
+        "h": 0.504
+      }
+    },
+    "capturePoint": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "stages": {
+      "prep": 385,
+      "rankSeeds": 475,
+      "earlyOrbProbe": 0,
+      "rankRefine": 626,
+      "isolatePrep": 609,
+      "isolateScore": 337,
+      "rank": 0,
+      "orb": 431,
+      "aiCrop": 176,
+      "aiAttempt": 476,
+      "milo": 867,
+      "total": 4383
+    },
+    "scene": 8,
+    "coverage": 0,
+    "clipped": 0,
+    "click": {
+      "u": 0.19,
+      "v": 0.39,
+      "covered": false
+    },
+    "layout": "side-by-side",
+    "diceColor": "black",
+    "diceFace": 2,
+    "diceCoverage": 0.035,
+    "point": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "pointNote": "Exact normalized point supplied to identifyCard."
+  },
+  {
+    "file": "001.jpg",
+    "name": "Resilient Khenra",
+    "id": "033a69fb-2af9-426c-b1d6-3e5b18c78c9a",
+    "pool": "token",
+    "got": "Cloister Gargoyle",
+    "dist": 187,
+    "conf": 0.31,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Cloister Gargoyle (d=187)",
+      "Fishliver Oil (d=193)",
+      "Eruth, Tormented Prophet (d=194)"
+    ],
+    "rot": "upright",
+    "occ": "overlapped",
+    "ms": 7846,
+    "cv": "ready",
+    "tried": 118,
+    "dropped": 1,
+    "artBest": {
+      "name": "Cloister Gargoyle",
+      "inliers": 4,
+      "color": 90,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 6,
+      "clickArtInliers": 0,
+      "clickTextInliers": 0
+    },
+    "artChecked": 59,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-portrait--10-44-50-23",
+        "score": 124.03
+      },
+      {
+        "strategy": "isolate-portrait--10-47-47-26",
+        "score": 119.31
+      },
+      {
+        "strategy": "isolate-portrait--10-45-50-23",
+        "score": 116.52
+      },
+      {
+        "strategy": "isolate-portrait--12-47-47-26",
+        "score": 115.91
+      },
+      {
+        "strategy": "isolate-portrait--10-53-41-23",
+        "score": 115
+      },
+      {
+        "strategy": "isolate-portrait--12-45-50-23",
+        "score": 114.72
+      },
+      {
+        "strategy": "isolate-portrait--8-51-41-20",
+        "score": 113.21
+      },
+      {
+        "strategy": "isolate-portrait--10-44-50-29",
+        "score": 112.99
+      },
+      {
+        "strategy": "isolate-portrait--10-45-47-23",
+        "score": 112.47
+      },
+      {
+        "strategy": "isolate-portrait--12-44-50-23",
+        "score": 112.23
+      },
+      {
+        "strategy": "isolate-portrait--12-44-44-23",
+        "score": 110.16
+      },
+      {
+        "strategy": "isolate-portrait--10-44-44-23",
+        "score": 109.77
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 2,
+      "probes": [
+        {
+          "sharpness": 0.027120940387248993,
+          "accepted": true,
+          "reason": "accepted"
+        },
+        {
+          "sharpness": 0.0484301783144474,
+          "accepted": true,
+          "reason": "accepted"
+        }
+      ],
+      "ms": 176,
+      "fastMs": 672,
+      "fastHit": false
+    },
+    "truthGeometry": {
+      "angle": -10.9,
+      "center": {
+        "x": 0.554,
+        "y": 0.456
+      },
+      "card": {
+        "w": 0.357,
+        "h": 0.498
+      }
+    },
+    "capturePoint": {
+      "nx": 0.5,
+      "ny": 0.3285289542352577
+    },
+    "stages": {
+      "prep": 598,
+      "rankSeeds": 663,
+      "earlyOrbProbe": 0,
+      "rankRefine": 1286,
+      "isolatePrep": 705,
+      "isolateScore": 240,
+      "rank": 0,
+      "orb": 1822,
+      "aiCrop": 176,
+      "aiAttempt": 672,
+      "milo": 1569,
+      "total": 7737
+    },
+    "scene": 9,
+    "coverage": 0.291,
+    "clipped": 0,
+    "click": {
+      "u": 0.42,
+      "v": 0.23,
+      "covered": false
+    },
+    "layout": "overlapping",
+    "diceColor": "white",
+    "diceFace": 4,
+    "diceCoverage": 0.039,
+    "point": {
+      "nx": 0.5,
+      "ny": 0.3285289542352577
+    },
+    "pointNote": "Exact normalized point supplied to identifyCard."
+  },
+  {
+    "file": "002.jpg",
+    "name": "Calciform Pools",
+    "id": "f6cead86-b8ff-4975-90b2-3badcc452fdb",
+    "pool": "card",
+    "got": "Temple of the False God",
+    "dist": 163,
+    "conf": 0.48,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Temple of the False God (d=163)",
+      "Life // Death (d=163)",
+      "Darksteel Citadel (d=171)"
+    ],
+    "rot": "tapped",
+    "occ": "overlapped",
+    "ms": 7757,
+    "cv": "ready",
+    "tried": 118,
+    "dropped": 1,
+    "artBest": {
+      "name": "Temple of the False God",
+      "inliers": 6,
+      "color": 92,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 7,
+      "clickArtInliers": 6,
+      "clickTextInliers": 1
+    },
+    "artChecked": 60,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-sideways-rotated-96-50-41-50",
+        "score": 133.23
+      },
+      {
+        "strategy": "isolate-sideways-rotated-96-50-35-50",
+        "score": 131.12
+      },
+      {
+        "strategy": "isolate-sideways-raw-6-36-50-41",
+        "score": 130.69
+      },
+      {
+        "strategy": "isolate-sideways-rotated-98-50-41-50",
+        "score": 128.25
+      },
+      {
+        "strategy": "isolate-sideways-raw-4-36-50-41",
+        "score": 126.81
+      },
+      {
+        "strategy": "isolate-sideways-raw--2-38-50-38",
+        "score": 126.31
+      },
+      {
+        "strategy": "isolate-sideways-rotated-86-51-38-44",
+        "score": 124.7
+      },
+      {
+        "strategy": "isolate-sideways-raw-6-38-47-38",
+        "score": 124.52
+      },
+      {
+        "strategy": "isolate-sideways-raw--4-35-53-35",
+        "score": 122.69
+      },
+      {
+        "strategy": "isolate-sideways-rotated-96-53-38-53",
+        "score": 122.51
+      },
+      {
+        "strategy": "isolate-sideways-rotated-94-51-41-50",
+        "score": 121.55
+      },
+      {
+        "strategy": "isolate-sideways-rotated-96-47-38-47",
+        "score": 120.24
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 1,
+      "probes": [
+        {
+          "sharpness": 0.03607549890875816,
+          "accepted": true,
+          "reason": "accepted"
+        },
+        {
+          "sharpness": 0.032604679465293884,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        }
+      ],
+      "ms": 175,
+      "fastMs": 826,
+      "fastHit": false
+    },
+    "truthGeometry": {
+      "angle": 98.12,
+      "center": {
+        "x": 0.5,
+        "y": 0.483
+      },
+      "card": {
+        "w": 0.357,
+        "h": 0.498
+      }
+    },
+    "capturePoint": {
+      "nx": 0.5,
+      "ny": 0.44576912608878816
+    },
+    "stages": {
+      "prep": 626,
+      "rankSeeds": 676,
+      "earlyOrbProbe": 0,
+      "rankRefine": 1409,
+      "isolatePrep": 697,
+      "isolateScore": 266,
+      "rank": 0,
+      "orb": 1876,
+      "aiCrop": 175,
+      "aiAttempt": 826,
+      "milo": 1197,
+      "total": 7753
+    },
+    "scene": 9,
+    "coverage": 0.418,
+    "clipped": 0,
+    "click": {
+      "u": 0.4,
+      "v": 0.51,
+      "covered": false
+    },
+    "layout": "overlapping",
+    "diceColor": "black",
+    "diceFace": 3,
+    "diceCoverage": 0.038,
+    "point": {
+      "nx": 0.5,
+      "ny": 0.44576912608878816
+    },
+    "pointNote": "Exact normalized point supplied to identifyCard."
+  },
+  {
+    "file": "003.jpg",
+    "name": "Ogre Battledriver",
+    "id": "bff2d740-22cc-4719-ac58-28621951e68d",
+    "pool": "card",
+    "got": "Scale Up",
+    "dist": 179,
+    "conf": 0.36,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Scale Up (d=179)",
+      "Ashen Rider (d=179)",
+      "Lich's Caress (d=187)"
+    ],
+    "rot": "tapped",
+    "occ": "overlapped",
+    "ms": 5041,
+    "cv": "ready",
+    "tried": 132,
+    "dropped": 3,
+    "artBest": {
+      "name": "Scale Up",
+      "inliers": 7,
+      "color": 90,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 6,
+      "clickArtInliers": 3,
+      "clickTextInliers": 3
+    },
+    "artChecked": 36,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-sideways-raw--4-39-59-50",
+        "score": 133.53
+      },
+      {
+        "strategy": "isolate-sideways-rotated-88-54-50-71",
+        "score": 119.86
+      },
+      {
+        "strategy": "isolate-sideways-raw--4-39-65-50",
+        "score": 111.44
+      },
+      {
+        "strategy": "isolate-sideways-rotated-86-54-50-35",
+        "score": 109
+      },
+      {
+        "strategy": "isolate-sideways-rotated-84-54-53-41",
+        "score": 107.73
+      },
+      {
+        "strategy": "isolate-sideways-raw-8-42-35-62",
+        "score": 107.11
+      },
+      {
+        "strategy": "isolate-sideways-rotated-86-54-53-35",
+        "score": 104.47
+      },
+      {
+        "strategy": "isolate-sideways-rotated-88-54-53-71",
+        "score": 103.68
+      },
+      {
+        "strategy": "isolate-sideways-rotated-90-54-53-71",
+        "score": 103.37
+      },
+      {
+        "strategy": "isolate-portrait--4-56-89-35",
+        "score": 102.75
+      },
+      {
+        "strategy": "isolate-sideways-raw--4-38-68-53",
+        "score": 100.82
+      },
+      {
+        "strategy": "isolate-sideways-rotated-88-53-50-38",
+        "score": 100.79
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 0,
+      "probes": [
+        {
+          "sharpness": 0.0339614599943161,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        },
+        {
+          "sharpness": 0.0245458222925663,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        }
+      ],
+      "ms": 180
+    },
+    "truthGeometry": {
+      "angle": 85.7,
+      "center": {
+        "x": 0.377,
+        "y": 0.474
+      },
+      "card": {
+        "w": 0.357,
+        "h": 0.498
+      }
+    },
+    "capturePoint": {
+      "nx": 0.5,
+      "ny": 0.4775608496753319
+    },
+    "stages": {
+      "prep": 647,
+      "rankSeeds": 641,
+      "earlyOrbProbe": 0,
+      "rankRefine": 1375,
+      "isolatePrep": 828,
+      "isolateScore": 310,
+      "rank": 0,
+      "orb": 1052,
+      "aiCrop": 180,
+      "total": 5037
+    },
+    "scene": 9,
+    "coverage": 0.206,
+    "clipped": 0,
+    "click": {
+      "u": 0.54,
+      "v": 0.25,
+      "covered": false
+    },
+    "layout": "overlapping",
+    "diceColor": "blue",
+    "diceFace": 4,
+    "diceCoverage": 0.036,
+    "point": {
+      "nx": 0.5,
+      "ny": 0.4775608496753319
+    },
+    "pointNote": "Exact normalized point supplied to identifyCard."
+  },
+  {
+    "file": "004.jpg",
+    "name": "Splash Lasher",
+    "id": "53065735-c427-458e-ade4-ec2d81c8d277",
+    "pool": "token",
+    "got": "Minnea, Planar Tourist",
+    "dist": 186,
+    "conf": 0.31,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Minnea, Planar Tourist (d=186)",
+      "Orzhov Basilica (d=186)",
+      "Angelic Wall (d=187)"
+    ],
+    "rot": "upright",
+    "occ": "overlapped",
+    "ms": 7350,
+    "cv": "ready",
+    "tried": 115,
+    "dropped": 4,
+    "artBest": {
+      "name": "Minnea, Planar Tourist",
+      "inliers": 10,
+      "color": 95,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 8,
+      "clickArtInliers": 0,
+      "clickTextInliers": 3
+    },
+    "artChecked": 59,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-sideways-raw-2-41-23-41",
+        "score": 142.05
+      },
+      {
+        "strategy": "isolate-sideways-raw-2-36-14-32",
+        "score": 139.02
+      },
+      {
+        "strategy": "isolate-sideways-raw-2-38-17-35",
+        "score": 131.72
+      },
+      {
+        "strategy": "isolate-sideways-raw-4-41-23-41",
+        "score": 126.51
+      },
+      {
+        "strategy": "isolate-sideways-raw-4-36-14-35",
+        "score": 124.87
+      },
+      {
+        "strategy": "isolate-sideways-raw-4-42-26-41",
+        "score": 120.58
+      },
+      {
+        "strategy": "isolate-portrait-0-48-74-50",
+        "score": 119.89
+      },
+      {
+        "strategy": "isolate-sideways-raw-6-44-86-44",
+        "score": 118.25
+      },
+      {
+        "strategy": "isolate-portrait-2-47-77-47",
+        "score": 117.65
+      },
+      {
+        "strategy": "isolate-sideways-raw-6-41-23-44",
+        "score": 117.06
+      },
+      {
+        "strategy": "isolate-sideways-raw-2-41-26-41",
+        "score": 116.67
+      },
+      {
+        "strategy": "isolate-sideways-rotated-92-45-65-92",
+        "score": 116.23
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 1,
+      "probes": [
+        {
+          "sharpness": 0.022367097437381744,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        },
+        {
+          "sharpness": 0.03298548236489296,
+          "accepted": true,
+          "reason": "accepted"
+        }
+      ],
+      "ms": 178,
+      "fastMs": 675,
+      "fastHit": false
+    },
+    "truthGeometry": {
+      "angle": 1.6,
+      "center": {
+        "x": 0.432,
+        "y": 0.536
+      },
+      "card": {
+        "w": 0.357,
+        "h": 0.498
+      }
+    },
+    "capturePoint": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "stages": {
+      "prep": 580,
+      "rankSeeds": 644,
+      "earlyOrbProbe": 0,
+      "rankRefine": 1405,
+      "isolatePrep": 701,
+      "isolateScore": 260,
+      "rank": 0,
+      "orb": 1800,
+      "aiCrop": 178,
+      "aiAttempt": 675,
+      "milo": 1100,
+      "total": 7347
+    },
+    "scene": 9,
+    "coverage": 0.158,
+    "clipped": 0,
+    "click": {
+      "u": 0.69,
+      "v": 0.42,
+      "covered": false
+    },
+    "layout": "overlapping",
+    "diceColor": "white",
+    "diceFace": 4,
+    "diceCoverage": 0.036,
+    "point": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "pointNote": "Exact normalized point supplied to identifyCard."
+  },
+  {
+    "file": "005.jpg",
+    "name": "Cephalid Facetaker",
+    "id": "ebe86548-99ff-4c29-aa4c-1af092989707",
+    "pool": "card",
+    "got": "Azra Matchthrower",
+    "dist": 190,
+    "conf": 0.29,
+    "trueRank": null,
+    "trueDist": null,
+    "top3": [
+      "Azra Matchthrower (d=190)",
+      "Two-Headed Zombie (d=192)",
+      "Azorius Guildmage (d=197)"
+    ],
+    "rot": "upright",
+    "occ": "overlapped",
+    "ms": 4880,
+    "cv": "ready",
+    "tried": 119,
+    "dropped": 0,
+    "artBest": {
+      "name": "Azra Matchthrower",
+      "inliers": 6,
+      "color": 93,
+      "weak": true,
+      "clickInside": null,
+      "clickInliers": 6,
+      "clickArtInliers": 3,
+      "clickTextInliers": 2
+    },
+    "artChecked": 36,
+    "metadata": null,
+    "metadataVetoed": 0,
+    "metadataConflictAll": false,
+    "metadataError": null,
+    "perfectControl": null,
+    "isolationDebug": [
+      {
+        "strategy": "isolate-portrait--2-42-50-26",
+        "score": 145.9
+      },
+      {
+        "strategy": "isolate-portrait--2-42-50-20",
+        "score": 134.9
+      },
+      {
+        "strategy": "isolate-portrait--2-44-47-50",
+        "score": 131.1
+      },
+      {
+        "strategy": "isolate-sideways-raw--4-44-26-14",
+        "score": 130.28
+      },
+      {
+        "strategy": "isolate-sideways-raw--2-42-26-11",
+        "score": 127.08
+      },
+      {
+        "strategy": "isolate-sideways-raw-2-42-8-50",
+        "score": 121.4
+      },
+      {
+        "strategy": "isolate-portrait--2-41-50-20",
+        "score": 120.15
+      },
+      {
+        "strategy": "isolate-sideways-raw--2-42-26-26",
+        "score": 118.83
+      },
+      {
+        "strategy": "isolate-portrait--4-42-50-47",
+        "score": 117.6
+      },
+      {
+        "strategy": "isolate-portrait--2-42-50-11",
+        "score": 117.46
+      },
+      {
+        "strategy": "isolate-portrait--2-41-47-20",
+        "score": 114.42
+      },
+      {
+        "strategy": "isolate-sideways-raw--2-42-26-47",
+        "score": 111.84
+      }
+    ],
+    "aiCrop": {
+      "model": "cornelius-2.12",
+      "status": "ready",
+      "proposals": 0,
+      "probes": [
+        {
+          "sharpness": 0.030260678380727768,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        },
+        {
+          "sharpness": 0.026241298764944077,
+          "accepted": false,
+          "reason": "geometry-or-click"
+        }
+      ],
+      "ms": 178
+    },
+    "truthGeometry": {
+      "angle": -2.24,
+      "center": {
+        "x": 0.546,
+        "y": 0.654
+      },
+      "card": {
+        "w": 0.357,
+        "h": 0.498
+      }
+    },
+    "capturePoint": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "stages": {
+      "prep": 577,
+      "rankSeeds": 630,
+      "earlyOrbProbe": 0,
+      "rankRefine": 1403,
+      "isolatePrep": 685,
+      "isolateScore": 249,
+      "rank": 0,
+      "orb": 1152,
+      "aiCrop": 178,
+      "total": 4877
+    },
+    "scene": 9,
+    "coverage": 0.139,
+    "clipped": 0,
+    "click": {
+      "u": 0.39,
+      "v": 0.19,
+      "covered": false
+    },
+    "layout": "overlapping",
+    "diceColor": "blue",
+    "diceFace": 6,
+    "diceCoverage": 0.038,
+    "point": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "pointNote": "Exact normalized point supplied to identifyCard."
+  }
+]

@@ -3,6 +3,18 @@
 Written 2026-08-04, after a day of measuring the current pipeline stage by
 stage. Every number below was measured on the Real life suite unless stated.
 
+**2026-10-10 Milo integration:** complete local retrieval now covers all
+113,263 current printing faces. The final paired full pipeline scores **184/200**
+against 171/200 current main, with 13 recovered and zero regressed cards;
+174/174 accepted answers are correct. Warmed desktop median is 837ms, average
+1708ms and p90 4977ms. Local candidate retrieval, camera-coordinate registration,
+bounded higher-quality references and matching color treatment improve accuracy
+without a paid per-scan API. Every-click sub-second recognition and 200/200
+remain unmet. Only two of the sixteen remaining misses pass the same full
+verifier on exact crops; better input/evidence is the next constraint.
+See [the final results](../snaptest/results.md) for controls and release validation.
+The research and original plan below remain historical measurements.
+
 **2026-10-10 update:** the rejected custom detector remains disabled. A separate
 pretrained Cornelius 2.12 model now proposes full-frame and click-local corners,
 with the existing hash/ORB verifier deciding identity. The final paired 200-card
@@ -14,6 +26,96 @@ than overturning the earlier custom-model experiments. No embeddings or paid
 per-scan API are involved. Full evidence and remaining limitations are in
 [the October results](../snaptest/results.md). The original plan below is kept
 as the measured history of the earlier approach.
+
+## 2026-10-10 investigation — one clicked card in less than one second
+
+The updated target is **under one second per clicked card**, including difficult
+table positions. The current release has a warmed desktop median of 0.858s,
+but p90 is 5.700s and accuracy is 84.5%; meeting the median alone does not meet
+that target. A new research probe tests a card-trained descriptor rather than
+repeating the rejected generic CLIP/DINO experiments. This is retrieval research,
+not a runtime change or a deployment.
+
+[Milo v1](https://huggingface.co/HanClinto/milo) is a 5.2MB MobileViT-XXS model
+trained with ArcFace on illustration and set identities, producing normalized
+128-dimensional vectors. Its compatible July 9 gallery intersects our index at
+109,711 printing/face rows. **881 local rows and 103 distinct names are absent**;
+all 200 sampled identities happen to be covered. An integration must build and
+maintain descriptors for our entire index rather than adopt this stale gallery.
+Model/gallery versions and SHA-256 checksums are recorded in the raw results.
+
+Both descriptor arms receive the same lossless PNG pixels and rank exactly the
+same complete gallery. Cornelius and rectification are the actual production
+helpers. Hashing uses the worker's white balance followed by its bit-compatible
+gray/contrast/rotation hashes. Milo uses upstream portrait orientation,
+448×448 bilinear resizing, ImageNet normalization, and both 0° and 180° inputs.
+Results are **name-level first-correct-printing ranks**, not exact printing
+accuracy, calibrated confidence, click ownership, or ORB/OCR-verified answers.
+
+| Real life, 200 frozen captures | Gray hash top 1 | Milo top 1 | Milo with int8 gallery top 1 |
+| --- | --- | --- | --- |
+| Actual detector crops, best score over up to two proposals | 165/192 | 178/192 | 177/192 |
+| Diagnostic perfect crop, retaining dice/glare/blur | 124/200 | 193/200 | 194/200 |
+
+Eight captures have no model proposal. Counting those as misses gives
+165/200 versus 178/200, rather than implying 92.7% identification coverage.
+The model retrieves 20 identities the gray descriptor misses and loses seven
+it gets right. Across all 200 attempts, gray→Milo top-1 counts are upright
+88→100/109, tapped 46→48/55, and inverted 31→30/36. Existing artwork/color
+descriptor controls were also scored; their isolated top-1 results are in the
+raw output. The combined control generously applies the production v3 formula
+over the whole gallery without its gray cutoff. None of these controls runs
+the full pipeline's multi-crop search, verification, or acceptance gates.
+The unrectified production capture gives neither descriptor a correct top-1 identity;
+this model needs localization too.
+
+A separate **forced-overlap 100** puts every scene into an overlapping layout;
+86 cards have nonzero coverage. Gray→Milo top-1 retrieval improves **40→65/100**
+(26 recovered, one lost), with seven missing detector proposals counted as
+misses. Yet the exact same frames' diagnostic perfect crops give **99/100 for
+gray hashes versus 94/100 for Milo**. Framing remains a major constraint and
+the learned descriptor is complementary, not universally stronger. No wrong
+top-1 answer names another selected card in its scene in either arm; this draw
+therefore does not demonstrate an additional neighbour-ownership fix. Existing
+source-space registration remains necessary.
+
+In actual Chrome on an **Apple M2 Max**, 31 fixed crops from 16 captures took
+**317ms median, 322ms p90, 363ms maximum** for two orientations plus full
+int8-gallery search and sorting. Median model/preprocessing was 271ms and
+search was 46ms. All 31 top-1 results agree with the Python int8 probe;
+embedding cosine parity is median 0.999824, minimum 0.991755, reflecting
+browser/Pillow resize differences. These costs exclude camera transport,
+image decoding, corner detection, reference fetches and verification. Loading
+from a loopback server took 258ms before model warmup; that is not a production
+network or first-visit latency claim. The current experimental assets total
+24.1MB before HTTP compression, reusing the already vendored ONNX runtime.
+The inference weights remain fp32; only stored gallery vectors are quantized.
+Phone speed and retained WASM memory have not been measured.
+
+The evidence supports a **bounded supplemental shortlist trial**. Preserve the
+current lookup and recent-card cache; use a card-trained embedding to introduce
+missing printing candidates, then require interior artwork/text and
+source-space click proof to accept them. A similarity score alone must not
+select a neighbour or become a displayed probability. Measure full click-to-
+answer latency, coverage and wrong accepted identities independently, on actual
+phone/desktop camera captures and all rotations, before changing production.
+Index coverage and full pipeline verification are prerequisites, not benefits
+demonstrated by this descriptor experiment.
+
+**100% identification on every possible frame cannot be promised.** A die,
+overlap, saturated glare or blur can remove all distinguishing information.
+The model still misidentifies a perfectly framed Blood Crypt under a die and
+The Fire Crystal under heavy glare. Use a better or subsequent camera frame
+when evidence is insufficient; an unresolved attempt still counts against
+overall identification coverage. Local inference has no per-scan API charge.
+See [the research results](../snaptest/results.md) for the additional forced-
+overlap probe and reproducible scripts.
+
+**After the October 10 catalog refresh:** the live index now contains 113,263
+faces and 35,648 names. The compatible Milo gallery still intersects at
+109,711 rows, leaving **3,552 faces and 699 names** without descriptors. The
+probe above retains its original July-index denominator; integration must
+embed the complete refreshed catalog and maintain it alongside daily updates.
 
 The current architecture reached **~3280ms and ~83%** after four accuracy-neutral
 speed cuts and one structural change. It will not reach 2000ms, and this

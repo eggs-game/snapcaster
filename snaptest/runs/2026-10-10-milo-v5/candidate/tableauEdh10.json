@@ -1,0 +1,999 @@
+{
+  "build": "milo-rescue-5 (local vision)",
+  "aiCropEnabled": true,
+  "mode": "tableauEdh10",
+  "summary": {
+    "n": 100,
+    "errors": 0,
+    "accuracy": 0.94,
+    "avgMs": 1266,
+    "medianMs": 696,
+    "byRotation": {
+      "upright": {
+        "n": 61,
+        "ok": 57,
+        "acc": 0.934
+      },
+      "tapped": {
+        "n": 23,
+        "ok": 21,
+        "acc": 0.913
+      },
+      "upsidedown": {
+        "n": 16,
+        "ok": 16,
+        "acc": 1
+      }
+    },
+    "byOcclusion": {
+      "clear": {
+        "n": 93,
+        "ok": 92,
+        "acc": 0.989
+      },
+      "overlapped": {
+        "n": 7,
+        "ok": 2,
+        "acc": 0.286
+      }
+    },
+    "firstHalfAcc": 0.98,
+    "secondHalfAcc": 0.9,
+    "peakHeapMB": 24,
+    "wasmHeapStartMB": 134,
+    "wasmHeapEndMB": 134,
+    "wasmHeapPeakMB": 134,
+    "errorsByStage": {},
+    "stageAvgMs": {
+      "prep": 84,
+      "rank": 0,
+      "orb": 457,
+      "total": 1253
+    },
+    "p90Ms": 4522,
+    "maxMs": 6963,
+    "byPathway": {
+      "art-match": {
+        "n": 89,
+        "ok": 89,
+        "acc": 1
+      },
+      "visual-exact": {
+        "n": 2,
+        "ok": 2,
+        "acc": 1
+      },
+      "(no match)": {
+        "n": 9,
+        "ok": 3,
+        "acc": 0.333
+      }
+    },
+    "byLayout": {
+      "side-by-side": {
+        "n": 60,
+        "ok": 60,
+        "acc": 1
+      },
+      "spaced": {
+        "n": 30,
+        "ok": 29,
+        "acc": 0.967
+      },
+      "overlapping": {
+        "n": 10,
+        "ok": 5,
+        "acc": 0.5
+      }
+    },
+    "byPool": {
+      "token": {
+        "n": 22,
+        "ok": 22,
+        "acc": 1
+      },
+      "basic": {
+        "n": 5,
+        "ok": 4,
+        "acc": 0.8
+      },
+      "card": {
+        "n": 73,
+        "ok": 68,
+        "acc": 0.932
+      }
+    },
+    "byClipped": {
+      "0-5% (whole)": {
+        "n": 100,
+        "ok": 94,
+        "acc": 0.94
+      }
+    },
+    "missTrueRank": {
+      "rank 2": 0,
+      "rank 3-5": 0,
+      "rank 6+": 0,
+      "absent": 6
+    },
+    "missAvgDist": 178,
+    "byCoverage": {
+      "0 (clear)": {
+        "n": 91,
+        "ok": 90,
+        "acc": 0.989
+      },
+      "15-30%": {
+        "n": 5,
+        "ok": 2,
+        "acc": 0.4
+      },
+      "30%+": {
+        "n": 1,
+        "ok": 0,
+        "acc": 0
+      },
+      "0-15%": {
+        "n": 3,
+        "ok": 2,
+        "acc": 0.667
+      }
+    },
+    "ranAt": "2026-10-11T00:19:25.501Z"
+  },
+  "misses": [
+    {
+      "name": "Barbflare Gremlin",
+      "id": "26b96f77-c342-4c3b-abf8-5f101729d1a8",
+      "pool": "card",
+      "got": "Blank Card",
+      "dist": 147,
+      "conf": 0.59,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Blank Card (d=147)",
+        "Double-Faced Substitute Card (d=148)",
+        "Shadowmoor Draw Spell (d=153)"
+      ],
+      "rot": "upright",
+      "occ": "clear",
+      "ms": 5511,
+      "cv": "ready",
+      "tried": 109,
+      "dropped": 5,
+      "artBest": {
+        "name": "Blank Card",
+        "inliers": 11,
+        "color": 94,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 24,
+        "clickArtInliers": 0,
+        "clickTextInliers": 24
+      },
+      "artChecked": 59,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-portrait--8-44-59-44",
+          "score": 72.12
+        },
+        {
+          "strategy": "isolate-portrait--10-44-59-44",
+          "score": 71.68
+        },
+        {
+          "strategy": "isolate-portrait--8-45-62-44",
+          "score": 69.94
+        },
+        {
+          "strategy": "isolate-portrait--8-45-59-44",
+          "score": 68.94
+        },
+        {
+          "strategy": "isolate-portrait--10-45-62-44",
+          "score": 68
+        },
+        {
+          "strategy": "isolate-portrait--10-45-59-44",
+          "score": 64.45
+        },
+        {
+          "strategy": "isolate-portrait--8-51-65-38",
+          "score": 63.08
+        },
+        {
+          "strategy": "isolate-portrait--8-44-59-38",
+          "score": 62.9
+        },
+        {
+          "strategy": "isolate-portrait--10-51-65-38",
+          "score": 60.55
+        },
+        {
+          "strategy": "isolate-portrait--8-47-62-35",
+          "score": 60.28
+        },
+        {
+          "strategy": "isolate-portrait--10-44-59-38",
+          "score": 59.31
+        },
+        {
+          "strategy": "isolate-portrait--8-47-62-41",
+          "score": 58.93
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.060202568769454956,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.05185036361217499,
+            "accepted": false,
+            "reason": "duplicate"
+          }
+        ],
+        "ms": 174,
+        "fastMs": 416,
+        "fastHit": false
+      },
+      "truthGeometry": {
+        "angle": -9.03,
+        "center": {
+          "x": 0.458,
+          "y": 0.558
+        },
+        "card": {
+          "w": 0.334,
+          "h": 0.467
+        }
+      },
+      "stages": {
+        "prep": 546,
+        "rankSeeds": 642,
+        "earlyOrbProbe": 0,
+        "rankRefine": 919,
+        "isolatePrep": 585,
+        "isolateScore": 339,
+        "rank": 0,
+        "orb": 1052,
+        "aiCrop": 174,
+        "aiAttempt": 416,
+        "milo": 833,
+        "total": 5508
+      },
+      "scene": 2,
+      "coverage": 0,
+      "clipped": 0,
+      "click": {
+        "u": 0.65,
+        "v": 0.39,
+        "covered": false
+      },
+      "layout": "spaced",
+      "diceColor": null,
+      "diceFace": null,
+      "diceCoverage": 0
+    },
+    {
+      "name": "Awakening",
+      "id": "59612c02-6028-4953-ac4d-aca94b0ce4b9",
+      "pool": "card",
+      "got": "Roar of the Wurm",
+      "dist": 189,
+      "conf": 0.29,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Roar of the Wurm (d=189)",
+        "Common Curve Filler (d=196)",
+        "Inspirational Antelope (d=198)"
+      ],
+      "rot": "upright",
+      "occ": "overlapped",
+      "ms": 6963,
+      "cv": "ready",
+      "tried": 118,
+      "dropped": 1,
+      "artBest": {
+        "name": "Roar of the Wurm",
+        "inliers": 6,
+        "color": 88,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 13,
+        "clickArtInliers": 0,
+        "clickTextInliers": 13
+      },
+      "artChecked": 58,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-portrait--10-50-44-26",
+          "score": 115.34
+        },
+        {
+          "strategy": "isolate-sideways-raw--6-41-26-8",
+          "score": 115.32
+        },
+        {
+          "strategy": "isolate-sideways-rotated-78-47-38-65",
+          "score": 113.14
+        },
+        {
+          "strategy": "isolate-sideways-rotated-86-56-8-77",
+          "score": 113.07
+        },
+        {
+          "strategy": "isolate-portrait--10-44-50-29",
+          "score": 110.5
+        },
+        {
+          "strategy": "isolate-portrait--10-53-41-23",
+          "score": 105.41
+        },
+        {
+          "strategy": "isolate-portrait--12-45-50-29",
+          "score": 104.68
+        },
+        {
+          "strategy": "isolate-sideways-rotated-96-48-20-92",
+          "score": 104.27
+        },
+        {
+          "strategy": "isolate-portrait--12-44-50-29",
+          "score": 104.09
+        },
+        {
+          "strategy": "isolate-sideways-rotated-90-54-8-80",
+          "score": 103.97
+        },
+        {
+          "strategy": "isolate-sideways-raw--2-36-14-11",
+          "score": 102.96
+        },
+        {
+          "strategy": "isolate-sideways-raw-0-36-14-8",
+          "score": 102.73
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.03270440921187401,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.04603664577007294,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 174,
+        "fastMs": 557,
+        "fastHit": false
+      },
+      "truthGeometry": {
+        "angle": -10.9,
+        "center": {
+          "x": 0.554,
+          "y": 0.456
+        },
+        "card": {
+          "w": 0.357,
+          "h": 0.498
+        }
+      },
+      "stages": {
+        "prep": 551,
+        "rankSeeds": 643,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1318,
+        "isolatePrep": 666,
+        "isolateScore": 256,
+        "rank": 0,
+        "orb": 1692,
+        "aiCrop": 174,
+        "aiAttempt": 557,
+        "milo": 996,
+        "total": 6862
+      },
+      "scene": 9,
+      "coverage": 0.291,
+      "clipped": 0,
+      "click": {
+        "u": 0.42,
+        "v": 0.23,
+        "covered": false
+      },
+      "layout": "overlapping",
+      "diceColor": null,
+      "diceFace": null,
+      "diceCoverage": 0
+    },
+    {
+      "name": "Soulmender",
+      "id": "1817d779-dfe9-4280-82da-54ae53bda3d6",
+      "pool": "card",
+      "got": "Goreclaw, Terror of Qal Sisma",
+      "dist": 176,
+      "conf": 0.39,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Goreclaw, Terror of Qal Sisma (d=176)",
+        "Funeral Room // Awakening Hall (d=177)",
+        "Pools of Becoming (d=181)"
+      ],
+      "rot": "tapped",
+      "occ": "overlapped",
+      "ms": 4966,
+      "cv": "ready",
+      "tried": 119,
+      "dropped": 0,
+      "artBest": {
+        "name": "Goreclaw, Terror of Qal Sisma",
+        "inliers": 11,
+        "color": 89,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 10,
+        "clickArtInliers": 0,
+        "clickTextInliers": 9
+      },
+      "artChecked": 36,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-sideways-raw-8-35-44-41",
+          "score": 160.19
+        },
+        {
+          "strategy": "isolate-sideways-rotated-98-48-41-56",
+          "score": 159.72
+        },
+        {
+          "strategy": "isolate-sideways-rotated-98-47-41-56",
+          "score": 153.5
+        },
+        {
+          "strategy": "isolate-sideways-rotated-98-44-41-53",
+          "score": 144.44
+        },
+        {
+          "strategy": "isolate-sideways-raw-8-30-50-44",
+          "score": 140.32
+        },
+        {
+          "strategy": "isolate-sideways-rotated-98-47-41-47",
+          "score": 138.82
+        },
+        {
+          "strategy": "isolate-sideways-rotated-102-47-38-56",
+          "score": 138.12
+        },
+        {
+          "strategy": "isolate-sideways-raw-10-35-50-41",
+          "score": 137.84
+        },
+        {
+          "strategy": "isolate-sideways-rotated-100-47-38-56",
+          "score": 137.66
+        },
+        {
+          "strategy": "isolate-sideways-raw-8-35-50-41",
+          "score": 136.88
+        },
+        {
+          "strategy": "isolate-sideways-rotated-98-47-44-56",
+          "score": 136.64
+        },
+        {
+          "strategy": "isolate-sideways-rotated-100-48-41-56",
+          "score": 134.66
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.04043497517704964,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.03395538404583931,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          }
+        ],
+        "ms": 175
+      },
+      "truthGeometry": {
+        "angle": 98.12,
+        "center": {
+          "x": 0.5,
+          "y": 0.483
+        },
+        "card": {
+          "w": 0.357,
+          "h": 0.498
+        }
+      },
+      "stages": {
+        "prep": 573,
+        "rankSeeds": 657,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1435,
+        "isolatePrep": 651,
+        "isolateScore": 259,
+        "rank": 0,
+        "orb": 1206,
+        "aiCrop": 175,
+        "total": 4962
+      },
+      "scene": 9,
+      "coverage": 0.418,
+      "clipped": 0,
+      "click": {
+        "u": 0.4,
+        "v": 0.51,
+        "covered": false
+      },
+      "layout": "overlapping",
+      "diceColor": null,
+      "diceFace": null,
+      "diceCoverage": 0
+    },
+    {
+      "name": "Scute Mob",
+      "id": "56fca009-8424-41b0-9807-7af979dde785",
+      "pool": "card",
+      "got": "Mirrorweave",
+      "dist": 215,
+      "conf": 0.11,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Mirrorweave (d=215)",
+        "Spiteful Hexmage (d=208)",
+        "Disturbed Slumber (d=197)"
+      ],
+      "rot": "tapped",
+      "occ": "overlapped",
+      "ms": 5252,
+      "cv": "ready",
+      "tried": 134,
+      "dropped": 1,
+      "artBest": {
+        "name": "Mirrorweave",
+        "inliers": 15,
+        "color": 67,
+        "weak": false,
+        "clickInside": null,
+        "clickInliers": 21,
+        "clickArtInliers": 19,
+        "clickTextInliers": 2
+      },
+      "artChecked": 36,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-sideways-raw--2-39-62-50",
+          "score": 132.18
+        },
+        {
+          "strategy": "isolate-sideways-rotated-88-54-50-38",
+          "score": 130.42
+        },
+        {
+          "strategy": "isolate-sideways-raw--4-39-62-50",
+          "score": 130.31
+        },
+        {
+          "strategy": "isolate-sideways-rotated-86-54-50-38",
+          "score": 124.64
+        },
+        {
+          "strategy": "isolate-sideways-raw--6-41-59-50",
+          "score": 120.05
+        },
+        {
+          "strategy": "isolate-sideways-rotated-84-54-53-38",
+          "score": 118.57
+        },
+        {
+          "strategy": "isolate-sideways-rotated-86-54-53-38",
+          "score": 117.78
+        },
+        {
+          "strategy": "isolate-sideways-raw--4-39-86-50",
+          "score": 116.2
+        },
+        {
+          "strategy": "isolate-sideways-rotated-98-44-80-89",
+          "score": 111.93
+        },
+        {
+          "strategy": "isolate-sideways-raw--2-41-89-47",
+          "score": 111.86
+        },
+        {
+          "strategy": "isolate-sideways-raw-0-39-62-50",
+          "score": 111.68
+        },
+        {
+          "strategy": "isolate-sideways-raw-8-30-8-74",
+          "score": 111.29
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.04347040131688118,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.035422489047050476,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          }
+        ],
+        "ms": 179
+      },
+      "truthGeometry": {
+        "angle": 85.7,
+        "center": {
+          "x": 0.377,
+          "y": 0.474
+        },
+        "card": {
+          "w": 0.357,
+          "h": 0.498
+        }
+      },
+      "stages": {
+        "prep": 659,
+        "rankSeeds": 642,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1467,
+        "isolatePrep": 824,
+        "isolateScore": 305,
+        "rank": 0,
+        "orb": 1169,
+        "aiCrop": 179,
+        "total": 5248
+      },
+      "scene": 9,
+      "coverage": 0.206,
+      "clipped": 0,
+      "click": {
+        "u": 0.54,
+        "v": 0.25,
+        "covered": false
+      },
+      "layout": "overlapping",
+      "diceColor": null,
+      "diceFace": null,
+      "diceCoverage": 0
+    },
+    {
+      "name": "Favorable Winds",
+      "id": "cc11f0f5-ecdc-42a7-9f6a-ecdd44dbc0a2",
+      "pool": "card",
+      "got": "Dissipate",
+      "dist": 178,
+      "conf": 0.37,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Dissipate (d=178)",
+        "City Hall (d=182)",
+        "Incarnation Technique (d=193)"
+      ],
+      "rot": "upright",
+      "occ": "overlapped",
+      "ms": 5469,
+      "cv": "ready",
+      "tried": 133,
+      "dropped": 2,
+      "artBest": {
+        "name": "Dissipate",
+        "inliers": 7,
+        "color": 83,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 10,
+        "clickArtInliers": 8,
+        "clickTextInliers": 2
+      },
+      "artChecked": 36,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-portrait--2-45-86-56",
+          "score": 129.01
+        },
+        {
+          "strategy": "isolate-portrait--2-45-92-56",
+          "score": 127.91
+        },
+        {
+          "strategy": "isolate-portrait--4-44-89-56",
+          "score": 123.44
+        },
+        {
+          "strategy": "isolate-top-edge--4-36-41-158",
+          "score": 121.44
+        },
+        {
+          "strategy": "isolate-sideways-raw-2-44-44-47",
+          "score": 118.32
+        },
+        {
+          "strategy": "isolate-portrait--4-47-89-44",
+          "score": 115.62
+        },
+        {
+          "strategy": "isolate-top-edge--2-36-47-158",
+          "score": 112.73
+        },
+        {
+          "strategy": "isolate-sideways-raw-2-44-47-47",
+          "score": 110.2
+        },
+        {
+          "strategy": "isolate-portrait--2-45-89-56",
+          "score": 110.08
+        },
+        {
+          "strategy": "isolate-portrait--4-44-86-56",
+          "score": 106.79
+        },
+        {
+          "strategy": "isolate-sideways-raw-6-41-38-47",
+          "score": 105.28
+        },
+        {
+          "strategy": "isolate-portrait--4-51-77-62",
+          "score": 104.95
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.03242019563913345,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.03210932016372681,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          }
+        ],
+        "ms": 179
+      },
+      "truthGeometry": {
+        "angle": -4.78,
+        "center": {
+          "x": 0.389,
+          "y": 0.539
+        },
+        "card": {
+          "w": 0.357,
+          "h": 0.498
+        }
+      },
+      "stages": {
+        "prep": 673,
+        "rankSeeds": 662,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1524,
+        "isolatePrep": 856,
+        "isolateScore": 325,
+        "rank": 0,
+        "orb": 1242,
+        "aiCrop": 179,
+        "total": 5465
+      },
+      "scene": 9,
+      "coverage": 0.236,
+      "clipped": 0,
+      "click": {
+        "u": 0.82,
+        "v": 0.44,
+        "covered": false
+      },
+      "layout": "overlapping",
+      "diceColor": null,
+      "diceFace": null,
+      "diceCoverage": 0
+    },
+    {
+      "name": "Snow-Covered Island",
+      "id": "328fc009-d9c1-472d-8e07-778f60947642",
+      "pool": "basic",
+      "got": "Sacred Excavation",
+      "dist": 164,
+      "conf": 0.47,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Sacred Excavation (d=164)",
+        "Pawpatch Formation (d=165)",
+        "Spike Tiller (d=171)"
+      ],
+      "rot": "upright",
+      "occ": "overlapped",
+      "ms": 6432,
+      "cv": "ready",
+      "tried": 111,
+      "dropped": 8,
+      "artBest": {
+        "name": "Sacred Excavation",
+        "inliers": 5,
+        "color": 91,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 6,
+        "clickArtInliers": 1,
+        "clickTextInliers": 5
+      },
+      "artChecked": 60,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-portrait--4-53-68-29",
+          "score": 135.35
+        },
+        {
+          "strategy": "isolate-portrait--2-45-77-32",
+          "score": 130.03
+        },
+        {
+          "strategy": "isolate-portrait--2-45-77-17",
+          "score": 129.85
+        },
+        {
+          "strategy": "isolate-portrait--4-47-77-32",
+          "score": 128.66
+        },
+        {
+          "strategy": "isolate-portrait--2-42-83-11",
+          "score": 128.61
+        },
+        {
+          "strategy": "isolate-portrait--2-44-80-14",
+          "score": 127.71
+        },
+        {
+          "strategy": "isolate-portrait--4-53-86-29",
+          "score": 125.85
+        },
+        {
+          "strategy": "isolate-portrait--4-53-83-29",
+          "score": 125.02
+        },
+        {
+          "strategy": "isolate-portrait--2-45-74-17",
+          "score": 123.95
+        },
+        {
+          "strategy": "isolate-portrait--2-47-74-32",
+          "score": 122.53
+        },
+        {
+          "strategy": "isolate-portrait--2-45-74-32",
+          "score": 121.53
+        },
+        {
+          "strategy": "isolate-portrait--4-53-80-29",
+          "score": 119.8
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.020896373316645622,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.03142698481678963,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 175,
+        "fastMs": 493,
+        "fastHit": false
+      },
+      "truthGeometry": {
+        "angle": -2.24,
+        "center": {
+          "x": 0.443,
+          "y": 0.618
+        },
+        "card": {
+          "w": 0.357,
+          "h": 0.498
+        }
+      },
+      "stages": {
+        "prep": 581,
+        "rankSeeds": 625,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1338,
+        "isolatePrep": 662,
+        "isolateScore": 306,
+        "rank": 0,
+        "orb": 1397,
+        "aiCrop": 175,
+        "aiAttempt": 493,
+        "milo": 850,
+        "total": 6428
+      },
+      "scene": 9,
+      "coverage": 0.139,
+      "clipped": 0,
+      "click": {
+        "u": 0.67,
+        "v": 0.27,
+        "covered": false
+      },
+      "layout": "overlapping",
+      "diceColor": null,
+      "diceFace": null,
+      "diceCoverage": 0
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,8 @@
+Real life versus current main: 13 recovered; 0 regressed
+realLife: release gates passed (92%; median 837ms; p90 4977ms)
+tableauEdh10: release gates passed (96%; median 690ms; p90 1926ms)
+tableauVegasEdh20: release gates passed (93%; median 670ms; p90 2388ms)
+tableauEdhDice10: release gates passed (94%; median 726ms; p90 4889ms)
+random200: release gates passed (97.5%; median 852ms; p90 3664ms)
+edh200: release gates passed (95.5%; median 883ms; p90 3533ms)
+recentHint20: all verified, 5.14x faster, flat WASM heap

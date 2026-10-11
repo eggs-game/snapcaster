@@ -1,0 +1,643 @@
+{
+  "scope": "frozen prior research captures, selected v1 misses plus rotation controls; supplemental, not a release gate",
+  "records": [
+    {
+      "i": 0,
+      "name": "Trailblazer's Boots",
+      "build": "milo-rescue-2 (local vision)",
+      "got": "Trailblazer's Boots",
+      "ok": true,
+      "by": "art-match",
+      "regionalProof": false,
+      "artBest": {
+        "name": "Trailblazer's Boots",
+        "inliers": 70,
+        "color": 76,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 34,
+        "clickArtInliers": 27,
+        "clickTextInliers": 7
+      },
+      "milo": {
+        "status": "skipped"
+      },
+      "ms": 1022
+    },
+    {
+      "i": 15,
+      "name": "Reprieve",
+      "build": "milo-rescue-2 (local vision)",
+      "got": "Reprieve",
+      "ok": true,
+      "by": "art-match",
+      "regionalProof": false,
+      "artBest": {
+        "name": "Reprieve",
+        "inliers": 95,
+        "color": 87,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 91,
+        "clickArtInliers": 66,
+        "clickTextInliers": 25
+      },
+      "milo": {
+        "status": "skipped"
+      },
+      "ms": 484
+    },
+    {
+      "i": 167,
+      "name": "Mox Diamond",
+      "build": "milo-rescue-2 (local vision)",
+      "got": "Mox Diamond",
+      "ok": true,
+      "by": "art-match",
+      "regionalProof": true,
+      "artBest": {
+        "name": "Mox Diamond",
+        "inliers": 36,
+        "color": 56,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 36,
+        "clickArtInliers": 18,
+        "clickTextInliers": 18
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 12,
+        "inferenceMs": 272,
+        "searchMs": 43,
+        "ms": 336,
+        "rescued": true,
+        "totalMs": 612
+      },
+      "ms": 1362
+    },
+    {
+      "i": 26,
+      "name": "Valakut, the Molten Pinnacle",
+      "build": "milo-rescue-2 (local vision)",
+      "got": "Blank Card",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Blank Card",
+        "inliers": 0,
+        "color": 96,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 2,
+        "proposals": 11,
+        "inferenceMs": 544,
+        "searchMs": 89,
+        "ms": 657,
+        "rescued": false,
+        "totalMs": 1074
+      },
+      "ms": 5560
+    },
+    {
+      "i": 48,
+      "name": "Deathrite Shaman",
+      "build": "milo-rescue-2 (local vision)",
+      "got": "Unknown Event",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Unknown Event",
+        "inliers": 2,
+        "color": 94,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 6,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 2,
+        "proposals": 12,
+        "inferenceMs": 546,
+        "searchMs": 91,
+        "ms": 659,
+        "rescued": false,
+        "totalMs": 1276
+      },
+      "ms": 6627
+    },
+    {
+      "i": 55,
+      "name": "Path to Exile",
+      "build": "milo-rescue-2 (local vision)",
+      "got": "Patrician Geist",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Patrician Geist",
+        "inliers": 0,
+        "color": 86,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 12,
+        "inferenceMs": 272,
+        "searchMs": 46,
+        "ms": 340,
+        "rescued": false,
+        "totalMs": 688
+      },
+      "ms": 5227
+    },
+    {
+      "i": 83,
+      "name": "As Foretold",
+      "build": "milo-rescue-2 (local vision)",
+      "got": "Panopticon",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Panopticon",
+        "inliers": 8,
+        "color": 88,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 6,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 12,
+        "inferenceMs": 273,
+        "searchMs": 46,
+        "ms": 338,
+        "rescued": false,
+        "totalMs": 784
+      },
+      "ms": 5718
+    },
+    {
+      "i": 86,
+      "name": "Malcolm, Alluring Scoundrel",
+      "build": "milo-rescue-2 (local vision)",
+      "got": "Unbounded Potential",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Unbounded Potential",
+        "inliers": 0,
+        "color": 100,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 12,
+        "inferenceMs": 272,
+        "searchMs": 45,
+        "ms": 336,
+        "rescued": false,
+        "totalMs": 695
+      },
+      "ms": 4499
+    },
+    {
+      "i": 92,
+      "name": "Sacred Foundry",
+      "build": "milo-rescue-2 (local vision)",
+      "got": "Beast Walkers",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Beast Walkers",
+        "inliers": 6,
+        "color": 87,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 8,
+        "clickArtInliers": 6,
+        "clickTextInliers": 2
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 12,
+        "inferenceMs": 279,
+        "searchMs": 44,
+        "ms": 347,
+        "rescued": false,
+        "totalMs": 929
+      },
+      "ms": 7206
+    },
+    {
+      "i": 94,
+      "name": "Bat",
+      "build": "milo-rescue-2 (local vision)",
+      "got": "Plains",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Plains",
+        "inliers": 7,
+        "color": 81,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 12,
+        "clickArtInliers": 5,
+        "clickTextInliers": 7
+      },
+      "milo": {
+        "status": "skipped"
+      },
+      "ms": 4736
+    },
+    {
+      "i": 95,
+      "name": "High Market",
+      "build": "milo-rescue-2 (local vision)",
+      "got": "Moorland Inquisitor",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Moorland Inquisitor",
+        "inliers": 5,
+        "color": 90,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 8,
+        "clickArtInliers": 3,
+        "clickTextInliers": 5
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 12,
+        "inferenceMs": 275,
+        "searchMs": 43,
+        "ms": 340,
+        "rescued": false,
+        "totalMs": 946
+      },
+      "ms": 7116
+    },
+    {
+      "i": 96,
+      "name": "Exsanguinate",
+      "build": "milo-rescue-2 (local vision)",
+      "got": "Mortician Beetle",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Mortician Beetle",
+        "inliers": 7,
+        "color": 89,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 6,
+        "clickArtInliers": 2,
+        "clickTextInliers": 4
+      },
+      "milo": {
+        "status": "skipped"
+      },
+      "ms": 4827
+    },
+    {
+      "i": 98,
+      "name": "Arasta of the Endless Web",
+      "build": "milo-rescue-2 (local vision)",
+      "got": "Tangle Mantis",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Tangle Mantis",
+        "inliers": 7,
+        "color": 87,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 5,
+        "clickArtInliers": 3,
+        "clickTextInliers": 2
+      },
+      "milo": {
+        "status": "skipped"
+      },
+      "ms": 4779
+    },
+    {
+      "i": 100,
+      "name": "Cat",
+      "build": "milo-rescue-2 (local vision)",
+      "got": "Blank Card",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Blank Card",
+        "inliers": 9,
+        "color": 94,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "milo": {
+        "status": "skipped"
+      },
+      "ms": 3467
+    },
+    {
+      "i": 104,
+      "name": "The Fire Crystal",
+      "build": "milo-rescue-2 (local vision)",
+      "got": "Double-Faced Substitute Card",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Double-Faced Substitute Card",
+        "inliers": 5,
+        "color": 99,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 7,
+        "clickArtInliers": 1,
+        "clickTextInliers": 6
+      },
+      "milo": {
+        "status": "skipped"
+      },
+      "ms": 3491
+    },
+    {
+      "i": 119,
+      "name": "Anger",
+      "build": "milo-rescue-2 (local vision)",
+      "got": "Blank Card",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Blank Card",
+        "inliers": 0,
+        "color": 93,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 11,
+        "inferenceMs": 274,
+        "searchMs": 46,
+        "ms": 341,
+        "rescued": false,
+        "totalMs": 763
+      },
+      "ms": 4825
+    },
+    {
+      "i": 158,
+      "name": "Wastes",
+      "build": "milo-rescue-2 (local vision)",
+      "got": "Astor, Bearer of Blades",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Astor, Bearer of Blades",
+        "inliers": 5,
+        "color": 100,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 12,
+        "inferenceMs": 276,
+        "searchMs": 46,
+        "ms": 342,
+        "rescued": false,
+        "totalMs": 748
+      },
+      "ms": 4935
+    },
+    {
+      "i": 163,
+      "name": "Mistrise Village",
+      "build": "milo-rescue-2 (local vision)",
+      "got": "Double-Faced Substitute Card",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Double-Faced Substitute Card",
+        "inliers": 5,
+        "color": 99,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 2,
+        "proposals": 10,
+        "inferenceMs": 544,
+        "searchMs": 91,
+        "ms": 657,
+        "rescued": false,
+        "totalMs": 1102
+      },
+      "ms": 5623
+    },
+    {
+      "i": 165,
+      "name": "Ogre",
+      "build": "milo-rescue-2 (local vision)",
+      "got": "Garruk, Cursed Huntsman Emblem",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Garruk, Cursed Huntsman Emblem",
+        "inliers": 4,
+        "color": 90,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 2,
+        "proposals": 12,
+        "inferenceMs": 548,
+        "searchMs": 93,
+        "ms": 662,
+        "rescued": false,
+        "totalMs": 979
+      },
+      "ms": 7287
+    },
+    {
+      "i": 180,
+      "name": "Ghalta, Stampede Tyrant",
+      "build": "milo-rescue-2 (local vision)",
+      "got": "Moonrage Brute",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Moonrage Brute",
+        "inliers": 7,
+        "color": 95,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 12,
+        "inferenceMs": 277,
+        "searchMs": 46,
+        "ms": 344,
+        "rescued": false,
+        "totalMs": 638
+      },
+      "ms": 6180
+    },
+    {
+      "i": 181,
+      "name": "Corrupted Conviction",
+      "build": "milo-rescue-2 (local vision)",
+      "got": "Corrupted Conviction",
+      "ok": true,
+      "by": "art-match",
+      "regionalProof": true,
+      "artBest": {
+        "name": "Corrupted Conviction",
+        "inliers": 52,
+        "color": 63,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 52,
+        "clickArtInliers": 6,
+        "clickTextInliers": 46
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 12,
+        "inferenceMs": 278,
+        "searchMs": 43,
+        "ms": 343,
+        "rescued": true,
+        "totalMs": 861
+      },
+      "ms": 1748
+    },
+    {
+      "i": 188,
+      "name": "Geier Reach Sanitarium",
+      "build": "milo-rescue-2 (local vision)",
+      "got": "Blank Card",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Blank Card",
+        "inliers": 0,
+        "color": 93,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 2,
+        "proposals": 12,
+        "inferenceMs": 548,
+        "searchMs": 92,
+        "ms": 663,
+        "rescued": false,
+        "totalMs": 1177
+      },
+      "ms": 5706
+    },
+    {
+      "i": 195,
+      "name": "Kai Budde Bio",
+      "build": "milo-rescue-2 (local vision)",
+      "got": "Ash Barrens",
+      "ok": false,
+      "regionalProof": false,
+      "artBest": {
+        "name": "Ash Barrens",
+        "inliers": 7,
+        "color": 96,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 7,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "milo": {
+        "model": "milo1",
+        "status": "ready",
+        "crops": 1,
+        "proposals": 8,
+        "inferenceMs": 272,
+        "searchMs": 45,
+        "ms": 339,
+        "rescued": false,
+        "totalMs": 928
+      },
+      "ms": 7222
+    }
+  ]
+}

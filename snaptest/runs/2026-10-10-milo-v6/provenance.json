@@ -1,0 +1,16 @@
+{
+  "baseCommit": "f9fbbbec634eaef51821c547fff8ee74c99e0d46",
+  "build": "milo-rescue-6 (local vision)",
+  "sourceSha256": {
+    "src/main.jsx": "822655e529b7d2242766bba35df2f8777f997ebd33ecc73fc995705b3f3704c3",
+    "src/recognition/aiCrop.js": "41d4323877d1a230471b9ac6eed82a30f6a5fb110a57defe15108b0d93a0c7fa",
+    "src/recognition/aiCropWorker.js": "7083c3217e6c293130fdfb2d81a58e64d78b8b31dcd36c11b2d7ab9ba19be28f",
+    "src/recognition/matcher.js": "f7da7658ff882ca8720810459fdf2e4a7be9a9363c748a0e15005674bf8dabcb",
+    "src/recognition/recognizer.js": "2db4af88dc525ada29e4344f885668d4e74cb3d2cd3f9dd5065e56b9e6398cfd",
+    "src/recognition/miloLookup.js": "01a91f02472e001dc7ee9afdd74a92248a939cef1ca85b7dea1a40633829442f",
+    "public/carddata/cards.json": "79f0775b3b84f509edc614170e325607bd0f7245b9c9006f029e8adc6553cadc",
+    "public/carddata/milo/manifest.json": "d2d0efc1a39b150ff350b38657b443d14c4f6a260f3af35dd2cd2929f01ddcee",
+    "public/vendor/vision/milo1/model.onnx": "bd13d8d60383c69da04dce261f32e93fdaeaa8fd618fbc991e7385f71b3d45df"
+  },
+  "timingScope": "warmed production browser pipeline on Apple M2 Max, identical authoritative generated captures; no camera transport or phone measurement"
+}

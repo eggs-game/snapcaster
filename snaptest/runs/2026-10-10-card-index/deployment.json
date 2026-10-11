@@ -1,0 +1,44 @@
+{
+  "manifest": {
+    "version": 4,
+    "count": 113263,
+    "names": 35648,
+    "shards": 256,
+    "cards_fields": [
+      "name",
+      "set",
+      "collector_number",
+      "scryfall_id",
+      "face"
+    ],
+    "shard_fields": [
+      "name",
+      "set",
+      "collector_number",
+      "scryfall_id",
+      "face",
+      "hash",
+      "color",
+      "art_hash",
+      "mana_cost",
+      "type_line",
+      "oracle_text"
+    ],
+    "generated_at": "2026-10-10T22:59:16Z",
+    "source": {
+      "provider": "scryfall",
+      "bulk_type": "default_cards",
+      "updated_at": "2026-10-10T21:06:04.155+00:00",
+      "download_uri": "https://data.scryfall.io/default-cards/default-cards-20261010210604.jsonl.gz",
+      "format": "jsonl"
+    }
+  },
+  "cacheControl": "public, max-age=0, must-revalidate",
+  "releaseCommit": "8bd0ffeffa755f3b952fcb00ee1acdb1b4b44338",
+  "automaticRefreshCommit": "f9fbbbec634eaef51821c547fff8ee74c99e0d46",
+  "vercelStatus": "success on both commits",
+  "ciRun": 38093393240,
+  "ciConclusion": "success",
+  "updaterRun": 38093393315,
+  "updaterConclusion": "success"
+}

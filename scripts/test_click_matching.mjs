@@ -90,3 +90,33 @@ context.excludeProvenNeighbours([textTarget,textNeighbour],[textTarget,textNeigh
 assert.equal(textNeighbour.click_blocked,true,"strong interior text has the same click ownership requirement as artwork");
 assert.equal(context.hasClickProof({...textTarget,click_inliers:34}),false);
 assert.equal(context.hasClickProof({...textTarget,click_text_inliers:7}),false);
+const decisiveStart = worker.indexOf("  const isDecisiveLead =");
+vm.runInContext(worker.slice(decisiveStart,worker.indexOf("  // Weak AI retrieval",decisiveStart)).replace("const isDecisiveLead", "globalThis.isDecisiveLead"),context);
+const outsideLead = { ...proof("Outside guess",false,38,10), art_inliers:98, color_sim:.71, distance:166 };
+assert.equal(context.isDecisiveLead(outsideLead,{art_inliers:6}),true,
+  "raw artwork ranking preserves the established above-click single-card guess");
+assert.equal(context.hasPositiveClickProof(outsideLead),false,
+  "outside ownership cannot make that guess a confident clicked-card identity");
+assert.equal(context.hasPositiveClickProof({...outsideLead,click_inside:null,click_inliers:6}),false,
+  "strong isolated artwork with an unregistered camera footprint remains tentative");
+assert.equal(context.hasPositiveClickProof({...outsideLead,click_inside:true}),true);
+assert.ok(worker.includes('const decisive = isDecisiveLead(best, rival) && (!source || !click || hasPositiveClickProof(best))'));
+assert.equal(outsideLead.click_blocked,undefined,"keep the off-centre guess selectable");
+assert.equal(context.isDecisiveLead({...outsideLead,click_inside:true},{art_inliers:6}),true);
+const finishStart = matcher.indexOf("function hasOutsideClickProof(");
+const finishCode = matcher.slice(finishStart,matcher.indexOf("async function performIdentify(",finishStart));
+const finalContext = vm.createContext({ VISUAL_EXACT_DISTANCE:90, OCR_SKIP_DISTANCE:220, performance,
+  applyTitleOCR:async result => result });
+vm.runInContext(finishCode,finalContext);
+for (const distance of [60,166]) {
+  const outside = { ...outsideLead, distance, confidence:1, identified_by:"art-match" };
+  const result = await finalContext.finishIdentify({ matches:[outside],art_decisive:true,art_best:{weak:false,inliers:98} });
+  assert.equal(result.matches[0].name,"Outside guess");
+  assert.equal(result.matches[0].identified_by,undefined,"near-exact hashing cannot revive an outside confidence label");
+  assert.ok(result.matches[0].confidence < .7);
+  assert.equal(result.art_decisive,false);
+}
+assert.equal(finalContext.hasOutsideClickProof({...outsideLead,click_inliers:15}),false);
+assert.equal(finalContext.hasOutsideClickProof({...outsideLead,click_art_inliers:7}),false);
+assert.equal(finalContext.hasOutsideClickProof({...textNeighbour,click_inliers:35}),true);
+console.log("outside registration retains an off-centre guess without confidently naming an unreadable target's neighbour");

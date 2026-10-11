@@ -1,0 +1,1889 @@
+{
+  "build": "card-index-2026-10 (local vision)",
+  "aiCropEnabled": true,
+  "miloEnabled": false,
+  "mode": "realLife",
+  "summary": {
+    "n": 200,
+    "accuracy": 0.855,
+    "byOcclusion": {
+      "clear": {
+        "n": 187,
+        "ok": 165,
+        "acc": 0.882
+      },
+      "overlapped": {
+        "n": 10,
+        "ok": 4,
+        "acc": 0.4
+      },
+      "edge": {
+        "n": 3,
+        "ok": 2,
+        "acc": 0.667
+      }
+    },
+    "byPool": {
+      "card": {
+        "n": 149,
+        "ok": 129,
+        "acc": 0.866
+      },
+      "token": {
+        "n": 44,
+        "ok": 38,
+        "acc": 0.864
+      },
+      "basic": {
+        "n": 7,
+        "ok": 4,
+        "acc": 0.571
+      }
+    },
+    "byCoverage": {
+      "0 (clear)": {
+        "n": 184,
+        "ok": 162,
+        "acc": 0.88
+      },
+      "0-15%": {
+        "n": 11,
+        "ok": 9,
+        "acc": 0.818
+      },
+      "15-30%": {
+        "n": 3,
+        "ok": 0,
+        "acc": 0
+      },
+      "30%+": {
+        "n": 2,
+        "ok": 0,
+        "acc": 0
+      }
+    },
+    "byClipped": {
+      "0-5% (whole)": {
+        "n": 197,
+        "ok": 169,
+        "acc": 0.858
+      },
+      "5-15%": {
+        "n": 3,
+        "ok": 2,
+        "acc": 0.667
+      }
+    },
+    "avgMs": 2147,
+    "neighbourMisses": [],
+    "attempted": 200,
+    "correct": 171,
+    "errors": 0,
+    "medianMs": 846,
+    "p90Ms": 5741,
+    "accepted": {
+      "n": 164,
+      "correct": 164
+    },
+    "byPathway": {
+      "art-match": {
+        "n": 164,
+        "ok": 164,
+        "acc": 1
+      },
+      "(no match)": {
+        "n": 36,
+        "ok": 7,
+        "acc": 0.194
+      }
+    },
+    "byRotation": {
+      "upright": {
+        "n": 109,
+        "ok": 91,
+        "acc": 0.835
+      },
+      "tapped": {
+        "n": 55,
+        "ok": 49,
+        "acc": 0.891
+      },
+      "upsidedown": {
+        "n": 36,
+        "ok": 31,
+        "acc": 0.861
+      }
+    },
+    "byLayout": {
+      "side-by-side": {
+        "n": 120,
+        "ok": 103,
+        "acc": 0.858
+      },
+      "spaced": {
+        "n": 60,
+        "ok": 55,
+        "acc": 0.917
+      },
+      "overlapping": {
+        "n": 20,
+        "ok": 13,
+        "acc": 0.65
+      }
+    },
+    "absentMisses": 28,
+    "firstHalf": 87,
+    "secondHalf": 84,
+    "wasmHeapMB": [
+      134,
+      134
+    ],
+    "perfectCropControl": {
+      "n": 29,
+      "ok": 11,
+      "acc": 0.379
+    },
+    "wasmHeapStartMB": 134,
+    "wasmHeapEndMB": 134,
+    "firstHalfAcc": 0.87,
+    "secondHalfAcc": 0.84
+  },
+  "misses": [
+    {
+      "name": "Valakut, the Molten Pinnacle",
+      "id": "c2d07eea-b165-4976-9088-d283ab7cfe72",
+      "i": 26,
+      "scene": 2,
+      "rot": "upright",
+      "layout": "spaced",
+      "coverage": 0,
+      "got": "Blank Card",
+      "trueRank": null,
+      "artBest": {
+        "name": "Blank Card",
+        "inliers": 0,
+        "color": 96,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.05871216952800751,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.04632841795682907,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 176,
+        "fastMs": 529,
+        "fastHit": false
+      },
+      "stages": {
+        "prep": 579,
+        "rankSeeds": 658,
+        "earlyOrbProbe": 0,
+        "rankRefine": 853,
+        "isolatePrep": 633,
+        "isolateScore": 285,
+        "rank": 0,
+        "orb": 570,
+        "aiCrop": 176,
+        "aiAttempt": 529,
+        "total": 4284
+      },
+      "ms": 4284,
+      "perfectControl": {
+        "ok": false,
+        "got": "Guildmark",
+        "dist": 149
+      }
+    },
+    {
+      "name": "Savage Lands",
+      "id": "428df1ff-e13e-48a3-bcc9-301bdc9470fb",
+      "i": 45,
+      "scene": 4,
+      "rot": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Tidal Kraken",
+      "trueRank": null,
+      "artBest": {
+        "name": "Tidal Kraken",
+        "inliers": 4,
+        "color": 83,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.06564921885728836,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.05102396383881569,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 178,
+        "fastMs": 813,
+        "fastHit": false
+      },
+      "stages": {
+        "prep": 628,
+        "rankSeeds": 688,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1321,
+        "isolatePrep": 698,
+        "isolateScore": 260,
+        "rank": 0,
+        "orb": 1401,
+        "aiCrop": 178,
+        "aiAttempt": 813,
+        "total": 5991
+      },
+      "ms": 5992,
+      "perfectControl": {
+        "ok": false,
+        "got": "Wicked Wolf",
+        "dist": 177
+      }
+    },
+    {
+      "name": "Deathrite Shaman",
+      "id": "dd4341f7-c455-463e-9064-f0c215152ba9",
+      "i": 48,
+      "scene": 4,
+      "rot": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Unknown Event",
+      "trueRank": null,
+      "artBest": {
+        "name": "Unknown Event",
+        "inliers": 2,
+        "color": 94,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 6,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.04044307395815849,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.057913415133953094,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 183,
+        "fastMs": 586,
+        "fastHit": false
+      },
+      "stages": {
+        "prep": 603,
+        "rankSeeds": 650,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1015,
+        "isolatePrep": 692,
+        "isolateScore": 289,
+        "rank": 0,
+        "orb": 1257,
+        "aiCrop": 183,
+        "aiAttempt": 586,
+        "total": 5277
+      },
+      "ms": 5277,
+      "perfectControl": {
+        "ok": true,
+        "got": "Deathrite Shaman",
+        "by": "art-match",
+        "dist": 179
+      }
+    },
+    {
+      "name": "Tortured Existence",
+      "id": "1754b92b-d6f9-4503-af01-dee03f72a048",
+      "i": 53,
+      "scene": 5,
+      "rot": "upright",
+      "layout": "spaced",
+      "coverage": 0,
+      "got": "Will-o'-the-Wisp",
+      "trueRank": null,
+      "artBest": {
+        "name": "Will-o'-the-Wisp",
+        "inliers": 16,
+        "color": 66,
+        "weak": false,
+        "clickInside": null,
+        "clickInliers": 8,
+        "clickArtInliers": 7,
+        "clickTextInliers": 1
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.049901850521564484,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.06300555169582367,
+            "accepted": false,
+            "reason": "duplicate"
+          }
+        ],
+        "ms": 176,
+        "fastMs": 692,
+        "fastHit": false
+      },
+      "stages": {
+        "prep": 614,
+        "rankSeeds": 651,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1472,
+        "isolatePrep": 764,
+        "isolateScore": 241,
+        "rank": 0,
+        "orb": 1382,
+        "aiCrop": 176,
+        "aiAttempt": 692,
+        "total": 5993
+      },
+      "ms": 5994,
+      "perfectControl": {
+        "ok": true,
+        "got": "Tortured Existence",
+        "by": "art-match",
+        "dist": 162
+      }
+    },
+    {
+      "name": "Path to Exile",
+      "id": "a9851a6e-a8be-4c1f-9e44-4bdf06d9d010",
+      "i": 55,
+      "scene": 5,
+      "rot": "tapped",
+      "layout": "spaced",
+      "coverage": 0,
+      "got": "Sejiri Glacier",
+      "trueRank": 4,
+      "artBest": {
+        "name": "Sejiri Glacier",
+        "inliers": 7,
+        "color": 94,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 5,
+        "clickArtInliers": 1,
+        "clickTextInliers": 2
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.0626082643866539,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.02900419570505619,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          }
+        ],
+        "ms": 183,
+        "fastMs": 668,
+        "fastHit": false
+      },
+      "stages": {
+        "prep": 573,
+        "rankSeeds": 667,
+        "earlyOrbProbe": 0,
+        "rankRefine": 946,
+        "isolatePrep": 646,
+        "isolateScore": 253,
+        "rank": 0,
+        "orb": 910,
+        "aiCrop": 183,
+        "aiAttempt": 668,
+        "total": 4848
+      },
+      "ms": 4848,
+      "perfectControl": {
+        "ok": false,
+        "got": "Mistwalker",
+        "dist": 167
+      }
+    },
+    {
+      "name": "As Foretold",
+      "id": "c634fb14-49a1-4642-9a22-bce99279cb88",
+      "i": 83,
+      "scene": 8,
+      "rot": "tapped",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Panopticon",
+      "trueRank": null,
+      "artBest": {
+        "name": "Panopticon",
+        "inliers": 8,
+        "color": 88,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 6,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.062267281115055084,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.06475293636322021,
+            "accepted": false,
+            "reason": "duplicate"
+          }
+        ],
+        "ms": 178,
+        "fastMs": 626,
+        "fastHit": false
+      },
+      "stages": {
+        "prep": 599,
+        "rankSeeds": 652,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1150,
+        "isolatePrep": 694,
+        "isolateScore": 235,
+        "rank": 0,
+        "orb": 927,
+        "aiCrop": 178,
+        "aiAttempt": 626,
+        "total": 5064
+      },
+      "ms": 5064,
+      "perfectControl": {
+        "ok": false,
+        "got": "Bicycle Rack",
+        "dist": 177
+      }
+    },
+    {
+      "name": "Malcolm, Alluring Scoundrel",
+      "id": "b3ed6341-59f4-44f3-99c9-80f636fa484d",
+      "i": 86,
+      "scene": 8,
+      "rot": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Unbounded Potential",
+      "trueRank": null,
+      "artBest": {
+        "name": "Unbounded Potential",
+        "inliers": 0,
+        "color": 100,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.045270320028066635,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.007730055134743452,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 178,
+        "fastMs": 485,
+        "fastHit": false
+      },
+      "stages": {
+        "prep": 414,
+        "rankSeeds": 587,
+        "earlyOrbProbe": 0,
+        "rankRefine": 759,
+        "isolatePrep": 684,
+        "isolateScore": 361,
+        "rank": 0,
+        "orb": 414,
+        "aiCrop": 178,
+        "aiAttempt": 485,
+        "total": 3884
+      },
+      "ms": 3884,
+      "perfectControl": {
+        "ok": false,
+        "got": "Barry's Land",
+        "dist": 172
+      }
+    },
+    {
+      "name": "Sacred Foundry",
+      "id": "b7b598d0-535d-477d-a33d-d6a10ff5439a",
+      "i": 92,
+      "scene": 9,
+      "rot": "upright",
+      "layout": "overlapping",
+      "coverage": 0.218,
+      "got": "Beast Walkers",
+      "trueRank": null,
+      "artBest": {
+        "name": "Beast Walkers",
+        "inliers": 6,
+        "color": 87,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 8,
+        "clickArtInliers": 6,
+        "clickTextInliers": 2
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.04512445256114006,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.03188095614314079,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 176,
+        "fastMs": 640,
+        "fastHit": false
+      },
+      "stages": {
+        "prep": 655,
+        "rankSeeds": 658,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1558,
+        "isolatePrep": 726,
+        "isolateScore": 239,
+        "rank": 0,
+        "orb": 1483,
+        "aiCrop": 176,
+        "aiAttempt": 640,
+        "total": 6136
+      },
+      "ms": 6136,
+      "perfectControl": {
+        "ok": false,
+        "got": "Nightveil Sprite",
+        "dist": 175
+      }
+    },
+    {
+      "name": "Binding the Old Gods",
+      "id": "a0297fc9-9070-41cc-83fd-0dea2a65c263",
+      "i": 93,
+      "scene": 9,
+      "rot": "upright",
+      "layout": "overlapping",
+      "coverage": 0.036,
+      "got": "Tamiyo Meets the Story Circle",
+      "trueRank": null,
+      "artBest": {
+        "name": "Tamiyo Meets the Story Circle",
+        "inliers": 7,
+        "color": 71,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 8,
+        "clickArtInliers": 1,
+        "clickTextInliers": 7
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.057102546095848083,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.06193411722779274,
+            "accepted": false,
+            "reason": "duplicate"
+          }
+        ],
+        "ms": 182,
+        "fastMs": 789,
+        "fastHit": false
+      },
+      "stages": {
+        "prep": 514,
+        "rankSeeds": 641,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1230,
+        "isolatePrep": 735,
+        "isolateScore": 261,
+        "rank": 0,
+        "orb": 1287,
+        "aiCrop": 182,
+        "aiAttempt": 789,
+        "total": 5642
+      },
+      "ms": 5642,
+      "perfectControl": {
+        "ok": true,
+        "got": "Binding the Old Gods",
+        "by": "art-match",
+        "dist": 99
+      }
+    },
+    {
+      "name": "Bat",
+      "id": "00841e4b-0995-4fb5-93d6-e177beba4934",
+      "i": 94,
+      "scene": 9,
+      "rot": "upright",
+      "layout": "overlapping",
+      "coverage": 0.242,
+      "got": "Plains",
+      "trueRank": null,
+      "artBest": {
+        "name": "Plains",
+        "inliers": 7,
+        "color": 81,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 12,
+        "clickArtInliers": 5,
+        "clickTextInliers": 7
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.025847457349300385,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.02388249896466732,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          }
+        ],
+        "ms": 182
+      },
+      "stages": {
+        "prep": 558,
+        "rankSeeds": 657,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1408,
+        "isolatePrep": 703,
+        "isolateScore": 251,
+        "rank": 0,
+        "orb": 1085,
+        "aiCrop": 182,
+        "total": 4846
+      },
+      "ms": 4846,
+      "perfectControl": {
+        "ok": true,
+        "got": "Bat",
+        "by": "art-match",
+        "dist": 184
+      }
+    },
+    {
+      "name": "High Market",
+      "id": "7ab4104c-7826-410c-b250-4000f7dc86eb",
+      "i": 95,
+      "scene": 9,
+      "rot": "upright",
+      "layout": "overlapping",
+      "coverage": 0.303,
+      "got": "Moorland Inquisitor",
+      "trueRank": null,
+      "artBest": {
+        "name": "Moorland Inquisitor",
+        "inliers": 5,
+        "color": 90,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 8,
+        "clickArtInliers": 3,
+        "clickTextInliers": 5
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.03639282286167145,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.0272882841527462,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 182,
+        "fastMs": 970,
+        "fastHit": false
+      },
+      "stages": {
+        "prep": 724,
+        "rankSeeds": 672,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1470,
+        "isolatePrep": 750,
+        "isolateScore": 252,
+        "rank": 0,
+        "orb": 1848,
+        "aiCrop": 182,
+        "aiAttempt": 970,
+        "total": 6871
+      },
+      "ms": 6871,
+      "perfectControl": {
+        "ok": false,
+        "got": "Torens, Fist of the Angels",
+        "dist": 191
+      }
+    },
+    {
+      "name": "Exsanguinate",
+      "id": "f11d7311-4066-4a5d-ba28-9857fa707a0b",
+      "i": 96,
+      "scene": 9,
+      "rot": "upright",
+      "layout": "overlapping",
+      "coverage": 0.109,
+      "got": "Mortician Beetle",
+      "trueRank": null,
+      "artBest": {
+        "name": "Mortician Beetle",
+        "inliers": 7,
+        "color": 89,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 6,
+        "clickArtInliers": 2,
+        "clickTextInliers": 4
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.033706046640872955,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.04629179835319519,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          }
+        ],
+        "ms": 179
+      },
+      "stages": {
+        "prep": 631,
+        "rankSeeds": 653,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1399,
+        "isolatePrep": 710,
+        "isolateScore": 274,
+        "rank": 0,
+        "orb": 1080,
+        "aiCrop": 179,
+        "total": 4929
+      },
+      "ms": 4929,
+      "perfectControl": {
+        "ok": false,
+        "got": "Organic Extinction",
+        "dist": 173
+      }
+    },
+    {
+      "name": "Arasta of the Endless Web",
+      "id": "e905a310-02d5-4a86-bb58-2bb3502edba2",
+      "i": 98,
+      "scene": 9,
+      "rot": "upright",
+      "layout": "overlapping",
+      "coverage": 0.206,
+      "got": "Tangle Mantis",
+      "trueRank": null,
+      "artBest": {
+        "name": "Tangle Mantis",
+        "inliers": 7,
+        "color": 87,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 5,
+        "clickArtInliers": 3,
+        "clickTextInliers": 2
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.0459270142018795,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.01980331912636757,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 180
+      },
+      "stages": {
+        "prep": 632,
+        "rankSeeds": 682,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1306,
+        "isolatePrep": 716,
+        "isolateScore": 252,
+        "rank": 0,
+        "orb": 1056,
+        "aiCrop": 180,
+        "total": 4827
+      },
+      "ms": 4828,
+      "perfectControl": {
+        "ok": true,
+        "got": "Arasta of the Endless Web",
+        "by": "art-match",
+        "dist": 160
+      }
+    },
+    {
+      "name": "Cat",
+      "id": "07b58d5f-8a9f-4fd6-83d6-efe3a92e89b2",
+      "i": 100,
+      "scene": 10,
+      "rot": "tapped",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Blank Card",
+      "trueRank": null,
+      "artBest": {
+        "name": "Blank Card",
+        "inliers": 9,
+        "color": 94,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.02828635461628437,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.007413591258227825,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 176
+      },
+      "stages": {
+        "prep": 491,
+        "rankSeeds": 583,
+        "earlyOrbProbe": 0,
+        "rankRefine": 693,
+        "isolatePrep": 745,
+        "isolateScore": 302,
+        "rank": 0,
+        "orb": 520,
+        "aiCrop": 176,
+        "total": 3511
+      },
+      "ms": 3511,
+      "perfectControl": {
+        "ok": false,
+        "got": "Find the Assassin (cont'd)",
+        "dist": 150
+      }
+    },
+    {
+      "name": "The Fire Crystal",
+      "id": "daceda7c-db1d-4847-9c80-13fdfe4d2135",
+      "i": 104,
+      "scene": 10,
+      "rot": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Double-Faced Substitute Card",
+      "trueRank": null,
+      "artBest": {
+        "name": "Double-Faced Substitute Card",
+        "inliers": 5,
+        "color": 99,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 7,
+        "clickArtInliers": 1,
+        "clickTextInliers": 6
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.023394418880343437,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.010325143113732338,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 178
+      },
+      "stages": {
+        "prep": 451,
+        "rankSeeds": 589,
+        "earlyOrbProbe": 0,
+        "rankRefine": 726,
+        "isolatePrep": 812,
+        "isolateScore": 308,
+        "rank": 0,
+        "orb": 360,
+        "aiCrop": 178,
+        "total": 3427
+      },
+      "ms": 3427,
+      "perfectControl": {
+        "ok": false,
+        "got": "Double-Faced Substitute Card",
+        "dist": 160
+      }
+    },
+    {
+      "name": "Cyclonic Rift",
+      "id": "ee3bd03a-f296-479a-bd92-af7c55e594c4",
+      "i": 115,
+      "scene": 11,
+      "rot": "upsidedown",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Defensive Stance",
+      "trueRank": null,
+      "artBest": {
+        "name": "Defensive Stance",
+        "inliers": 7,
+        "color": 81,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.06689819693565369,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.0626392811536789,
+            "accepted": false,
+            "reason": "duplicate"
+          }
+        ],
+        "ms": 181,
+        "fastMs": 734,
+        "fastHit": false
+      },
+      "stages": {
+        "prep": 683,
+        "rankSeeds": 688,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1215,
+        "isolatePrep": 698,
+        "isolateScore": 264,
+        "rank": 0,
+        "orb": 1524,
+        "aiCrop": 181,
+        "aiAttempt": 734,
+        "total": 5988
+      },
+      "ms": 5988,
+      "perfectControl": {
+        "ok": true,
+        "got": "Cyclonic Rift",
+        "by": "art-match",
+        "dist": 111
+      }
+    },
+    {
+      "name": "Snow-Covered Mountain",
+      "id": "685a9d6d-497b-44a1-963f-501d61ea7f66",
+      "i": 116,
+      "scene": 11,
+      "rot": "upsidedown",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Swamp",
+      "trueRank": null,
+      "artBest": {
+        "name": "Swamp",
+        "inliers": 11,
+        "color": 85,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 9,
+        "clickArtInliers": 1,
+        "clickTextInliers": 8
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.06068730354309082,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.060438983142375946,
+            "accepted": false,
+            "reason": "duplicate"
+          }
+        ],
+        "ms": 178,
+        "fastMs": 581,
+        "fastHit": false
+      },
+      "stages": {
+        "prep": 598,
+        "rankSeeds": 669,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1301,
+        "isolatePrep": 725,
+        "isolateScore": 276,
+        "rank": 0,
+        "orb": 1167,
+        "aiCrop": 178,
+        "aiAttempt": 581,
+        "total": 5497
+      },
+      "ms": 5498,
+      "perfectControl": {
+        "ok": true,
+        "got": "Snow-Covered Mountain",
+        "by": "art-match",
+        "dist": 159
+      }
+    },
+    {
+      "name": "Anger",
+      "id": "ed8d665e-9df6-4ae9-a567-977c687fa8e2",
+      "i": 119,
+      "scene": 11,
+      "rot": "upsidedown",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Blank Card",
+      "trueRank": null,
+      "artBest": {
+        "name": "Blank Card",
+        "inliers": 0,
+        "color": 93,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.05308578908443451,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.056039366871118546,
+            "accepted": false,
+            "reason": "duplicate"
+          }
+        ],
+        "ms": 179,
+        "fastMs": 500,
+        "fastHit": false
+      },
+      "stages": {
+        "prep": 542,
+        "rankSeeds": 619,
+        "earlyOrbProbe": 0,
+        "rankRefine": 621,
+        "isolatePrep": 585,
+        "isolateScore": 298,
+        "rank": 0,
+        "orb": 401,
+        "aiCrop": 179,
+        "aiAttempt": 500,
+        "total": 3748
+      },
+      "ms": 3748,
+      "perfectControl": {
+        "ok": false,
+        "got": "White Rhystic Study",
+        "dist": 179
+      }
+    },
+    {
+      "name": "Ferrous Lake",
+      "id": "8a752279-4973-4824-bb79-8dac890c548e",
+      "i": 137,
+      "scene": 13,
+      "rot": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Herd Migration",
+      "trueRank": null,
+      "artBest": {
+        "name": "Herd Migration",
+        "inliers": 7,
+        "color": 85,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 8,
+        "clickArtInliers": 4,
+        "clickTextInliers": 4
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.031065501272678375,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.0556165985763073,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 180,
+        "fastMs": 693,
+        "fastHit": false
+      },
+      "stages": {
+        "prep": 606,
+        "rankSeeds": 655,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1455,
+        "isolatePrep": 700,
+        "isolateScore": 274,
+        "rank": 0,
+        "orb": 1406,
+        "aiCrop": 180,
+        "aiAttempt": 693,
+        "total": 5973
+      },
+      "ms": 5973,
+      "perfectControl": {
+        "ok": true,
+        "got": "Ferrous Lake",
+        "by": "art-match",
+        "dist": 122
+      }
+    },
+    {
+      "name": "Goblin",
+      "id": "b72fe493-f712-45b3-9af2-7f96a31cad85",
+      "i": 150,
+      "scene": 15,
+      "rot": "tapped",
+      "layout": "spaced",
+      "coverage": 0,
+      "got": "Cuombajj Witches",
+      "trueRank": null,
+      "artBest": {
+        "name": "Cuombajj Witches",
+        "inliers": 12,
+        "color": 67,
+        "weak": false,
+        "clickInside": null,
+        "clickInliers": 15,
+        "clickArtInliers": 15,
+        "clickTextInliers": 0
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.06361262500286102,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.06446603685617447,
+            "accepted": false,
+            "reason": "duplicate"
+          }
+        ],
+        "ms": 179,
+        "fastMs": 676,
+        "fastHit": false
+      },
+      "stages": {
+        "prep": 674,
+        "rankSeeds": 673,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1475,
+        "isolatePrep": 717,
+        "isolateScore": 239,
+        "rank": 0,
+        "orb": 1495,
+        "aiCrop": 179,
+        "aiAttempt": 676,
+        "total": 6130
+      },
+      "ms": 6131,
+      "perfectControl": {
+        "ok": false,
+        "got": "Wardscale Crocodile",
+        "dist": 180
+      }
+    },
+    {
+      "name": "Wastes",
+      "id": "837edd3f-5380-4c1c-8323-0e61dac385e5",
+      "i": 158,
+      "scene": 15,
+      "rot": "upsidedown",
+      "layout": "spaced",
+      "coverage": 0,
+      "got": "Astor, Bearer of Blades",
+      "trueRank": null,
+      "artBest": {
+        "name": "Astor, Bearer of Blades",
+        "inliers": 5,
+        "color": 100,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.02368766814470291,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.02460777759552002,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 183,
+        "fastMs": 375,
+        "fastHit": false
+      },
+      "stages": {
+        "prep": 550,
+        "rankSeeds": 641,
+        "earlyOrbProbe": 0,
+        "rankRefine": 830,
+        "isolatePrep": 658,
+        "isolateScore": 270,
+        "rank": 0,
+        "orb": 546,
+        "aiCrop": 183,
+        "aiAttempt": 375,
+        "total": 4056
+      },
+      "ms": 4056,
+      "perfectControl": {
+        "ok": false,
+        "got": "Consume Spirit",
+        "dist": 178
+      }
+    },
+    {
+      "name": "Mistrise Village",
+      "id": "52f7e36c-87fb-4145-a5ca-6df7f55b3f1e",
+      "i": 163,
+      "scene": 16,
+      "rot": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Double-Faced Substitute Card",
+      "trueRank": null,
+      "artBest": {
+        "name": "Double-Faced Substitute Card",
+        "inliers": 5,
+        "color": 99,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 5,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.05452603101730347,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.05767112225294113,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 178,
+        "fastMs": 533,
+        "fastHit": false
+      },
+      "stages": {
+        "prep": 622,
+        "rankSeeds": 645,
+        "earlyOrbProbe": 0,
+        "rankRefine": 781,
+        "isolatePrep": 656,
+        "isolateScore": 282,
+        "rank": 0,
+        "orb": 666,
+        "aiCrop": 178,
+        "aiAttempt": 533,
+        "total": 4366
+      },
+      "ms": 4366,
+      "perfectControl": {
+        "ok": false,
+        "got": "Artisan of Forms",
+        "dist": 175
+      }
+    },
+    {
+      "name": "Ogre",
+      "id": "efaa37e5-302e-4b4b-bb2d-6a0f9f80cd3f",
+      "i": 165,
+      "scene": 16,
+      "rot": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Garruk, Cursed Huntsman Emblem",
+      "trueRank": null,
+      "artBest": {
+        "name": "Garruk, Cursed Huntsman Emblem",
+        "inliers": 4,
+        "color": 90,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.06299193948507309,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.054873332381248474,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 179,
+        "fastMs": 819,
+        "fastHit": false
+      },
+      "stages": {
+        "prep": 687,
+        "rankSeeds": 671,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1490,
+        "isolatePrep": 887,
+        "isolateScore": 303,
+        "rank": 0,
+        "orb": 1414,
+        "aiCrop": 179,
+        "aiAttempt": 819,
+        "total": 6453
+      },
+      "ms": 6453,
+      "perfectControl": {
+        "ok": false,
+        "got": "Tsabo's Web",
+        "dist": 184
+      }
+    },
+    {
+      "name": "Mox Diamond",
+      "id": "28028830-83ed-45e2-b495-3b9ad9d3e988",
+      "i": 167,
+      "scene": 16,
+      "rot": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Seal of the Guildpact",
+      "trueRank": null,
+      "artBest": {
+        "name": "Seal of the Guildpact",
+        "inliers": 7,
+        "color": 88,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 5,
+        "clickArtInliers": 3,
+        "clickTextInliers": 2
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.04513555020093918,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.053602296859025955,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 175,
+        "fastMs": 709,
+        "fastHit": false
+      },
+      "stages": {
+        "prep": 655,
+        "rankSeeds": 661,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1390,
+        "isolatePrep": 739,
+        "isolateScore": 252,
+        "rank": 0,
+        "orb": 1287,
+        "aiCrop": 175,
+        "aiAttempt": 709,
+        "total": 5870
+      },
+      "ms": 5871,
+      "perfectControl": {
+        "ok": true,
+        "got": "Mox Diamond",
+        "by": "art-match",
+        "dist": 117
+      }
+    },
+    {
+      "name": "Ghalta, Stampede Tyrant",
+      "id": "2e751853-b0ee-42ab-a7be-8d192599b8f6",
+      "i": 180,
+      "scene": 18,
+      "rot": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Moonrage Brute",
+      "trueRank": null,
+      "artBest": {
+        "name": "Moonrage Brute",
+        "inliers": 7,
+        "color": 95,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 5,
+        "clickArtInliers": 3,
+        "clickTextInliers": 2
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.03215848654508591,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.043415363878011703,
+            "accepted": false,
+            "reason": "duplicate"
+          }
+        ],
+        "ms": 178,
+        "fastMs": 626,
+        "fastHit": false
+      },
+      "stages": {
+        "prep": 628,
+        "rankSeeds": 635,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1324,
+        "isolatePrep": 639,
+        "isolateScore": 229,
+        "rank": 0,
+        "orb": 1194,
+        "aiCrop": 178,
+        "aiAttempt": 626,
+        "total": 5456
+      },
+      "ms": 5457,
+      "perfectControl": {
+        "ok": true,
+        "got": "Ghalta, Stampede Tyrant",
+        "dist": 130
+      }
+    },
+    {
+      "name": "Corrupted Conviction",
+      "id": "ce133ad5-8748-4a3d-ae8c-7b2a5938927d",
+      "i": 181,
+      "scene": 18,
+      "rot": "tapped",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Bicycle Rack",
+      "trueRank": null,
+      "artBest": {
+        "name": "Bicycle Rack",
+        "inliers": 5,
+        "color": 99,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.06055629625916481,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.06577920913696289,
+            "accepted": false,
+            "reason": "duplicate"
+          }
+        ],
+        "ms": 181,
+        "fastMs": 723,
+        "fastHit": false
+      },
+      "stages": {
+        "prep": 508,
+        "rankSeeds": 644,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1664,
+        "isolatePrep": 660,
+        "isolateScore": 268,
+        "rank": 0,
+        "orb": 1296,
+        "aiCrop": 181,
+        "aiAttempt": 723,
+        "total": 5947
+      },
+      "ms": 5947,
+      "perfectControl": {
+        "ok": true,
+        "got": "Corrupted Conviction",
+        "by": "art-match",
+        "dist": 130
+      }
+    },
+    {
+      "name": "Snow-Covered Plains",
+      "id": "e0ed0c75-0ec3-4f06-8c37-750fefb8136d",
+      "i": 187,
+      "scene": 18,
+      "rot": "tapped",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Hunter's Prowess",
+      "trueRank": null,
+      "artBest": {
+        "name": "Hunter's Prowess",
+        "inliers": 7,
+        "color": 92,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 7,
+        "clickArtInliers": 5,
+        "clickTextInliers": 2
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.04010707512497902,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.06378646939992905,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 175,
+        "fastMs": 690,
+        "fastHit": false
+      },
+      "stages": {
+        "prep": 585,
+        "rankSeeds": 666,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1336,
+        "isolatePrep": 683,
+        "isolateScore": 261,
+        "rank": 0,
+        "orb": 1343,
+        "aiCrop": 175,
+        "aiAttempt": 690,
+        "total": 5741
+      },
+      "ms": 5741,
+      "perfectControl": {
+        "ok": false,
+        "got": "Elder Gargaroth",
+        "dist": 221
+      }
+    },
+    {
+      "name": "Geier Reach Sanitarium",
+      "id": "8d80ec47-0e47-49e3-9c43-1c126d8523e1",
+      "i": 188,
+      "scene": 18,
+      "rot": "upright",
+      "layout": "side-by-side",
+      "coverage": 0,
+      "got": "Blank Card",
+      "trueRank": null,
+      "artBest": {
+        "name": "Blank Card",
+        "inliers": 0,
+        "color": 93,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 2,
+        "probes": [
+          {
+            "sharpness": 0.03969225659966469,
+            "accepted": true,
+            "reason": "accepted"
+          },
+          {
+            "sharpness": 0.036431971937417984,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 174,
+        "fastMs": 545,
+        "fastHit": false
+      },
+      "stages": {
+        "prep": 597,
+        "rankSeeds": 662,
+        "earlyOrbProbe": 0,
+        "rankRefine": 803,
+        "isolatePrep": 604,
+        "isolateScore": 273,
+        "rank": 0,
+        "orb": 658,
+        "aiCrop": 174,
+        "aiAttempt": 545,
+        "total": 4318
+      },
+      "ms": 4318,
+      "perfectControl": {
+        "ok": false,
+        "got": "Blank Card",
+        "dist": 161
+      }
+    },
+    {
+      "name": "Kai Budde Bio",
+      "id": "9ed2329f-d055-4a60-955b-384722504278",
+      "i": 195,
+      "scene": 19,
+      "rot": "upsidedown",
+      "layout": "overlapping",
+      "coverage": 0.321,
+      "got": "Ash Barrens",
+      "trueRank": null,
+      "artBest": {
+        "name": "Ash Barrens",
+        "inliers": 5,
+        "color": 96,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 7,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0
+      },
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 1,
+        "probes": [
+          {
+            "sharpness": 0.019668610766530037,
+            "accepted": false,
+            "reason": "weak"
+          },
+          {
+            "sharpness": 0.02547452412545681,
+            "accepted": true,
+            "reason": "accepted"
+          }
+        ],
+        "ms": 180,
+        "fastMs": 843,
+        "fastHit": false
+      },
+      "stages": {
+        "prep": 681,
+        "rankSeeds": 693,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1380,
+        "isolatePrep": 693,
+        "isolateScore": 252,
+        "rank": 0,
+        "orb": 1424,
+        "aiCrop": 180,
+        "aiAttempt": 843,
+        "total": 6148
+      },
+      "ms": 6148,
+      "perfectControl": {
+        "ok": false,
+        "got": "Double-Faced Substitute Card",
+        "dist": 175
+      }
+    }
+  ],
+  "errors": []
+}

@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "scripts/build_index.py"
+      - "scripts/build_milo_catalog.py"
       - ".github/workflows/build-index.yml"
   workflow_dispatch:
   schedule:
@@ -29,7 +30,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - run: pip install numpy opencv-python-headless pillow requests
+      - run: pip install numpy opencv-python-headless pillow requests onnxruntime==1.31.0
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .cache/milo
+            .cache/ai-lookup/model.onnx
+            .cache/ai-lookup/milo1-scryfall-mtg-2026-07-09.npz
+          key: milo1-v1-${{ hashFiles('public/carddata/cards.json') }}
+          restore-keys: milo1-v1-
       - name: Verify updater and hash contract
         run: |
           python scripts/test_bulk_index.py
@@ -40,11 +49,16 @@ jobs:
         run: python scripts/build_index.py --bulk default_cards --workers 8
       - name: Verify complete output tables
         run: python scripts/verify_card_index.py
+      - name: Update local Milo embeddings for every card face
+        run: python scripts/build_milo_catalog.py --workers 4
+      - name: Verify complete Milo catalog and source alignment
+        run: python scripts/verify_milo_catalog.py
       - name: Commit index
         run: |
           git config user.name "github-actions"
           git config user.email "actions@users.noreply.github.com"
           git add -f public/carddata
+          git add public/vendor/vision/milo1
           if git diff --cached --quiet; then
             echo "No changes"
             exit 0

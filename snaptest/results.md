@@ -9,6 +9,142 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-10-10 — `milo-rescue-7` — complete local card retrieval
+
+Milo 1 now contributes a bounded printing shortlist on uncertain Cornelius
+crops. The existing hash/artwork pipeline retains its fast path; a learned
+proposal needs decisive printed-content evidence and positive registration
+at the original camera click. Cosine similarity is never an identity confidence.
+The exact crop transform preserves camera coordinates, including tapped cards.
+Four leading proposals may compare normal references as well as thumbnails.
+After positive regional registration, both sides use matching raw/white-balanced
+color variants rather than balancing only the query. Numeric artwork, color
+and distance thresholds remain unchanged; artwork acceptance requires positive
+click ownership.
+
+The first complete integration (`milo-rescue-1`) scored **179/200** against
+171/200 current main. The final refinements add Deathrite Shaman, Ogre, Mox
+Diamond, Ghalta, Stampede Tyrant and Corrupted Conviction, with no losses against
+that prototype. Selected frozen PNG pilots guided development; they are not
+release gates. The final comparison uses freshly generated identical production
+JPEG captures, the authoritative deterministic sampler, alternating engine
+order and fresh browser contexts. Both arms have Cornelius enabled, and the
+control at `f9fbbbec634eaef51821c547fff8ee74c99e0d46` disables only Milo.
+All four complete control runs have identical per-card outcomes. A scheduled
+refresh before publication changed only the manifest generation timestamp and
+name-array ordering: the same names, card rows, hashes, colors, art tables and
+Scryfall snapshot remain. The release incorporates that commit; measured
+control code and recognition tables are unchanged. The prior
+`milo-rescue-5` and `milo-rescue-6` prototypes also scored 184/200, but neither
+was deployed. Dice 100 exposed an outside neighbour in v5 and an unregistered
+68-inlier isolated match in v6; Random 200 also failed its gate on v6. Artwork
+ranking now retains off-centre suggestions, while confident artwork identity
+requires positive source-click ownership. Initial learned and outline crops
+retain the camera transform too, preserving genuine fast-path registration.
+Strong regional negative proof survives weak/unknown whole-frame matches, and
+a positively registered clicked duplicate takes precedence over an outside copy.
+
+Boundary tests cover both rejected confidence states. The first v5 failure's
+random pixels were not saved. The release driver now preserves actual miss
+pixels before closing each context, and tableau exports retain the exact
+normalized capture point. Older exports explicitly mark points unknown.
+The final confidence refinement preserves all thirteen recoveries and every
+per-card primary outcome on its complete repeat. Four correct primary answers
+become tentative instead of confidently accepted; unresolved/tentative guesses
+still count against overall coverage when incorrect.
+
+| Paired Real life, all 200 clicks | Current main | Milo final |
+| --- | --- | --- |
+| Correct identity | 171/200 (85.5%) | **184/200 (92%)** |
+| Accepted `art-match`/`visual-exact` | 164/164 correct | **174/174 correct** |
+| Median | 852ms | **837ms** |
+| Average | 2135ms | **1708ms** |
+| p90 | 5615ms | **4977ms** |
+| Upright | 91/109 | 99/109 |
+| Tapped | 49/55 | 52/55 |
+| Inverted | 31/36 | 33/36 |
+| Side by side / spaced / overlapping layout | 103/120, 55/60, 13/20 | 113/120, 57/60, 14/20 |
+| Clear / overlapped / clipped edge | 165/187, 4/10, 2/3 | 177/187, 4/10, 3/3 |
+| First / second half | 87/100, 84/100 | 91/100, 93/100 |
+| OpenCV WASM allocation | 134→134MB | 134→134MB |
+
+**13 recovered, zero individual regressions**, zero scan errors. The recovery
+exceeds the documented two-card-per-100 noise band. Of 61 uncertain-crop Milo
+lookups, 40 settle before the full fallback; all 131 direct corner/hash fast
+hits are correct. Every previously correct identity is preserved. Average time
+falls 20.0%; p90 falls 11.4%. These are warmed
+Apple M2 Max browser timings, including production decoding/detection/verification,
+not camera transport, phone performance or first-visit model downloads. They do
+not meet the target of every clicked card in under one second.
+
+Sixteen clicks still fail. Only **2/16** become correct through this full
+verifier with an exact diagnostic crop, versus 11/29 control misses. Five lack
+any detector proposal. The perfect-crop subsets are different hard-case subsets,
+not directly comparable overall crop accuracies. The earlier descriptor-only
+193–194/200 perfect-crop result cannot replace the app's 184/200 verified result.
+Severely overlapping cards remain difficult: the small truly overlapped bucket
+is unchanged at 4/10. A new model cannot reconstruct distinguishing pixels
+hidden by dice, another card, saturated glare or blur; further gains need better
+frames and/or additional identity evidence, rather than reduced acceptance gates.
+
+The complete additional release matrix passes all documented gates, with no
+confidently wrong identity in any required suite:
+
+| Suite | Correct | Accepted art/visual correct | Median | p90 |
+| --- | --- | --- | --- | --- |
+| Tableau EDH | 96/100 | 94/94 | 690ms | 1926ms |
+| Vegas playmat | 186/200 | 184/184 | 670ms | 2388ms |
+| Tableau EDH dice | 94/100 | 87/87 | 726ms | 4889ms |
+| Random catalog cards | 195/200 | 129/129 | 852ms | 3664ms |
+| EDH single-card sample | 191/200 | 130/130 | 883ms | 3533ms |
+| Recent hints | 20/20 | all twenty hints verified | 157ms | 204ms |
+
+These unseeded draws are regression gates, not paired accuracy comparisons.
+Vegas clear cards score 176/185; upright 108/114, tapped 47/53 and inverted
+31/33. All fourteen misses have perfect-crop controls, nine successful. Dice
+scores 18/20 on white, black and blue dice and 20/20 on red and pink. Its late
+overlap scene scores 5/10; first/second halves are 100%/88%. EDH's first three
+placement blocks are perfect and its clipped block is 39/48. Random's blocks
+are 56/56, 47/48, 48/48 and 44/48. Every suite has zero scan errors and flat
+134MB OpenCV allocation. Recent hints retain 20/20 hits, no full-crop fallback,
+and a 5.14x mean speedup. Raw gates are in
+[release-gates.txt](runs/2026-10-10-milo-release/release-gates.txt).
+
+The separate supplied Arcane medium photo set scores **159/200 (79.5%)**
+with labels unchanged, 118/119 accepted artwork results correct, 4140ms
+median and 6839ms p90. Its 82%/77% halves have flat OpenCV allocation and
+zero errors. The one confident miss is the previously documented Instill
+Energy image with a shared "Localized Image Not Available" overlay, returned
+as Pirate Ship; all 53 registration inliers lie in the artwork band. Positive
+click ownership does not make a shared overlay unique identity evidence.
+This known limitation remains unresolved. The photographed-input result is
+not near-perfect or sub-second. It is not a paired accuracy improvement over
+the historical 157/200 result. Actual fixtures and exact default center points
+are referenced in [the photo miss manifest](runs/2026-10-10-milo-release/candidate/captures/arcaneMedium/manifest.json).
+
+The reference catalog now covers **all 113,263 current faces and 35,648 names**:
+109,711 pinned compatible seed vectors reused and 3,552 missing current faces
+embedded locally, including backs. Fingerprints bind it to the October 10
+Scryfall card snapshot, and the daily updater maintains both catalogs together.
+Weights remain unmodified fp32; stored reference vectors are int8 with measured
+norms. Model/license/source and roughly 20.6MB of additional assets ship locally;
+there is no paid inference API or per-scan AI fee. This is full face coverage,
+not a claim that all old seed images were regenerated today. Browser checks
+retrieve all twenty sampled new faces correctly. A test-only wrapper records
+stable **92.34MB** shared ONNX WASM allocation across fifty lookups, including
+alternating corner jobs, after both models warm. OpenCV remains separately
+134MB throughout the primary run; these are allocations, not total browser
+resident-memory measurements. Blocking the Milo manifest still correctly
+recognizes the frozen crowded Dementia Bat case with Cornelius available.
+Checksum/fingerprint/diversity, corrupt-publication and click-boundary tests
+cover failure behavior without relying on a high similarity score.
+
+Raw evidence: [final paired comparison](runs/2026-10-10-milo-release/paired-realLife.json),
+[primary candidate](runs/2026-10-10-milo-release/candidate/realLife.json),
+[primary current-main control](runs/2026-10-10-milo-release/control/realLife.json),
+[first integration](runs/2026-10-10-milo-v1/paired-realLife.json),
+[source fingerprints](runs/2026-10-10-milo-release/provenance.json).
+
 ## 2026-10-10 — card catalog refresh — October 10 Scryfall snapshot
 
 Production had remained on the July 24 catalog: the August, September and
@@ -48,6 +184,111 @@ cached URLs. Loaded sessions retain their index until reload. BUILD is
 Raw evidence: [catalog completeness and visual preservation](runs/2026-10-10-card-index/catalog.json),
 [new faces and frozen regressions](runs/2026-10-10-card-index/browser-local.json),
 [reference cases](runs/2026-10-10-card-index/cases.json).
+
+## 2026-10-10 — Milo lookup research — faster candidate retrieval, not a release
+
+User target: **one clicked card in less than one second**, across all Magic
+cards, including overlap, dice, glare, dim light and blur. This experiment
+tests purpose-trained image retrieval with [Milo v1](https://huggingface.co/HanClinto/milo),
+not a paid inference API. The runtime matcher and BUILD remain `click-match-4`.
+
+Both arms rank the same 109,711 printing/face gallery on identical frozen PNGs.
+The actual Cornelius detector and production rectifier supply up to two crops;
+hashing includes the exact worker white balance. Milo uses the upstream
+normalization and upright/inverted embeddings. The gallery is missing 881
+local printing rows and 103 names, although all tested identities are covered.
+Counts below are **raw name retrieval**, without ORB, OCR, click proof or any
+acceptance policy. Missing detector crops count as misses in the table.
+
+| Diagnostic, full attempt denominator | Gray pHash+dHash | Milo | Milo with int8 gallery |
+| --- | --- | --- | --- |
+| Real life actual model crops, 192/200 have a proposal | 165/200 | 178/200 | 177/200 |
+| Same Real life scenes, perfect framing | 124/200 | 193/200 | 194/200 |
+| Forced overlap actual model crops, 93/100 have a proposal | 40/100 | 65/100 | 65/100 |
+| Same forced-overlap scenes, perfect framing | 99/100 | 94/100 | 94/100 |
+
+Real life has **20 recovered, seven regressed** against the gray descriptor;
+forced overlap has **26 recovered, one regressed**, with 86 cards partly covered.
+Milo supplements a lookup that can already get some cards right where it fails.
+The strong perfect-crop gray control in the overlap suite also shows why
+localization remains necessary. No wrong answer in the forced-overlap draw
+names another selected scene card; this does not measure a new neighbour fix.
+Real life gray→Milo top-1 counts by rotation: upright 88→100/109, tapped
+46→48/55, inverted 31→30/36. The raw unrectified capture gives zero top-1
+identities in either arm.
+
+Additional controls use production artwork hashes and the production
+gray/art/color scoring formula. Their actual-model-crop top-1 counts are
+49/108 (Real life) and 27/33 (overlap), respectively. These isolated controls
+are generously searched over the full shared gallery without the production
+gray cutoff; they do not stand in for its complete multi-crop search or
+verification. The **deployed pipeline's 169/200 result must not be replaced
+with the descriptor's 178/200 and called a measured app improvement**.
+
+Chrome on an **Apple M2 Max**, one WASM thread, measured 31 fixed crops from
+16 captures: **317ms median, 322ms p90, 363ms maximum** for two orientations
+and complete int8-gallery search/sorting. Median preprocessing/inference is
+271ms, search 46ms. The fifteen actual detector crops alone have median 317ms
+and p90 330.4ms. All 31 top-1 identities agree with the Python int8 probe;
+embedding cosine parity is median 0.999824, minimum 0.991755. The model weights
+remain fp32; only gallery vectors are int8. These timings exclude image
+decoding, camera capture/transport, detection, reference fetches and verification.
+The 258ms local-server asset load precedes warmup and says nothing about a
+mobile first visit. Additional experimental model/catalog assets total 24.1MB
+before compression; browser retained WASM memory and actual phone speed are
+unmeasured. The Python CPU timing is not a browser performance comparison.
+
+**Recommendation: test a bounded supplemental embedding shortlist**, preserving
+the current lookup and its interior evidence/source-space click verification.
+Refresh the full printing catalog, then measure complete click-to-answer
+latency, coverage and accepted precision on independent camera failures and
+phone/desktop devices before shipping. A one-second median is insufficient;
+the current release's 5.700s p90 remains a real problem. No model can recover
+identity from a frame with all distinguishing information hidden, and an
+unresolved/retry outcome must still count against identification coverage.
+The two earlier generic embedding experiments are not evidence against this
+different, card-trained descriptor; nor is this probe evidence of 100% accuracy.
+
+The initial gray-hash pilot omitted production white balance. Its control was
+discarded and every frozen PNG was rehashed with the actual helper before the
+reported comparison. The art/color export independently checked gray hashes
+bit-for-bit against the corrected manifest. No model was trained on these
+captures by this project; upstream training-set overlap is unknown. The
+scenes are renders, and no unavailable private camera reports were validated.
+
+Raw evidence: [summary and browser parity](runs/2026-10-10-milo-lookup/summary.json),
+[Real life all ranks](runs/2026-10-10-milo-lookup/realLife.json),
+[overlap all ranks](runs/2026-10-10-milo-lookup/overlap.json),
+[browser timings/embeddings](runs/2026-10-10-milo-lookup/browser.json),
+[Real life capture fingerprints](runs/2026-10-10-milo-lookup/realLife-captures.json),
+[overlap capture fingerprints](runs/2026-10-10-milo-lookup/overlap-captures.json).
+Pinned model/gallery checksums are in each result. PNGs and large model assets
+stay in ignored `.cache/ai-lookup`; browser copies go into build-excluded
+`public/experimental/ai-lookup`.
+
+Reproduce with the configured Node runtime (Playwright plus Chrome) and a
+Python 3.12 research environment with `numpy==2.4.3`, `pillow==11.3.0`,
+`requests==2.32.5`, `onnxruntime==1.31.0`. Set `PROBE_NODE` and `PROBE_PYTHON`
+to those executables; system Node/npm is not assumed. Run the existing
+`python3 scripts/serve_preview.py 8877` separately, then run each probe
+sequentially, with no other heavy work during timing measurements:
+
+```sh
+"$PROBE_PYTHON" scripts/setup_ai_lookup_probe.py
+"$PROBE_NODE" scripts/export_ai_lookup_probe.mjs realLife .cache/ai-lookup/crops
+"$PROBE_PYTHON" scripts/probe_ai_lookup.py
+"$PROBE_PYTHON" scripts/augment_ai_lookup_probe.py
+"$PROBE_NODE" scripts/benchmark_ai_lookup_browser.mjs
+"$PROBE_NODE" scripts/export_ai_lookup_probe.mjs overlap .cache/ai-lookup/overlap
+"$PROBE_PYTHON" scripts/probe_ai_lookup.py --data .cache/ai-lookup/overlap --output .cache/ai-lookup/overlap-results.json
+"$PROBE_PYTHON" scripts/augment_ai_lookup_probe.py --data .cache/ai-lookup/overlap --output .cache/ai-lookup/overlap-results.json
+```
+
+For previously exported manifests, `scripts/rehash_ai_lookup_probe.mjs` adds
+the current production descriptor controls to the frozen pixels. The exporter
+reads the authoritative sampler/renderer rather than maintaining another
+dataset implementation. See [the investigation](../docs/recognition-v2-plan.md)
+for the proposed integration and its limits.
 
 ## 2026-10-10 — `click-match-4` — local vision and clicked-card verification
 
