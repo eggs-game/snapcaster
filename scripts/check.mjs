@@ -24,6 +24,8 @@ const checks = [
   [node, "scripts/test_local_commander_selection.mjs"],
   [node, "scripts/test_game_connection_reset.mjs"],
   [node, "scripts/test_webrtc_signaling.mjs"],
+  [node, "scripts/test_webrtc_media_state.mjs"],
+  [node, "scripts/test_visitor_audio.mjs"],
   [node, "scripts/test_video_counter_contrast.mjs"],
   [node, "scripts/test_card_presentation.mjs"],
   [node, "scripts/test_chat_commands.mjs"],

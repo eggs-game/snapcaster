@@ -44,6 +44,17 @@ needed; successful tracks provide the actual device IDs. This recovers from
 unplugged or browser-rotated saved IDs without reducing working-camera quality.
 Permission and busy-device failures are not retried. Visitor retries keep video
 disabled, and failed preview acquisition still refreshes the device pickers.
+Canceling setup prevents further fallback requests. Tracks acquired after leaving
+are stopped before they can be published, and a closed connection cannot join
+or reopen an epoch channel. Device switches serialize per media kind and keep
+the old device until all peer senders switch. Failure stops the attempted track
+and restores earlier senders; mute/camera controls also cover replacement tracks
+while a switch is pending.
+
+Visitor self-mute and the game owner's mute remain independent. The latter
+disables the local microphone and every receiver's audio element, and cannot be
+overridden by a visitor's self-unmute broadcast. Removing host mute restores the
+visitor's existing self-mute choice.
 
 Dependencies are deliberately few: `react`, `react-dom`, `@supabase/supabase-js`,
 `tesseract.js`, `lucide-react`. OpenCV loads at runtime from `docs.opencv.org`.

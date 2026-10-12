@@ -36,6 +36,7 @@ const bundle = await build({
         onOpen: () => window.updateSidebar({collapsed:false}),
         onClose: () => window.updateSidebar({collapsed:true}),
         onSendChat: (message) => { window.sidebarEvents.push(message); return {ok:true}; },
+        onToggleMic: () => window.sidebarEvents.push({kind:"mic-toggle"}),
       };
       window.updateSidebar = (next) => {
         Object.assign(window.sidebarProps, next);
@@ -116,8 +117,18 @@ try {
   assert.deepEqual(await page.evaluate(() => window.sidebarEvents[1]), {
     kind: "whisper", text: "private hello", targetId: "ann-marie", targetName: "Ann Marie", soundId: "",
   });
+  await page.evaluate(() => window.updateSidebar({view:"settings",isVisitor:true,micOn:false,microphoneLocked:true}));
+  const microphone = page.getByRole("button", {name:"Mic muted",exact:true});
+  await expect(microphone).toBeDisabled();
+  await expect(page.getByText("Muted by the game owner.", {exact:true})).toBeVisible();
+  await microphone.evaluate((element) => element.click());
+  assert.equal(await page.evaluate(() => window.sidebarEvents.filter((entry) => entry.kind === "mic-toggle").length), 0);
+  await page.evaluate(() => window.updateSidebar({microphoneLocked:false}));
+  await expect(microphone).toBeEnabled();
+  await microphone.click();
+  assert.equal(await page.evaluate(() => window.sidebarEvents.filter((entry) => entry.kind === "mic-toggle").length), 1);
   assert.deepEqual(errors, [], "the sidebar must not throw while navigating and sending");
-  console.log("OK: sidebar verified-card rendering, scrolling panels, hidden/collapsed unread chat, reopen scroll, IME input, and private prefix-name messages");
+  console.log("OK: sidebar card/chat rendering, scrolling, IME/private recipients, and authoritative visitor microphone lock");
 } finally {
   await browser?.close();
   await new Promise((resolve) => server.close(resolve));

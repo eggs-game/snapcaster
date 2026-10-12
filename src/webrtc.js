@@ -126,6 +126,8 @@ export class GameConnection {
     this.pending = new Map();   // requestId -> {resolve, reject, timer}
     this.pendingSignals = new Map();
     this.pendingIce = new Map();
+    this.pendingMediaTracks = new Set();
+    this.deviceSwitches = new Map();
     this.lastSignalMembershipRefresh = 0;
     this.localStream = null;
     this.room = null;
@@ -428,11 +430,12 @@ export class GameConnection {
     startMuted = false,
     outgoingVideoQuality = DEFAULT_OUTGOING_VIDEO_QUALITY,
   } = {}) {
+    if (this.closed) throw new Error("This game has closed.");
     this.outgoingVideoQuality = normalizeOutgoingVideoQuality(outgoingVideoQuality);
     // Ask for the camera's maximum resolution — recognition crops are taken
     // from the raw local track, so every native pixel directly improves card
     // identification (WebRTC scales the *sent* video down on its own).
-    this.localStream = await getUserMediaWithFallback({
+    const acquired = await getUserMediaWithFallback({
       video: audioOnly
         ? false
         : {
@@ -444,7 +447,12 @@ export class GameConnection {
         echoCancellation: true,
         noiseSuppression: true,
       },
-    });
+    }, globalThis.navigator?.mediaDevices, { isActive: () => !this.closed });
+    if (this.closed) {
+      for (const track of acquired.getTracks()) track.stop();
+      throw new Error("This game has closed.");
+    }
+    this.localStream = acquired;
     this.videoDeviceId = this.localStream.getVideoTracks()[0]?.getSettings?.().deviceId || "";
     this.audioDeviceId = this.localStream.getAudioTracks()[0]?.getSettings?.().deviceId || "";
     this.muted = !!startMuted;
@@ -464,6 +472,17 @@ export class GameConnection {
 
   // Swap the local camera or mic (Zoom-style) and push the new track to every peer.
   async switchDevice(kind, deviceId) {
+    const previous = this.deviceSwitches.get(kind);
+    const task = previous
+      ? previous.catch(() => {}).then(() => this._switchDevice(kind, deviceId))
+      : this._switchDevice(kind, deviceId);
+    this.deviceSwitches.set(kind, task);
+    try { return await task; }
+    finally { if (this.deviceSwitches.get(kind) === task) this.deviceSwitches.delete(kind); }
+  }
+
+  async _switchDevice(kind, deviceId) {
+    if (this.closed) throw new Error("This game has closed.");
     if (!this.localStream || !deviceId) return this.localStream;
     if (this.role === "visitor" && kind === "video") return this.localStream;
     const constraints = kind === "video"
@@ -485,38 +504,60 @@ export class GameConnection {
         video: false,
       };
     const fresh = await navigator.mediaDevices.getUserMedia(constraints);
+    if (this.closed) {
+      for (const track of fresh.getTracks()) track.stop();
+      throw new Error("This game has closed.");
+    }
     const newTrack = kind === "video" ? fresh.getVideoTracks()[0] : fresh.getAudioTracks()[0];
     // Drop unused tracks from the temporary stream so nothing is left open.
     for (const t of fresh.getTracks()) if (t !== newTrack) t.stop();
+    if (!newTrack) throw new Error(`The selected ${kind === "video" ? "camera" : "microphone"} is unavailable.`);
 
     const oldTrack = this.localStream.getTracks().find((t) => t.kind === kind);
     newTrack.enabled = oldTrack ? oldTrack.enabled : true;
     if (kind === "video") tuneVideoTrack(newTrack);
-
-    // Push the new track to peers before tearing down the old one.
-    for (const [peerId, { pc }] of this.peers) {
-      const sender = pc.getSenders().find((s) => s.track?.kind === kind);
-      if (sender) {
-        await sender.replaceTrack(newTrack);
-        if (kind === "video") {
-          await tuneVideoSender(
-            sender,
-            this.videoQuality.get(peerId) || "auto",
-            this.outgoingVideoQuality,
-          );
+    this.pendingMediaTracks.add(newTrack);
+    const replaced = [];
+    try {
+      // Publish to every peer before releasing the old device. If one fails,
+      // stop the attempted track and restore earlier senders to the local one.
+      for (const [peerId, { pc }] of this.peers) {
+        if (this.closed) throw new Error("This game has closed.");
+        const sender = pc.getSenders().find((s) => s.track?.kind === kind);
+        if (sender) {
+          const prior = sender.track;
+          await sender.replaceTrack(newTrack);
+          replaced.push({ sender, prior, peerId });
+          if (kind === "video") {
+            await tuneVideoSender(sender, this.videoQuality.get(peerId) || "auto", this.outgoingVideoQuality);
+          }
         }
       }
+      if (this.closed) throw new Error("This game has closed.");
+      newTrack.enabled = oldTrack ? oldTrack.enabled : kind === "audio" ? !this.muted : this.cameraEnabled;
+      if (oldTrack) {
+        this.localStream.removeTrack(oldTrack);
+        oldTrack.stop();
+      }
+      this.localStream.addTrack(newTrack);
+      const actualId = newTrack.getSettings?.().deviceId || deviceId;
+      if (kind === "video") this.videoDeviceId = actualId;
+      else this.audioDeviceId = actualId;
+      return this.localStream;
+    } catch (error) {
+      newTrack.stop();
+      if (!this.closed) {
+        for (const { sender, prior, peerId } of replaced.reverse()) {
+          try {
+            await sender.replaceTrack(prior);
+            if (kind === "video") await tuneVideoSender(sender, this.videoQuality.get(peerId) || "auto", this.outgoingVideoQuality);
+          } catch { /* the stopped attempted track can no longer transmit */ }
+        }
+      }
+      throw error;
+    } finally {
+      this.pendingMediaTracks.delete(newTrack);
     }
-
-    if (oldTrack) {
-      this.localStream.removeTrack(oldTrack);
-      oldTrack.stop();
-    }
-    this.localStream.addTrack(newTrack);
-
-    if (kind === "video") this.videoDeviceId = deviceId;
-    else this.audioDeviceId = deviceId;
-    return this.localStream;
   }
 
   async join(code, name, role = "player", {
@@ -526,6 +567,7 @@ export class GameConnection {
     profileId = "",
     realtimeEpoch = "",
   } = {}) {
+    if (this.closed) throw new Error("This game has closed.");
     this.role = role === "visitor" ? "visitor" : "player";
     this.name = String(name || "").trim().slice(0, 24)
       || (this.role === "visitor" ? "Visitor" : "Player");
@@ -537,10 +579,10 @@ export class GameConnection {
     this.reconnectReason = this._classifyReconnect(previousLifecycle);
     const restoredState = this._restorePlayerState();
     this._persistPlayerState();
-    this.closed = false;
     this._startNetworkMonitoring();
     this._startLifecycleHeartbeat();
     await this._configureIceServers(code);
+    if (this.closed) throw new Error("This game has closed.");
     this.joinDetails = { code, name: this.name, membershipId, profileId };
     this.realtimeEpoch = realtimeEpoch;
     this.signalHandlers = {
@@ -552,7 +594,7 @@ export class GameConnection {
       onMessage: (msg) => this._onSignal(msg),
       onStatus: (status, error) => this._onRealtimeStatus(status, error),
     };
-    this.room = await joinRoom(code, this.name, this.role, {
+    const room = await joinRoom(code, this.name, this.role, {
       ...this.signalHandlers,
       participantId: this.participantId,
       joinedAt: this.joinedAt,
@@ -560,6 +602,11 @@ export class GameConnection {
       membershipId,
       profileId,
     });
+    if (this.closed) {
+      await room.leave();
+      throw new Error("This game has closed.");
+    }
+    this.room = room;
     this.myId = this.room.myId;
     this._diagnostic("room-joined", {
       details: { turnStatus: this.turnStatus, reconnectReason: this.reconnectReason },
@@ -583,6 +630,7 @@ export class GameConnection {
   }
 
   async _replaceRealtimeRoom(nextEpoch) {
+    if (this.closed) return;
     const previousRoom = this.room;
     const nextRoom = await joinRoom(this.joinDetails.code, this.joinDetails.name, this.role, {
       ...this.signalHandlers,
@@ -592,6 +640,10 @@ export class GameConnection {
       membershipId: this.joinDetails.membershipId,
       profileId: this.joinDetails.profileId,
     });
+    if (this.closed) {
+      await nextRoom.leave();
+      return;
+    }
     this.room = nextRoom;
     this.realtimeEpoch = nextEpoch;
     await previousRoom?.leave();
@@ -658,6 +710,7 @@ export class GameConnection {
   }
 
   _onRoster(presenceRoster) {
+    if (this.closed) return;
     this.rawRoster = presenceRoster;
     if (this.verifiedMemberships) {
       presenceRoster = presenceRoster.flatMap((member) => {
@@ -1685,6 +1738,7 @@ export class GameConnection {
   toggleTrack(kind, enabled) {
     if (this.role === "visitor" && kind === "video") return;
     for (const t of this.localStream?.getTracks() || []) if (t.kind === kind) t.enabled = enabled;
+    for (const t of this.pendingMediaTracks) if (t.kind === kind) t.enabled = enabled;
   }
 
   close() {
@@ -1701,6 +1755,8 @@ export class GameConnection {
     this.peers.clear();
     this.pendingSignals.clear();
     this.pendingIce.clear();
+    for (const track of this.pendingMediaTracks) track.stop();
+    this.pendingMediaTracks.clear();
     this.room?.leave();
     for (const t of this.localStream?.getTracks() || []) t.stop();
   }

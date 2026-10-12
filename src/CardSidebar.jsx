@@ -128,6 +128,7 @@ export default function CardSidebar({
   isVisitor,
   camOn,
   micOn,
+  microphoneLocked = false,
   cameras,
   mics,
   videoDeviceId,
@@ -888,12 +889,16 @@ export default function CardSidebar({
           <section className="settings-major-section">
             <h3 className="drawer-section settings-section-title">Microphone</h3>
             <button
+              type="button"
               className={micOn ? "control-row" : "control-row off"}
               onClick={onToggleMic}
+              disabled={microphoneLocked}
+              aria-describedby={microphoneLocked ? "visitor-mic-lock-help" : undefined}
             >
               {micOn ? <Mic size={18} /> : <MicOff size={18} />}
               <span>{micOn ? "Mic on" : "Mic muted"}</span>
             </button>
+            {microphoneLocked && <p id="visitor-mic-lock-help" className="setting-help">Muted by the game owner.</p>}
             <div className="device-field">
               <AppDropdown
                 label="Microphone"

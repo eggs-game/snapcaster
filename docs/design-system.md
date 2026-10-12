@@ -1084,6 +1084,10 @@ The destructive **Leave game** action is intentionally separated from the
 final preference group by 32px so it reads as a standalone exit action rather
 than another setting.
 
+A visitor muted by the game owner sees a disabled microphone control with the
+shared supporting text “Muted by the game owner.” The user's own mute choice
+remains independent, so removing moderation cannot unmute a self-muted visitor.
+
 Field labels are handled the same way as icon buttons above — a control
 that already has an on-screen state (the "Camera on"/"Mic on" toggle text)
 doesn't need a repeated `<span>` label like "Camera" above its dropdown;

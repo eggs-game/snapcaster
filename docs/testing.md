@@ -25,10 +25,26 @@ delivery delays exercise ICE before SDP, offers before membership admission and
 offers before room initialization. It makes no production requests and does not
 test remote NAT/TURN or physical cameras. `SNAPCAST_CHROME_PATH` selects Chrome;
 reports are in `.cache/webrtc-browser/`.
+The native suite also measures decoded silence/black frames when microphones
+and cameras are disabled, switches native fake devices while disabled, and
+requires decoded tone/video recovery after enabling them. Receiver requests
+must change decoded 720p/1080p dimensions, and all outgoing caps preserve media.
 
 `scripts/test_webrtc_signaling.mjs` runs in the fast policy set. It reproduces
 early SDP/ICE ordering and verifies that pending messages remain bounded,
 expire, and cannot negotiate for an unapproved or removed membership.
+
+`scripts/test_webrtc_media_state.mjs` and `scripts/test_visitor_audio.mjs` run
+in the fast set. They verify failed/overlapping switches cannot leave live
+uncontrolled tracks, pending toggles reach replacements, closed acquisitions
+release tracks, and a visitor cannot override an authoritative room mute.
+
+`npm run check:production-turn` runs the production `/turntest` diagnostic in
+a private browser. It requires a live relay candidate and outputs only counts
+and transport protocols. It requests no camera/microphone access, creates no
+room, and exposes no credentials. It tests relay allocation from the current
+network; it does not establish every remote network or physical device's media
+quality. Use `SNAPCAST_CHROME_PATH` for an installed Chrome executable.
 
 `npm run test:media:playback -- --url=http://127.0.0.1:5184` runs the actual tile
 and audio components against a loopback source preview. It checks autoplay

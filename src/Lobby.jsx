@@ -250,7 +250,7 @@ export default function Lobby({
           echoCancellation: true,
           noiseSuppression: true,
         },
-      });
+      }, globalThis.navigator?.mediaDevices, { isActive: () => request === previewRequestRef.current });
       if (request !== previewRequestRef.current) {
         for (const track of stream.getTracks()) track.stop();
         return;

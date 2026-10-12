@@ -1,0 +1,50 @@
+import assert from "node:assert/strict";
+import { build } from "esbuild";
+import { applyLocalMicrophoneMute, isParticipantAudioMuted, isParticipantRoomMuted, toggleOwnMicrophone } from "../src/visitorAudio.js";
+
+const bundle = await build({ entryPoints: ["src/webrtc.js"], bundle: true, write: false, platform: "node", format: "esm", define: { "import.meta.env": "{}" }, logLevel: "silent" });
+const { GameConnection } = await import("data:text/javascript;base64," + Buffer.from(bundle.outputFiles[0].text).toString("base64"));
+const visitor = { id: "visitor", role: "visitor", membershipId: "visitor-membership" };
+const player = { id: "player", role: "player", membershipId: "player-membership" };
+const roomMutes = { [visitor.membershipId]: true, [player.membershipId]: true };
+assert.equal(isParticipantAudioMuted(visitor, false, roomMutes), true, "a visitor's self-unmute broadcast cannot lift a host mute");
+assert.equal(isParticipantAudioMuted(visitor, true, {}), true, "removing host mute preserves the visitor's own mute");
+assert.equal(isParticipantAudioMuted(visitor, false, {}), false);
+assert.equal(isParticipantAudioMuted(player, false, roomMutes), false, "visitor moderation cannot accidentally mute a seated player");
+assert.equal(isParticipantRoomMuted({ ...visitor, membershipId: "another-membership" }, roomMutes), false, "authority follows the verified membership, not a display name or participant ID");
+
+const track = { kind: "audio", enabled: true };
+const video = { kind: "video", enabled: true };
+const sent = [];
+const connection = new GameConnection({});
+connection.role = "visitor";
+connection.localStream = { getTracks: () => [track, video] };
+connection.room = { send: (message) => sent.push(message) };
+connection.muted = false;
+applyLocalMicrophoneMute(connection, true);
+assert.equal(track.enabled, false);
+assert.equal(video.enabled, true, "enforcing microphone policy must not alter video tracks");
+assert.equal(connection.muted, false, "host moderation must not overwrite the user's self-mute preference");
+assert.equal(toggleOwnMicrophone(connection, true), null, "host-muted visitors cannot re-enable a microphone");
+assert.equal(track.enabled, false);
+assert.deepEqual(sent, [], "blocked unmute cannot broadcast a conflicting self-mute state");
+applyLocalMicrophoneMute(connection, false);
+assert.equal(track.enabled, true, "removing moderation restores an unmuted user's microphone");
+assert.equal(toggleOwnMicrophone(connection, false), false);
+assert.equal(connection.muted, true);
+assert.equal(track.enabled, false);
+assert.equal(sent.at(-1).muted, true);
+applyLocalMicrophoneMute(connection, true);
+applyLocalMicrophoneMute(connection, false);
+assert.equal(track.enabled, false, "removing host mute must not unmute a self-muted visitor");
+assert.equal(toggleOwnMicrophone(connection, false), true);
+assert.equal(track.enabled, true);
+assert.equal(sent.at(-1).muted, false);
+applyLocalMicrophoneMute(connection, true);
+// A replacement device or state restore starts with native enabled=true. The
+// same production policy immediately disables it without changing self-mute.
+track.enabled = true;
+applyLocalMicrophoneMute(connection, true);
+assert.equal(track.enabled, false);
+assert.equal(connection.muted, false);
+console.log("OK: authoritative visitor mute survives self broadcasts, blocks unmute and replacement tracks, and restores the independent self-mute choice");

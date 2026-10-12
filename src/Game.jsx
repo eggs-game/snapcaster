@@ -28,6 +28,7 @@ import AppDropdown from "./AppDropdown.jsx";
 import AppToast from "./AppToast.jsx";
 import { isPlainSpaceShortcut, serializeCommanderDamage, suppressDragReleaseClick } from "./gameControls.js";
 import { bindMediaPlayback } from "./mediaPlayback.js";
+import { applyLocalMicrophoneMute, isParticipantAudioMuted, toggleOwnMicrophone } from "./visitorAudio.js";
 import { useConfirmDialog } from "./ConfirmDialog.jsx";
 import { getSoundEffect, playChatNotification, playSoundEffect, playTurnNotification } from "./soundEffects.js";
 import { getCounterTextColor, getVideoCounterType, normalizeVideoCounter } from "./videoCounters.js";
@@ -126,6 +127,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
   const chatNotificationsEnabledRef = useRef(true);
   const turnNotificationsEnabledRef = useRef(true);
   const membershipRefreshAtRef = useRef(0);
+  const ownRoomMutedRef = useRef(false);
   const activePlayerIdRef = useRef("");
   const gameStatusRef = useRef(session.roomStatus || "lobby");
   const chatShowcaseSeededRef = useRef(false);
@@ -226,6 +228,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
   const [durableSessionId, setDurableSessionId] = useState(session.gameSessionId || "");
   const [gameStartedAt, setGameStartedAt] = useState(session.gameStartedAt || session.mockGame?.startedAt || "");
   const [roomMutedMemberships, setRoomMutedMemberships] = useState({});
+  const ownRoomMuted = isVisitor && Boolean(roomMutedMemberships[session.membershipId]);
   const [gameFriends, setGameFriends] = useState([]);
   const [isGameOwner, setIsGameOwner] = useState(Boolean(session.creator));
   const [activeOwnerToken, setActiveOwnerToken] = useState(session.ownerToken || "");
@@ -334,9 +337,11 @@ export default function Game({ session, account, onLeave, themePreference, onThe
             }
           }).catch(() => {});
         }
-        if (isVisitor && membership.room_muted) {
-          for (const track of connRef.current?.localStream?.getAudioTracks?.() || []) track.enabled = false;
-          setMicOn(false);
+        if (isVisitor && Object.hasOwn(membership, "room_muted")) {
+          const roomMuted = Boolean(membership.room_muted);
+          ownRoomMutedRef.current = roomMuted;
+          setRoomMutedMemberships((values) => ({ ...values, [session.membershipId]: roomMuted }));
+          applyLocalMicrophoneMute(connRef.current, roomMuted);
         }
         if (Array.isArray(membership.memberships)) return membership.memberships;
         return getGameMembershipStates({
@@ -348,6 +353,10 @@ export default function Game({ session, account, onLeave, themePreference, onThe
         if (!states) return;
         const activeMemberships = new Set(states.map((state) => state.membership_id));
         const mutedMemberships = new Set(states.filter((state) => state.room_muted).map((state) => state.membership_id));
+        if (isVisitor && activeMemberships.has(session.membershipId)) {
+          ownRoomMutedRef.current = mutedMemberships.has(session.membershipId);
+          applyLocalMicrophoneMute(connRef.current, ownRoomMutedRef.current);
+        }
         verifiedMembershipStatesRef.current = states;
         connRef.current?.setMembershipStates(states);
         const byMembership = new Map(states.map((state) => [state.membership_id, state]));
@@ -376,21 +385,17 @@ export default function Game({ session, account, onLeave, themePreference, onThe
           return next;
         });
         setRoster((members) => members.filter((member) => !member.membershipId || activeMemberships.has(member.membershipId)));
-        setMutedPlayers((values) => {
-          const next = { ...values };
-          for (const member of rosterRef.current) {
-            if (member.role === "visitor" && member.membershipId) {
-              next[member.id] = mutedMemberships.has(member.membershipId);
-            }
-          }
-          return next;
-        });
+        setRoomMutedMemberships(Object.fromEntries(states.map((state) => [state.membership_id, mutedMemberships.has(state.membership_id)])));
       }).catch(() => {});
     };
     touch();
     const timer = window.setInterval(touch, 15000);
     return () => window.clearInterval(timer);
   }, [account, isLocalMock, isVisitor, session.membershipId, session.participantToken, membershipRefreshNonce]);
+
+  useEffect(() => {
+    applyLocalMicrophoneMute(connRef.current, isVisitor && ownRoomMutedRef.current);
+  }, [isVisitor, ownRoomMuted, localStream, micOn]);
 
   useEffect(() => {
     chatNotificationsEnabledRef.current = chatNotificationsEnabled;
@@ -563,6 +568,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
         setMutedPlayers((values) => ({ ...values, [id]: !!state.muted }));
         setCameraEnabledByPlayer((values) => ({ ...values, [id]: state.cameraEnabled !== false }));
         setMicOn(!state.muted);
+        applyLocalMicrophoneMute(connRef.current, isVisitor && ownRoomMutedRef.current);
         if (!isVisitor) setCamOn(state.cameraEnabled !== false);
         if (state.poison != null) setPoisonCounters((values) => ({ ...values, [id]: state.poison }));
         if (state.commanderDamage) {
@@ -714,6 +720,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
           startMuted: !!session.startMuted,
           outgoingVideoQuality,
         });
+        applyLocalMicrophoneMute(conn, isVisitor && ownRoomMutedRef.current);
         setLocalStream(stream);
         setMicOn(!conn.muted);
         setVideoDeviceId(conn.videoDeviceId);
@@ -734,6 +741,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
           },
         );
         myIdRef.current = id;
+        applyLocalMicrophoneMute(conn, isVisitor && ownRoomMutedRef.current);
         setMyId(id);
         if (!isVisitor && session.videoFlipped) {
           setFlippedVideos((values) => ({ ...values, [id]: true }));
@@ -1533,11 +1541,10 @@ export default function Game({ session, account, onLeave, themePreference, onThe
   };
 
   const toggleMic = () => {
-    const next = !micOn;
-    connRef.current.toggleTrack("audio", next);
+    const next = toggleOwnMicrophone(connRef.current, isVisitor && ownRoomMutedRef.current);
+    if (next === null) return;
     setMicOn(next);
     setMutedPlayers((values) => ({ ...values, [myId]: !next }));
-    connRef.current?.setMuted(!next);
   };
 
   const toggleCam = () => {
@@ -1554,7 +1561,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
     setDeviceError("");
     try {
       await connRef.current.switchDevice("video", deviceId);
-      setVideoDeviceId(deviceId);
+      setVideoDeviceId(connRef.current.videoDeviceId || deviceId);
       // Nudge React so the local <video> rebinds if the stream identity changed.
       setLocalStream(connRef.current.localStream);
     } catch (e) {
@@ -1567,7 +1574,8 @@ export default function Game({ session, account, onLeave, themePreference, onThe
     setDeviceError("");
     try {
       await connRef.current.switchDevice("audio", deviceId);
-      setAudioDeviceId(deviceId);
+      setAudioDeviceId(connRef.current.audioDeviceId || deviceId);
+      applyLocalMicrophoneMute(connRef.current, isVisitor && ownRoomMutedRef.current);
     } catch (e) {
       setDeviceError(String(e.message || e));
     }
@@ -1889,7 +1897,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
       : colors[participant.id] || TILE_COLORS[index % TILE_COLORS.length],
     commander: commanders[participant.id] || "",
     commanderPartner: commanderPartners[participant.id] || "",
-    muted: !!mutedPlayers[participant.id],
+    muted: isParticipantAudioMuted(participant, mutedPlayers[participant.id], roomMutedMemberships),
     cameraOn: participant.role !== "visitor" && cameraEnabledByPlayer[participant.id] !== false,
     reconnecting: !!reconnectingPlayers[participant.id],
     roomMuted: participant.role === "visitor" && Boolean(roomMutedMemberships[participant.membershipId]),
@@ -1913,7 +1921,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
       {roster
         .filter((participant) => participant.id !== myId && streams[participant.id])
         .map((participant) => (
-          <RemoteAudio key={participant.id} stream={streams[participant.id]} muted={mutedPlayers[participant.id]} />
+          <RemoteAudio key={participant.id} stream={streams[participant.id]} muted={isParticipantAudioMuted(participant, mutedPlayers[participant.id], roomMutedMemberships)} />
         ))}
 
       <div className="main">
@@ -1966,7 +1974,8 @@ export default function Game({ session, account, onLeave, themePreference, onThe
             onViewChange={setSidebarView}
             isVisitor={isVisitor}
             camOn={camOn}
-            micOn={micOn}
+            micOn={micOn && !ownRoomMuted}
+            microphoneLocked={ownRoomMuted}
             cameras={cameras}
             mics={mics}
             videoDeviceId={videoDeviceId}

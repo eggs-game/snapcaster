@@ -47,6 +47,16 @@ function formatViolations(label, violations) {
 }
 
 async function assertAccessible(page, label, include) {
+  // Check the final UI, not partially transparent drawer entry frames.
+  await page.evaluate(async () => {
+    const animations = document.getAnimations().filter((animation) => animation.playState === "running"
+      && Number.isFinite(animation.effect?.getComputedTiming().endTime));
+    await Promise.race([
+      Promise.all(animations.map((animation) => animation.finished.catch(() => {}))),
+      new Promise((resolve) => setTimeout(resolve, 2000)),
+    ]);
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  });
   let builder = new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]);
   if (include) builder = builder.include(include);

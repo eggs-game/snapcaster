@@ -30,6 +30,11 @@ for (const name of ["OverconstrainedError", "ConstraintNotSatisfiedError", "NotF
   assert.deepEqual(requests[1].audio, { ...selected.audio, deviceId: { ideal: "old-mic" } });
 }
 assert.deepEqual(selected, original, "retries must not mutate caller preferences");
+let active = true, canceledCalls = 0;
+await assert.rejects(getUserMediaWithFallback(selected, {
+  getUserMedia: async () => { canceledCalls++; active = false; throw failure("OverconstrainedError"); },
+}, { isActive: () => active }), (error) => error.name === "AbortError");
+assert.equal(canceledCalls, 1, "canceled setup must not request another device or permission on retry");
 const basic = await acquire(selected, [failure("OverconstrainedError"), failure("OverconstrainedError")]);
 assert.equal(basic.length, 3);
 assert.deepEqual(basic[2], { video: { deviceId: { ideal: "old-camera" } }, audio: { deviceId: { ideal: "old-mic" } } });
