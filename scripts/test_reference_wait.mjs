@@ -7,7 +7,7 @@ import vm from "node:vm";
 const source = readFileSync(new URL("../src/recognition/recognizer.js", import.meta.url), "utf8");
 let downloads = 0, deleted = 0;
 const context = vm.createContext({
-  performance, splitIdentitySupported:()=>true, catalogArtworkRivals:()=>[], CARD_W:244, CARD_H:340, ORB_SHORTLIST: 12, orbTiming: {},
+  performance, DISTINCT_NAME_ORB_STOP:false, splitIdentitySupported:()=>true, catalogArtworkRivals:()=>[], CARD_W:244, CARD_H:340, ORB_SHORTLIST: 12, orbTiming: {},
   fetchReference: async id => { downloads++; return id >= 10 ? new Promise(() => {}) : { id }; },
   orbFeatures: image => ({ image, kp: { delete() { deleted++; } }, desc: { delete() { deleted++; } } }),
   orbAlignment: (_query, reference) => ({ score: reference.image.id === 0 ? 80 : 1 }),
@@ -16,7 +16,8 @@ const context = vm.createContext({
   hasPositiveClickProof: () => true,
 });
 const featureCache=source.slice(source.indexOf("const referenceFeatureCache ="),source.indexOf("function orbAlignment("));
-vm.runInContext(featureCache+source.slice(source.indexOf("async function verifyTopMatches("), source.indexOf("async function visualFallback(")), context);
+const signatures=source.slice(source.indexOf("const referenceColorCache ="),source.indexOf("function registeredColorAgreement("));
+vm.runInContext(featureCache+signatures+source.slice(source.indexOf("async function verifyTopMatches("), source.indexOf("async function visualFallback(")), context);
 const matches = Array.from({length:12}, (_,i) => ({name:`Card ${i}`, scryfall_id:i, distance:100+i}));
 let timer;
 try {
@@ -37,14 +38,14 @@ console.log("Decisive verification finishes while unused reference downloads are
 // card evidence until text distinguishes the shared-art identities.
 for (const [shared, text, expected, decisive] of [[true,0,"Event",false], [true,8,"Creature",true], [false,0,"Creature",true]]) {
   const ctx = vm.createContext({
-    performance, splitIdentitySupported:()=>true, catalogArtworkRivals:()=>[], CARD_W:244, CARD_H:340, ORB_SHORTLIST:2, orbTiming:{},
+    performance, DISTINCT_NAME_ORB_STOP:false, splitIdentitySupported:()=>true, catalogArtworkRivals:()=>[], CARD_W:244, CARD_H:340, ORB_SHORTLIST:2, orbTiming:{},
     fetchReference:async id=>({id}),
     orbFeatures:image=>({image,kp:{delete(){}},desc:{delete(){}}}),
     orbAlignment:(_query,ref)=>({score:ref.image.id===0?30:13}), artworkInlierScore:a=>a.score,
     whiteBalance:image=>image,colorSignature:()=>[],colorSimilarity:()=>1,
     hasPositiveClickProof:()=>true,referencesShareArtwork:()=>shared,
   });
-  vm.runInContext(featureCache+source.slice(source.indexOf("async function verifyTopMatches("),source.indexOf("async function visualFallback(")),ctx);
+  vm.runInContext(featureCache+signatures+source.slice(source.indexOf("async function verifyTopMatches("),source.indexOf("async function visualFallback(")),ctx);
   const result=await ctx.verifyTopMatches([
     {name:"Creature",scryfall_id:0,distance:153,click_text_inliers:text},
     {name:"Event",scryfall_id:1,distance:123},
@@ -57,13 +58,13 @@ console.log("Shared artwork cannot override stronger whole-card evidence without
 // A matching name absent from the query shortlist must still challenge a
 // reused illustration. The catalog is evidence against confidence, not a seed.
 for (const text of [0,8]) {
-  const ctx=vm.createContext({performance,splitIdentitySupported:()=>true,CARD_W:244,CARD_H:340,ORB_SHORTLIST:1,orbTiming:{},
+  const ctx=vm.createContext({performance,DISTINCT_NAME_ORB_STOP:false,splitIdentitySupported:()=>true,CARD_W:244,CARD_H:340,ORB_SHORTLIST:1,orbTiming:{},
     catalogArtworkRivals:()=>[{name:"Missing counterpart",scryfall_id:9}],
     fetchReference:async id=>({id}),orbFeatures:image=>({image,kp:{delete(){}},desc:{delete(){}}}),
     orbAlignment:()=>({score:57}),artworkInlierScore:a=>a.score,whiteBalance:image=>image,
     colorSignature:()=>[],colorSimilarity:()=>1,hasPositiveClickProof:()=>true,referencesShareArtwork:()=>true,
   });
-  vm.runInContext(featureCache+source.slice(source.indexOf("async function verifyTopMatches("),source.indexOf("async function visualFallback(")),ctx);
+  vm.runInContext(featureCache+signatures+source.slice(source.indexOf("async function verifyTopMatches("),source.indexOf("async function visualFallback(")),ctx);
   const result=await ctx.verifyTopMatches([{name:"Artwork leader",scryfall_id:0,distance:194,regional_proof:true,click_text_inliers:text}],[{}],false);
   assert.equal(result.artDecisive,text>=8,"a detected outline cannot distinguish identical art without printed text");
   assert.equal(result.matches.length,1,"catalog rivals never seed an answer");

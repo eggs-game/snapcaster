@@ -14,6 +14,8 @@ import {
 } from "./cardSearch.js";
 import {
   identify as identifyCard,
+  prepareRecognitionCapture,
+  canPrepareRecognitionCapture,
   preload as preloadRecognition,
   preloadOCR,
 } from "./recognition/matcher.js";
@@ -121,6 +123,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
   const myIdRef = useRef(null);
   const recognitionHintsRef = useRef([]);
   const activeRecognitionRef = useRef(null);
+  const recognitionPreparationRef = useRef(null);
   const latestRecognitionRequestRef = useRef(0);
   const captureObjectUrlsRef = useRef([]);
   const requestedVideoQualityRef = useRef(new Map());
@@ -802,6 +805,8 @@ export default function Game({ session, account, onLeave, themePreference, onThe
   }, [scanNotice]);
 
   useEffect(() => () => {
+    ++latestRecognitionRequestRef.current;
+    recognitionPreparationRef.current?.();
     for (const url of captureObjectUrlsRef.current) URL.revokeObjectURL(url);
     captureObjectUrlsRef.current = [];
   }, []);
@@ -886,6 +891,8 @@ export default function Game({ session, account, onLeave, themePreference, onThe
       if (dx * dx + dy * dy < 0.0016) return;
     }
     const requestId = ++latestRecognitionRequestRef.current;
+    recognitionPreparationRef.current?.();
+    recognitionPreparationRef.current = null;
     activeRecognitionRef.current = { requestId, tileId, nx: pt.nx, ny: pt.ny };
     const scanStartedAt = performance.now();
     let captureStartedAt = 0;
@@ -893,6 +900,8 @@ export default function Game({ session, account, onLeave, themePreference, onThe
     let captureMs = 0;
     let captureChars = 0;
     let phase = "capture";
+    let firstBlob = null;
+    let cancelPreparation = null;
     setCurrent({ loading: true, requestId });
     try {
       // Captures are native-resolution crops around the clicked point (both
@@ -900,20 +909,35 @@ export default function Game({ session, account, onLeave, themePreference, onThe
       // so the click is at the crop center only when it was far enough from an
       // edge — cap.px/py reports where it actually landed.
       captureStartedAt = performance.now();
+      const prepareCapture = canPrepareRecognitionCapture();
+      const captureOptions = prepareCapture ? {
+        onFirstFrame: (first) => {
+          if (requestId !== latestRecognitionRequestRef.current || !(first.blob instanceof Blob)) return;
+          firstBlob = first.blob;
+          cancelPreparation = prepareRecognitionCapture(firstBlob, {
+            nx: first.px ?? 0.5, ny: first.py ?? 0.5,
+          }, { isActive: () => requestId === latestRecognitionRequestRef.current });
+          recognitionPreparationRef.current = cancelPreparation;
+        },
+      } : undefined;
       const cap = tileId === myId
-        ? await captureLocalFrame(conn.localStream, pt.nx, pt.ny)
-        : await conn.requestRemoteCapture(tileId, pt.nx, pt.ny);
+        ? await captureLocalFrame(conn.localStream, pt.nx, pt.ny, captureOptions)
+        : await conn.requestRemoteCapture(tileId, pt.nx, pt.ny, captureOptions);
+      if (cap.blob !== firstBlob) cancelPreparation?.();
+      captureMs = Math.round(performance.now() - captureStartedAt);
+      captureChars = Number(cap.bytes) || String(cap.url || "").length;
+      // A slow remote capture may arrive after a newer click. Do not let that
+      // obsolete image occupy the recognition queue ahead of the current one.
+      if (requestId !== latestRecognitionRequestRef.current) {
+        if (String(cap.url || "").startsWith("blob:")) URL.revokeObjectURL(cap.url);
+        return;
+      }
       if (String(cap.url || "").startsWith("blob:")) {
         captureObjectUrlsRef.current.push(cap.url);
         while (captureObjectUrlsRef.current.length > 32) {
           URL.revokeObjectURL(captureObjectUrlsRef.current.shift());
         }
       }
-      captureMs = Math.round(performance.now() - captureStartedAt);
-      captureChars = Number(cap.bytes) || String(cap.url || "").length;
-      // A slow remote capture may arrive after a newer click. Do not let that
-      // obsolete image occupy the recognition queue ahead of the current one.
-      if (requestId !== latestRecognitionRequestRef.current) return;
       phase = "recognition";
       recognitionStartedAt = performance.now();
       const hints = nearbyRecognitionHints(
@@ -1051,6 +1075,8 @@ export default function Game({ session, account, onLeave, themePreference, onThe
       }, tileId);
       if (requestId === latestRecognitionRequestRef.current) setCurrent({ error: message, requestId });
     } finally {
+      cancelPreparation?.();
+      if (recognitionPreparationRef.current === cancelPreparation) recognitionPreparationRef.current = null;
       if (activeRecognitionRef.current?.requestId === requestId) {
         activeRecognitionRef.current = null;
       }

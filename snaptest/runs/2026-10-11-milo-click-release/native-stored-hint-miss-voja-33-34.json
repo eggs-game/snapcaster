@@ -1,0 +1,718 @@
+{
+  "ok": true,
+  "sourceProofPath": "/Users/zach/Cowork/snapcaster-web/.cache/native-delivery-opaque-control/report.json",
+  "sceneFixtures": "/Users/zach/Cowork/snapcaster-web/.cache/native-delivery-control/scenes",
+  "scope": "same-card stored-hint miss retains complete learned fallback",
+  "cases": [
+    {
+      "scene": 19,
+      "index": 9,
+      "name": "Voja, Friend to Elves",
+      "rotation": "upsidedown",
+      "coverage": 0,
+      "layout": "overlapping"
+    }
+  ],
+  "arms": {
+    "control": {
+      "build": "milo-click-33 (local vision)",
+      "sourceDigests": {
+        "src/AccountProfile.jsx": "243d81f218d05cc34745a562b4406f0f18321b37278ee0903282e38185d89f9b",
+        "src/AccountPrompt.jsx": "e909d3110913ac25f5c65a9e296e311d1cdecc24d2a887a39821c9afa49d4806",
+        "src/App.jsx": "2909fa7118d20bb77647294484fefae86c676e03c5d6d4e543beccdcf5cac156",
+        "src/AppDropdown.css": "8fa2de0da48406580a71a40703b643a3ab9041aad7f36c467f605c53ab195795",
+        "src/AppDropdown.jsx": "1feaf1c4f36ca6641e6563cc8c637b4d6ef3c445d09cb298abf67ae248dae9b5",
+        "src/AppToast.jsx": "6e585f7acc433b144175df677c89f9bf0ea2485c220f74387a1deac73e085343",
+        "src/CardSidebar.jsx": "9b4269eaae4f689f1fc975c3f8a299786119f5b2385c09d1491c60b8ae55ee43",
+        "src/Community.jsx": "e4eebaa71a83060d204b609046902e297324e4f565a3c03fc3d375c9acde849d",
+        "src/ConfirmDialog.css": "5caf5fe3d2a125eb9802d66767898ef6135be77b2d76c6a22c6c0353fb5f98e7",
+        "src/ConfirmDialog.jsx": "2a636b4fdb7fc1f1defff0e9e8d6bead5ca9a8726d89f5aaf197689ab2aa008f",
+        "src/DeckPage.jsx": "82283794ba81bfb7504d5025dc45fe6c769bcf7eb80e8c44a0135c6e92c814a1",
+        "src/DiscordMark.jsx": "30ea165a5f0fa4542ce84c66b971cf5ded05da5dbfdf0847ab2995d9a64ce6e4",
+        "src/FriendsPage.jsx": "15eb9e0b32050bd1d882d896e0005b4206b55cb9edd31c48d2b4501fdb85830c",
+        "src/Game.jsx": "66adf92a6fed1c1c0b1ba4fff595cc048c493c873134de092c9ecdc5074f9baa",
+        "src/GamePreview.jsx": "21d4c95128df04f8686edcfb059f61fab1fa33e4ad6e9cd8c65d7427744efcfc",
+        "src/LegalPage.jsx": "c842376ad789fbf9b8eadee7b2358229ef66b228215ee758536331b203c932e0",
+        "src/Lobby.jsx": "c1ec6936c9b80cf2fba5b5284f8ab5441dc63f81237e4068bbbd31b7d76be72c",
+        "src/LocalMockGameConnection.js": "52255bc7832a23e383f298c8c3cee9a959c09451e4b6b93a6142431dcbc02e20",
+        "src/ModerationPage.jsx": "0887060cf1d9042dba6095d0f1bd3379cf299b9d2c819594fe3b0fad3b384758",
+        "src/NotificationsPage.jsx": "fd673f25dacb403fcfc226d2977b26642bb99a8cb0b530fbdf8c2f5ae8bd9e23",
+        "src/Privacy.jsx": "4532df6da1895e4418496dee8133e25452a4ff440569267779b8bb7bd2ca4eb7",
+        "src/ProfilePage.jsx": "3eab9592a02faabcf86b7ec386991b3f30be2fc67b09919f507162b5aabcdfef",
+        "src/PublicGames.jsx": "b3d501d7cd1ca54bd71076fb89e959672a0ded383d3cdfe2f4764da132031a3a",
+        "src/ReviewPrompt.jsx": "6fdc8e3aa16ba40efe46c3d6238c2a2d276bf77cbd769281570f27de63343252",
+        "src/RoutedSiteHeader.jsx": "8a160538f7c91bb0937eb91db51c3f1d13d2ab39820c6ddde2c969dde813aab6",
+        "src/SettingsPage.jsx": "bae16930ce13eb0ffc3a6b9e84db612786c9748ca7e370615f5f2ecd47bc03f4",
+        "src/SiteFooter.jsx": "bf82cb83fde8fb24de6864877484f9979a7cc9d93ebb6a2bf65cd86d6e3d4eaa",
+        "src/SiteHeader.jsx": "984afe73d1ce7b803b93256db888d3b8cda526b7126b2e3157156c832dd51bd8",
+        "src/SnapTest.jsx": "d03090798f4c8832341051253fd7ed6c6d327a037ea9eee841fcf2f00297cac6",
+        "src/Terms.jsx": "20a1994d3d6cd5d15d8e3a2c6ffb1a673db66df69c9b8dbe14e29f101056cb1d",
+        "src/TurnTest.jsx": "c65f1b30cb6665b884d125e617b69d3932edbb18c6470a7f1bbd74d3c3fe1dbd",
+        "src/account.js": "0ba9b309af466a9138a562645983b68a51ba392301e4038b0d2f0f209f5f9f8d",
+        "src/accountIdentity.js": "0418b635540561070669294b8ca95a8abd8d576625286b7be0db0fd9ef5cde1f",
+        "src/authIntent.js": "19b87ae74f11390611a84da0f0dd11d306ecdaa954d9d9968e8b56d2c84ba950",
+        "src/captureGeometry.js": "b01a716377211eb5489d779eccaeaffb57b98f67f3f067481f0dac10a4c131cc",
+        "src/cardNameIndex.js": "85e4b825f9e2395ce545b8f58e17b66391c2be53de07d03ac94372f219d335b8",
+        "src/cardPresentation.js": "54cad20b8a1d02a2cb479db54a4877e41d31ed200ad388825635f1bb4664936d",
+        "src/cardSearch.js": "8889197c199dc5c01a585198e2698f35e227bd87f24f8dc08e64b8e7a43ff509",
+        "src/chatCommands.js": "8757eb9612f5905bc157177b4e50350304c31d123dc188d6632b9daac4e1152e",
+        "src/commanderRules.js": "c8fc05c319d85afdcf03ff3707ed18b5d098f02b7544998492b36aa8d8c89e99",
+        "src/deckAnalysis.js": "b7881627d7c8d286f3117d16bb2e2b9888a9f6c3cdebdebbc01a026ef414ebd9",
+        "src/deckImport.js": "7eff53e86b3bc63a3acfb0efdd2ccaad0561145d21b6777bc4eb46b9fd4fe74a",
+        "src/gameControls.js": "862b94ff514b96b45170bb4f573046b5f3c2277b3acf919ec631e92c32b550e1",
+        "src/gameRooms.js": "b27f9c1fe93bcdee37a6f2f56e54404d29dc28224b6a2b0ebc40b84c30d26607",
+        "src/localMock.js": "9e3e62b45b5eb9af6b9c1344cad7017a945a45d8396510880efa4dab0f55273f",
+        "src/main.jsx": "ee91f40f409bd5dda70725762497e25485314cab19af72129ca2e214390f790b",
+        "src/mediaDevices.js": "353346a3f83ff8a995bbc06da3c51162e1f0916546557d832fa37100aac7b2ed",
+        "src/mediaPlayback.js": "c1c959d3ea5ca1bb551708556a82e9d62e638fa442006308ca04446bcda9fcde",
+        "src/mockDeckFixtures.js": "66439ec7f3ef3269ed1cb17b6ab0cf5a6fdb7c13693417f82d30b457e800b437",
+        "src/realtimeEpochRotation.js": "c9c4488de4644408457d4c6ce64b856d78eb89e47932120c261199b819cc5a53",
+        "src/recognition/aiCrop.js": "4f0d418abeca864f90b2a15b0287e5ffc4054096ddb5878b0f71101063ac72bb",
+        "src/recognition/aiCropGeometry.js": "a9153c763e917e15703a1d5fe8a80714e4722c6f73948e61a733170c064343cb",
+        "src/recognition/aiCropWorker.js": "ad5aecaf05ba3ef91c770a77f23476fa1d9d13b1486ec56d59750a0bd921ba87",
+        "src/recognition/hash.js": "6c3bfa012e82927b783c021886b669eece2c75712e11eaa9039a5e51794b6ea6",
+        "src/recognition/matcher.js": "885576da20058a08fa0161efbca020e197eab4833b3708315728f1cb141f1159",
+        "src/recognition/metadataEvidence.js": "eb34b3521b5ecec0a756a31638bbfa4f4b301274e471428b5d65518960172ab0",
+        "src/recognition/miloLookup.js": "f61d901f0d300f12dacb1d7860eee94ab1b66ba065347bcc450f1952de177a2f",
+        "src/recognition/recognizer.js": "5067be9ff711d14e71ab21e9318ed0ef14ee640604c7566d760fe6ecbde0c033",
+        "src/recognitionHints.js": "f4f1c04d3f9443ea44c334c2570de40e7102d2e621e65befd08db8d1764ab294",
+        "src/roomCode.js": "ce2502c643a8545a77da4450e929650f5ae7952c0fc7376d1aad0f40dace147c",
+        "src/signaling.js": "af1ae4d06f354f5e997e512757742271298f58ba8604ef50af0e37ae4b62d20d",
+        "src/snaptest/degrade.js": "ef006310323143b974fe29847c48d7dd3ed3cb077bc41683cbce8203eaf675d2",
+        "src/snaptest/scene.js": "c3aed501c5787dea50b752ba35d959b5e71caf93f617eb7b24790e86ab62e345",
+        "src/soundEffects.js": "f5581047a433575f75a73a00c45a17ed3f4d407d64dbddaf9f466bf9315fe7ac",
+        "src/styles.css": "8a07c5060c66ac3b6b29922d73033dc91ed986df048887ad2c1d1a7604b9b0f0",
+        "src/supabase.js": "e33dec02002ed526de8187d308cdf906fe4cc206b29ced988232beee75ef6669",
+        "src/videoCounters.js": "319e0cc48089409e7bdd7ec343a54078feace56ab26a6ec1a6980b27c29afd84",
+        "src/videoQuality.js": "eecd3cdf80ff2a0ef463ba98c4bc33072aaa35baf0df9eb0520ad79a9020679a",
+        "src/visitorAudio.js": "e0e585aea417f782e2e82ef1de0328c9aedd1fa9f937c47fb75f5661381df977",
+        "src/webrtc.js": "0ddb617d0a57f45076cb8a938bb155dbc530cbad0769d759131b9018a3f1d88e"
+      },
+      "catalogDigests": {
+        "public/carddata/manifest.json": "50a1e0e3f62dd34f3242c70fad24a1f3510085caebb7eb01b22743ee9b2b14ac",
+        "public/carddata/cards.json": "e9527a3801fe60d9bf42882c919b4473956a293c8cb66ea732071d804a9d2f8c",
+        "public/carddata/milo/manifest.json": "85bdd724d69300c33e6f48b7bd7cbe90cbd0cdf7a26f4a28a373b665a36d2a6d"
+      },
+      "rows": [
+        {
+          "name": "Voja, Friend to Elves",
+          "scene": 19,
+          "index": 9,
+          "rotation": "upsidedown",
+          "fresh": {
+            "got": "Voja, Friend to Elves",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "39475e91-1e71-4546-ae4a-47ea66e47536",
+              "face": 0
+            },
+            "aiCrop": {
+              "model": "cornelius-2.12",
+              "status": "ready",
+              "proposals": 2,
+              "probes": [
+                {
+                  "sharpness": 0.03766893595457077,
+                  "accepted": true,
+                  "reason": "accepted"
+                },
+                {
+                  "sharpness": 0.05305149033665657,
+                  "accepted": true,
+                  "reason": "accepted"
+                }
+              ],
+              "ms": 190,
+              "queueMs": 0,
+              "prepared": true,
+              "overlapMs": 193,
+              "fastMs": 613,
+              "fastHit": true
+            },
+            "timing": {
+              "at": 1791777133984,
+              "remote": true,
+              "captureMs": 275,
+              "recognitionMs": 616,
+              "totalMs": 891,
+              "stages": {
+                "prep": 34,
+                "rankSeeds": 79,
+                "earlyOrbProbe": 0,
+                "rankRefine": 2,
+                "rank": 0,
+                "orb": 497,
+                "aiCrop": 190,
+                "captureOverlap": 193,
+                "aiAttempt": 613,
+                "modelQueue": 0,
+                "total": 616,
+                "queue": 0
+              },
+              "candidatesTried": 2,
+              "isolationCandidates": 0,
+              "hintHit": false
+            },
+            "capture": {
+              "at": 1140.8000000715256,
+              "nx": 0.5817362700228833,
+              "ny": 0.7311212814645309,
+              "frames": [
+                {
+                  "index": 0,
+                  "at": 1144.8000000715256,
+                  "score": 10871937.150260543
+                },
+                {
+                  "index": 1,
+                  "at": 1268.8000000715256,
+                  "score": 10871937.150260543
+                },
+                {
+                  "index": 2,
+                  "at": 1391.2000000476837,
+                  "score": 10871937.150260543
+                }
+              ],
+              "selected": 0,
+              "endedAt": 1391.2000000476837,
+              "width": 594,
+              "height": 594,
+              "geometry": {
+                "side": 594,
+                "sx": 819.9336384439359,
+                "sy": 486,
+                "px": 0.5,
+                "py": 0.5111296026627835
+              },
+              "bytes": 80745,
+              "firstSelected": true,
+              "sha256": "d759242a238a59837b996e58f096a2931e356a7aa7b5a06f99b25c3a1bee2d4c"
+            },
+            "displayMs": 900,
+            "previewMs": 8,
+            "image": {
+              "width": 146,
+              "height": 204,
+              "opacity": 1,
+              "kind": "preview"
+            },
+            "hints": [
+              {
+                "ownerId": "native-source",
+                "nx": 0.5817362700228833,
+                "ny": 0.7311212814645309,
+                "at": 1791777133984,
+                "card": {
+                  "name": "Voja, Friend to Elves",
+                  "scryfall_id": "39475e91-1e71-4546-ae4a-47ea66e47536",
+                  "face": 0,
+                  "set": "twar",
+                  "collector_number": "17"
+                }
+              }
+            ],
+            "identifyHints": [],
+            "hintsBefore": []
+          },
+          "repeat": {
+            "got": "Voja, Friend to Elves",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "39475e91-1e71-4546-ae4a-47ea66e47536",
+              "face": 0
+            },
+            "aiCrop": {
+              "status": "skipped-hints"
+            },
+            "timing": {
+              "at": 1791777136467,
+              "remote": true,
+              "captureMs": 268,
+              "recognitionMs": 2180,
+              "totalMs": 2448,
+              "stages": {
+                "hintPrep": 292,
+                "hint": 177,
+                "prep": 381,
+                "rankSeeds": 662,
+                "earlyOrbProbe": 0,
+                "rankRefine": 659,
+                "rank": 0,
+                "orb": 6,
+                "aiCrop": 0,
+                "modelQueue": 0,
+                "total": 2180,
+                "queue": 0
+              },
+              "candidatesTried": 41,
+              "isolationCandidates": 0,
+              "hintHit": false
+            },
+            "capture": {
+              "at": 2049.2000000476837,
+              "nx": 0.5817362700228833,
+              "ny": 0.7311212814645309,
+              "frames": [
+                {
+                  "index": 0,
+                  "at": 2050.9000000953674,
+                  "score": 10871937.150260543
+                },
+                {
+                  "index": 1,
+                  "at": 2174.5,
+                  "score": 10871937.150260543
+                },
+                {
+                  "index": 2,
+                  "at": 2300,
+                  "score": 10871937.150260543
+                }
+              ],
+              "selected": 0,
+              "endedAt": 2305.100000023842,
+              "width": 594,
+              "height": 594,
+              "geometry": {
+                "side": 594,
+                "sx": 819.9336384439359,
+                "sy": 486,
+                "px": 0.5,
+                "py": 0.5111296026627835
+              },
+              "bytes": 80745,
+              "firstSelected": false,
+              "sha256": "d759242a238a59837b996e58f096a2931e356a7aa7b5a06f99b25c3a1bee2d4c"
+            },
+            "displayMs": 2456,
+            "previewMs": 8,
+            "image": {
+              "width": 146,
+              "height": 204,
+              "opacity": 1,
+              "kind": "preview"
+            },
+            "hints": [
+              {
+                "ownerId": "native-source",
+                "nx": 0.5817362700228833,
+                "ny": 0.7311212814645309,
+                "at": 1791777136467,
+                "card": {
+                  "name": "Voja, Friend to Elves",
+                  "scryfall_id": "39475e91-1e71-4546-ae4a-47ea66e47536",
+                  "face": 0,
+                  "set": "twar",
+                  "collector_number": "17"
+                }
+              }
+            ],
+            "identifyHints": [
+              {
+                "name": "Voja, Friend to Elves",
+                "scryfall_id": "39475e91-1e71-4546-ae4a-47ea66e47536",
+                "face": 0,
+                "set": "twar",
+                "collector_number": "17"
+              }
+            ],
+            "hintsBefore": [
+              {
+                "ownerId": "native-source",
+                "nx": 0.5817362700228833,
+                "ny": 0.7311212814645309,
+                "at": 1791777133984,
+                "card": {
+                  "name": "Voja, Friend to Elves",
+                  "scryfall_id": "39475e91-1e71-4546-ae4a-47ea66e47536",
+                  "face": 0,
+                  "set": "twar",
+                  "collector_number": "17"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "nativeErrors": []
+    },
+    "candidate": {
+      "build": "milo-click-34 (local vision)",
+      "sourceDigests": {
+        "src/AccountProfile.jsx": "243d81f218d05cc34745a562b4406f0f18321b37278ee0903282e38185d89f9b",
+        "src/AccountPrompt.jsx": "e909d3110913ac25f5c65a9e296e311d1cdecc24d2a887a39821c9afa49d4806",
+        "src/App.jsx": "2909fa7118d20bb77647294484fefae86c676e03c5d6d4e543beccdcf5cac156",
+        "src/AppDropdown.css": "8fa2de0da48406580a71a40703b643a3ab9041aad7f36c467f605c53ab195795",
+        "src/AppDropdown.jsx": "1feaf1c4f36ca6641e6563cc8c637b4d6ef3c445d09cb298abf67ae248dae9b5",
+        "src/AppToast.jsx": "6e585f7acc433b144175df677c89f9bf0ea2485c220f74387a1deac73e085343",
+        "src/CardSidebar.jsx": "9b4269eaae4f689f1fc975c3f8a299786119f5b2385c09d1491c60b8ae55ee43",
+        "src/Community.jsx": "e4eebaa71a83060d204b609046902e297324e4f565a3c03fc3d375c9acde849d",
+        "src/ConfirmDialog.css": "5caf5fe3d2a125eb9802d66767898ef6135be77b2d76c6a22c6c0353fb5f98e7",
+        "src/ConfirmDialog.jsx": "2a636b4fdb7fc1f1defff0e9e8d6bead5ca9a8726d89f5aaf197689ab2aa008f",
+        "src/DeckPage.jsx": "82283794ba81bfb7504d5025dc45fe6c769bcf7eb80e8c44a0135c6e92c814a1",
+        "src/DiscordMark.jsx": "30ea165a5f0fa4542ce84c66b971cf5ded05da5dbfdf0847ab2995d9a64ce6e4",
+        "src/FriendsPage.jsx": "15eb9e0b32050bd1d882d896e0005b4206b55cb9edd31c48d2b4501fdb85830c",
+        "src/Game.jsx": "5f8f55c46378001db6bfde3f1cd159d1fa38fa3608090cd8ced164d0e16c89bc",
+        "src/GamePreview.jsx": "21d4c95128df04f8686edcfb059f61fab1fa33e4ad6e9cd8c65d7427744efcfc",
+        "src/LegalPage.jsx": "c842376ad789fbf9b8eadee7b2358229ef66b228215ee758536331b203c932e0",
+        "src/Lobby.jsx": "c1ec6936c9b80cf2fba5b5284f8ab5441dc63f81237e4068bbbd31b7d76be72c",
+        "src/LocalMockGameConnection.js": "52255bc7832a23e383f298c8c3cee9a959c09451e4b6b93a6142431dcbc02e20",
+        "src/ModerationPage.jsx": "0887060cf1d9042dba6095d0f1bd3379cf299b9d2c819594fe3b0fad3b384758",
+        "src/NotificationsPage.jsx": "fd673f25dacb403fcfc226d2977b26642bb99a8cb0b530fbdf8c2f5ae8bd9e23",
+        "src/Privacy.jsx": "4532df6da1895e4418496dee8133e25452a4ff440569267779b8bb7bd2ca4eb7",
+        "src/ProfilePage.jsx": "3eab9592a02faabcf86b7ec386991b3f30be2fc67b09919f507162b5aabcdfef",
+        "src/PublicGames.jsx": "b3d501d7cd1ca54bd71076fb89e959672a0ded383d3cdfe2f4764da132031a3a",
+        "src/ReviewPrompt.jsx": "6fdc8e3aa16ba40efe46c3d6238c2a2d276bf77cbd769281570f27de63343252",
+        "src/RoutedSiteHeader.jsx": "8a160538f7c91bb0937eb91db51c3f1d13d2ab39820c6ddde2c969dde813aab6",
+        "src/SettingsPage.jsx": "bae16930ce13eb0ffc3a6b9e84db612786c9748ca7e370615f5f2ecd47bc03f4",
+        "src/SiteFooter.jsx": "bf82cb83fde8fb24de6864877484f9979a7cc9d93ebb6a2bf65cd86d6e3d4eaa",
+        "src/SiteHeader.jsx": "984afe73d1ce7b803b93256db888d3b8cda526b7126b2e3157156c832dd51bd8",
+        "src/SnapTest.jsx": "d03090798f4c8832341051253fd7ed6c6d327a037ea9eee841fcf2f00297cac6",
+        "src/Terms.jsx": "20a1994d3d6cd5d15d8e3a2c6ffb1a673db66df69c9b8dbe14e29f101056cb1d",
+        "src/TurnTest.jsx": "c65f1b30cb6665b884d125e617b69d3932edbb18c6470a7f1bbd74d3c3fe1dbd",
+        "src/account.js": "0ba9b309af466a9138a562645983b68a51ba392301e4038b0d2f0f209f5f9f8d",
+        "src/accountIdentity.js": "0418b635540561070669294b8ca95a8abd8d576625286b7be0db0fd9ef5cde1f",
+        "src/authIntent.js": "19b87ae74f11390611a84da0f0dd11d306ecdaa954d9d9968e8b56d2c84ba950",
+        "src/captureGeometry.js": "b01a716377211eb5489d779eccaeaffb57b98f67f3f067481f0dac10a4c131cc",
+        "src/cardNameIndex.js": "85e4b825f9e2395ce545b8f58e17b66391c2be53de07d03ac94372f219d335b8",
+        "src/cardPresentation.js": "54cad20b8a1d02a2cb479db54a4877e41d31ed200ad388825635f1bb4664936d",
+        "src/cardSearch.js": "8889197c199dc5c01a585198e2698f35e227bd87f24f8dc08e64b8e7a43ff509",
+        "src/chatCommands.js": "8757eb9612f5905bc157177b4e50350304c31d123dc188d6632b9daac4e1152e",
+        "src/commanderRules.js": "c8fc05c319d85afdcf03ff3707ed18b5d098f02b7544998492b36aa8d8c89e99",
+        "src/deckAnalysis.js": "b7881627d7c8d286f3117d16bb2e2b9888a9f6c3cdebdebbc01a026ef414ebd9",
+        "src/deckImport.js": "7eff53e86b3bc63a3acfb0efdd2ccaad0561145d21b6777bc4eb46b9fd4fe74a",
+        "src/gameControls.js": "862b94ff514b96b45170bb4f573046b5f3c2277b3acf919ec631e92c32b550e1",
+        "src/gameRooms.js": "b27f9c1fe93bcdee37a6f2f56e54404d29dc28224b6a2b0ebc40b84c30d26607",
+        "src/localMock.js": "9e3e62b45b5eb9af6b9c1344cad7017a945a45d8396510880efa4dab0f55273f",
+        "src/main.jsx": "70abd4804ece205ce6ef2fc18490fb6bc9b6c2b8d63dd611741e915fffb0322b",
+        "src/mediaDevices.js": "353346a3f83ff8a995bbc06da3c51162e1f0916546557d832fa37100aac7b2ed",
+        "src/mediaPlayback.js": "c1c959d3ea5ca1bb551708556a82e9d62e638fa442006308ca04446bcda9fcde",
+        "src/mockDeckFixtures.js": "66439ec7f3ef3269ed1cb17b6ab0cf5a6fdb7c13693417f82d30b457e800b437",
+        "src/realtimeEpochRotation.js": "c9c4488de4644408457d4c6ce64b856d78eb89e47932120c261199b819cc5a53",
+        "src/recognition/aiCrop.js": "4f0d418abeca864f90b2a15b0287e5ffc4054096ddb5878b0f71101063ac72bb",
+        "src/recognition/aiCropGeometry.js": "a9153c763e917e15703a1d5fe8a80714e4722c6f73948e61a733170c064343cb",
+        "src/recognition/aiCropWorker.js": "ad5aecaf05ba3ef91c770a77f23476fa1d9d13b1486ec56d59750a0bd921ba87",
+        "src/recognition/hash.js": "6c3bfa012e82927b783c021886b669eece2c75712e11eaa9039a5e51794b6ea6",
+        "src/recognition/matcher.js": "914063ef18e7373f20e2a85b9c82400745d1c645e45e286c7e1a337fa656dbd9",
+        "src/recognition/metadataEvidence.js": "eb34b3521b5ecec0a756a31638bbfa4f4b301274e471428b5d65518960172ab0",
+        "src/recognition/miloLookup.js": "f61d901f0d300f12dacb1d7860eee94ab1b66ba065347bcc450f1952de177a2f",
+        "src/recognition/recognizer.js": "6e5c70249c18075c623f476e7999c26addd2f1a24e26290565976906e6cbead8",
+        "src/recognitionHints.js": "f4f1c04d3f9443ea44c334c2570de40e7102d2e621e65befd08db8d1764ab294",
+        "src/roomCode.js": "ce2502c643a8545a77da4450e929650f5ae7952c0fc7376d1aad0f40dace147c",
+        "src/signaling.js": "af1ae4d06f354f5e997e512757742271298f58ba8604ef50af0e37ae4b62d20d",
+        "src/snaptest/degrade.js": "ef006310323143b974fe29847c48d7dd3ed3cb077bc41683cbce8203eaf675d2",
+        "src/snaptest/scene.js": "c3aed501c5787dea50b752ba35d959b5e71caf93f617eb7b24790e86ab62e345",
+        "src/soundEffects.js": "f5581047a433575f75a73a00c45a17ed3f4d407d64dbddaf9f466bf9315fe7ac",
+        "src/styles.css": "8a07c5060c66ac3b6b29922d73033dc91ed986df048887ad2c1d1a7604b9b0f0",
+        "src/supabase.js": "e33dec02002ed526de8187d308cdf906fe4cc206b29ced988232beee75ef6669",
+        "src/videoCounters.js": "319e0cc48089409e7bdd7ec343a54078feace56ab26a6ec1a6980b27c29afd84",
+        "src/videoQuality.js": "eecd3cdf80ff2a0ef463ba98c4bc33072aaa35baf0df9eb0520ad79a9020679a",
+        "src/visitorAudio.js": "e0e585aea417f782e2e82ef1de0328c9aedd1fa9f937c47fb75f5661381df977",
+        "src/webrtc.js": "0ddb617d0a57f45076cb8a938bb155dbc530cbad0769d759131b9018a3f1d88e"
+      },
+      "catalogDigests": {
+        "public/carddata/manifest.json": "50a1e0e3f62dd34f3242c70fad24a1f3510085caebb7eb01b22743ee9b2b14ac",
+        "public/carddata/cards.json": "e9527a3801fe60d9bf42882c919b4473956a293c8cb66ea732071d804a9d2f8c",
+        "public/carddata/milo/manifest.json": "85bdd724d69300c33e6f48b7bd7cbe90cbd0cdf7a26f4a28a373b665a36d2a6d"
+      },
+      "rows": [
+        {
+          "name": "Voja, Friend to Elves",
+          "scene": 19,
+          "index": 9,
+          "rotation": "upsidedown",
+          "fresh": {
+            "got": "Voja, Friend to Elves",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "39475e91-1e71-4546-ae4a-47ea66e47536",
+              "face": 0
+            },
+            "aiCrop": {
+              "model": "cornelius-2.12",
+              "status": "ready",
+              "proposals": 2,
+              "probes": [
+                {
+                  "sharpness": 0.03766893595457077,
+                  "accepted": true,
+                  "reason": "accepted"
+                },
+                {
+                  "sharpness": 0.05305149033665657,
+                  "accepted": true,
+                  "reason": "accepted"
+                }
+              ],
+              "ms": 192,
+              "queueMs": 0,
+              "prepared": true,
+              "overlapMs": 194,
+              "fastMs": 660,
+              "fastHit": true
+            },
+            "timing": {
+              "at": 1791777139773,
+              "remote": true,
+              "captureMs": 294,
+              "recognitionMs": 663,
+              "totalMs": 957,
+              "stages": {
+                "prep": 36,
+                "rankSeeds": 82,
+                "earlyOrbProbe": 0,
+                "rankRefine": 2,
+                "rank": 0,
+                "orb": 539,
+                "aiCrop": 192,
+                "captureOverlap": 194,
+                "aiAttempt": 660,
+                "modelQueue": 0,
+                "total": 663,
+                "queue": 0
+              },
+              "candidatesTried": 2,
+              "isolationCandidates": 0,
+              "hintHit": false
+            },
+            "capture": {
+              "at": 1770.5,
+              "nx": 0.5817362700228833,
+              "ny": 0.7311212814645309,
+              "frames": [
+                {
+                  "index": 0,
+                  "at": 1778.6000000238419,
+                  "score": 10871937.150260543
+                },
+                {
+                  "index": 1,
+                  "at": 1902.8999999761581,
+                  "score": 10871937.150260543
+                },
+                {
+                  "index": 2,
+                  "at": 2027.6000000238419,
+                  "score": 10871937.150260543
+                }
+              ],
+              "selected": 0,
+              "endedAt": 2027.7000000476837,
+              "width": 594,
+              "height": 594,
+              "geometry": {
+                "side": 594,
+                "sx": 819.9336384439359,
+                "sy": 486,
+                "px": 0.5,
+                "py": 0.5111296026627835
+              },
+              "bytes": 80745,
+              "firstSelected": true,
+              "sha256": "d759242a238a59837b996e58f096a2931e356a7aa7b5a06f99b25c3a1bee2d4c"
+            },
+            "displayMs": 965,
+            "previewMs": 7,
+            "image": {
+              "width": 146,
+              "height": 204,
+              "opacity": 1,
+              "kind": "preview"
+            },
+            "hints": [
+              {
+                "ownerId": "native-source",
+                "nx": 0.5817362700228833,
+                "ny": 0.7311212814645309,
+                "at": 1791777139773,
+                "card": {
+                  "name": "Voja, Friend to Elves",
+                  "scryfall_id": "39475e91-1e71-4546-ae4a-47ea66e47536",
+                  "face": 0,
+                  "set": "twar",
+                  "collector_number": "17"
+                }
+              }
+            ],
+            "identifyHints": [],
+            "hintsBefore": []
+          },
+          "repeat": {
+            "got": "Voja, Friend to Elves",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "39475e91-1e71-4546-ae4a-47ea66e47536",
+              "face": 0
+            },
+            "aiCrop": {
+              "model": "cornelius-2.12",
+              "status": "ready",
+              "proposals": 2,
+              "probes": [
+                {
+                  "sharpness": 0.03766893595457077,
+                  "accepted": true,
+                  "reason": "accepted"
+                },
+                {
+                  "sharpness": 0.05305149033665657,
+                  "accepted": true,
+                  "reason": "accepted"
+                }
+              ],
+              "ms": 186,
+              "queueMs": 0,
+              "prepared": true,
+              "overlapMs": 188,
+              "hintPrepass": {
+                "hit": false,
+                "miss": true
+              },
+              "fastMs": 219,
+              "fastHit": true
+            },
+            "timing": {
+              "at": 1791777140656,
+              "remote": true,
+              "captureMs": 259,
+              "recognitionMs": 590,
+              "totalMs": 849,
+              "stages": {
+                "prep": 24,
+                "rankSeeds": 77,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1,
+                "rank": 0,
+                "orb": 117,
+                "hintPrep": 287,
+                "hint": 81,
+                "aiCrop": 186,
+                "captureOverlap": 188,
+                "aiAttempt": 219,
+                "modelQueue": 0,
+                "total": 590,
+                "queue": 0
+              },
+              "candidatesTried": 2,
+              "isolationCandidates": 0,
+              "hintHit": false
+            },
+            "capture": {
+              "at": 2732.600000023842,
+              "nx": 0.5817362700228833,
+              "ny": 0.7311212814645309,
+              "frames": [
+                {
+                  "index": 0,
+                  "at": 2734.8000000715256,
+                  "score": 10871937.150260543
+                },
+                {
+                  "index": 1,
+                  "at": 2858.399999976158,
+                  "score": 10871937.150260543
+                },
+                {
+                  "index": 2,
+                  "at": 2983.399999976158,
+                  "score": 10871937.150260543
+                }
+              ],
+              "selected": 0,
+              "endedAt": 2983.399999976158,
+              "width": 594,
+              "height": 594,
+              "geometry": {
+                "side": 594,
+                "sx": 819.9336384439359,
+                "sy": 486,
+                "px": 0.5,
+                "py": 0.5111296026627835
+              },
+              "bytes": 80745,
+              "firstSelected": true,
+              "sha256": "d759242a238a59837b996e58f096a2931e356a7aa7b5a06f99b25c3a1bee2d4c"
+            },
+            "displayMs": 857,
+            "previewMs": 8,
+            "image": {
+              "width": 146,
+              "height": 204,
+              "opacity": 1,
+              "kind": "preview"
+            },
+            "hints": [
+              {
+                "ownerId": "native-source",
+                "nx": 0.5817362700228833,
+                "ny": 0.7311212814645309,
+                "at": 1791777140656,
+                "card": {
+                  "name": "Voja, Friend to Elves",
+                  "scryfall_id": "39475e91-1e71-4546-ae4a-47ea66e47536",
+                  "face": 0,
+                  "set": "twar",
+                  "collector_number": "17"
+                }
+              }
+            ],
+            "identifyHints": [
+              {
+                "name": "Voja, Friend to Elves",
+                "scryfall_id": "39475e91-1e71-4546-ae4a-47ea66e47536",
+                "face": 0,
+                "set": "twar",
+                "collector_number": "17"
+              }
+            ],
+            "hintsBefore": [
+              {
+                "ownerId": "native-source",
+                "nx": 0.5817362700228833,
+                "ny": 0.7311212814645309,
+                "at": 1791777139773,
+                "card": {
+                  "name": "Voja, Friend to Elves",
+                  "scryfall_id": "39475e91-1e71-4546-ae4a-47ea66e47536",
+                  "face": 0,
+                  "set": "twar",
+                  "collector_number": "17"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "nativeErrors": []
+    }
+  },
+  "errors": [],
+  "blockedWrites": [],
+  "limitations": [
+    "Warmed actual compiled Game pointer clicks, native three-frame production JPEG capture, native loopback RTC and real matcher/sidebar. Source media and signaling are simulated; no physical devices, real room, STUN, TURN or production writes.",
+    "Each arm runs in a separate private browser sequentially. Each card is clicked with hints cleared, then immediately repeated using the production Game's verified room hint. Models/index are warmed; initial reference downloads and physical screen scanout are not generalized from this small targeted set."
+  ],
+  "summary": {
+    "control": {
+      "n": 1,
+      "correct": 1,
+      "hintHits": 0,
+      "repeatDisplayP50": 2456,
+      "repeatRecognitionP50": 2180,
+      "repeatUnder1s": 0
+    },
+    "candidate": {
+      "n": 1,
+      "correct": 1,
+      "hintHits": 0,
+      "repeatDisplayP50": 857,
+      "repeatRecognitionP50": 590,
+      "repeatUnder1s": 1
+    }
+  }
+}

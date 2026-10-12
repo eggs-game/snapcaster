@@ -1,0 +1,2577 @@
+{
+  "scope": "Native exact60-versus120 descriptor-capacity control on identical frozen pipeline/source/images, default stopOFF. Timings are diagnostic recognition-only, no camera/display transport.",
+  "workerSHA256": "5067be9ff711d14e71ab21e9318ed0ef14ee640604c7566d760fe6ecbde0c033",
+  "catalog": {
+    "public/carddata/manifest.json": "8938f2b3c2e6f49f4e78c346fb662388be9be76e23a9d9efc3b2752d9e855d44",
+    "public/carddata/cards.json": "79f0775b3b84f509edc614170e325607bd0f7245b9c9006f029e8adc6553cadc",
+    "public/carddata/milo/manifest.json": "dd2c83e7bd3654944d9b92142ebb2300004f95170f96ea762703afb44d6305bc",
+    "public/snaptest/cards.json": "93d34c980422a585589d6038d297f2eaa88e22a2e57ab62952f91d75d57d40c1",
+    "public/snaptest/arcane/manifest.json": "beef48b2d4aed723d49e80980adeca3f68716e4529e32765c14c7a0dc96f6197"
+  },
+  "records": [
+    {
+      "60": {
+        "ms": 4569,
+        "best": {
+          "name": "Geier Reach Sanitarium",
+          "set": "sld",
+          "collector_number": "1408",
+          "scryfall_id": "8d80ec47-0e47-49e3-9c43-1c126d8523e1",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/8/d/8d80ec47-0e47-49e3-9c43-1c126d8523e1.jpg",
+          "scryfall_uri": "https://scryfall.com/card/sld/1408",
+          "distance": 172,
+          "confidence": 0.65,
+          "strategy": "milo",
+          "milo_retrieval": true,
+          "milo_highres": true,
+          "ai_supplement": true,
+          "identified_by": "art-match",
+          "art_inliers": 26,
+          "color_sim": 0.7829360961914062,
+          "ring_sim": 0.39697055050055496,
+          "click_inside": true,
+          "click_inliers": 26,
+          "click_art_inliers": 18,
+          "click_text_inliers": 8,
+          "click_half_inliers": [
+            16,
+            10
+          ],
+          "click_blocked": false,
+          "regional_proof": true
+        },
+        "artBest": {
+          "name": "Geier Reach Sanitarium",
+          "inliers": 26,
+          "color": 78,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 26,
+          "clickArtInliers": 18,
+          "clickTextInliers": 8,
+          "clickHalfInliers": [
+            16,
+            10
+          ]
+        },
+        "blockedNames": [],
+        "stages": {
+          "prep": 20,
+          "rankSeeds": 76,
+          "earlyOrbProbe": 0,
+          "rankRefine": 1,
+          "rank": 0,
+          "orb": 268,
+          "aiCrop": 196,
+          "aiAttempt": 648,
+          "milo": 1564,
+          "aiRetry": 2158,
+          "modelQueue": 0,
+          "total": 4569,
+          "queue": 0
+        },
+        "phases": [
+          {
+            "orb": {
+              "fetch": 261.39999985694885,
+              "queryFeat": 7.5,
+              "refFeat": 166.19999957084656,
+              "match": 6.100000023841858,
+              "refs": 36,
+              "winRank": 17,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 42,
+              "refFeatureHits": 6,
+              "refFeatureMisses": 36,
+              "sourceFeat": 13,
+              "sourceProbes": 6,
+              "sourceMatch": 52.10000002384186,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            }
+          },
+          {
+            "orb": {
+              "fetch": 261.39999985694885,
+              "queryFeat": 7.5,
+              "refFeat": 166.19999957084656,
+              "match": 6.100000023841858,
+              "refs": 36,
+              "winRank": 17,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 42,
+              "refFeatureHits": 6,
+              "refFeatureMisses": 36,
+              "sourceFeat": 13,
+              "sourceProbes": 6,
+              "sourceMatch": 52.10000002384186,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            },
+            "milo": [
+              {
+                "contrast": false,
+                "fetch": 135.5,
+                "queryFeat": 4.899999976158142,
+                "refFeat": 104.30000007152557,
+                "match": 10.199999809265137,
+                "refs": 48,
+                "winRank": 42,
+                "refsInspected": 48,
+                "refsRanked": 48,
+                "refFeatureCalls": 57,
+                "refFeatureHits": 41,
+                "refFeatureMisses": 16,
+                "sourceFeat": 12.799999952316284,
+                "sourceProbes": 5,
+                "sourceMatch": 28.399999976158142,
+                "distinctEarlyStopRank": -1,
+                "distinctNameStop": false
+              },
+              {
+                "contrast": true,
+                "fetch": 0,
+                "queryFeat": 10.299999952316284,
+                "refFeat": 349.5,
+                "match": 195.39999997615814,
+                "refs": 48,
+                "winRank": 1,
+                "refsInspected": 48,
+                "refsRanked": 48,
+                "refFeatureCalls": 61,
+                "refFeatureHits": 9,
+                "refFeatureMisses": 52,
+                "sourceFeat": 20.600000023841858,
+                "sourceProbes": 6,
+                "sourceMatch": 68.19999992847443,
+                "distinctEarlyStopRank": -1,
+                "distinctNameStop": false
+              }
+            ]
+          },
+          {
+            "orb": {
+              "fetch": 100.200000166893,
+              "queryFeat": 2.1999999284744263,
+              "refFeat": 129.2999997138977,
+              "match": 1.6999999284744263,
+              "refs": 36,
+              "winRank": 26,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 41,
+              "refFeatureHits": 10,
+              "refFeatureMisses": 31,
+              "sourceFeat": 12.200000047683716,
+              "sourceProbes": 5,
+              "sourceMatch": 11,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            }
+          },
+          {
+            "orb": {
+              "fetch": 100.200000166893,
+              "queryFeat": 2.1999999284744263,
+              "refFeat": 129.2999997138977,
+              "match": 1.6999999284744263,
+              "refs": 36,
+              "winRank": 26,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 41,
+              "refFeatureHits": 10,
+              "refFeatureMisses": 31,
+              "sourceFeat": 12.200000047683716,
+              "sourceProbes": 5,
+              "sourceMatch": 11,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            },
+            "milo": [
+              {
+                "contrast": false,
+                "fetch": 106.69999980926514,
+                "queryFeat": 4.600000023841858,
+                "refFeat": 105.79999995231628,
+                "match": 5.200000047683716,
+                "refs": 48,
+                "winRank": 0,
+                "refsInspected": 48,
+                "refsRanked": 48,
+                "refFeatureCalls": 60,
+                "refFeatureHits": 44,
+                "refFeatureMisses": 16,
+                "sourceFeat": 12.600000023841858,
+                "sourceProbes": 6,
+                "sourceMatch": 40.39999997615814,
+                "distinctEarlyStopRank": -1,
+                "distinctNameStop": false
+              },
+              {
+                "contrast": true,
+                "fetch": 0,
+                "queryFeat": 9.200000047683716,
+                "refFeat": 318.10000002384186,
+                "match": 180.89999997615814,
+                "refs": 48,
+                "winRank": 0,
+                "refsInspected": 48,
+                "refsRanked": 48,
+                "refFeatureCalls": 58,
+                "refFeatureHits": 6,
+                "refFeatureMisses": 52,
+                "sourceFeat": 20.899999976158142,
+                "sourceProbes": 5,
+                "sourceMatch": 31.700000047683716,
+                "distinctEarlyStopRank": -1,
+                "distinctNameStop": false
+              }
+            ]
+          }
+        ],
+        "stats": [
+          {
+            "entries": 36,
+            "handles": 72,
+            "heapBytes": 134217728,
+            "descriptorBytes": 472380
+          },
+          {
+            "entries": 60,
+            "handles": 120,
+            "heapBytes": 134217728,
+            "descriptorBytes": 817980
+          },
+          {
+            "entries": 60,
+            "handles": 120,
+            "heapBytes": 134217728,
+            "descriptorBytes": 749340
+          },
+          {
+            "entries": 60,
+            "handles": 120,
+            "heapBytes": 134217728,
+            "descriptorBytes": 829140
+          }
+        ]
+      },
+      "120": {
+        "ms": 4490,
+        "best": {
+          "name": "Geier Reach Sanitarium",
+          "set": "sld",
+          "collector_number": "1408",
+          "scryfall_id": "8d80ec47-0e47-49e3-9c43-1c126d8523e1",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/8/d/8d80ec47-0e47-49e3-9c43-1c126d8523e1.jpg",
+          "scryfall_uri": "https://scryfall.com/card/sld/1408",
+          "distance": 172,
+          "confidence": 0.65,
+          "strategy": "milo",
+          "milo_retrieval": true,
+          "milo_highres": true,
+          "ai_supplement": true,
+          "identified_by": "art-match",
+          "art_inliers": 26,
+          "color_sim": 0.7829360961914062,
+          "ring_sim": 0.39697055050055496,
+          "click_inside": true,
+          "click_inliers": 26,
+          "click_art_inliers": 18,
+          "click_text_inliers": 8,
+          "click_half_inliers": [
+            16,
+            10
+          ],
+          "click_blocked": false,
+          "regional_proof": true
+        },
+        "artBest": {
+          "name": "Geier Reach Sanitarium",
+          "inliers": 26,
+          "color": 78,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 26,
+          "clickArtInliers": 18,
+          "clickTextInliers": 8,
+          "clickHalfInliers": [
+            16,
+            10
+          ]
+        },
+        "blockedNames": [],
+        "stages": {
+          "prep": 23,
+          "rankSeeds": 80,
+          "earlyOrbProbe": 0,
+          "rankRefine": 1,
+          "rank": 0,
+          "orb": 275,
+          "aiCrop": 191,
+          "aiAttempt": 683,
+          "milo": 1545,
+          "aiRetry": 2068,
+          "modelQueue": 0,
+          "total": 4489,
+          "queue": 0
+        },
+        "phases": [
+          {
+            "orb": {
+              "fetch": 292.39999985694885,
+              "queryFeat": 7,
+              "refFeat": 169.40000021457672,
+              "match": 6.099999904632568,
+              "refs": 36,
+              "winRank": 17,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 42,
+              "refFeatureHits": 6,
+              "refFeatureMisses": 36,
+              "sourceFeat": 12.299999952316284,
+              "sourceProbes": 6,
+              "sourceMatch": 49.800000071525574,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            }
+          },
+          {
+            "orb": {
+              "fetch": 292.39999985694885,
+              "queryFeat": 7,
+              "refFeat": 169.40000021457672,
+              "match": 6.099999904632568,
+              "refs": 36,
+              "winRank": 17,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 42,
+              "refFeatureHits": 6,
+              "refFeatureMisses": 36,
+              "sourceFeat": 12.299999952316284,
+              "sourceProbes": 6,
+              "sourceMatch": 49.800000071525574,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            },
+            "milo": [
+              {
+                "contrast": false,
+                "fetch": 125.40000009536743,
+                "queryFeat": 4.899999976158142,
+                "refFeat": 105.5,
+                "match": 11,
+                "refs": 48,
+                "winRank": 42,
+                "refsInspected": 48,
+                "refsRanked": 48,
+                "refFeatureCalls": 57,
+                "refFeatureHits": 41,
+                "refFeatureMisses": 16,
+                "sourceFeat": 12.399999976158142,
+                "sourceProbes": 5,
+                "sourceMatch": 27.90000009536743,
+                "distinctEarlyStopRank": -1,
+                "distinctNameStop": false
+              },
+              {
+                "contrast": true,
+                "fetch": 0.10000002384185791,
+                "queryFeat": 10.299999952316284,
+                "refFeat": 347.09999990463257,
+                "match": 192.5,
+                "refs": 48,
+                "winRank": 1,
+                "refsInspected": 48,
+                "refsRanked": 48,
+                "refFeatureCalls": 61,
+                "refFeatureHits": 9,
+                "refFeatureMisses": 52,
+                "sourceFeat": 20.700000047683716,
+                "sourceProbes": 6,
+                "sourceMatch": 67.59999990463257,
+                "distinctEarlyStopRank": -1,
+                "distinctNameStop": false
+              }
+            ]
+          },
+          {
+            "orb": {
+              "fetch": 115.80000007152557,
+              "queryFeat": 2.3000000715255737,
+              "refFeat": 118.799999833107,
+              "match": 1.8000001907348633,
+              "refs": 36,
+              "winRank": 26,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 41,
+              "refFeatureHits": 14,
+              "refFeatureMisses": 27,
+              "sourceFeat": 12.399999976158142,
+              "sourceProbes": 5,
+              "sourceMatch": 10.899999976158142,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            }
+          },
+          {
+            "orb": {
+              "fetch": 115.80000007152557,
+              "queryFeat": 2.3000000715255737,
+              "refFeat": 118.799999833107,
+              "match": 1.8000001907348633,
+              "refs": 36,
+              "winRank": 26,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 41,
+              "refFeatureHits": 14,
+              "refFeatureMisses": 27,
+              "sourceFeat": 12.399999976158142,
+              "sourceProbes": 5,
+              "sourceMatch": 10.899999976158142,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            },
+            "milo": [
+              {
+                "contrast": false,
+                "fetch": 100.39999997615814,
+                "queryFeat": 4.5,
+                "refFeat": 105.60000026226044,
+                "match": 5.199999928474426,
+                "refs": 48,
+                "winRank": 0,
+                "refsInspected": 48,
+                "refsRanked": 48,
+                "refFeatureCalls": 60,
+                "refFeatureHits": 44,
+                "refFeatureMisses": 16,
+                "sourceFeat": 12.299999952316284,
+                "sourceProbes": 6,
+                "sourceMatch": 40.60000002384186,
+                "distinctEarlyStopRank": -1,
+                "distinctNameStop": false
+              },
+              {
+                "contrast": true,
+                "fetch": 0,
+                "queryFeat": 9.299999952316284,
+                "refFeat": 226.19999957084656,
+                "match": 181.00000035762787,
+                "refs": 48,
+                "winRank": 0,
+                "refsInspected": 48,
+                "refsRanked": 48,
+                "refFeatureCalls": 58,
+                "refFeatureHits": 22,
+                "refFeatureMisses": 36,
+                "sourceFeat": 21,
+                "sourceProbes": 5,
+                "sourceMatch": 31.399999976158142,
+                "distinctEarlyStopRank": -1,
+                "distinctNameStop": false
+              }
+            ]
+          }
+        ],
+        "stats": [
+          {
+            "entries": 36,
+            "handles": 72,
+            "heapBytes": 134217728,
+            "descriptorBytes": 472380
+          },
+          {
+            "entries": 104,
+            "handles": 208,
+            "heapBytes": 134217728,
+            "descriptorBytes": 1530660
+          },
+          {
+            "entries": 120,
+            "handles": 240,
+            "heapBytes": 134217728,
+            "descriptorBytes": 1737300
+          },
+          {
+            "entries": 120,
+            "handles": 240,
+            "heapBytes": 134217728,
+            "descriptorBytes": 1706940
+          }
+        ]
+      },
+      "i": 0,
+      "name": "Geier Reach Sanitarium",
+      "sha256": "d40da4fb5252baba99e06822b62b105ea12a36e3ad5e3e95def024a2db8a2681"
+    },
+    {
+      "60": {
+        "ms": 785,
+        "best": {
+          "name": "Contagion",
+          "set": "all",
+          "collector_number": "45",
+          "scryfall_id": "00c8f94a-7690-47f5-b664-61411a32ab74",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/0/0/00c8f94a-7690-47f5-b664-61411a32ab74.jpg",
+          "scryfall_uri": "https://scryfall.com/card/all/45",
+          "distance": 112,
+          "confidence": 1,
+          "strategy": "full-frame",
+          "art_inliers": 164,
+          "color_sim": 0.9550536198366899,
+          "ring_sim": 0.9868384471628815,
+          "click_inliers": 164,
+          "click_art_inliers": 121,
+          "click_text_inliers": 25,
+          "click_half_inliers": [
+            118,
+            46
+          ],
+          "click_inside": true,
+          "click_blocked": false,
+          "identified_by": "art-match"
+        },
+        "artBest": {
+          "name": "Contagion",
+          "inliers": 164,
+          "color": 96,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 164,
+          "clickArtInliers": 121,
+          "clickTextInliers": 25,
+          "clickHalfInliers": [
+            118,
+            46
+          ]
+        },
+        "blockedNames": [],
+        "stages": {
+          "prep": 31,
+          "rankSeeds": 222,
+          "earlyOrbProbe": 0,
+          "rankRefine": 1,
+          "rank": 0,
+          "orb": 527,
+          "aiCrop": 0,
+          "aiAttempt": 782,
+          "modelQueue": 0,
+          "total": 785,
+          "queue": 0
+        },
+        "phases": [
+          {
+            "orb": {
+              "fetch": 149.59999978542328,
+              "queryFeat": 11.5,
+              "refFeat": 207.5,
+              "match": 107.50000011920929,
+              "refs": 36,
+              "winRank": 0,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 37,
+              "refFeatureHits": 1,
+              "refFeatureMisses": 36,
+              "sourceFeat": 12.899999976158142,
+              "sourceProbes": 1,
+              "sourceMatch": 7.899999976158142,
+              "distinctEarlyStopRank": 10,
+              "distinctNameStop": false
+            }
+          }
+        ],
+        "stats": [
+          {
+            "entries": 60,
+            "handles": 120,
+            "heapBytes": 134217728,
+            "descriptorBytes": 881460
+          }
+        ]
+      },
+      "120": {
+        "ms": 676,
+        "best": {
+          "name": "Contagion",
+          "set": "all",
+          "collector_number": "45",
+          "scryfall_id": "00c8f94a-7690-47f5-b664-61411a32ab74",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/0/0/00c8f94a-7690-47f5-b664-61411a32ab74.jpg",
+          "scryfall_uri": "https://scryfall.com/card/all/45",
+          "distance": 112,
+          "confidence": 1,
+          "strategy": "full-frame",
+          "art_inliers": 164,
+          "color_sim": 0.9550536198366899,
+          "ring_sim": 0.9868384471628815,
+          "click_inliers": 164,
+          "click_art_inliers": 121,
+          "click_text_inliers": 25,
+          "click_half_inliers": [
+            118,
+            46
+          ],
+          "click_inside": true,
+          "click_blocked": false,
+          "identified_by": "art-match"
+        },
+        "artBest": {
+          "name": "Contagion",
+          "inliers": 164,
+          "color": 96,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 164,
+          "clickArtInliers": 121,
+          "clickTextInliers": 25,
+          "clickHalfInliers": [
+            118,
+            46
+          ]
+        },
+        "blockedNames": [],
+        "stages": {
+          "prep": 30,
+          "rankSeeds": 165,
+          "earlyOrbProbe": 0,
+          "rankRefine": 1,
+          "rank": 0,
+          "orb": 477,
+          "aiCrop": 0,
+          "aiAttempt": 674,
+          "modelQueue": 0,
+          "total": 676,
+          "queue": 0
+        },
+        "phases": [
+          {
+            "orb": {
+              "fetch": 103.49999988079071,
+              "queryFeat": 11.299999952316284,
+              "refFeat": 206.20000040531158,
+              "match": 105.69999957084656,
+              "refs": 36,
+              "winRank": 0,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 37,
+              "refFeatureHits": 1,
+              "refFeatureMisses": 36,
+              "sourceFeat": 13.100000023841858,
+              "sourceProbes": 1,
+              "sourceMatch": 8.299999952316284,
+              "distinctEarlyStopRank": 10,
+              "distinctNameStop": false
+            }
+          }
+        ],
+        "stats": [
+          {
+            "entries": 120,
+            "handles": 240,
+            "heapBytes": 134217728,
+            "descriptorBytes": 1713360
+          }
+        ]
+      },
+      "i": 1,
+      "name": "Contagion"
+    },
+    {
+      "60": {
+        "ms": 584,
+        "best": {
+          "name": "Arlinn Kord",
+          "set": "v17",
+          "collector_number": "3",
+          "scryfall_id": "ce0a6fa9-f664-4263-8deb-8112f860814c",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/c/e/ce0a6fa9-f664-4263-8deb-8112f860814c.jpg",
+          "scryfall_uri": "https://scryfall.com/card/v17/3",
+          "distance": 240,
+          "confidence": 1,
+          "strategy": "art-global",
+          "art_inliers": 42,
+          "color_sim": 0.9414399885572493,
+          "ring_sim": 0.75996727355232,
+          "click_inliers": 42,
+          "click_art_inliers": 25,
+          "click_text_inliers": 17,
+          "click_half_inliers": [
+            25,
+            17
+          ],
+          "click_inside": true,
+          "click_blocked": false,
+          "identified_by": "art-match"
+        },
+        "artBest": {
+          "name": "Arlinn Kord",
+          "inliers": 42,
+          "color": 94,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 42,
+          "clickArtInliers": 25,
+          "clickTextInliers": 17,
+          "clickHalfInliers": [
+            25,
+            17
+          ]
+        },
+        "blockedNames": [],
+        "stages": {
+          "prep": 26,
+          "rankSeeds": 190,
+          "earlyOrbProbe": 0,
+          "rankRefine": 3,
+          "rank": 0,
+          "orb": 362,
+          "aiCrop": 0,
+          "aiAttempt": 581,
+          "modelQueue": 0,
+          "total": 584,
+          "queue": 0
+        },
+        "phases": [
+          {
+            "orb": {
+              "fetch": 61.5,
+              "queryFeat": 11.700000047683716,
+              "refFeat": 148.90000021457672,
+              "match": 91.39999997615814,
+              "refs": 36,
+              "winRank": 25,
+              "refsInspected": 26,
+              "refsRanked": 26,
+              "refFeatureCalls": 27,
+              "refFeatureHits": 1,
+              "refFeatureMisses": 26,
+              "sourceFeat": 13.299999952316284,
+              "sourceProbes": 1,
+              "sourceMatch": 8.5,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            }
+          }
+        ],
+        "stats": [
+          {
+            "entries": 60,
+            "handles": 120,
+            "heapBytes": 134217728,
+            "descriptorBytes": 881460
+          },
+          {
+            "entries": 60,
+            "handles": 120,
+            "heapBytes": 134217728,
+            "descriptorBytes": 1019880
+          }
+        ]
+      },
+      "120": {
+        "ms": 679,
+        "best": {
+          "name": "Arlinn Kord",
+          "set": "v17",
+          "collector_number": "3",
+          "scryfall_id": "ce0a6fa9-f664-4263-8deb-8112f860814c",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/c/e/ce0a6fa9-f664-4263-8deb-8112f860814c.jpg",
+          "scryfall_uri": "https://scryfall.com/card/v17/3",
+          "distance": 240,
+          "confidence": 1,
+          "strategy": "art-global",
+          "art_inliers": 42,
+          "color_sim": 0.9414399885572493,
+          "ring_sim": 0.75996727355232,
+          "click_inliers": 42,
+          "click_art_inliers": 25,
+          "click_text_inliers": 17,
+          "click_half_inliers": [
+            25,
+            17
+          ],
+          "click_inside": true,
+          "click_blocked": false,
+          "identified_by": "art-match"
+        },
+        "artBest": {
+          "name": "Arlinn Kord",
+          "inliers": 42,
+          "color": 94,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 42,
+          "clickArtInliers": 25,
+          "clickTextInliers": 17,
+          "clickHalfInliers": [
+            25,
+            17
+          ]
+        },
+        "blockedNames": [],
+        "stages": {
+          "prep": 26,
+          "rankSeeds": 194,
+          "earlyOrbProbe": 0,
+          "rankRefine": 3,
+          "rank": 0,
+          "orb": 453,
+          "aiCrop": 0,
+          "aiAttempt": 677,
+          "modelQueue": 0,
+          "total": 679,
+          "queue": 0
+        },
+        "phases": [
+          {
+            "orb": {
+              "fetch": 153.60000002384186,
+              "queryFeat": 12,
+              "refFeat": 148.10000002384186,
+              "match": 90.20000004768372,
+              "refs": 36,
+              "winRank": 25,
+              "refsInspected": 26,
+              "refsRanked": 26,
+              "refFeatureCalls": 27,
+              "refFeatureHits": 1,
+              "refFeatureMisses": 26,
+              "sourceFeat": 13.299999952316284,
+              "sourceProbes": 1,
+              "sourceMatch": 8.299999952316284,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            }
+          }
+        ],
+        "stats": [
+          {
+            "entries": 120,
+            "handles": 240,
+            "heapBytes": 134217728,
+            "descriptorBytes": 1713360
+          },
+          {
+            "entries": 120,
+            "handles": 240,
+            "heapBytes": 134217728,
+            "descriptorBytes": 1849200
+          }
+        ]
+      },
+      "i": 2,
+      "name": "Arlinn Kord"
+    },
+    {
+      "60": {
+        "ms": 482,
+        "best": {
+          "name": "Reprieve",
+          "set": "ltr",
+          "collector_number": "26",
+          "scryfall_id": "1bd3fa8a-6c50-4f7f-9ae3-0810eec5e3db",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/1/b/1bd3fa8a-6c50-4f7f-9ae3-0810eec5e3db.jpg",
+          "scryfall_uri": "https://scryfall.com/card/ltr/26",
+          "distance": 110,
+          "confidence": 1,
+          "strategy": "ai-crop-1",
+          "click_inside": true,
+          "click_inliers": 95,
+          "click_art_inliers": 75,
+          "click_text_inliers": 20,
+          "click_half_inliers": [
+            74,
+            21
+          ],
+          "regional_proof": true,
+          "art_inliers": 95,
+          "color_sim": 0.8563381973654032,
+          "ring_sim": 0.9735713385380222,
+          "click_blocked": false,
+          "identified_by": "art-match"
+        },
+        "artBest": {
+          "name": "Reprieve",
+          "inliers": 95,
+          "color": 86,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 95,
+          "clickArtInliers": 75,
+          "clickTextInliers": 20,
+          "clickHalfInliers": [
+            74,
+            21
+          ]
+        },
+        "blockedNames": [],
+        "stages": {
+          "prep": 13,
+          "rankSeeds": 37,
+          "earlyOrbProbe": 0,
+          "rankRefine": 0,
+          "rank": 0,
+          "orb": 253,
+          "aiCrop": 177,
+          "aiAttempt": 303,
+          "modelQueue": 0,
+          "total": 481,
+          "queue": 0
+        },
+        "phases": [
+          {
+            "orb": {
+              "fetch": 105.89999985694885,
+              "queryFeat": 4.399999976158142,
+              "refFeat": 61.80000019073486,
+              "match": 25.300000071525574,
+              "refs": 36,
+              "winRank": 0,
+              "refsInspected": 10,
+              "refsRanked": 10,
+              "refFeatureCalls": 13,
+              "refFeatureHits": 3,
+              "refFeatureMisses": 10,
+              "sourceFeat": 15,
+              "sourceProbes": 3,
+              "sourceMatch": 33.09999990463257,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            }
+          }
+        ],
+        "stats": [
+          {
+            "entries": 60,
+            "handles": 120,
+            "heapBytes": 134217728,
+            "descriptorBytes": 1020180
+          }
+        ]
+      },
+      "120": {
+        "ms": 442,
+        "best": {
+          "name": "Reprieve",
+          "set": "ltr",
+          "collector_number": "26",
+          "scryfall_id": "1bd3fa8a-6c50-4f7f-9ae3-0810eec5e3db",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/1/b/1bd3fa8a-6c50-4f7f-9ae3-0810eec5e3db.jpg",
+          "scryfall_uri": "https://scryfall.com/card/ltr/26",
+          "distance": 110,
+          "confidence": 1,
+          "strategy": "ai-crop-1",
+          "click_inside": true,
+          "click_inliers": 95,
+          "click_art_inliers": 75,
+          "click_text_inliers": 20,
+          "click_half_inliers": [
+            74,
+            21
+          ],
+          "regional_proof": true,
+          "art_inliers": 95,
+          "color_sim": 0.8563381973654032,
+          "ring_sim": 0.9735713385380222,
+          "click_blocked": false,
+          "identified_by": "art-match"
+        },
+        "artBest": {
+          "name": "Reprieve",
+          "inliers": 95,
+          "color": 86,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 95,
+          "clickArtInliers": 75,
+          "clickTextInliers": 20,
+          "clickHalfInliers": [
+            74,
+            21
+          ]
+        },
+        "blockedNames": [],
+        "stages": {
+          "prep": 13,
+          "rankSeeds": 37,
+          "earlyOrbProbe": 0,
+          "rankRefine": 0,
+          "rank": 0,
+          "orb": 208,
+          "aiCrop": 181,
+          "aiAttempt": 259,
+          "modelQueue": 0,
+          "total": 442,
+          "queue": 0
+        },
+        "phases": [
+          {
+            "orb": {
+              "fetch": 57.59999990463257,
+              "queryFeat": 4.599999904632568,
+              "refFeat": 58.00000035762787,
+              "match": 24.49999976158142,
+              "refs": 36,
+              "winRank": 0,
+              "refsInspected": 10,
+              "refsRanked": 10,
+              "refFeatureCalls": 13,
+              "refFeatureHits": 3,
+              "refFeatureMisses": 10,
+              "sourceFeat": 15.400000095367432,
+              "sourceProbes": 3,
+              "sourceMatch": 32.199999928474426,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            }
+          }
+        ],
+        "stats": [
+          {
+            "entries": 120,
+            "handles": 240,
+            "heapBytes": 134217728,
+            "descriptorBytes": 1899420
+          }
+        ]
+      },
+      "i": 3,
+      "name": "Reprieve",
+      "sha256": "e86921eee4a6c20bbeaa79d30623984b396dbce70d50d6955540948ba8997a87"
+    },
+    {
+      "60": {
+        "ms": 3827,
+        "best": {
+          "name": "Geier Reach Sanitarium",
+          "set": "sld",
+          "collector_number": "1408",
+          "scryfall_id": "8d80ec47-0e47-49e3-9c43-1c126d8523e1",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/8/d/8d80ec47-0e47-49e3-9c43-1c126d8523e1.jpg",
+          "scryfall_uri": "https://scryfall.com/card/sld/1408",
+          "distance": 172,
+          "confidence": 0.65,
+          "strategy": "milo",
+          "milo_retrieval": true,
+          "milo_highres": true,
+          "ai_supplement": true,
+          "identified_by": "art-match",
+          "art_inliers": 26,
+          "color_sim": 0.7829360961914062,
+          "ring_sim": 0.39697055050055496,
+          "click_inside": true,
+          "click_inliers": 26,
+          "click_art_inliers": 18,
+          "click_text_inliers": 8,
+          "click_half_inliers": [
+            16,
+            10
+          ],
+          "click_blocked": false,
+          "regional_proof": true
+        },
+        "artBest": {
+          "name": "Geier Reach Sanitarium",
+          "inliers": 26,
+          "color": 78,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 26,
+          "clickArtInliers": 18,
+          "clickTextInliers": 8,
+          "clickHalfInliers": [
+            16,
+            10
+          ]
+        },
+        "blockedNames": [],
+        "stages": {
+          "prep": 20,
+          "rankSeeds": 80,
+          "earlyOrbProbe": 0,
+          "rankRefine": 1,
+          "rank": 0,
+          "orb": 162,
+          "aiCrop": 177,
+          "aiAttempt": 325,
+          "milo": 1398,
+          "aiRetry": 1925,
+          "modelQueue": 0,
+          "total": 3827,
+          "queue": 0
+        },
+        "phases": [
+          {
+            "orb": {
+              "fetch": 0,
+              "queryFeat": 2.5,
+              "refFeat": 158.79999995231628,
+              "match": 2.200000286102295,
+              "refs": 36,
+              "winRank": 17,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 42,
+              "refFeatureHits": 6,
+              "refFeatureMisses": 36,
+              "sourceFeat": 12.399999976158142,
+              "sourceProbes": 6,
+              "sourceMatch": 43.60000002384186,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            }
+          },
+          {
+            "orb": {
+              "fetch": 0,
+              "queryFeat": 2.5,
+              "refFeat": 158.79999995231628,
+              "match": 2.200000286102295,
+              "refs": 36,
+              "winRank": 17,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 42,
+              "refFeatureHits": 6,
+              "refFeatureMisses": 36,
+              "sourceFeat": 12.399999976158142,
+              "sourceProbes": 6,
+              "sourceMatch": 43.60000002384186,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            },
+            "milo": [
+              {
+                "contrast": false,
+                "fetch": 0,
+                "queryFeat": 5,
+                "refFeat": 104.89999961853027,
+                "match": 9.300000429153442,
+                "refs": 48,
+                "winRank": 42,
+                "refsInspected": 48,
+                "refsRanked": 48,
+                "refFeatureCalls": 57,
+                "refFeatureHits": 41,
+                "refFeatureMisses": 16,
+                "sourceFeat": 12.700000047683716,
+                "sourceProbes": 5,
+                "sourceMatch": 26.299999952316284,
+                "distinctEarlyStopRank": -1,
+                "distinctNameStop": false
+              },
+              {
+                "contrast": true,
+                "fetch": 0.09999990463256836,
+                "queryFeat": 9,
+                "refFeat": 347.89999985694885,
+                "match": 192.50000023841858,
+                "refs": 48,
+                "winRank": 1,
+                "refsInspected": 48,
+                "refsRanked": 48,
+                "refFeatureCalls": 61,
+                "refFeatureHits": 9,
+                "refFeatureMisses": 52,
+                "sourceFeat": 21.5,
+                "sourceProbes": 6,
+                "sourceMatch": 68.89999997615814,
+                "distinctEarlyStopRank": -1,
+                "distinctNameStop": false
+              }
+            ]
+          },
+          {
+            "orb": {
+              "fetch": 0.10000002384185791,
+              "queryFeat": 2.5,
+              "refFeat": 127.30000066757202,
+              "match": 1.7999993562698364,
+              "refs": 36,
+              "winRank": 26,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 41,
+              "refFeatureHits": 10,
+              "refFeatureMisses": 31,
+              "sourceFeat": 12.299999952316284,
+              "sourceProbes": 5,
+              "sourceMatch": 10.899999976158142,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            }
+          },
+          {
+            "orb": {
+              "fetch": 0.10000002384185791,
+              "queryFeat": 2.5,
+              "refFeat": 127.30000066757202,
+              "match": 1.7999993562698364,
+              "refs": 36,
+              "winRank": 26,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 41,
+              "refFeatureHits": 10,
+              "refFeatureMisses": 31,
+              "sourceFeat": 12.299999952316284,
+              "sourceProbes": 5,
+              "sourceMatch": 10.899999976158142,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            },
+            "milo": [
+              {
+                "contrast": false,
+                "fetch": 0,
+                "queryFeat": 4.400000095367432,
+                "refFeat": 100.09999990463257,
+                "match": 4.800000071525574,
+                "refs": 48,
+                "winRank": 0,
+                "refsInspected": 48,
+                "refsRanked": 48,
+                "refFeatureCalls": 60,
+                "refFeatureHits": 44,
+                "refFeatureMisses": 16,
+                "sourceFeat": 12.5,
+                "sourceProbes": 6,
+                "sourceMatch": 40.299999952316284,
+                "distinctEarlyStopRank": -1,
+                "distinctNameStop": false
+              },
+              {
+                "contrast": true,
+                "fetch": 0.10000002384185791,
+                "queryFeat": 9.5,
+                "refFeat": 317.80000019073486,
+                "match": 180.19999992847443,
+                "refs": 48,
+                "winRank": 0,
+                "refsInspected": 48,
+                "refsRanked": 48,
+                "refFeatureCalls": 58,
+                "refFeatureHits": 6,
+                "refFeatureMisses": 52,
+                "sourceFeat": 20.699999928474426,
+                "sourceProbes": 5,
+                "sourceMatch": 31.5,
+                "distinctEarlyStopRank": -1,
+                "distinctNameStop": false
+              }
+            ]
+          }
+        ],
+        "stats": [
+          {
+            "entries": 60,
+            "handles": 120,
+            "heapBytes": 134217728,
+            "descriptorBytes": 881100
+          },
+          {
+            "entries": 60,
+            "handles": 120,
+            "heapBytes": 134217728,
+            "descriptorBytes": 817980
+          },
+          {
+            "entries": 60,
+            "handles": 120,
+            "heapBytes": 134217728,
+            "descriptorBytes": 749340
+          },
+          {
+            "entries": 60,
+            "handles": 120,
+            "heapBytes": 134217728,
+            "descriptorBytes": 829140
+          }
+        ]
+      },
+      "120": {
+        "ms": 3717,
+        "best": {
+          "name": "Geier Reach Sanitarium",
+          "set": "sld",
+          "collector_number": "1408",
+          "scryfall_id": "8d80ec47-0e47-49e3-9c43-1c126d8523e1",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/8/d/8d80ec47-0e47-49e3-9c43-1c126d8523e1.jpg",
+          "scryfall_uri": "https://scryfall.com/card/sld/1408",
+          "distance": 172,
+          "confidence": 0.65,
+          "strategy": "milo",
+          "milo_retrieval": true,
+          "milo_highres": true,
+          "ai_supplement": true,
+          "identified_by": "art-match",
+          "art_inliers": 26,
+          "color_sim": 0.7829360961914062,
+          "ring_sim": 0.39697055050055496,
+          "click_inside": true,
+          "click_inliers": 26,
+          "click_art_inliers": 18,
+          "click_text_inliers": 8,
+          "click_half_inliers": [
+            16,
+            10
+          ],
+          "click_blocked": false,
+          "regional_proof": true
+        },
+        "artBest": {
+          "name": "Geier Reach Sanitarium",
+          "inliers": 26,
+          "color": 78,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 26,
+          "clickArtInliers": 18,
+          "clickTextInliers": 8,
+          "clickHalfInliers": [
+            16,
+            10
+          ]
+        },
+        "blockedNames": [],
+        "stages": {
+          "prep": 21,
+          "rankSeeds": 73,
+          "earlyOrbProbe": 0,
+          "rankRefine": 1,
+          "rank": 0,
+          "orb": 152,
+          "aiCrop": 176,
+          "aiAttempt": 328,
+          "milo": 1380,
+          "aiRetry": 1831,
+          "modelQueue": 0,
+          "total": 3717,
+          "queue": 0
+        },
+        "phases": [
+          {
+            "orb": {
+              "fetch": 0,
+              "queryFeat": 2.299999952316284,
+              "refFeat": 156.70000004768372,
+              "match": 2.0999999046325684,
+              "refs": 36,
+              "winRank": 17,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 42,
+              "refFeatureHits": 6,
+              "refFeatureMisses": 36,
+              "sourceFeat": 12.400000095367432,
+              "sourceProbes": 6,
+              "sourceMatch": 44.39999997615814,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            }
+          },
+          {
+            "orb": {
+              "fetch": 0,
+              "queryFeat": 2.299999952316284,
+              "refFeat": 156.70000004768372,
+              "match": 2.0999999046325684,
+              "refs": 36,
+              "winRank": 17,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 42,
+              "refFeatureHits": 6,
+              "refFeatureMisses": 36,
+              "sourceFeat": 12.400000095367432,
+              "sourceProbes": 6,
+              "sourceMatch": 44.39999997615814,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            },
+            "milo": [
+              {
+                "contrast": false,
+                "fetch": 0.09999990463256836,
+                "queryFeat": 4.600000023841858,
+                "refFeat": 101.70000004768372,
+                "match": 9.200000047683716,
+                "refs": 48,
+                "winRank": 42,
+                "refsInspected": 48,
+                "refsRanked": 48,
+                "refFeatureCalls": 57,
+                "refFeatureHits": 41,
+                "refFeatureMisses": 16,
+                "sourceFeat": 12.099999904632568,
+                "sourceProbes": 5,
+                "sourceMatch": 26.5,
+                "distinctEarlyStopRank": -1,
+                "distinctNameStop": false
+              },
+              {
+                "contrast": true,
+                "fetch": 0.10000002384185791,
+                "queryFeat": 9.300000071525574,
+                "refFeat": 347.09999990463257,
+                "match": 190.10000002384186,
+                "refs": 48,
+                "winRank": 1,
+                "refsInspected": 48,
+                "refsRanked": 48,
+                "refFeatureCalls": 61,
+                "refFeatureHits": 9,
+                "refFeatureMisses": 52,
+                "sourceFeat": 20.799999952316284,
+                "sourceProbes": 6,
+                "sourceMatch": 67.60000002384186,
+                "distinctEarlyStopRank": -1,
+                "distinctNameStop": false
+              }
+            ]
+          },
+          {
+            "orb": {
+              "fetch": 0,
+              "queryFeat": 2.399999976158142,
+              "refFeat": 117.19999969005585,
+              "match": 1.700000286102295,
+              "refs": 36,
+              "winRank": 26,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 41,
+              "refFeatureHits": 14,
+              "refFeatureMisses": 27,
+              "sourceFeat": 12.600000023841858,
+              "sourceProbes": 5,
+              "sourceMatch": 10.699999928474426,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            }
+          },
+          {
+            "orb": {
+              "fetch": 0,
+              "queryFeat": 2.399999976158142,
+              "refFeat": 117.19999969005585,
+              "match": 1.700000286102295,
+              "refs": 36,
+              "winRank": 26,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 41,
+              "refFeatureHits": 14,
+              "refFeatureMisses": 27,
+              "sourceFeat": 12.600000023841858,
+              "sourceProbes": 5,
+              "sourceMatch": 10.699999928474426,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            },
+            "milo": [
+              {
+                "contrast": false,
+                "fetch": 0,
+                "queryFeat": 4.899999976158142,
+                "refFeat": 101.30000007152557,
+                "match": 5.299999952316284,
+                "refs": 48,
+                "winRank": 0,
+                "refsInspected": 48,
+                "refsRanked": 48,
+                "refFeatureCalls": 60,
+                "refFeatureHits": 44,
+                "refFeatureMisses": 16,
+                "sourceFeat": 12.200000047683716,
+                "sourceProbes": 6,
+                "sourceMatch": 40.40000009536743,
+                "distinctEarlyStopRank": -1,
+                "distinctNameStop": false
+              },
+              {
+                "contrast": true,
+                "fetch": 0.10000002384185791,
+                "queryFeat": 9.799999952316284,
+                "refFeat": 227.5000001192093,
+                "match": 179.89999973773956,
+                "refs": 48,
+                "winRank": 0,
+                "refsInspected": 48,
+                "refsRanked": 48,
+                "refFeatureCalls": 58,
+                "refFeatureHits": 22,
+                "refFeatureMisses": 36,
+                "sourceFeat": 20.40000009536743,
+                "sourceProbes": 5,
+                "sourceMatch": 31.299999952316284,
+                "distinctEarlyStopRank": -1,
+                "distinctNameStop": false
+              }
+            ]
+          }
+        ],
+        "stats": [
+          {
+            "entries": 120,
+            "handles": 240,
+            "heapBytes": 134217728,
+            "descriptorBytes": 1788180
+          },
+          {
+            "entries": 120,
+            "handles": 240,
+            "heapBytes": 134217728,
+            "descriptorBytes": 1803420
+          },
+          {
+            "entries": 120,
+            "handles": 240,
+            "heapBytes": 134217728,
+            "descriptorBytes": 1737300
+          },
+          {
+            "entries": 120,
+            "handles": 240,
+            "heapBytes": 134217728,
+            "descriptorBytes": 1706940
+          }
+        ]
+      },
+      "i": 4,
+      "name": "Geier Reach Sanitarium",
+      "sha256": "d40da4fb5252baba99e06822b62b105ea12a36e3ad5e3e95def024a2db8a2681"
+    },
+    {
+      "60": {
+        "ms": 3775,
+        "best": {
+          "name": "Geier Reach Sanitarium",
+          "set": "sld",
+          "collector_number": "1408",
+          "scryfall_id": "8d80ec47-0e47-49e3-9c43-1c126d8523e1",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/8/d/8d80ec47-0e47-49e3-9c43-1c126d8523e1.jpg",
+          "scryfall_uri": "https://scryfall.com/card/sld/1408",
+          "distance": 172,
+          "confidence": 0.65,
+          "strategy": "milo",
+          "milo_retrieval": true,
+          "milo_highres": true,
+          "ai_supplement": true,
+          "identified_by": "art-match",
+          "art_inliers": 26,
+          "color_sim": 0.7829360961914062,
+          "ring_sim": 0.39697055050055496,
+          "click_inside": true,
+          "click_inliers": 26,
+          "click_art_inliers": 18,
+          "click_text_inliers": 8,
+          "click_half_inliers": [
+            16,
+            10
+          ],
+          "click_blocked": false,
+          "regional_proof": true
+        },
+        "artBest": {
+          "name": "Geier Reach Sanitarium",
+          "inliers": 26,
+          "color": 78,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 26,
+          "clickArtInliers": 18,
+          "clickTextInliers": 8,
+          "clickHalfInliers": [
+            16,
+            10
+          ]
+        },
+        "blockedNames": [],
+        "stages": {
+          "prep": 20,
+          "rankSeeds": 75,
+          "earlyOrbProbe": 0,
+          "rankRefine": 0,
+          "rank": 0,
+          "orb": 156,
+          "aiCrop": 176,
+          "aiAttempt": 312,
+          "milo": 1369,
+          "aiRetry": 1916,
+          "modelQueue": 0,
+          "total": 3775,
+          "queue": 0
+        },
+        "phases": [
+          {
+            "orb": {
+              "fetch": 0,
+              "queryFeat": 2.3000000715255737,
+              "refFeat": 154.10000026226044,
+              "match": 2.699999690055847,
+              "refs": 36,
+              "winRank": 17,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 42,
+              "refFeatureHits": 8,
+              "refFeatureMisses": 34,
+              "sourceFeat": 12.5,
+              "sourceProbes": 6,
+              "sourceMatch": 43.5,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            }
+          },
+          {
+            "orb": {
+              "fetch": 0,
+              "queryFeat": 2.3000000715255737,
+              "refFeat": 154.10000026226044,
+              "match": 2.699999690055847,
+              "refs": 36,
+              "winRank": 17,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 42,
+              "refFeatureHits": 8,
+              "refFeatureMisses": 34,
+              "sourceFeat": 12.5,
+              "sourceProbes": 6,
+              "sourceMatch": 43.5,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            },
+            "milo": [
+              {
+                "contrast": false,
+                "fetch": 0,
+                "queryFeat": 4.5,
+                "refFeat": 102.30000019073486,
+                "match": 8.999999761581421,
+                "refs": 48,
+                "winRank": 42,
+                "refsInspected": 48,
+                "refsRanked": 48,
+                "refFeatureCalls": 57,
+                "refFeatureHits": 41,
+                "refFeatureMisses": 16,
+                "sourceFeat": 12.299999952316284,
+                "sourceProbes": 5,
+                "sourceMatch": 26.5,
+                "distinctEarlyStopRank": -1,
+                "distinctNameStop": false
+              },
+              {
+                "contrast": true,
+                "fetch": 0.10000002384185791,
+                "queryFeat": 9.100000023841858,
+                "refFeat": 342.2000000476837,
+                "match": 187.20000004768372,
+                "refs": 48,
+                "winRank": 1,
+                "refsInspected": 48,
+                "refsRanked": 48,
+                "refFeatureCalls": 61,
+                "refFeatureHits": 9,
+                "refFeatureMisses": 52,
+                "sourceFeat": 21.300000071525574,
+                "sourceProbes": 6,
+                "sourceMatch": 68.39999997615814,
+                "distinctEarlyStopRank": -1,
+                "distinctNameStop": false
+              }
+            ]
+          },
+          {
+            "orb": {
+              "fetch": 0,
+              "queryFeat": 2.600000023841858,
+              "refFeat": 126.30000019073486,
+              "match": 1.6999998092651367,
+              "refs": 36,
+              "winRank": 26,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 41,
+              "refFeatureHits": 10,
+              "refFeatureMisses": 31,
+              "sourceFeat": 12.200000047683716,
+              "sourceProbes": 5,
+              "sourceMatch": 10.799999952316284,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            }
+          },
+          {
+            "orb": {
+              "fetch": 0,
+              "queryFeat": 2.600000023841858,
+              "refFeat": 126.30000019073486,
+              "match": 1.6999998092651367,
+              "refs": 36,
+              "winRank": 26,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 41,
+              "refFeatureHits": 10,
+              "refFeatureMisses": 31,
+              "sourceFeat": 12.200000047683716,
+              "sourceProbes": 5,
+              "sourceMatch": 10.799999952316284,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            },
+            "milo": [
+              {
+                "contrast": false,
+                "fetch": 0.20000004768371582,
+                "queryFeat": 4.799999952316284,
+                "refFeat": 98.99999988079071,
+                "match": 4.700000166893005,
+                "refs": 48,
+                "winRank": 0,
+                "refsInspected": 48,
+                "refsRanked": 48,
+                "refFeatureCalls": 60,
+                "refFeatureHits": 44,
+                "refFeatureMisses": 16,
+                "sourceFeat": 12.300000071525574,
+                "sourceProbes": 6,
+                "sourceMatch": 40,
+                "distinctEarlyStopRank": -1,
+                "distinctNameStop": false
+              },
+              {
+                "contrast": true,
+                "fetch": 0,
+                "queryFeat": 9.200000047683716,
+                "refFeat": 316.60000026226044,
+                "match": 177.99999976158142,
+                "refs": 48,
+                "winRank": 0,
+                "refsInspected": 48,
+                "refsRanked": 48,
+                "refFeatureCalls": 58,
+                "refFeatureHits": 6,
+                "refFeatureMisses": 52,
+                "sourceFeat": 20.40000009536743,
+                "sourceProbes": 5,
+                "sourceMatch": 31.399999976158142,
+                "distinctEarlyStopRank": -1,
+                "distinctNameStop": false
+              }
+            ]
+          }
+        ],
+        "stats": [
+          {
+            "entries": 60,
+            "handles": 120,
+            "heapBytes": 134217728,
+            "descriptorBytes": 741060
+          },
+          {
+            "entries": 60,
+            "handles": 120,
+            "heapBytes": 134217728,
+            "descriptorBytes": 817980
+          },
+          {
+            "entries": 60,
+            "handles": 120,
+            "heapBytes": 134217728,
+            "descriptorBytes": 749340
+          },
+          {
+            "entries": 60,
+            "handles": 120,
+            "heapBytes": 134217728,
+            "descriptorBytes": 829140
+          }
+        ]
+      },
+      "120": {
+        "ms": 3581,
+        "best": {
+          "name": "Geier Reach Sanitarium",
+          "set": "sld",
+          "collector_number": "1408",
+          "scryfall_id": "8d80ec47-0e47-49e3-9c43-1c126d8523e1",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/8/d/8d80ec47-0e47-49e3-9c43-1c126d8523e1.jpg",
+          "scryfall_uri": "https://scryfall.com/card/sld/1408",
+          "distance": 172,
+          "confidence": 0.65,
+          "strategy": "milo",
+          "milo_retrieval": true,
+          "milo_highres": true,
+          "ai_supplement": true,
+          "identified_by": "art-match",
+          "art_inliers": 26,
+          "color_sim": 0.7829360961914062,
+          "ring_sim": 0.39697055050055496,
+          "click_inside": true,
+          "click_inliers": 26,
+          "click_art_inliers": 18,
+          "click_text_inliers": 8,
+          "click_half_inliers": [
+            16,
+            10
+          ],
+          "click_blocked": false,
+          "regional_proof": true
+        },
+        "artBest": {
+          "name": "Geier Reach Sanitarium",
+          "inliers": 26,
+          "color": 78,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 26,
+          "clickArtInliers": 18,
+          "clickTextInliers": 8,
+          "clickHalfInliers": [
+            16,
+            10
+          ]
+        },
+        "blockedNames": [],
+        "stages": {
+          "prep": 20,
+          "rankSeeds": 74,
+          "earlyOrbProbe": 0,
+          "rankRefine": 1,
+          "rank": 0,
+          "orb": 151,
+          "aiCrop": 176,
+          "aiAttempt": 301,
+          "milo": 1272,
+          "aiRetry": 1831,
+          "modelQueue": 0,
+          "total": 3581,
+          "queue": 0
+        },
+        "phases": [
+          {
+            "orb": {
+              "fetch": 0,
+              "queryFeat": 2.399999976158142,
+              "refFeat": 140.40000009536743,
+              "match": 2.399999976158142,
+              "refs": 36,
+              "winRank": 17,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 42,
+              "refFeatureHits": 15,
+              "refFeatureMisses": 27,
+              "sourceFeat": 12.399999976158142,
+              "sourceProbes": 6,
+              "sourceMatch": 43.90000009536743,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            }
+          },
+          {
+            "orb": {
+              "fetch": 0,
+              "queryFeat": 2.399999976158142,
+              "refFeat": 140.40000009536743,
+              "match": 2.399999976158142,
+              "refs": 36,
+              "winRank": 17,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 42,
+              "refFeatureHits": 15,
+              "refFeatureMisses": 27,
+              "sourceFeat": 12.399999976158142,
+              "sourceProbes": 6,
+              "sourceMatch": 43.90000009536743,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            },
+            "milo": [
+              {
+                "contrast": false,
+                "fetch": 0,
+                "queryFeat": 4.600000023841858,
+                "refFeat": 89.7999997138977,
+                "match": 8.900000214576721,
+                "refs": 48,
+                "winRank": 42,
+                "refsInspected": 48,
+                "refsRanked": 48,
+                "refFeatureCalls": 57,
+                "refFeatureHits": 43,
+                "refFeatureMisses": 14,
+                "sourceFeat": 12.200000047683716,
+                "sourceProbes": 5,
+                "sourceMatch": 25.799999952316284,
+                "distinctEarlyStopRank": -1,
+                "distinctNameStop": false
+              },
+              {
+                "contrast": true,
+                "fetch": 0.09999990463256836,
+                "queryFeat": 9.300000071525574,
+                "refFeat": 255.39999973773956,
+                "match": 190.7000002861023,
+                "refs": 48,
+                "winRank": 1,
+                "refsInspected": 48,
+                "refsRanked": 48,
+                "refFeatureCalls": 61,
+                "refFeatureHits": 25,
+                "refFeatureMisses": 36,
+                "sourceFeat": 20.899999976158142,
+                "sourceProbes": 6,
+                "sourceMatch": 67.30000007152557,
+                "distinctEarlyStopRank": -1,
+                "distinctNameStop": false
+              }
+            ]
+          },
+          {
+            "orb": {
+              "fetch": 0,
+              "queryFeat": 2.5,
+              "refFeat": 117.89999985694885,
+              "match": 2.5000001192092896,
+              "refs": 36,
+              "winRank": 26,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 41,
+              "refFeatureHits": 14,
+              "refFeatureMisses": 27,
+              "sourceFeat": 12.699999928474426,
+              "sourceProbes": 5,
+              "sourceMatch": 11.100000023841858,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            }
+          },
+          {
+            "orb": {
+              "fetch": 0,
+              "queryFeat": 2.5,
+              "refFeat": 117.89999985694885,
+              "match": 2.5000001192092896,
+              "refs": 36,
+              "winRank": 26,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 41,
+              "refFeatureHits": 14,
+              "refFeatureMisses": 27,
+              "sourceFeat": 12.699999928474426,
+              "sourceProbes": 5,
+              "sourceMatch": 11.100000023841858,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            },
+            "milo": [
+              {
+                "contrast": false,
+                "fetch": 0.09999990463256836,
+                "queryFeat": 4.5,
+                "refFeat": 101.00000011920929,
+                "match": 5.300000190734863,
+                "refs": 48,
+                "winRank": 0,
+                "refsInspected": 48,
+                "refsRanked": 48,
+                "refFeatureCalls": 60,
+                "refFeatureHits": 44,
+                "refFeatureMisses": 16,
+                "sourceFeat": 12.100000023841858,
+                "sourceProbes": 6,
+                "sourceMatch": 40.10000002384186,
+                "distinctEarlyStopRank": -1,
+                "distinctNameStop": false
+              },
+              {
+                "contrast": true,
+                "fetch": 0,
+                "queryFeat": 9.599999904632568,
+                "refFeat": 227.50000035762787,
+                "match": 180.599999666214,
+                "refs": 48,
+                "winRank": 0,
+                "refsInspected": 48,
+                "refsRanked": 48,
+                "refFeatureCalls": 58,
+                "refFeatureHits": 22,
+                "refFeatureMisses": 36,
+                "sourceFeat": 21.199999928474426,
+                "sourceProbes": 5,
+                "sourceMatch": 31.100000023841858,
+                "distinctEarlyStopRank": -1,
+                "distinctNameStop": false
+              }
+            ]
+          }
+        ],
+        "stats": [
+          {
+            "entries": 120,
+            "handles": 240,
+            "heapBytes": 134217728,
+            "descriptorBytes": 1698720
+          },
+          {
+            "entries": 120,
+            "handles": 240,
+            "heapBytes": 134217728,
+            "descriptorBytes": 1773300
+          },
+          {
+            "entries": 120,
+            "handles": 240,
+            "heapBytes": 134217728,
+            "descriptorBytes": 1737300
+          },
+          {
+            "entries": 120,
+            "handles": 240,
+            "heapBytes": 134217728,
+            "descriptorBytes": 1706940
+          }
+        ]
+      },
+      "i": 5,
+      "name": "Geier Reach Sanitarium",
+      "sha256": "d40da4fb5252baba99e06822b62b105ea12a36e3ad5e3e95def024a2db8a2681"
+    },
+    {
+      "60": {
+        "ms": 3861,
+        "best": {
+          "name": "Geier Reach Sanitarium",
+          "set": "sld",
+          "collector_number": "1408",
+          "scryfall_id": "8d80ec47-0e47-49e3-9c43-1c126d8523e1",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/8/d/8d80ec47-0e47-49e3-9c43-1c126d8523e1.jpg",
+          "scryfall_uri": "https://scryfall.com/card/sld/1408",
+          "distance": 172,
+          "confidence": 0.65,
+          "strategy": "milo",
+          "milo_retrieval": true,
+          "milo_highres": true,
+          "ai_supplement": true,
+          "identified_by": "art-match",
+          "art_inliers": 26,
+          "color_sim": 0.7829360961914062,
+          "ring_sim": 0.39697055050055496,
+          "click_inside": true,
+          "click_inliers": 26,
+          "click_art_inliers": 18,
+          "click_text_inliers": 8,
+          "click_half_inliers": [
+            16,
+            10
+          ],
+          "click_blocked": false,
+          "regional_proof": true
+        },
+        "artBest": {
+          "name": "Geier Reach Sanitarium",
+          "inliers": 26,
+          "color": 78,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 26,
+          "clickArtInliers": 18,
+          "clickTextInliers": 8,
+          "clickHalfInliers": [
+            16,
+            10
+          ]
+        },
+        "blockedNames": [],
+        "stages": {
+          "prep": 21,
+          "rankSeeds": 80,
+          "earlyOrbProbe": 0,
+          "rankRefine": 0,
+          "rank": 0,
+          "orb": 163,
+          "aiCrop": 176,
+          "aiAttempt": 307,
+          "milo": 1378,
+          "aiRetry": 1998,
+          "modelQueue": 0,
+          "total": 3861,
+          "queue": 0
+        },
+        "phases": [
+          {
+            "orb": {
+              "fetch": 0.10000002384185791,
+              "queryFeat": 2.299999952316284,
+              "refFeat": 152.799999833107,
+              "match": 2.000000238418579,
+              "refs": 36,
+              "winRank": 17,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 42,
+              "refFeatureHits": 8,
+              "refFeatureMisses": 34,
+              "sourceFeat": 12.099999904632568,
+              "sourceProbes": 6,
+              "sourceMatch": 42.700000047683716,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            }
+          },
+          {
+            "orb": {
+              "fetch": 0.10000002384185791,
+              "queryFeat": 2.299999952316284,
+              "refFeat": 152.799999833107,
+              "match": 2.000000238418579,
+              "refs": 36,
+              "winRank": 17,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 42,
+              "refFeatureHits": 8,
+              "refFeatureMisses": 34,
+              "sourceFeat": 12.099999904632568,
+              "sourceProbes": 6,
+              "sourceMatch": 42.700000047683716,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            },
+            "milo": [
+              {
+                "contrast": false,
+                "fetch": 0,
+                "queryFeat": 4.400000095367432,
+                "refFeat": 101.99999988079071,
+                "match": 8.800000190734863,
+                "refs": 48,
+                "winRank": 42,
+                "refsInspected": 48,
+                "refsRanked": 48,
+                "refFeatureCalls": 57,
+                "refFeatureHits": 41,
+                "refFeatureMisses": 16,
+                "sourceFeat": 12.899999976158142,
+                "sourceProbes": 5,
+                "sourceMatch": 27.100000023841858,
+                "distinctEarlyStopRank": -1,
+                "distinctNameStop": false
+              },
+              {
+                "contrast": true,
+                "fetch": 0.10000002384185791,
+                "queryFeat": 9.399999976158142,
+                "refFeat": 348.599999666214,
+                "match": 190.40000021457672,
+                "refs": 48,
+                "winRank": 1,
+                "refsInspected": 48,
+                "refsRanked": 48,
+                "refFeatureCalls": 61,
+                "refFeatureHits": 9,
+                "refFeatureMisses": 52,
+                "sourceFeat": 21.100000023841858,
+                "sourceProbes": 6,
+                "sourceMatch": 70,
+                "distinctEarlyStopRank": -1,
+                "distinctNameStop": false
+              }
+            ]
+          },
+          {
+            "orb": {
+              "fetch": 0.20000004768371582,
+              "queryFeat": 2.5,
+              "refFeat": 131.20000004768372,
+              "match": 1.7999999523162842,
+              "refs": 36,
+              "winRank": 26,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 41,
+              "refFeatureHits": 10,
+              "refFeatureMisses": 31,
+              "sourceFeat": 12.899999976158142,
+              "sourceProbes": 5,
+              "sourceMatch": 11.100000023841858,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            }
+          },
+          {
+            "orb": {
+              "fetch": 0.20000004768371582,
+              "queryFeat": 2.5,
+              "refFeat": 131.20000004768372,
+              "match": 1.7999999523162842,
+              "refs": 36,
+              "winRank": 26,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 41,
+              "refFeatureHits": 10,
+              "refFeatureMisses": 31,
+              "sourceFeat": 12.899999976158142,
+              "sourceProbes": 5,
+              "sourceMatch": 11.100000023841858,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            },
+            "milo": [
+              {
+                "contrast": false,
+                "fetch": 0.20000004768371582,
+                "queryFeat": 4.800000071525574,
+                "refFeat": 103.89999997615814,
+                "match": 5.4999998807907104,
+                "refs": 48,
+                "winRank": 0,
+                "refsInspected": 48,
+                "refsRanked": 48,
+                "refFeatureCalls": 60,
+                "refFeatureHits": 44,
+                "refFeatureMisses": 16,
+                "sourceFeat": 12.600000023841858,
+                "sourceProbes": 6,
+                "sourceMatch": 42.10000002384186,
+                "distinctEarlyStopRank": -1,
+                "distinctNameStop": false
+              },
+              {
+                "contrast": true,
+                "fetch": 0.20000004768371582,
+                "queryFeat": 9.699999928474426,
+                "refFeat": 332.90000009536743,
+                "match": 188.20000004768372,
+                "refs": 48,
+                "winRank": 0,
+                "refsInspected": 48,
+                "refsRanked": 48,
+                "refFeatureCalls": 58,
+                "refFeatureHits": 6,
+                "refFeatureMisses": 52,
+                "sourceFeat": 21.199999928474426,
+                "sourceProbes": 5,
+                "sourceMatch": 31.600000023841858,
+                "distinctEarlyStopRank": -1,
+                "distinctNameStop": false
+              }
+            ]
+          }
+        ],
+        "stats": [
+          {
+            "entries": 60,
+            "handles": 120,
+            "heapBytes": 134217728,
+            "descriptorBytes": 741060
+          },
+          {
+            "entries": 60,
+            "handles": 120,
+            "heapBytes": 134217728,
+            "descriptorBytes": 817980
+          },
+          {
+            "entries": 60,
+            "handles": 120,
+            "heapBytes": 134217728,
+            "descriptorBytes": 749340
+          },
+          {
+            "entries": 60,
+            "handles": 120,
+            "heapBytes": 134217728,
+            "descriptorBytes": 829140
+          }
+        ]
+      },
+      "120": {
+        "ms": 3634,
+        "best": {
+          "name": "Geier Reach Sanitarium",
+          "set": "sld",
+          "collector_number": "1408",
+          "scryfall_id": "8d80ec47-0e47-49e3-9c43-1c126d8523e1",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/8/d/8d80ec47-0e47-49e3-9c43-1c126d8523e1.jpg",
+          "scryfall_uri": "https://scryfall.com/card/sld/1408",
+          "distance": 172,
+          "confidence": 0.65,
+          "strategy": "milo",
+          "milo_retrieval": true,
+          "milo_highres": true,
+          "ai_supplement": true,
+          "identified_by": "art-match",
+          "art_inliers": 26,
+          "color_sim": 0.7829360961914062,
+          "ring_sim": 0.39697055050055496,
+          "click_inside": true,
+          "click_inliers": 26,
+          "click_art_inliers": 18,
+          "click_text_inliers": 8,
+          "click_half_inliers": [
+            16,
+            10
+          ],
+          "click_blocked": false,
+          "regional_proof": true
+        },
+        "artBest": {
+          "name": "Geier Reach Sanitarium",
+          "inliers": 26,
+          "color": 78,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 26,
+          "clickArtInliers": 18,
+          "clickTextInliers": 8,
+          "clickHalfInliers": [
+            16,
+            10
+          ]
+        },
+        "blockedNames": [],
+        "stages": {
+          "prep": 20,
+          "rankSeeds": 75,
+          "earlyOrbProbe": 0,
+          "rankRefine": 2,
+          "rank": 0,
+          "orb": 149,
+          "aiCrop": 181,
+          "aiAttempt": 310,
+          "milo": 1301,
+          "aiRetry": 1840,
+          "modelQueue": 0,
+          "total": 3634,
+          "queue": 0
+        },
+        "phases": [
+          {
+            "orb": {
+              "fetch": 0.20000004768371582,
+              "queryFeat": 2.4000000953674316,
+              "refFeat": 140.5,
+              "match": 2.200000047683716,
+              "refs": 36,
+              "winRank": 17,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 42,
+              "refFeatureHits": 15,
+              "refFeatureMisses": 27,
+              "sourceFeat": 12.599999904632568,
+              "sourceProbes": 6,
+              "sourceMatch": 45.200000047683716,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            }
+          },
+          {
+            "orb": {
+              "fetch": 0.20000004768371582,
+              "queryFeat": 2.4000000953674316,
+              "refFeat": 140.5,
+              "match": 2.200000047683716,
+              "refs": 36,
+              "winRank": 17,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 42,
+              "refFeatureHits": 15,
+              "refFeatureMisses": 27,
+              "sourceFeat": 12.599999904632568,
+              "sourceProbes": 6,
+              "sourceMatch": 45.200000047683716,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            },
+            "milo": [
+              {
+                "contrast": false,
+                "fetch": 0.20000004768371582,
+                "queryFeat": 4.900000095367432,
+                "refFeat": 91.80000007152557,
+                "match": 10.299999952316284,
+                "refs": 48,
+                "winRank": 42,
+                "refsInspected": 48,
+                "refsRanked": 48,
+                "refFeatureCalls": 57,
+                "refFeatureHits": 43,
+                "refFeatureMisses": 14,
+                "sourceFeat": 12.699999928474426,
+                "sourceProbes": 5,
+                "sourceMatch": 27.100000023841858,
+                "distinctEarlyStopRank": -1,
+                "distinctNameStop": false
+              },
+              {
+                "contrast": true,
+                "fetch": 0.10000002384185791,
+                "queryFeat": 9.300000071525574,
+                "refFeat": 257.7999997138977,
+                "match": 195.900000333786,
+                "refs": 48,
+                "winRank": 1,
+                "refsInspected": 48,
+                "refsRanked": 48,
+                "refFeatureCalls": 61,
+                "refFeatureHits": 25,
+                "refFeatureMisses": 36,
+                "sourceFeat": 20.600000023841858,
+                "sourceProbes": 6,
+                "sourceMatch": 67.59999990463257,
+                "distinctEarlyStopRank": -1,
+                "distinctNameStop": false
+              }
+            ]
+          },
+          {
+            "orb": {
+              "fetch": 0,
+              "queryFeat": 2.5,
+              "refFeat": 118.69999992847443,
+              "match": 2,
+              "refs": 36,
+              "winRank": 26,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 41,
+              "refFeatureHits": 14,
+              "refFeatureMisses": 27,
+              "sourceFeat": 12.399999976158142,
+              "sourceProbes": 5,
+              "sourceMatch": 11.100000023841858,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            }
+          },
+          {
+            "orb": {
+              "fetch": 0,
+              "queryFeat": 2.5,
+              "refFeat": 118.69999992847443,
+              "match": 2,
+              "refs": 36,
+              "winRank": 26,
+              "refsInspected": 36,
+              "refsRanked": 36,
+              "refFeatureCalls": 41,
+              "refFeatureHits": 14,
+              "refFeatureMisses": 27,
+              "sourceFeat": 12.399999976158142,
+              "sourceProbes": 5,
+              "sourceMatch": 11.100000023841858,
+              "distinctEarlyStopRank": -1,
+              "distinctNameStop": false
+            },
+            "milo": [
+              {
+                "contrast": false,
+                "fetch": 0.10000002384185791,
+                "queryFeat": 4.300000071525574,
+                "refFeat": 102.50000047683716,
+                "match": 5.399999380111694,
+                "refs": 48,
+                "winRank": 0,
+                "refsInspected": 48,
+                "refsRanked": 48,
+                "refFeatureCalls": 60,
+                "refFeatureHits": 44,
+                "refFeatureMisses": 16,
+                "sourceFeat": 12.600000023841858,
+                "sourceProbes": 6,
+                "sourceMatch": 41.800000071525574,
+                "distinctEarlyStopRank": -1,
+                "distinctNameStop": false
+              },
+              {
+                "contrast": true,
+                "fetch": 0,
+                "queryFeat": 9.699999928474426,
+                "refFeat": 232.40000021457672,
+                "match": 182.99999976158142,
+                "refs": 48,
+                "winRank": 0,
+                "refsInspected": 48,
+                "refsRanked": 48,
+                "refFeatureCalls": 58,
+                "refFeatureHits": 22,
+                "refFeatureMisses": 36,
+                "sourceFeat": 21.100000023841858,
+                "sourceProbes": 5,
+                "sourceMatch": 32.299999952316284,
+                "distinctEarlyStopRank": -1,
+                "distinctNameStop": false
+              }
+            ]
+          }
+        ],
+        "stats": [
+          {
+            "entries": 120,
+            "handles": 240,
+            "heapBytes": 134217728,
+            "descriptorBytes": 1698720
+          },
+          {
+            "entries": 120,
+            "handles": 240,
+            "heapBytes": 134217728,
+            "descriptorBytes": 1773300
+          },
+          {
+            "entries": 120,
+            "handles": 240,
+            "heapBytes": 134217728,
+            "descriptorBytes": 1737300
+          },
+          {
+            "entries": 120,
+            "handles": 240,
+            "heapBytes": 134217728,
+            "descriptorBytes": 1706940
+          }
+        ]
+      },
+      "i": 6,
+      "name": "Geier Reach Sanitarium",
+      "sha256": "d40da4fb5252baba99e06822b62b105ea12a36e3ad5e3e95def024a2db8a2681"
+    }
+  ],
+  "ok": true
+}

@@ -47,8 +47,8 @@ const CARD_IDS = {
   islandB: "8a5328db-c55a-488d-b085-fcfa7be184ca",
 };
 
-function scryfallCardImage(id) {
-  return `https://cards.scryfall.io/normal/front/${id[0]}/${id[1]}/${id}.jpg`;
+function scryfallCardImage(id, size = "normal") {
+  return `https://cards.scryfall.io/${size}/front/${id[0]}/${id[1]}/${id}.jpg`;
 }
 
 const PREVIEW_PLAYERS = [
@@ -160,7 +160,7 @@ function PreviewTile({ player, index }) {
             {index !== 3 && (
               <img
                 className="home-preview-commander"
-                src={scryfallCardImage(player.commanderCard)}
+                src={scryfallCardImage(player.commanderCard, "small")}
                 alt=""
                 loading="lazy"
                 decoding="async"
@@ -170,7 +170,7 @@ function PreviewTile({ player, index }) {
               {index === 3 && (
                 <img
                   className="home-preview-commander-in-row"
-                  src={scryfallCardImage(player.commanderCard)}
+                  src={scryfallCardImage(player.commanderCard, "small")}
                   alt=""
                   loading="lazy"
                   decoding="async"
@@ -179,7 +179,7 @@ function PreviewTile({ player, index }) {
               {player.creatures.map((cardId, cardIndex) => (
                 <img
                   key={`${cardId}-creature-${cardIndex}`}
-                  src={scryfallCardImage(cardId)}
+                  src={scryfallCardImage(cardId, "small")}
                   alt=""
                   loading="lazy"
                   decoding="async"
@@ -190,7 +190,7 @@ function PreviewTile({ player, index }) {
               {player.supports.map((cardId, cardIndex) => (
                 <img
                   key={`${cardId}-support-${cardIndex}`}
-                  src={scryfallCardImage(cardId)}
+                  src={scryfallCardImage(cardId, "small")}
                   alt=""
                   loading="lazy"
                   decoding="async"
@@ -201,7 +201,7 @@ function PreviewTile({ player, index }) {
               {player.lands.map((cardId, cardIndex) => (
                 <img
                   key={`${cardId}-land-${cardIndex}`}
-                  src={scryfallCardImage(cardId)}
+                  src={scryfallCardImage(cardId, "small")}
                   alt=""
                   loading="lazy"
                   decoding="async"

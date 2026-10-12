@@ -668,6 +668,9 @@ export class GameConnection {
       persist: true,
     });
     if (entry?.disconnectTimer) clearTimeout(entry.disconnectTimer);
+    for (const [captureId, pending] of this.pending) {
+      if (pending.peerId === id) this._resolveCapture(captureId, null, "Capture player left");
+    }
     entry?.pc.close();
     if (entry) this.peers.delete(id);
     this.pendingSignals.delete(id);
@@ -781,6 +784,9 @@ export class GameConnection {
       const entry = this.peers.get(member.id);
       if (entry) {
         if (entry.disconnectTimer) clearTimeout(entry.disconnectTimer);
+        for (const [captureId, pending] of this.pending) {
+          if (pending.peerId === member.id) this._resolveCapture(captureId, null, "Capture connection replaced");
+        }
         entry.pc.close();
         this.peers.delete(member.id);
         this.knownIds.delete(member.id);
@@ -1290,21 +1296,24 @@ export class GameConnection {
     entry.dc = dc;
     dc.binaryType = "arraybuffer";
     dc.onmessage = async (e) => {
+      if (this.closed || this.peers.get(peerId) !== entry || entry.dc !== dc) return;
       if (e.data instanceof ArrayBuffer || ArrayBuffer.isView(e.data) || e.data instanceof Blob) {
         const meta = entry.nextBinaryChunk;
         entry.nextBinaryChunk = null;
-        if (!meta || !this.pending.has(meta.id)) return;
+        if (!meta || !this._pendingCapture(peerId, meta.id)) return;
         const bytes = e.data instanceof Blob
           ? new Uint8Array(await e.data.arrayBuffer())
           : e.data instanceof ArrayBuffer
             ? new Uint8Array(e.data)
             : new Uint8Array(e.data.buffer, e.data.byteOffset, e.data.byteLength);
+        if (this.closed || !this._pendingCapture(peerId, meta.id) || this.peers.get(peerId) !== entry || entry.dc !== dc) return;
         if (bytes.byteLength > BINARY_CHUNK) return;
-        const key = `binary:${meta.id}`;
+        const key = `binary:${meta.id}:${meta.phase}`;
         this._sweepChunks(entry);
         if (!entry.chunks.has(key)) {
           entry.chunks.set(key, {
             parts: new Array(meta.n),
+            n: meta.n,
             got: 0,
             bytes: 0,
             at: Date.now(),
@@ -1314,7 +1323,11 @@ export class GameConnection {
           });
         }
         const buf = entry.chunks.get(key);
+        if (buf.n !== meta.n) return;
         if (buf.parts[meta.i] === undefined) {
+          // Blob reads can complete out of order even on an ordered channel.
+          // Only the newly accepted chunk zero owns the click metadata.
+          if (meta.i === 0) { buf.px = meta.px; buf.py = meta.py; buf.mime = meta.mime; }
           buf.bytes += bytes.byteLength;
           if (buf.bytes > MAX_CAPTURE_CHARS) {
             entry.chunks.delete(key);
@@ -1326,13 +1339,15 @@ export class GameConnection {
         if (buf.got === meta.n) {
           entry.chunks.delete(key);
           const blob = new Blob(buf.parts, { type: buf.mime || "image/jpeg" });
-          this._resolveCapture(meta.id, {
+          const capture = {
             blob,
             url: URL.createObjectURL(blob),
             bytes: blob.size,
             px: buf.px,
             py: buf.py,
-          });
+          };
+          if (meta.phase === "first") this._receiveFirstCapture(peerId, meta.id, capture);
+          else this._resolveCapture(meta.id, { ...capture, firstSelected: false });
         }
         return;
       }
@@ -1354,21 +1369,43 @@ export class GameConnection {
           }
           return;
         }
+        const captureDeadline = Date.now() + 10000;
+        const earlyAbort = new AbortController();
+        const captureActive = () => !this.closed && this.peers.get(peerId) === entry && entry.dc === dc && dc.readyState === "open";
         try {
-          const cap = await captureLocalFrame(this.localStream, m.nx, m.ny);
+          let earlySend = null;
+          const progressive = m.progressive === 1 && m.binary === 1;
+          const cap = await captureLocalFrame(this.localStream, m.nx, m.ny, progressive ? {
+            onFirstFrame: (first) => {
+              earlySend = this._sendBinaryChunked(peerId, {
+                id: m.id, px: first.px, py: first.py, mime: first.blob.type, phase: "first",
+              }, first.blob, { signal: earlyAbort.signal, deadline: captureDeadline, isActive: captureActive }).catch(() => false);
+            },
+          } : undefined);
           try {
+            if (!captureActive()) throw new Error("capture connection replaced");
             if (m.binary === 1) {
-              const sent = await this._sendBinaryChunked(
-                peerId,
-                { id: m.id, px: cap.px, py: cap.py, mime: cap.blob.type },
-                cap.blob,
-              );
+              // The early still never completes a request. Commit it only
+              // after unchanged three-frame selection chooses those exact
+              // pixels and its ordered transfer has completed.
+              if (!cap.firstSelected) earlyAbort.abort();
+              const earlySent = cap.firstSelected && earlySend ? await earlySend : false;
+              const sent = cap.firstSelected && earlySent
+                ? captureActive() && this._dcSend(peerId, { t: "cap-commit", id: m.id })
+                : await this._sendBinaryChunked(
+                  peerId,
+                  { id: m.id, px: cap.px, py: cap.py, mime: cap.blob.type },
+                  cap.blob,
+                  { deadline: captureDeadline, isActive: captureActive },
+                );
               if (!sent) throw new Error("capture channel closed");
             } else {
+              const data = await blobToDataUrl(cap.blob);
+              if (!captureActive()) throw new Error("capture connection replaced");
               this._sendChunked(
                 peerId,
                 { t: "cap-res", id: m.id, px: cap.px, py: cap.py },
-                await blobToDataUrl(cap.blob),
+                data,
               );
             }
           } finally {
@@ -1380,20 +1417,35 @@ export class GameConnection {
         } catch {
           // Deliberately opaque: the requester does not need our local error
           // text, which can name devices or expose browser internals.
-          this._dcSend(peerId, { t: "cap-res", id: m.id, error: "capture failed" });
+          if (captureActive()) this._dcSend(peerId, { t: "cap-res", id: m.id, error: "capture failed" });
+        } finally {
+          earlyAbort.abort();
         }
       } else if (m.t === "cap-res") {
+        if (!this._pendingCapture(peerId, m.id)) return;
         if (m.error) this._resolveCapture(m.id, null, "capture failed");
         else if (m.n === undefined) {
           if (typeof m.data !== "string" || m.data.length > MAX_CAPTURE_CHARS) return;
           this._resolveCapture(m.id, { url: m.data, px: m.px, py: m.py });
         }
+      } else if (m.t === "cap-commit") {
+        const pending = this._pendingCapture(peerId, m.id);
+        if (pending?.onFirstFrame) {
+          // Native channels normally deliver ArrayBuffers. Preserve ordering
+          // if a browser supplies a Blob whose asynchronous read is pending.
+          pending.commitFirst = true;
+          if (pending.early) this._resolveCapture(m.id, { ...pending.early, firstSelected: true });
+        }
       } else if (m.t === "bin-chunk") {
-        if (!this.pending.has(m.id)) return;
+        const pending = this._pendingCapture(peerId, m.id);
+        if (!pending) return;
+        const phase = m.phase === "first" ? "first" : "final";
+        if (phase === "first" && (!pending.onFirstFrame || pending.firstNotified)) return;
         if (!Number.isInteger(m.n) || m.n < 1 || m.n > MAX_BINARY_CHUNKS) return;
         if (!Number.isInteger(m.i) || m.i < 0 || m.i >= m.n) return;
         entry.nextBinaryChunk = {
           id: m.id,
+          phase,
           i: m.i,
           n: m.n,
           mime: String(m.mime || "image/jpeg").slice(0, 40),
@@ -1408,7 +1460,7 @@ export class GameConnection {
         if (typeof m.part !== "string" || m.part.length > CHUNK) return;
         // Only accept chunks for a capture WE asked for, so a peer cannot open
         // transfers at will.
-        if (!this.pending.has(m.id)) return;
+        if (!this._pendingCapture(peerId, m.id)) return;
         const key = m.id;
         this._sweepChunks(entry);
         if (!entry.chunks.has(key)) {
@@ -1499,34 +1551,69 @@ export class GameConnection {
     }
   }
 
-  async _sendBinaryChunked(peerId, header, blob) {
+  async _sendBinaryChunked(peerId, header, blob, { signal, deadline = Date.now() + 10000, isActive = () => true } = {}) {
     const dc = this.peers.get(peerId)?.dc;
-    if (!dc || dc.readyState !== "open" || !(blob instanceof Blob)) return false;
+    if (!dc || dc.readyState !== "open" || !(blob instanceof Blob) || !blob.size || blob.size > MAX_CAPTURE_CHARS) return false;
+    const endsAt = Math.min(Date.now() + 10000, Number(deadline) || 0);
+    const active = () => !this.closed && !signal?.aborted && Date.now() < endsAt
+      && this.peers.get(peerId)?.dc === dc && dc.readyState === "open" && isActive();
+    if (!active()) return false;
     const bytes = new Uint8Array(await blob.arrayBuffer());
-    if (!bytes.byteLength || bytes.byteLength > MAX_CAPTURE_CHARS) return false;
+    if (!active() || !bytes.byteLength || bytes.byteLength > MAX_CAPTURE_CHARS) return false;
     const n = Math.ceil(bytes.byteLength / BINARY_CHUNK);
     dc.bufferedAmountLowThreshold = 512 * 1024;
     for (let i = 0; i < n; i++) {
-      if (dc.bufferedAmount > 1024 * 1024) {
+      if (!active()) return false;
+      while (dc.bufferedAmount > 1024 * 1024) {
         await new Promise((resolve) => {
-          const timer = setTimeout(resolve, 2000);
-          dc.addEventListener("bufferedamountlow", () => {
+          const finish = () => {
             clearTimeout(timer);
+            clearInterval(poll);
+            dc.removeEventListener("bufferedamountlow", finish);
+            dc.removeEventListener("close", finish);
+            signal?.removeEventListener("abort", finish);
             resolve();
-          }, { once: true });
+          };
+          const timer = setTimeout(finish, Math.max(0, Math.min(2000, endsAt - Date.now())));
+          const poll = setInterval(() => { if (!active()) finish(); }, 25);
+          dc.addEventListener("bufferedamountlow", finish);
+          dc.addEventListener("close", finish);
+          signal?.addEventListener("abort", finish, { once: true });
+          if (!active()) finish();
         });
+        if (!active()) return false;
       }
-      this._dcSend(peerId, {
+      // Header and bytes form one synchronous pair; canceled transfers never
+      // leave a header that could consume the next frame's binary payload.
+      dc.send(JSON.stringify({
         t: "bin-chunk",
         id: header.id,
         i,
         n,
         mime: header.mime,
+        ...(header.phase === "first" ? { phase: "first" } : {}),
         ...(i === 0 ? { px: header.px, py: header.py } : {}),
-      });
+      }));
       dc.send(bytes.slice(i * BINARY_CHUNK, (i + 1) * BINARY_CHUNK));
     }
     return true;
+  }
+
+  _pendingCapture(peerId, id) {
+    const pending = this.pending.get(id);
+    return pending?.peerId === peerId ? pending : null;
+  }
+
+  _receiveFirstCapture(peerId, id, capture) {
+    const pending = this._pendingCapture(peerId, id);
+    if (!pending?.onFirstFrame || pending.firstNotified) {
+      URL.revokeObjectURL(capture.url);
+      return;
+    }
+    pending.firstNotified = true;
+    pending.early = capture;
+    try { Promise.resolve(pending.onFirstFrame(capture)).catch(() => {}); } catch { /* preparation is optional */ }
+    if (pending.commitFirst) this._resolveCapture(id, { ...capture, firstSelected: true });
   }
 
   _resolveCapture(id, data, error) {
@@ -1534,17 +1621,27 @@ export class GameConnection {
     if (!p) return;
     clearTimeout(p.timer);
     this.pending.delete(id);
+    if (p.early?.url && p.early.url !== data?.url) URL.revokeObjectURL(p.early.url);
+    const entry = this.peers.get(p.peerId);
+    entry?.chunks?.delete(id);
+    entry?.chunks?.delete(`binary:${id}:first`);
+    entry?.chunks?.delete(`binary:${id}:final`);
+    if (entry?.nextBinaryChunk?.id === id) entry.nextBinaryChunk = null;
     error ? p.reject(new Error(error)) : p.resolve(data);
   }
 
-  requestRemoteCapture(peerId, nx, ny, timeoutMs = 10000) {
+  requestRemoteCapture(peerId, nx, ny, options = 10000) {
+    // Retain the older numeric timeout API while new callers explicitly opt
+    // into one bounded first-frame callback. Legacy owners send one result.
+    const timeoutMs = typeof options === "number" ? options : options?.timeoutMs ?? 10000;
+    const onFirstFrame = typeof options?.onFirstFrame === "function" ? options.onFirstFrame : null;
     const id = Math.random().toString(36).slice(2);
     return new Promise((resolve, reject) => {
       const dc = this.peers.get(peerId)?.dc;
       if (!dc || dc.readyState !== "open") return reject(new Error("Not connected to that player yet"));
-      const timer = setTimeout(() => { this.pending.delete(id); reject(new Error("Capture timed out")); }, timeoutMs);
-      this.pending.set(id, { resolve, reject, timer });
-      this._dcSend(peerId, { t: "cap-req", id, nx, ny, binary: 1 });
+      const timer = setTimeout(() => this._resolveCapture(id, null, "Capture timed out"), timeoutMs);
+      this.pending.set(id, { peerId, resolve, reject, timer, onFirstFrame, early: null, firstNotified: false });
+      this._dcSend(peerId, { t: "cap-req", id, nx, ny, binary: 1, ...(onFirstFrame ? { progressive: 1 } : {}) });
     });
   }
 
@@ -1756,6 +1853,7 @@ export class GameConnection {
   close() {
     if (this.closed) return;
     this.closed = true;
+    for (const id of this.pending.keys()) this._resolveCapture(id, null, "Capture closed");
     this._stopNetworkMonitoring();
     this._stopLifecycleHeartbeat();
     for (const timer of this.departureTimers.values()) clearTimeout(timer);
@@ -1907,7 +2005,7 @@ function captureSharpness(state, canvas) {
   return sumSq / count - mean * mean;
 }
 
-async function captureFrameSet(state, nx, ny) {
+async function captureFrameSet(state, nx, ny, options) {
   const { video } = state;
   if (video.paused) await video.play();
   const w = video.videoWidth;
@@ -1917,31 +2015,61 @@ async function captureFrameSet(state, nx, ny) {
   const { side } = geom;
   let best = null;
   let bestScore = -Infinity;
+  let firstCapture = null;
+  let firstPromise = null;
+  let firstLost = false;
+  let returnedFirst = false;
 
-  for (let i = 0; i < state.frames.length; i++) {
-    if (i > 0) await new Promise((resolve) => setTimeout(resolve, 120));
-    const canvas = state.frames[i];
-    if (canvas.width !== side) canvas.width = side;
-    if (canvas.height !== side) canvas.height = side;
-    const context = canvas.getContext("2d");
-    context.fillStyle = "#000";
-    context.fillRect(0, 0, side, side);
-    context.drawImage(video, geom.sx, geom.sy, side, side, 0, 0, side, side);
-    const score = captureSharpness(state, canvas);
-    if (score > bestScore) {
-      best = canvas;
-      bestScore = score;
+  try {
+    for (let i = 0; i < state.frames.length; i++) {
+      if (i > 0) await new Promise((resolve) => setTimeout(resolve, 120));
+      const canvas = state.frames[i];
+      if (canvas.width !== side) canvas.width = side;
+      if (canvas.height !== side) canvas.height = side;
+      const context = canvas.getContext("2d");
+      context.fillStyle = "#000";
+      context.fillRect(0, 0, side, side);
+      context.drawImage(video, geom.sx, geom.sy, side, side, 0, 0, side, side);
+      const score = captureSharpness(state, canvas);
+      if (score > bestScore) {
+        best = canvas;
+        bestScore = score;
+      }
+      if (i === 0 && typeof options?.onFirstFrame === "function") {
+        // toBlob snapshots this canvas now; inference and delivery are optional
+        // and cannot change the remaining 120 ms sampling intervals.
+        firstPromise = canvasToBlob(canvas).then((blob) => {
+          if (firstLost) return null;
+          firstCapture = { blob, url: URL.createObjectURL(blob), bytes: blob.size, px: geom.px, py: geom.py };
+          try { Promise.resolve(options.onFirstFrame(firstCapture)).catch(() => {}); } catch { /* preparation is optional */ }
+          return firstCapture;
+        }).catch(() => null);
+      }
+    }
+
+    firstLost = best !== state.frames[0];
+    if (!firstLost && firstPromise) {
+      const first = await firstPromise;
+      if (first) {
+        returnedFirst = true;
+        return { ...first, firstSelected: true };
+      }
+    }
+    const blob = await canvasToBlob(best);
+    return {
+      blob,
+      url: URL.createObjectURL(blob),
+      bytes: blob.size,
+      px: geom.px,
+      py: geom.py,
+      firstSelected: false,
+    };
+  } finally {
+    if (!returnedFirst) {
+      firstLost = true;
+      if (firstCapture?.url) URL.revokeObjectURL(firstCapture.url);
     }
   }
-
-  const blob = await canvasToBlob(best);
-  return {
-    blob,
-    url: URL.createObjectURL(blob),
-    bytes: blob.size,
-    px: geom.px,
-    py: geom.py,
-  };
 }
 
 // Recognition capture: a native-resolution crop centered on the clicked point.
@@ -1950,11 +2078,11 @@ async function captureFrameSet(state, nx, ny) {
 // possible. Edge crops clamp inside the sensor and return the click's actual
 // crop coordinate. Reused canvases take the sharpest of three frames to dodge
 // motion blur/autofocus hunts, then encode asynchronously to avoid UI stalls.
-export async function captureLocalFrame(stream, nx = 0.5, ny = 0.5) {
+export async function captureLocalFrame(stream, nx = 0.5, ny = 0.5, options) {
   const track = stream?.getVideoTracks()[0];
   if (!track) throw new Error("no local video");
   const state = getCaptureState(track);
-  const next = state.queue.then(() => captureFrameSet(state, nx, ny));
+  const next = state.queue.then(() => captureFrameSet(state, nx, ny, options));
   state.queue = next.catch(() => {});
   return next;
 }

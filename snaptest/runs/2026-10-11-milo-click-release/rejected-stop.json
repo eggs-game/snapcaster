@@ -1,0 +1,23 @@
+{
+  "scope": "Synthetic evidence controlled around the actual frozen verifier; establishes the unseen-future-rival risk, not frequency in real captures",
+  "records": [
+    {
+      "enabled": false,
+      "name": "Actual late rival",
+      "decisive": true,
+      "by": "art-match",
+      "ranked": 12,
+      "inspected": 12
+    },
+    {
+      "enabled": true,
+      "name": "Earlier reprinted guess",
+      "decisive": true,
+      "by": "art-match",
+      "ranked": 10,
+      "inspected": 10
+    }
+  ],
+  "decision": "REJECTED: keep distinct-name stopping disabled regardless real-card aggregate results. Synthetic controlled evidence reaches the actual geometric/content/final confidence boundaries and exposes an uninspected later winning identity.",
+  "regression": "scripts/test_verifier_work.mjs"
+}

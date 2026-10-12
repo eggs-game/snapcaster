@@ -465,6 +465,11 @@ contents remain coded playmats, with a small shared set of full-frame Scryfall
 card images placed on every battlefield (never art crops). Their static card IDs
 avoid API lookups and let the browser cache repeated cards across all four feeds;
 the example remains live DOM rather than a screenshot.
+The decorative battlefield, support, land, and commander slots request the
+same full-frame printing in Scryfall's small size; the larger featured lookup
+keeps its normal image. This reduces startup image traffic competing with
+recognition warmup while preserving the miniature's layout and card frames.
+It is a startup transfer reduction, not a measured every-click speed guarantee.
 Every card slot in the homepage preview—including commanders, battlefield rows,
 the current lookup, and Recents—uses a standard framed printing. Borderless,
 extended-art, art-only, signature, artist-series, and showcase variants are not

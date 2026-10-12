@@ -1,6 +1,6 @@
 # How Snapcast identifies cards quickly
 
-One click against 113,263 printing faces — without a recognition
+One click against 113,269 printing faces — without a recognition
 server or a per-scan inference charge.
 
 The `milo-photo-27` pipeline adds local learned retrieval and a corner detector to
@@ -17,8 +17,8 @@ serialized worker and ONNX Runtime WASM instance. Lobby warmup loads the
 There is no API key, capture upload or per-scan inference charge. Model and
 runtime licenses, checksums and corresponding-source links ship with the app.
 
-Clear, verified hash/artwork results and room hints retain their fast paths.
-An unhinted input already within 0.03 of the card aspect ratio tries its complete
+Clear, verified hash/artwork results and successful room hints retain their fast paths.
+An input without a verified hint already within 0.03 of the card aspect ratio tries its complete
 frame first, in either orientation. Hash/artwork verification and, when needed,
 Milo can settle a supplied card photo without corner inference, shifted retries
 or thousands of isolation windows. An uncertain frame falls through to the full
@@ -96,7 +96,7 @@ one bounded retry: four click-containing zooms shifted toward the possible
 card center for upright, inverted and tapped artwork clicks. At most two
 distinct click-containing proposals enter the same hash/Milo verification.
 A rejected retry preserves the original crops and candidate pool for the full
-fallback. Recent hints and already verified reads skip the retry.
+fallback. Successful recent hints and already verified reads skip the retry.
 Retry artwork needs at least 24 inliers both within the crop and at the original
 source click, matching the existing full-source rescue strength. Extra crop
 hypotheses must not promote the thin coincidences acceptable as initial
@@ -109,13 +109,23 @@ bounded typed arrays and a six-identity insertion list instead of sorting every
 identity; tie-breaking and selected rows remain identical.
 
 The worker also reuses ORB keypoints and descriptors for public reference images,
-with separate raw and contrast entries. A sixty-entry LRU owns these native
+with separate raw and contrast entries. A 120-entry LRU owns these native
 OpenCV allocations and frees an evicted pair before allocating another. Weak
 image references avoid extending the lifetime of reference pixels; camera query
 features still get released after each verification. Browsers without `WeakRef`
 use the original allocate-and-release path. Native browser checks compare all
 descriptor bytes and keypoint coordinates and stress eviction while measuring
 the actual WASM allocation.
+
+Registered color checks reuse four tiny signatures per immutable reference,
+without retaining an extra balanced image. When improving registrations replace
+the same candidate's footprint, the verifier warps only the final accepted
+corners. These preserve the original color formulas and last-footprint selection.
+`orb_timing` counts inspected/ranked references, descriptor hits/misses and
+full-source probes; `milo_orb_timing` keeps separate raw/contrast snapshots.
+An experimental stop that ignores same-name reprints remains disabled. A
+controlled late-rival test showed it can confidently choose the wrong identity
+even though its aggregate benchmark score is unchanged.
 
 For one uncertain learned crop (best gray distance >150), Milo starts while the
 ordinary artwork verifier is still running. Its bounded reference shortlist
@@ -130,6 +140,14 @@ still serializes every crop/lookup job and owns its callbacks by request ID.
 Late unused rows may warm public references but cannot change the published
 answer or its timing. Recognition queue wait is reported separately from the
 pipeline's own processing time.
+The model adapter separately records `diagnostic.queueMs` for each crop,
+lookup, and warmup job. `stage_ms.modelQueue` reports queued time for model work
+used by the scan, excluding unused background lookups. Speculative model waits
+can overlap artwork verification, so this diagnostic is not an exclusive stage
+and must not be added to other stages to reconstruct total time. A queued
+capture-preparation job can return `status: "canceled"` when its sample or
+request is superseded; it then performs no bitmap copy or worker inference.
+The caller still owns and releases its original preparation bitmap.
 
 For display, the worker also returns the already downloaded public reference
 for the winning printing and face. Reading this bounded cache never starts or
@@ -188,8 +206,8 @@ the click. A dominant neighbouring card is rejected. This single-card model
 has not been trained to choose a clicked card in a crowded tableau; measuring
 that limitation is part of the experiment.
 
-Accepted proposals are perspective-rectified at source resolution. For a scan
-without room hints, an initial pass ranks only these crops and runs the existing
+Accepted proposals are perspective-rectified at source resolution. After any
+recent hint fails its local and outline checks, an initial pass ranks only these crops and runs the existing
 artwork verification. An exact visual match (distance ≤90) or decisive ORB match
 returns immediately unless source-space registration proves the match lies
 outside the click, skipping contour enumeration, ordinary crop generation,
@@ -201,8 +219,13 @@ these candidates may change the answer only with the existing decisive artwork
 gates. Weak AI candidates cannot displace the established fallback. Identity
 still comes from the existing hashes,
 artwork verification, and OCR gates. No model confidence is treated as card
-identity. Scans with recent-card hints skip model inference to preserve the
-cheaper verified hint prepass. Diagnostics include
+identity. Scans with recent-card hints first run the same verified local-crop
+and outline prepass without waiting for model inference. A successful hint
+returns immediately and cancels unused capture preparation. A stale hint now
+continues through the ordinary learned fast path, Milo and retry; weak results
+retain the original hints in the complete fallback, including its full-crop
+hint tier. The prepass transfers a separate bitmap, so every later stage still
+uses the selected capture. Diagnostics include `ai_crop.hintPrepass` and
 `ai_crop` (model, status, proposal count, sharpness/gate outcomes, time) and
 `stage_ms.aiCrop`, plus `fastHit`/`fastMs` and `stage_ms.aiAttempt`. A missing,
 failed, or stalled runtime falls back to the normal matcher and disables the
@@ -271,6 +294,21 @@ returns the crop. The compressed video stream is never used for recognition.
   signature and the hash.
 - Because clamping moves the crop, the click is no longer necessarily at the
   centre, so the true in-crop position travels with the image.
+
+For an AI scan, the first sample can start Cornelius while the camera
+continues sampling. This prepares geometry only. The final capture still selects
+the sharpest of all three samples, and every identity check uses that selected
+frame. Preparation is consumed only for the exact same Blob and crop click; a
+later winner gets normal detection. Canceled adopted preparation aborts obsolete
+recognition rather than starting another model job.
+
+Remote requesters opt into one bounded early binary response. It cannot settle
+the request: the owner commits those exact bytes only after first-sample selection,
+or cancels their transfer and sends the later winner. Legacy peers keep their
+single final response. Discarded transfers, deadlines, timeouts and departures
+release their listeners, chunks and unused URLs. `captureOverlap` reports wall
+time already spent preparing during capture; it is nonexclusive and must not be
+added to `captureMs` or model stage values to reconstruct total latency.
 
 ### 2. Candidate crops — many guesses at framing
 
@@ -459,9 +497,11 @@ board position tests at most 12 hinted printings before the full index.
 Hints are candidates, never answers. The worker first tests six cheap
 click-local crops, then only OpenCV's card-outline rectifications, against the
 hinted printing. It accepts only at distance 90 or better, or after a decisive
-ORB art verification when the distance is at most 180. Only a stale, moved, or
-incorrect hint pays for the complete crop family and 110,000-printing
-rank/verify/OCR pipeline. The local cache contains at most 32 hints, expires
+ORB art verification when the distance is at most 180. A stale, moved, or
+incorrect hint now permits the ordinary learned-crop/Milo path. If that is
+also inconclusive, the complete crop family and 110,000-printing
+rank/verify/OCR pipeline retains the original shortlist for its third hint
+tier. The local cache contains at most 32 hints, expires
 them after four hours, and is discarded with the page.
 
 The click scheduler separately coalesces an in-flight duplicate at the same
@@ -476,6 +516,14 @@ The `milo-photo-27` release measures 770ms median / 2417ms p90 on its
 These are warmed recognition measurements; camera sampling/transport, queue
 wait and final image display are separate parts of the player's experience.
 The latest complete evidence is in [results.md](../snaptest/results.md).
+
+The `milo-click-34` native unhinted test measures the complete click through
+camera sampling, local WebRTC transfer and decoded full-opacity image paint:
+1029ms → 808ms median, 2278ms → 2128ms p90 for the 189 displayed matches.
+Correct displays below one second increase from 84 to 131 out of 200 clicks;
+all 189 confident identities and all 200 selected JPEGs agree. Models/index are
+warm and the simulated camera is static, so this does not guarantee physical
+camera, remote-network or cold-start timing.
 
 For comparison, the earlier full-fallback deterministic tableau measured a
 1.84s median / 5.05s p90; its harder edge set measured a 4.8s median because
@@ -534,4 +582,6 @@ far more contour quads (60–74 crops tried instead of ~39).
 - **An immediate click before idle warm-up finishes** can still wait for
   OpenCV and the index. Once the lobby reports “Recognition ready,” the first
   click uses the same resident core as later scans.
-- **Brand-new sets** are missing until the monthly index rebuild.
+- **Brand-new sets** appear after the next successful daily Scryfall bulk/index
+  publication. Hash tables and Milo embeddings publish together and must agree
+  on their printing-face count and card-table fingerprint.

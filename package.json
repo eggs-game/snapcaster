@@ -16,6 +16,7 @@
     "test:ui:sidebar": "node scripts/test_card_sidebar_browser.mjs",
     "test:card:delivery": "node scripts/test_card_result_delivery_browser.mjs",
     "test:game:card-delivery": "node scripts/test_game_card_delivery_browser.mjs",
+    "test:game:native-card-delivery": "node scripts/benchmark_native_card_delivery.mjs",
     "test:ui:pages": "node scripts/test_account_pages_browser.mjs",
     "test:media:setup": "node scripts/test_media_setup_browser.mjs",
     "test:media:playback": "node scripts/test_media_playback_browser.mjs",

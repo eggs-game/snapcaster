@@ -14,8 +14,8 @@ for (const scenario of ["portrait", "landscape", "weak", "wide", "four-three", "
       height:scenario==="four-three"?600:scenario==="wide"?500:scenario==="landscape"?488:680,close(){closed++;}}),
     createImageBitmap:async()=>({}),
     proposeAiCrops:async(_bmp,_point,retry)=>{detectorCalls.push(!!retry);return{quads:[],diagnostic:{status:"ready"}};},
-    runOnWorker:async(_bmp,_point,_hints,_quads,aiOnly)=>{
-      calls.push(aiOnly);return{matches:[{name:"Verified",distance:scenario==="weak"?190:80}],stage_ms:{}};
+    runOnWorker:async(_bmp,_point,_hints,_quads,aiOnly,_candidates,_milo,_preview,hintsOnly)=>{
+      calls.push(aiOnly);return{matches:[{name:"Verified",distance:scenario==="weak"?190:80}],hint_hit:!!hintsOnly,stage_ms:{}};
     },
     finishIdentify:async r=>r,
   });
@@ -102,7 +102,7 @@ const colors=vm.createContext({source:{},ref,item:{color_sim:.2,ring_sim:.2},
   colorSignature:p=>p.color,ringSignature:p=>p.ring,contentSupportsIdentity:()=>true,
 });
 vm.runInContext(worker.slice(worker.indexOf("function colorSimilarity("),worker.indexOf("// Hue histogram",worker.indexOf("function colorSimilarity("))),colors);
-vm.runInContext(worker.slice(worker.indexOf("function registeredColorAgreement("),worker.indexOf("const sharedArtworkCache")),colors);
+vm.runInContext(worker.slice(worker.indexOf("const referenceColorCache ="),worker.indexOf("const sharedArtworkCache")),colors);
 const colorStart=worker.indexOf("// Moderate template coincidences");
 const colorBlock=worker.slice(colorStart,worker.indexOf("          if (alignment.inside === true && alignment.inliers >= 16",colorStart));
 vm.runInContext(colorBlock,colors);

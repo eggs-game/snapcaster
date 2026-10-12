@@ -1,0 +1,36 @@
+[
+  {
+    "name": "Geier Reach Sanitarium",
+    "pool": "card",
+    "id": "8d80ec47-0e47-49e3-9c43-1c126d8523e1",
+    "occ": "clear",
+    "point": {
+      "nx": 0.5,
+      "ny": 0.5695828081357073
+    },
+    "scene": 18,
+    "rotation": "upright",
+    "layout": "side-by-side",
+    "coverage": 0,
+    "clipped": 0,
+    "file": "cache-geier.jpg",
+    "i": 188
+  },
+  {
+    "name": "Reprieve",
+    "pool": "card",
+    "id": "1bd3fa8a-6c50-4f7f-9ae3-0810eec5e3db",
+    "occ": "clear",
+    "point": {
+      "nx": 0.5,
+      "ny": 0.5
+    },
+    "scene": 1,
+    "rotation": "upright",
+    "layout": "side-by-side",
+    "coverage": 0,
+    "clipped": 0,
+    "file": "cache-reprieve.jpg",
+    "i": 15
+  }
+]

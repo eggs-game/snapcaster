@@ -1,0 +1,4921 @@
+{
+  "scope": "Known exact saved shared-art, split-half, neighbor, clicked-footprint and weak-registration cases; times are diagnostic, not full-click latency evidence",
+  "records": [
+    {
+      "name": "Dementia Bat",
+      "sourceFile": "dementia-bat-crowded.jpg",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "expectedOutcome": "correct",
+      "ai": true,
+      "baseline": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 2288,
+        "best": {
+          "name": "Dementia Bat",
+          "set": "nph",
+          "collector_number": "55",
+          "scryfall_id": "72ae22c3-2dea-463e-894a-188657849909",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/7/2/72ae22c3-2dea-463e-894a-188657849909.jpg",
+          "scryfall_uri": "https://scryfall.com/card/nph/55",
+          "distance": 147,
+          "confidence": 1,
+          "strategy": "milo",
+          "milo_retrieval": true,
+          "milo_highres": true,
+          "ai_supplement": true,
+          "identified_by": "art-match",
+          "art_inliers": 53,
+          "color_sim": 0.8881391420145519,
+          "ring_sim": 0.9787714351696195,
+          "click_inside": true,
+          "click_inliers": 53,
+          "click_art_inliers": 39,
+          "click_text_inliers": 13,
+          "click_half_inliers": [
+            40,
+            13
+          ],
+          "click_blocked": false,
+          "regional_proof": true
+        },
+        "artBest": {
+          "name": "Dementia Bat",
+          "inliers": 53,
+          "color": 89,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 53,
+          "clickArtInliers": 39,
+          "clickTextInliers": 13,
+          "clickHalfInliers": [
+            40,
+            13
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.022825881838798523,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.05302805453538895,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 193,
+          "fastMs": 769,
+          "fastHit": false
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 10,
+          "inferenceMs": 545,
+          "searchMs": 92,
+          "ms": 643,
+          "rescued": true,
+          "totalMs": 1322
+        },
+        "orb": {
+          "fetch": 316.9999998807907,
+          "queryFeat": 7.200000047683716,
+          "refFeat": 214.00000035762787,
+          "match": 10.49999988079071,
+          "refs": 36,
+          "winRank": 0
+        },
+        "blockedNames": []
+      },
+      "off": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 2280,
+        "best": {
+          "name": "Dementia Bat",
+          "set": "nph",
+          "collector_number": "55",
+          "scryfall_id": "72ae22c3-2dea-463e-894a-188657849909",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/7/2/72ae22c3-2dea-463e-894a-188657849909.jpg",
+          "scryfall_uri": "https://scryfall.com/card/nph/55",
+          "distance": 147,
+          "confidence": 1,
+          "strategy": "milo",
+          "milo_retrieval": true,
+          "milo_highres": true,
+          "ai_supplement": true,
+          "identified_by": "art-match",
+          "art_inliers": 53,
+          "color_sim": 0.8881391420145519,
+          "ring_sim": 0.9787714351696195,
+          "click_inside": true,
+          "click_inliers": 53,
+          "click_art_inliers": 39,
+          "click_text_inliers": 13,
+          "click_half_inliers": [
+            40,
+            13
+          ],
+          "click_blocked": false,
+          "regional_proof": true
+        },
+        "artBest": {
+          "name": "Dementia Bat",
+          "inliers": 53,
+          "color": 89,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 53,
+          "clickArtInliers": 39,
+          "clickTextInliers": 13,
+          "clickHalfInliers": [
+            40,
+            13
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.022825881838798523,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.05302805453538895,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 192,
+          "queueMs": 0,
+          "fastMs": 766,
+          "fastHit": false
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 10,
+          "inferenceMs": 550,
+          "searchMs": 91,
+          "ms": 647,
+          "queueMs": 0,
+          "rescued": true,
+          "totalMs": 1318
+        },
+        "orb": {
+          "fetch": 311.3000000715256,
+          "queryFeat": 7.100000023841858,
+          "refFeat": 219.2999997138977,
+          "match": 10.300000071525574,
+          "refs": 36,
+          "winRank": 0,
+          "refsInspected": 36,
+          "refsRanked": 36,
+          "refFeatureCalls": 41,
+          "refFeatureHits": 5,
+          "refFeatureMisses": 36,
+          "sourceFeat": 14.099999904632568,
+          "sourceProbes": 5,
+          "sourceMatch": 68.5,
+          "distinctEarlyStopRank": -1,
+          "distinctNameStop": false
+        },
+        "miloOrb": [
+          {
+            "contrast": false,
+            "fetch": 157.20000004768372,
+            "queryFeat": 4.800000071525574,
+            "refFeat": 78.700000166893,
+            "match": 10.299999713897705,
+            "refs": 45,
+            "winRank": 0,
+            "refsInspected": 45,
+            "refsRanked": 45,
+            "refFeatureCalls": 56,
+            "refFeatureHits": 43,
+            "refFeatureMisses": 13,
+            "sourceFeat": 13.899999976158142,
+            "sourceProbes": 5,
+            "sourceMatch": 91.79999995231628,
+            "distinctEarlyStopRank": -1,
+            "distinctNameStop": false
+          },
+          {
+            "contrast": true,
+            "fetch": 0.09999990463256836,
+            "queryFeat": 10.199999928474426,
+            "refFeat": 104.09999978542328,
+            "match": 84.60000014305115,
+            "refs": 45,
+            "winRank": 0,
+            "refsInspected": 12,
+            "refsRanked": 10,
+            "refFeatureCalls": 19,
+            "refFeatureHits": 3,
+            "refFeatureMisses": 16,
+            "sourceFeat": 19.799999952316284,
+            "sourceProbes": 4,
+            "sourceMatch": 71.299999833107,
+            "distinctEarlyStopRank": -1,
+            "distinctNameStop": false
+          }
+        ],
+        "blockedNames": []
+      },
+      "on": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 2264,
+        "best": {
+          "name": "Dementia Bat",
+          "set": "nph",
+          "collector_number": "55",
+          "scryfall_id": "72ae22c3-2dea-463e-894a-188657849909",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/7/2/72ae22c3-2dea-463e-894a-188657849909.jpg",
+          "scryfall_uri": "https://scryfall.com/card/nph/55",
+          "distance": 147,
+          "confidence": 1,
+          "strategy": "milo",
+          "milo_retrieval": true,
+          "milo_highres": true,
+          "ai_supplement": true,
+          "identified_by": "art-match",
+          "art_inliers": 53,
+          "color_sim": 0.8881391420145519,
+          "ring_sim": 0.9787714351696195,
+          "click_inside": true,
+          "click_inliers": 53,
+          "click_art_inliers": 39,
+          "click_text_inliers": 13,
+          "click_half_inliers": [
+            40,
+            13
+          ],
+          "click_blocked": false,
+          "regional_proof": true
+        },
+        "artBest": {
+          "name": "Dementia Bat",
+          "inliers": 53,
+          "color": 89,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 53,
+          "clickArtInliers": 39,
+          "clickTextInliers": 13,
+          "clickHalfInliers": [
+            40,
+            13
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.022825881838798523,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.05302805453538895,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 194,
+          "queueMs": 0,
+          "fastMs": 774,
+          "fastHit": false
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 10,
+          "inferenceMs": 546,
+          "searchMs": 92,
+          "ms": 644,
+          "queueMs": 0,
+          "rescued": true,
+          "totalMs": 1292
+        },
+        "orb": {
+          "fetch": 321.10000002384186,
+          "queryFeat": 7,
+          "refFeat": 214.99999952316284,
+          "match": 10.899999737739563,
+          "refs": 36,
+          "winRank": 0,
+          "refsInspected": 36,
+          "refsRanked": 36,
+          "refFeatureCalls": 41,
+          "refFeatureHits": 5,
+          "refFeatureMisses": 36,
+          "sourceFeat": 13.799999952316284,
+          "sourceProbes": 5,
+          "sourceMatch": 67.39999997615814,
+          "distinctEarlyStopRank": -1,
+          "distinctNameStop": true
+        },
+        "miloOrb": [
+          {
+            "contrast": false,
+            "fetch": 145.4999998807907,
+            "queryFeat": 4.899999976158142,
+            "refFeat": 74.00000035762787,
+            "match": 10.299999833106995,
+            "refs": 45,
+            "winRank": 0,
+            "refsInspected": 45,
+            "refsRanked": 45,
+            "refFeatureCalls": 56,
+            "refFeatureHits": 43,
+            "refFeatureMisses": 13,
+            "sourceFeat": 13.5,
+            "sourceProbes": 5,
+            "sourceMatch": 88.29999995231628,
+            "distinctEarlyStopRank": -1,
+            "distinctNameStop": true
+          },
+          {
+            "contrast": true,
+            "fetch": 0.10000002384185791,
+            "queryFeat": 10.199999928474426,
+            "refFeat": 103.40000009536743,
+            "match": 83.59999990463257,
+            "refs": 45,
+            "winRank": 0,
+            "refsInspected": 12,
+            "refsRanked": 10,
+            "refFeatureCalls": 19,
+            "refFeatureHits": 3,
+            "refFeatureMisses": 16,
+            "sourceFeat": 20,
+            "sourceProbes": 4,
+            "sourceMatch": 71.19999992847443,
+            "distinctEarlyStopRank": -1,
+            "distinctNameStop": true
+          }
+        ],
+        "blockedNames": []
+      }
+    },
+    {
+      "name": "Champion's Drake",
+      "sourceFile": "champions-drake-crowded.jpg",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "expectedOutcome": "correct",
+      "ai": true,
+      "on": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 7358,
+        "best": {
+          "name": "Champion's Drake",
+          "set": "roe",
+          "collector_number": "56",
+          "scryfall_id": "7585316f-ba3d-4472-9a7e-7db6f6dd9d15",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/7/5/7585316f-ba3d-4472-9a7e-7db6f6dd9d15.jpg",
+          "scryfall_uri": "https://scryfall.com/card/roe/56",
+          "distance": 148,
+          "confidence": 0.5857142857142857,
+          "strategy": "isolate-portrait-6-51-50-17",
+          "art_inliers": 20,
+          "color_sim": 0.8441445378703065,
+          "click_inliers": 22,
+          "click_art_inliers": 17,
+          "click_text_inliers": 5,
+          "click_half_inliers": [
+            17,
+            5
+          ],
+          "click_inside": true,
+          "click_blocked": false,
+          "identified_by": "art-match"
+        },
+        "artBest": {
+          "name": "Champion's Drake",
+          "inliers": 20,
+          "color": 84,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 22,
+          "clickArtInliers": 17,
+          "clickTextInliers": 5,
+          "clickHalfInliers": [
+            17,
+            5
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.021391188725829124,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.02963656559586525,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            }
+          ],
+          "ms": 178,
+          "queueMs": 0,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 2,
+            "probes": [
+              {
+                "sharpness": 0.042386963963508606,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.03126615658402443,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.023838821798563004,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.03249514847993851,
+                "accepted": true,
+                "reason": "accepted"
+              }
+            ],
+            "ms": 369,
+            "queueMs": 0,
+            "milo": {
+              "model": "milo1",
+              "status": "ready",
+              "crops": 2,
+              "proposals": 11,
+              "inferenceMs": 546,
+              "searchMs": 92,
+              "ms": 643,
+              "queueMs": 0
+            }
+          },
+          "retryMs": 2500
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "orb": {
+          "fetch": 29.399999856948853,
+          "queryFeat": 41.299999952316284,
+          "refFeat": 134.70000004768372,
+          "match": 428.30000030994415,
+          "refs": 36,
+          "winRank": 0,
+          "refsInspected": 36,
+          "refsRanked": 36,
+          "refFeatureCalls": 37,
+          "refFeatureHits": 13,
+          "refFeatureMisses": 24,
+          "sourceFeat": 13.800000071525574,
+          "sourceProbes": 1,
+          "sourceMatch": 11.100000023841858,
+          "distinctEarlyStopRank": -1,
+          "distinctNameStop": true
+        },
+        "miloOrb": [],
+        "blockedNames": []
+      },
+      "off": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 7577,
+        "best": {
+          "name": "Champion's Drake",
+          "set": "roe",
+          "collector_number": "56",
+          "scryfall_id": "7585316f-ba3d-4472-9a7e-7db6f6dd9d15",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/7/5/7585316f-ba3d-4472-9a7e-7db6f6dd9d15.jpg",
+          "scryfall_uri": "https://scryfall.com/card/roe/56",
+          "distance": 148,
+          "confidence": 0.5857142857142857,
+          "strategy": "isolate-portrait-6-51-50-17",
+          "art_inliers": 20,
+          "color_sim": 0.8441445378703065,
+          "click_inliers": 22,
+          "click_art_inliers": 17,
+          "click_text_inliers": 5,
+          "click_half_inliers": [
+            17,
+            5
+          ],
+          "click_inside": true,
+          "click_blocked": false,
+          "identified_by": "art-match"
+        },
+        "artBest": {
+          "name": "Champion's Drake",
+          "inliers": 20,
+          "color": 84,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 22,
+          "clickArtInliers": 17,
+          "clickTextInliers": 5,
+          "clickHalfInliers": [
+            17,
+            5
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.021391188725829124,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.02963656559586525,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            }
+          ],
+          "ms": 179,
+          "queueMs": 0,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 2,
+            "probes": [
+              {
+                "sharpness": 0.042386963963508606,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.03126615658402443,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.023838821798563004,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.03249514847993851,
+                "accepted": true,
+                "reason": "accepted"
+              }
+            ],
+            "ms": 368,
+            "queueMs": 0,
+            "milo": {
+              "model": "milo1",
+              "status": "ready",
+              "crops": 2,
+              "proposals": 11,
+              "inferenceMs": 544,
+              "searchMs": 91,
+              "ms": 641,
+              "queueMs": 0
+            }
+          },
+          "retryMs": 2692
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "orb": {
+          "fetch": 31.800000071525574,
+          "queryFeat": 41.39999997615814,
+          "refFeat": 134.09999990463257,
+          "match": 427.69999980926514,
+          "refs": 36,
+          "winRank": 0,
+          "refsInspected": 36,
+          "refsRanked": 36,
+          "refFeatureCalls": 37,
+          "refFeatureHits": 13,
+          "refFeatureMisses": 24,
+          "sourceFeat": 13.600000023841858,
+          "sourceProbes": 1,
+          "sourceMatch": 11,
+          "distinctEarlyStopRank": -1,
+          "distinctNameStop": false
+        },
+        "miloOrb": [],
+        "blockedNames": []
+      },
+      "baseline": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 7938,
+        "best": {
+          "name": "Champion's Drake",
+          "set": "roe",
+          "collector_number": "56",
+          "scryfall_id": "7585316f-ba3d-4472-9a7e-7db6f6dd9d15",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/7/5/7585316f-ba3d-4472-9a7e-7db6f6dd9d15.jpg",
+          "scryfall_uri": "https://scryfall.com/card/roe/56",
+          "distance": 148,
+          "confidence": 0.5857142857142857,
+          "strategy": "isolate-portrait-6-51-50-17",
+          "art_inliers": 20,
+          "color_sim": 0.8441445378703065,
+          "click_inliers": 22,
+          "click_art_inliers": 17,
+          "click_text_inliers": 5,
+          "click_half_inliers": [
+            17,
+            5
+          ],
+          "click_inside": true,
+          "click_blocked": false,
+          "identified_by": "art-match"
+        },
+        "artBest": {
+          "name": "Champion's Drake",
+          "inliers": 20,
+          "color": 84,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 22,
+          "clickArtInliers": 17,
+          "clickTextInliers": 5,
+          "clickHalfInliers": [
+            17,
+            5
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.021391188725829124,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.02963656559586525,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            }
+          ],
+          "ms": 179,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 2,
+            "probes": [
+              {
+                "sharpness": 0.042386963963508606,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.03126615658402443,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.023838821798563004,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.03249514847993851,
+                "accepted": true,
+                "reason": "accepted"
+              }
+            ],
+            "ms": 369,
+            "milo": {
+              "model": "milo1",
+              "status": "ready",
+              "crops": 2,
+              "proposals": 11,
+              "inferenceMs": 547,
+              "searchMs": 91,
+              "ms": 644
+            }
+          },
+          "retryMs": 2959
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "orb": {
+          "fetch": 39.700000047683716,
+          "queryFeat": 43.200000047683716,
+          "refFeat": 136.39999985694885,
+          "match": 429.0000001192093,
+          "refs": 36,
+          "winRank": 0
+        },
+        "blockedNames": []
+      }
+    },
+    {
+      "name": "Mortuary Mire",
+      "sourceFile": "mortuary-mire-template.jpg",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "expectedOutcome": "correct",
+      "ai": true,
+      "baseline": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 2680,
+        "best": {
+          "name": "Mortuary Mire",
+          "set": "bfz",
+          "collector_number": "240",
+          "scryfall_id": "c6b31722-9626-4fea-9971-54c9aa8238e8",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/c/6/c6b31722-9626-4fea-9971-54c9aa8238e8.jpg",
+          "scryfall_uri": "https://scryfall.com/card/bfz/240",
+          "distance": 137,
+          "confidence": 0.8,
+          "strategy": "milo",
+          "milo_retrieval": true,
+          "milo_highres": true,
+          "ai_supplement": true,
+          "identified_by": "art-match",
+          "art_inliers": 32,
+          "color_sim": 0.9554377079184633,
+          "ring_sim": 0.9488463444577064,
+          "click_inside": true,
+          "click_inliers": 32,
+          "click_art_inliers": 18,
+          "click_text_inliers": 11,
+          "click_half_inliers": [
+            22,
+            10
+          ],
+          "click_blocked": false,
+          "regional_proof": true
+        },
+        "artBest": {
+          "name": "Mortuary Mire",
+          "inliers": 32,
+          "color": 96,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 32,
+          "clickArtInliers": 18,
+          "clickTextInliers": 11,
+          "clickHalfInliers": [
+            22,
+            10
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.06315676867961884,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.054661571979522705,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 177,
+          "fastMs": 647,
+          "fastHit": false
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 11,
+          "inferenceMs": 551,
+          "searchMs": 92,
+          "ms": 648,
+          "rescued": true,
+          "totalMs": 1853
+        },
+        "orb": {
+          "fetch": 162.599999666214,
+          "queryFeat": 3.5,
+          "refFeat": 188.60000002384186,
+          "match": 55.00000011920929,
+          "refs": 36,
+          "winRank": 0
+        },
+        "blockedNames": []
+      },
+      "off": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 2696,
+        "best": {
+          "name": "Mortuary Mire",
+          "set": "bfz",
+          "collector_number": "240",
+          "scryfall_id": "c6b31722-9626-4fea-9971-54c9aa8238e8",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/c/6/c6b31722-9626-4fea-9971-54c9aa8238e8.jpg",
+          "scryfall_uri": "https://scryfall.com/card/bfz/240",
+          "distance": 137,
+          "confidence": 0.8,
+          "strategy": "milo",
+          "milo_retrieval": true,
+          "milo_highres": true,
+          "ai_supplement": true,
+          "identified_by": "art-match",
+          "art_inliers": 32,
+          "color_sim": 0.9554377079184633,
+          "ring_sim": 0.9488463444577064,
+          "click_inside": true,
+          "click_inliers": 32,
+          "click_art_inliers": 18,
+          "click_text_inliers": 11,
+          "click_half_inliers": [
+            22,
+            10
+          ],
+          "click_blocked": false,
+          "regional_proof": true
+        },
+        "artBest": {
+          "name": "Mortuary Mire",
+          "inliers": 32,
+          "color": 96,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 32,
+          "clickArtInliers": 18,
+          "clickTextInliers": 11,
+          "clickHalfInliers": [
+            22,
+            10
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.06315676867961884,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.054661571979522705,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 178,
+          "queueMs": 0,
+          "fastMs": 738,
+          "fastHit": false
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 11,
+          "inferenceMs": 545,
+          "searchMs": 92,
+          "ms": 649,
+          "queueMs": 0,
+          "rescued": true,
+          "totalMs": 1777
+        },
+        "orb": {
+          "fetch": 255.39999997615814,
+          "queryFeat": 3.299999952316284,
+          "refFeat": 187.9999998807907,
+          "match": 54.19999969005585,
+          "refs": 36,
+          "winRank": 0,
+          "refsInspected": 36,
+          "refsRanked": 36,
+          "refFeatureCalls": 42,
+          "refFeatureHits": 6,
+          "refFeatureMisses": 36,
+          "sourceFeat": 14.900000095367432,
+          "sourceProbes": 6,
+          "sourceMatch": 107.79999995231628,
+          "distinctEarlyStopRank": -1,
+          "distinctNameStop": false
+        },
+        "miloOrb": [
+          {
+            "contrast": false,
+            "fetch": 157,
+            "queryFeat": 6.199999928474426,
+            "refFeat": 75.80000019073486,
+            "match": 114.5,
+            "refs": 45,
+            "winRank": 0,
+            "refsInspected": 45,
+            "refsRanked": 45,
+            "refFeatureCalls": 56,
+            "refFeatureHits": 43,
+            "refFeatureMisses": 13,
+            "sourceFeat": 14.600000023841858,
+            "sourceProbes": 6,
+            "sourceMatch": 121.29999995231628,
+            "distinctEarlyStopRank": -1,
+            "distinctNameStop": false
+          },
+          {
+            "contrast": true,
+            "fetch": 0.40000009536743164,
+            "queryFeat": 10.600000023841858,
+            "refFeat": 348.80000019073486,
+            "match": 234.5999995470047,
+            "refs": 45,
+            "winRank": 0,
+            "refsInspected": 45,
+            "refsRanked": 45,
+            "refFeatureCalls": 50,
+            "refFeatureHits": 1,
+            "refFeatureMisses": 49,
+            "sourceFeat": 21.200000047683716,
+            "sourceProbes": 1,
+            "sourceMatch": 11.599999904632568,
+            "distinctEarlyStopRank": 10,
+            "distinctNameStop": false
+          }
+        ],
+        "blockedNames": []
+      },
+      "on": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 2355,
+        "best": {
+          "name": "Mortuary Mire",
+          "set": "bfz",
+          "collector_number": "240",
+          "scryfall_id": "c6b31722-9626-4fea-9971-54c9aa8238e8",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/c/6/c6b31722-9626-4fea-9971-54c9aa8238e8.jpg",
+          "scryfall_uri": "https://scryfall.com/card/bfz/240",
+          "distance": 137,
+          "confidence": 0.8,
+          "strategy": "milo",
+          "milo_retrieval": true,
+          "milo_highres": true,
+          "ai_supplement": true,
+          "identified_by": "art-match",
+          "art_inliers": 32,
+          "color_sim": 0.9554377079184633,
+          "ring_sim": 0.9488463444577064,
+          "click_inside": true,
+          "click_inliers": 32,
+          "click_art_inliers": 18,
+          "click_text_inliers": 11,
+          "click_half_inliers": [
+            22,
+            10
+          ],
+          "click_blocked": false,
+          "regional_proof": true
+        },
+        "artBest": {
+          "name": "Mortuary Mire",
+          "inliers": 32,
+          "color": 96,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 32,
+          "clickArtInliers": 18,
+          "clickTextInliers": 11,
+          "clickHalfInliers": [
+            22,
+            10
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.06315676867961884,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.054661571979522705,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 178,
+          "queueMs": 0,
+          "fastMs": 729,
+          "fastHit": false
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 11,
+          "inferenceMs": 546,
+          "searchMs": 92,
+          "ms": 649,
+          "queueMs": 0,
+          "rescued": true,
+          "totalMs": 1444
+        },
+        "orb": {
+          "fetch": 236.39999985694885,
+          "queryFeat": 3.5,
+          "refFeat": 189.80000007152557,
+          "match": 56.700000524520874,
+          "refs": 36,
+          "winRank": 0,
+          "refsInspected": 36,
+          "refsRanked": 36,
+          "refFeatureCalls": 42,
+          "refFeatureHits": 6,
+          "refFeatureMisses": 36,
+          "sourceFeat": 14.700000047683716,
+          "sourceProbes": 6,
+          "sourceMatch": 108.20000004768372,
+          "distinctEarlyStopRank": -1,
+          "distinctNameStop": true
+        },
+        "miloOrb": [
+          {
+            "contrast": false,
+            "fetch": 184.0000001192093,
+            "queryFeat": 6,
+            "refFeat": 73.50000011920929,
+            "match": 115.30000019073486,
+            "refs": 45,
+            "winRank": 0,
+            "refsInspected": 45,
+            "refsRanked": 45,
+            "refFeatureCalls": 56,
+            "refFeatureHits": 43,
+            "refFeatureMisses": 13,
+            "sourceFeat": 14.899999976158142,
+            "sourceProbes": 6,
+            "sourceMatch": 120.79999995231628,
+            "distinctEarlyStopRank": -1,
+            "distinctNameStop": true
+          },
+          {
+            "contrast": true,
+            "fetch": 0,
+            "queryFeat": 10.5,
+            "refFeat": 100.19999992847443,
+            "match": 67.19999992847443,
+            "refs": 45,
+            "winRank": 0,
+            "refsInspected": 13,
+            "refsRanked": 10,
+            "refFeatureCalls": 18,
+            "refFeatureHits": 1,
+            "refFeatureMisses": 17,
+            "sourceFeat": 20.600000023841858,
+            "sourceProbes": 4,
+            "sourceMatch": 55.200000047683716,
+            "distinctEarlyStopRank": 10,
+            "distinctNameStop": true
+          }
+        ],
+        "blockedNames": []
+      }
+    },
+    {
+      "name": "Horizon of Progress",
+      "sourceFile": "fallback-67.jpg",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.6697831452505646
+      },
+      "expectedOutcome": "correct",
+      "ai": true,
+      "on": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 493,
+        "best": {
+          "name": "Horizon of Progress",
+          "set": "m3c",
+          "collector_number": "78",
+          "scryfall_id": "5ae3a9c8-194e-421b-b77d-9c8784442651",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/5/a/5ae3a9c8-194e-421b-b77d-9c8784442651.jpg",
+          "scryfall_uri": "https://scryfall.com/card/m3c/78",
+          "distance": 124,
+          "confidence": 1,
+          "strategy": "ai-crop-1",
+          "click_inside": true,
+          "click_inliers": 50,
+          "click_art_inliers": 0,
+          "click_text_inliers": 50,
+          "click_half_inliers": [
+            0,
+            50
+          ],
+          "regional_proof": true,
+          "art_inliers": 50,
+          "color_sim": 0.3958628617856448,
+          "ring_sim": 0.7143522842379753,
+          "click_blocked": false,
+          "identified_by": "art-match"
+        },
+        "artBest": {
+          "name": "Horizon of Progress",
+          "inliers": 50,
+          "color": 40,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 50,
+          "clickArtInliers": 0,
+          "clickTextInliers": 50,
+          "clickHalfInliers": [
+            0,
+            50
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.05367983877658844,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.059393368661403656,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 178,
+          "queueMs": 0,
+          "fastMs": 312,
+          "fastHit": true
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "orb": {
+          "fetch": 74.99999988079071,
+          "queryFeat": 3.8000000715255737,
+          "refFeat": 50.89999997615814,
+          "match": 29.00000011920929,
+          "refs": 36,
+          "winRank": 2,
+          "refsInspected": 12,
+          "refsRanked": 10,
+          "refFeatureCalls": 14,
+          "refFeatureHits": 3,
+          "refFeatureMisses": 11,
+          "sourceFeat": 15.600000023841858,
+          "sourceProbes": 4,
+          "sourceMatch": 55.99999988079071,
+          "distinctEarlyStopRank": -1,
+          "distinctNameStop": true
+        },
+        "miloOrb": [],
+        "blockedNames": []
+      },
+      "off": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 555,
+        "best": {
+          "name": "Horizon of Progress",
+          "set": "m3c",
+          "collector_number": "78",
+          "scryfall_id": "5ae3a9c8-194e-421b-b77d-9c8784442651",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/5/a/5ae3a9c8-194e-421b-b77d-9c8784442651.jpg",
+          "scryfall_uri": "https://scryfall.com/card/m3c/78",
+          "distance": 124,
+          "confidence": 1,
+          "strategy": "ai-crop-1",
+          "click_inside": true,
+          "click_inliers": 50,
+          "click_art_inliers": 0,
+          "click_text_inliers": 50,
+          "click_half_inliers": [
+            0,
+            50
+          ],
+          "regional_proof": true,
+          "art_inliers": 50,
+          "color_sim": 0.3958628617856448,
+          "ring_sim": 0.7143522842379753,
+          "click_blocked": false,
+          "identified_by": "art-match"
+        },
+        "artBest": {
+          "name": "Horizon of Progress",
+          "inliers": 50,
+          "color": 40,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 50,
+          "clickArtInliers": 0,
+          "clickTextInliers": 50,
+          "clickHalfInliers": [
+            0,
+            50
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.05367983877658844,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.059393368661403656,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 185,
+          "queueMs": 0,
+          "fastMs": 366,
+          "fastHit": true
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "orb": {
+          "fetch": 123.69999992847443,
+          "queryFeat": 3.6999999284744263,
+          "refFeat": 56.60000002384186,
+          "match": 29.199999928474426,
+          "refs": 36,
+          "winRank": 2,
+          "refsInspected": 12,
+          "refsRanked": 10,
+          "refFeatureCalls": 14,
+          "refFeatureHits": 2,
+          "refFeatureMisses": 12,
+          "sourceFeat": 15.899999976158142,
+          "sourceProbes": 4,
+          "sourceMatch": 55.10000002384186,
+          "distinctEarlyStopRank": -1,
+          "distinctNameStop": false
+        },
+        "miloOrb": [],
+        "blockedNames": []
+      },
+      "baseline": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 652,
+        "best": {
+          "name": "Horizon of Progress",
+          "set": "m3c",
+          "collector_number": "78",
+          "scryfall_id": "5ae3a9c8-194e-421b-b77d-9c8784442651",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/5/a/5ae3a9c8-194e-421b-b77d-9c8784442651.jpg",
+          "scryfall_uri": "https://scryfall.com/card/m3c/78",
+          "distance": 124,
+          "confidence": 1,
+          "strategy": "ai-crop-1",
+          "click_inside": true,
+          "click_inliers": 50,
+          "click_art_inliers": 0,
+          "click_text_inliers": 50,
+          "click_half_inliers": [
+            0,
+            50
+          ],
+          "regional_proof": true,
+          "art_inliers": 50,
+          "color_sim": 0.3958628617856448,
+          "ring_sim": 0.7143522842379753,
+          "click_blocked": false,
+          "identified_by": "art-match"
+        },
+        "artBest": {
+          "name": "Horizon of Progress",
+          "inliers": 50,
+          "color": 40,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 50,
+          "clickArtInliers": 0,
+          "clickTextInliers": 50,
+          "clickHalfInliers": [
+            0,
+            50
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.05367983877658844,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.059393368661403656,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 179,
+          "fastMs": 469,
+          "fastHit": true
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "orb": {
+          "fetch": 227.39999973773956,
+          "queryFeat": 3.8000000715255737,
+          "refFeat": 58.90000021457672,
+          "match": 30.700000166893005,
+          "refs": 36,
+          "winRank": 2
+        },
+        "blockedNames": []
+      }
+    },
+    {
+      "name": "Grand Arbiter Augustin IV",
+      "sourceFile": "fallback-146.jpg",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "expectedOutcome": "correct",
+      "ai": true,
+      "baseline": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 2073,
+        "best": {
+          "name": "Grand Arbiter Augustin IV",
+          "set": "mma",
+          "collector_number": "176",
+          "scryfall_id": "337fd1aa-1c85-4aee-923b-c457e43cda72",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/3/3/337fd1aa-1c85-4aee-923b-c457e43cda72.jpg",
+          "scryfall_uri": "https://scryfall.com/card/mma/176",
+          "distance": 161,
+          "confidence": 1,
+          "strategy": "milo",
+          "milo_retrieval": true,
+          "milo_highres": false,
+          "ai_supplement": true,
+          "identified_by": "art-match",
+          "art_inliers": 62,
+          "color_sim": 0.7631786437268602,
+          "ring_sim": 0.9655065245751757,
+          "click_inside": true,
+          "click_inliers": 62,
+          "click_art_inliers": 54,
+          "click_text_inliers": 8,
+          "click_half_inliers": [
+            54,
+            8
+          ],
+          "click_blocked": false,
+          "regional_proof": true
+        },
+        "artBest": {
+          "name": "Grand Arbiter Augustin IV",
+          "inliers": 62,
+          "color": 76,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 62,
+          "clickArtInliers": 54,
+          "clickTextInliers": 8,
+          "clickHalfInliers": [
+            54,
+            8
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.06907787173986435,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.04979874938726425,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 181,
+          "fastMs": 585,
+          "fastHit": false
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 12,
+          "inferenceMs": 544,
+          "searchMs": 92,
+          "ms": 641,
+          "rescued": true,
+          "totalMs": 1304
+        },
+        "orb": {
+          "fetch": 92.200000166893,
+          "queryFeat": 4.5,
+          "refFeat": 199.5,
+          "match": 90,
+          "refs": 36,
+          "winRank": 11
+        },
+        "blockedNames": []
+      },
+      "off": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 2060,
+        "best": {
+          "name": "Grand Arbiter Augustin IV",
+          "set": "mma",
+          "collector_number": "176",
+          "scryfall_id": "337fd1aa-1c85-4aee-923b-c457e43cda72",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/3/3/337fd1aa-1c85-4aee-923b-c457e43cda72.jpg",
+          "scryfall_uri": "https://scryfall.com/card/mma/176",
+          "distance": 161,
+          "confidence": 1,
+          "strategy": "milo",
+          "milo_retrieval": true,
+          "milo_highres": false,
+          "ai_supplement": true,
+          "identified_by": "art-match",
+          "art_inliers": 62,
+          "color_sim": 0.7631786437268602,
+          "ring_sim": 0.9655065245751757,
+          "click_inside": true,
+          "click_inliers": 62,
+          "click_art_inliers": 54,
+          "click_text_inliers": 8,
+          "click_half_inliers": [
+            54,
+            8
+          ],
+          "click_blocked": false,
+          "regional_proof": true
+        },
+        "artBest": {
+          "name": "Grand Arbiter Augustin IV",
+          "inliers": 62,
+          "color": 76,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 62,
+          "clickArtInliers": 54,
+          "clickTextInliers": 8,
+          "clickHalfInliers": [
+            54,
+            8
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.06907787173986435,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.04979874938726425,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 181,
+          "queueMs": 0,
+          "fastMs": 654,
+          "fastHit": false
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 12,
+          "inferenceMs": 546,
+          "searchMs": 91,
+          "ms": 641,
+          "queueMs": 0,
+          "rescued": true,
+          "totalMs": 1223
+        },
+        "orb": {
+          "fetch": 158.80000030994415,
+          "queryFeat": 4.300000071525574,
+          "refFeat": 201.79999995231628,
+          "match": 91.50000095367432,
+          "refs": 36,
+          "winRank": 11,
+          "refsInspected": 36,
+          "refsRanked": 36,
+          "refFeatureCalls": 41,
+          "refFeatureHits": 5,
+          "refFeatureMisses": 36,
+          "sourceFeat": 14,
+          "sourceProbes": 5,
+          "sourceMatch": 71.5,
+          "distinctEarlyStopRank": -1,
+          "distinctNameStop": false
+        },
+        "miloOrb": [
+          {
+            "contrast": false,
+            "fetch": 124.79999995231628,
+            "queryFeat": 8.700000047683716,
+            "refFeat": 113.09999978542328,
+            "match": 253.49999976158142,
+            "refs": 48,
+            "winRank": 6,
+            "refsInspected": 48,
+            "refsRanked": 48,
+            "refFeatureCalls": 56,
+            "refFeatureHits": 40,
+            "refFeatureMisses": 16,
+            "sourceFeat": 14,
+            "sourceProbes": 4,
+            "sourceMatch": 58.89999997615814,
+            "distinctEarlyStopRank": 10,
+            "distinctNameStop": false
+          }
+        ],
+        "blockedNames": []
+      },
+      "on": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 1854,
+        "best": {
+          "name": "Grand Arbiter Augustin IV",
+          "set": "mma",
+          "collector_number": "176",
+          "scryfall_id": "337fd1aa-1c85-4aee-923b-c457e43cda72",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/3/3/337fd1aa-1c85-4aee-923b-c457e43cda72.jpg",
+          "scryfall_uri": "https://scryfall.com/card/mma/176",
+          "distance": 161,
+          "confidence": 1,
+          "strategy": "milo",
+          "milo_retrieval": true,
+          "milo_highres": false,
+          "ai_supplement": true,
+          "identified_by": "art-match",
+          "art_inliers": 62,
+          "color_sim": 0.7631786437268602,
+          "ring_sim": 0.9655065245751757,
+          "click_inside": true,
+          "click_inliers": 62,
+          "click_art_inliers": 54,
+          "click_text_inliers": 8,
+          "click_half_inliers": [
+            54,
+            8
+          ],
+          "click_blocked": false,
+          "regional_proof": true
+        },
+        "artBest": {
+          "name": "Grand Arbiter Augustin IV",
+          "inliers": 62,
+          "color": 76,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 62,
+          "clickArtInliers": 54,
+          "clickTextInliers": 8,
+          "clickHalfInliers": [
+            54,
+            8
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.06907787173986435,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.04979874938726425,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 178,
+          "queueMs": 0,
+          "fastMs": 629,
+          "fastHit": false
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 12,
+          "inferenceMs": 540,
+          "searchMs": 89,
+          "ms": 634,
+          "queueMs": 0,
+          "rescued": true,
+          "totalMs": 1045
+        },
+        "orb": {
+          "fetch": 124,
+          "queryFeat": 4.399999976158142,
+          "refFeat": 199.79999959468842,
+          "match": 91.70000040531158,
+          "refs": 36,
+          "winRank": 11,
+          "refsInspected": 36,
+          "refsRanked": 36,
+          "refFeatureCalls": 41,
+          "refFeatureHits": 5,
+          "refFeatureMisses": 36,
+          "sourceFeat": 14.300000071525574,
+          "sourceProbes": 5,
+          "sourceMatch": 73.89999997615814,
+          "distinctEarlyStopRank": -1,
+          "distinctNameStop": true
+        },
+        "miloOrb": [
+          {
+            "contrast": false,
+            "fetch": 152.4999998807907,
+            "queryFeat": 9,
+            "refFeat": 100.40000009536743,
+            "match": 70.39999997615814,
+            "refs": 48,
+            "winRank": 6,
+            "refsInspected": 13,
+            "refsRanked": 10,
+            "refFeatureCalls": 18,
+            "refFeatureHits": 4,
+            "refFeatureMisses": 14,
+            "sourceFeat": 14,
+            "sourceProbes": 4,
+            "sourceMatch": 56.5,
+            "distinctEarlyStopRank": 10,
+            "distinctNameStop": true
+          }
+        ],
+        "blockedNames": []
+      }
+    },
+    {
+      "name": "Key to the City",
+      "sourceFile": "fallback-155.jpg",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "expectedOutcome": "correct",
+      "ai": true,
+      "on": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 2842,
+        "best": {
+          "name": "Key to the City",
+          "set": "kld",
+          "collector_number": "220",
+          "scryfall_id": "66154969-5c69-40ce-8bc9-c9bc5e280d4c",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/6/6/66154969-5c69-40ce-8bc9-c9bc5e280d4c.jpg",
+          "scryfall_uri": "https://scryfall.com/card/kld/220",
+          "distance": 118,
+          "confidence": 0.875,
+          "strategy": "ai-crop-2",
+          "click_inside": true,
+          "click_inliers": 35,
+          "click_art_inliers": 0,
+          "click_text_inliers": 35,
+          "click_half_inliers": [
+            0,
+            35
+          ],
+          "regional_proof": true,
+          "art_inliers": 35,
+          "color_sim": 0.5940482754376717,
+          "ring_sim": 0.8776344590078224,
+          "click_blocked": false,
+          "identified_by": "art-match"
+        },
+        "artBest": {
+          "name": "Key to the City",
+          "inliers": 35,
+          "color": 59,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 35,
+          "clickArtInliers": 0,
+          "clickTextInliers": 35,
+          "clickHalfInliers": [
+            0,
+            35
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.06909136474132538,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.061495158821344376,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 173,
+          "queueMs": 0,
+          "fastMs": 483,
+          "fastHit": false,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 2,
+            "probes": [
+              {
+                "sharpness": 0.04256908595561981,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.0656590387225151,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.05675966665148735,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.05977228656411171,
+                "accepted": false,
+                "reason": "duplicate"
+              }
+            ],
+            "ms": 356,
+            "queueMs": 0
+          },
+          "retryHit": true,
+          "retryMs": 810
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 12,
+          "inferenceMs": 271,
+          "searchMs": 45,
+          "ms": 321,
+          "queueMs": 0,
+          "rescued": false,
+          "totalMs": 1373
+        },
+        "orb": {
+          "fetch": 58.49999988079071,
+          "queryFeat": 3.200000047683716,
+          "refFeat": 171.5,
+          "match": 64.200000166893,
+          "refs": 36,
+          "winRank": 32,
+          "refsInspected": 33,
+          "refsRanked": 33,
+          "refFeatureCalls": 36,
+          "refFeatureHits": 3,
+          "refFeatureMisses": 33,
+          "sourceFeat": 12.700000047683716,
+          "sourceProbes": 3,
+          "sourceMatch": 30.59999990463257,
+          "distinctEarlyStopRank": -1,
+          "distinctNameStop": true
+        },
+        "miloOrb": [],
+        "blockedNames": []
+      },
+      "off": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 2878,
+        "best": {
+          "name": "Key to the City",
+          "set": "kld",
+          "collector_number": "220",
+          "scryfall_id": "66154969-5c69-40ce-8bc9-c9bc5e280d4c",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/6/6/66154969-5c69-40ce-8bc9-c9bc5e280d4c.jpg",
+          "scryfall_uri": "https://scryfall.com/card/kld/220",
+          "distance": 118,
+          "confidence": 0.875,
+          "strategy": "ai-crop-2",
+          "click_inside": true,
+          "click_inliers": 35,
+          "click_art_inliers": 0,
+          "click_text_inliers": 35,
+          "click_half_inliers": [
+            0,
+            35
+          ],
+          "regional_proof": true,
+          "art_inliers": 35,
+          "color_sim": 0.5940482754376717,
+          "ring_sim": 0.8776344590078224,
+          "click_blocked": false,
+          "identified_by": "art-match"
+        },
+        "artBest": {
+          "name": "Key to the City",
+          "inliers": 35,
+          "color": 59,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 35,
+          "clickArtInliers": 0,
+          "clickTextInliers": 35,
+          "clickHalfInliers": [
+            0,
+            35
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.06909136474132538,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.061495158821344376,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 175,
+          "queueMs": 0,
+          "fastMs": 531,
+          "fastHit": false,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 2,
+            "probes": [
+              {
+                "sharpness": 0.04256908595561981,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.0656590387225151,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.05675966665148735,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.05977228656411171,
+                "accepted": false,
+                "reason": "duplicate"
+              }
+            ],
+            "ms": 353,
+            "queueMs": 0
+          },
+          "retryHit": true,
+          "retryMs": 800
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 12,
+          "inferenceMs": 271,
+          "searchMs": 45,
+          "ms": 322,
+          "queueMs": 0,
+          "rescued": false,
+          "totalMs": 1369
+        },
+        "orb": {
+          "fetch": 53.799999952316284,
+          "queryFeat": 3.100000023841858,
+          "refFeat": 172.29999995231628,
+          "match": 67.09999978542328,
+          "refs": 36,
+          "winRank": 32,
+          "refsInspected": 33,
+          "refsRanked": 33,
+          "refFeatureCalls": 36,
+          "refFeatureHits": 3,
+          "refFeatureMisses": 33,
+          "sourceFeat": 12.399999976158142,
+          "sourceProbes": 3,
+          "sourceMatch": 30.100000023841858,
+          "distinctEarlyStopRank": -1,
+          "distinctNameStop": false
+        },
+        "miloOrb": [],
+        "blockedNames": []
+      },
+      "baseline": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 3040,
+        "best": {
+          "name": "Key to the City",
+          "set": "kld",
+          "collector_number": "220",
+          "scryfall_id": "66154969-5c69-40ce-8bc9-c9bc5e280d4c",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/6/6/66154969-5c69-40ce-8bc9-c9bc5e280d4c.jpg",
+          "scryfall_uri": "https://scryfall.com/card/kld/220",
+          "distance": 118,
+          "confidence": 0.875,
+          "strategy": "ai-crop-2",
+          "click_inside": true,
+          "click_inliers": 35,
+          "click_art_inliers": 0,
+          "click_text_inliers": 35,
+          "click_half_inliers": [
+            0,
+            35
+          ],
+          "regional_proof": true,
+          "art_inliers": 35,
+          "color_sim": 0.5940482754376717,
+          "ring_sim": 0.8776344590078224,
+          "click_blocked": false,
+          "identified_by": "art-match"
+        },
+        "artBest": {
+          "name": "Key to the City",
+          "inliers": 35,
+          "color": 59,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 35,
+          "clickArtInliers": 0,
+          "clickTextInliers": 35,
+          "clickHalfInliers": [
+            0,
+            35
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.06909136474132538,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.061495158821344376,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 178,
+          "fastMs": 582,
+          "fastHit": false,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 2,
+            "probes": [
+              {
+                "sharpness": 0.04256908595561981,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.0656590387225151,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.05675966665148735,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.05977228656411171,
+                "accepted": false,
+                "reason": "duplicate"
+              }
+            ],
+            "ms": 354
+          },
+          "retryHit": true,
+          "retryMs": 854
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 12,
+          "inferenceMs": 271,
+          "searchMs": 45,
+          "ms": 322,
+          "rescued": false,
+          "totalMs": 1423
+        },
+        "orb": {
+          "fetch": 107.80000007152557,
+          "queryFeat": 3.3000000715255737,
+          "refFeat": 174.80000030994415,
+          "match": 64.99999988079071,
+          "refs": 36,
+          "winRank": 32
+        },
+        "blockedNames": []
+      }
+    },
+    {
+      "name": "Event: Baxter's Experiments",
+      "sourceFile": "baxter-shared-art-dice.jpg",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.6193040045017879
+      },
+      "expectedOutcome": "correct",
+      "ai": true,
+      "baseline": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 5997,
+        "best": {
+          "name": "Event: Baxter's Experiments",
+          "set": "ttmc",
+          "collector_number": "15",
+          "scryfall_id": "cb231e4d-dbba-4475-a01b-212d83859722",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/c/b/cb231e4d-dbba-4475-a01b-212d83859722.jpg",
+          "scryfall_uri": "https://scryfall.com/card/ttmc/15",
+          "distance": 104,
+          "confidence": 0.9,
+          "strategy": "outline-5",
+          "art_inliers": 13,
+          "color_sim": 0.6615260859107366,
+          "ring_sim": 0.8846217846876243,
+          "click_inliers": 12,
+          "click_art_inliers": 7,
+          "click_text_inliers": 5,
+          "click_half_inliers": [
+            7,
+            5
+          ],
+          "click_inside": null,
+          "click_blocked": false,
+          "shared_artwork": true
+        },
+        "artBest": {
+          "name": "Event: Baxter's Experiments",
+          "inliers": 13,
+          "color": 66,
+          "weak": false,
+          "clickInside": null,
+          "clickInliers": 12,
+          "clickArtInliers": 7,
+          "clickTextInliers": 5,
+          "clickHalfInliers": [
+            7,
+            5
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.04489186406135559,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.057647064328193665,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 179,
+          "fastMs": 341,
+          "fastHit": false,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 2,
+            "probes": [
+              {
+                "sharpness": 0.05848967283964157,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.039903152734041214,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.05279077962040901,
+                "accepted": false,
+                "reason": "duplicate"
+              },
+              {
+                "sharpness": 0.05320409685373306,
+                "accepted": true,
+                "reason": "accepted"
+              }
+            ],
+            "ms": 358,
+            "milo": {
+              "model": "milo1",
+              "status": "ready",
+              "crops": 2,
+              "proposals": 8,
+              "inferenceMs": 553,
+              "searchMs": 92,
+              "ms": 651
+            }
+          },
+          "retryMs": 2307
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 10,
+          "inferenceMs": 548,
+          "searchMs": 93,
+          "ms": 652,
+          "rescued": false,
+          "totalMs": 1420
+        },
+        "orb": {
+          "fetch": 27.100000023841858,
+          "queryFeat": 52.09999990463257,
+          "refFeat": 45.300000071525574,
+          "match": 165.60000026226044,
+          "refs": 55,
+          "winRank": 1
+        },
+        "blockedNames": []
+      },
+      "off": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 5798,
+        "best": {
+          "name": "Event: Baxter's Experiments",
+          "set": "ttmc",
+          "collector_number": "15",
+          "scryfall_id": "cb231e4d-dbba-4475-a01b-212d83859722",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/c/b/cb231e4d-dbba-4475-a01b-212d83859722.jpg",
+          "scryfall_uri": "https://scryfall.com/card/ttmc/15",
+          "distance": 104,
+          "confidence": 0.9,
+          "strategy": "outline-5",
+          "art_inliers": 13,
+          "color_sim": 0.6615260859107366,
+          "ring_sim": 0.8846217846876243,
+          "click_inliers": 12,
+          "click_art_inliers": 7,
+          "click_text_inliers": 5,
+          "click_half_inliers": [
+            7,
+            5
+          ],
+          "click_inside": null,
+          "click_blocked": false,
+          "shared_artwork": true
+        },
+        "artBest": {
+          "name": "Event: Baxter's Experiments",
+          "inliers": 13,
+          "color": 66,
+          "weak": false,
+          "clickInside": null,
+          "clickInliers": 12,
+          "clickArtInliers": 7,
+          "clickTextInliers": 5,
+          "clickHalfInliers": [
+            7,
+            5
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.04489186406135559,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.057647064328193665,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 179,
+          "queueMs": 0,
+          "fastMs": 390,
+          "fastHit": false,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 2,
+            "probes": [
+              {
+                "sharpness": 0.05848967283964157,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.039903152734041214,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.05279077962040901,
+                "accepted": false,
+                "reason": "duplicate"
+              },
+              {
+                "sharpness": 0.05320409685373306,
+                "accepted": true,
+                "reason": "accepted"
+              }
+            ],
+            "ms": 354,
+            "queueMs": 0,
+            "milo": {
+              "model": "milo1",
+              "status": "ready",
+              "crops": 2,
+              "proposals": 8,
+              "inferenceMs": 552,
+              "searchMs": 92,
+              "ms": 650,
+              "queueMs": 0
+            }
+          },
+          "retryMs": 2179
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 10,
+          "inferenceMs": 545,
+          "searchMs": 91,
+          "ms": 641,
+          "queueMs": 0,
+          "rescued": false,
+          "totalMs": 1304
+        },
+        "orb": {
+          "fetch": 29.699999928474426,
+          "queryFeat": 50.39999997615814,
+          "refFeat": 45.299999833106995,
+          "match": 165.60000002384186,
+          "refs": 55,
+          "winRank": 1,
+          "refsInspected": 11,
+          "refsRanked": 10,
+          "refFeatureCalls": 13,
+          "refFeatureHits": 5,
+          "refFeatureMisses": 8,
+          "sourceFeat": 13.600000023841858,
+          "sourceProbes": 3,
+          "sourceMatch": 29.100000023841858,
+          "distinctEarlyStopRank": -1,
+          "distinctNameStop": false
+        },
+        "miloOrb": [],
+        "blockedNames": []
+      },
+      "on": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 6199,
+        "best": {
+          "name": "Event: Baxter's Experiments",
+          "set": "ttmc",
+          "collector_number": "15",
+          "scryfall_id": "cb231e4d-dbba-4475-a01b-212d83859722",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/c/b/cb231e4d-dbba-4475-a01b-212d83859722.jpg",
+          "scryfall_uri": "https://scryfall.com/card/ttmc/15",
+          "distance": 104,
+          "confidence": 0.9,
+          "strategy": "outline-5",
+          "art_inliers": 13,
+          "color_sim": 0.6615260859107366,
+          "ring_sim": 0.8846217846876243,
+          "click_inliers": 12,
+          "click_art_inliers": 7,
+          "click_text_inliers": 5,
+          "click_half_inliers": [
+            7,
+            5
+          ],
+          "click_inside": null,
+          "click_blocked": false,
+          "shared_artwork": true
+        },
+        "artBest": {
+          "name": "Event: Baxter's Experiments",
+          "inliers": 13,
+          "color": 66,
+          "weak": false,
+          "clickInside": null,
+          "clickInliers": 12,
+          "clickArtInliers": 7,
+          "clickTextInliers": 5,
+          "clickHalfInliers": [
+            7,
+            5
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 2,
+          "probes": [
+            {
+              "sharpness": 0.04489186406135559,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.057647064328193665,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 179,
+          "queueMs": 0,
+          "fastMs": 697,
+          "fastHit": false,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 2,
+            "probes": [
+              {
+                "sharpness": 0.05848967283964157,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.039903152734041214,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.05279077962040901,
+                "accepted": false,
+                "reason": "duplicate"
+              },
+              {
+                "sharpness": 0.05320409685373306,
+                "accepted": true,
+                "reason": "accepted"
+              }
+            ],
+            "ms": 359,
+            "queueMs": 0,
+            "milo": {
+              "model": "milo1",
+              "status": "ready",
+              "crops": 2,
+              "proposals": 8,
+              "inferenceMs": 548,
+              "searchMs": 91,
+              "ms": 644,
+              "queueMs": 0
+            }
+          },
+          "retryMs": 2195
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 2,
+          "proposals": 10,
+          "inferenceMs": 550,
+          "searchMs": 93,
+          "ms": 647,
+          "queueMs": 0,
+          "rescued": false,
+          "totalMs": 1379
+        },
+        "orb": {
+          "fetch": 24,
+          "queryFeat": 52.10000002384186,
+          "refFeat": 46.39999985694885,
+          "match": 168.5000001192093,
+          "refs": 55,
+          "winRank": 1,
+          "refsInspected": 11,
+          "refsRanked": 10,
+          "refFeatureCalls": 13,
+          "refFeatureHits": 5,
+          "refFeatureMisses": 8,
+          "sourceFeat": 13.799999952316284,
+          "sourceProbes": 3,
+          "sourceMatch": 30,
+          "distinctEarlyStopRank": -1,
+          "distinctNameStop": true
+        },
+        "miloOrb": [],
+        "blockedNames": []
+      }
+    },
+    {
+      "name": "Kaya, Orzhov Usurper",
+      "sourceFile": "kaya-overlap-weak-retry.jpg",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.44576912608878816
+      },
+      "expectedOutcome": "correct-or-unresolved",
+      "ai": true,
+      "on": {
+        "ok": false,
+        "confidentWrong": false,
+        "ms": 8204,
+        "best": {
+          "name": "Illicit Masquerade",
+          "set": "mkm",
+          "collector_number": "88",
+          "scryfall_id": "2a7a3ec4-afaa-45e1-8cde-f15bf4bd7379",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/2/a/2a7a3ec4-afaa-45e1-8cde-f15bf4bd7379.jpg",
+          "scryfall_uri": "https://scryfall.com/card/mkm/88",
+          "distance": 188,
+          "confidence": 0.3,
+          "strategy": "isolate-sideways-raw-4-35-44-44",
+          "art_inliers": 7,
+          "color_sim": 0.9268657707216335,
+          "click_inliers": 6,
+          "click_art_inliers": 4,
+          "click_text_inliers": 2,
+          "click_half_inliers": [
+            4,
+            2
+          ],
+          "click_inside": null,
+          "click_blocked": false
+        },
+        "artBest": {
+          "name": "Illicit Masquerade",
+          "inliers": 7,
+          "color": 93,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 6,
+          "clickArtInliers": 4,
+          "clickTextInliers": 2,
+          "clickHalfInliers": [
+            4,
+            2
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.03072667308151722,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.033911533653736115,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 177,
+          "queueMs": 0,
+          "fastMs": 561,
+          "fastHit": false,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 2,
+            "probes": [
+              {
+                "sharpness": 0.02231588400900364,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.04319758340716362,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.05219775438308716,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.04269428923726082,
+                "accepted": true,
+                "reason": "accepted"
+              }
+            ],
+            "ms": 352,
+            "queueMs": 0
+          },
+          "retryMs": 1019
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 12,
+          "inferenceMs": 274,
+          "searchMs": 45,
+          "ms": 324,
+          "queueMs": 0,
+          "speculative": true,
+          "rescued": false,
+          "totalMs": 1018
+        },
+        "orb": {
+          "fetch": 118.00000011920929,
+          "queryFeat": 56,
+          "refFeat": 334.50000035762787,
+          "match": 1196.5999997854233,
+          "refs": 60,
+          "winRank": 3,
+          "refsInspected": 60,
+          "refsRanked": 60,
+          "refFeatureCalls": 73,
+          "refFeatureHits": 23,
+          "refFeatureMisses": 50,
+          "sourceFeat": 17.199999928474426,
+          "sourceProbes": 5,
+          "sourceMatch": 52.199999928474426,
+          "distinctEarlyStopRank": -1,
+          "distinctNameStop": true
+        },
+        "miloOrb": [],
+        "blockedNames": []
+      },
+      "off": {
+        "ok": false,
+        "confidentWrong": false,
+        "ms": 8460,
+        "best": {
+          "name": "Illicit Masquerade",
+          "set": "mkm",
+          "collector_number": "88",
+          "scryfall_id": "2a7a3ec4-afaa-45e1-8cde-f15bf4bd7379",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/2/a/2a7a3ec4-afaa-45e1-8cde-f15bf4bd7379.jpg",
+          "scryfall_uri": "https://scryfall.com/card/mkm/88",
+          "distance": 188,
+          "confidence": 0.3,
+          "strategy": "isolate-sideways-raw-4-35-44-44",
+          "art_inliers": 7,
+          "color_sim": 0.9268657707216335,
+          "click_inliers": 6,
+          "click_art_inliers": 4,
+          "click_text_inliers": 2,
+          "click_half_inliers": [
+            4,
+            2
+          ],
+          "click_inside": null,
+          "click_blocked": false
+        },
+        "artBest": {
+          "name": "Illicit Masquerade",
+          "inliers": 7,
+          "color": 93,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 6,
+          "clickArtInliers": 4,
+          "clickTextInliers": 2,
+          "clickHalfInliers": [
+            4,
+            2
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.03072667308151722,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.033911533653736115,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 181,
+          "queueMs": 0,
+          "fastMs": 806,
+          "fastHit": false,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 2,
+            "probes": [
+              {
+                "sharpness": 0.02231588400900364,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.04319758340716362,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.05219775438308716,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.04269428923726082,
+                "accepted": true,
+                "reason": "accepted"
+              }
+            ],
+            "ms": 358,
+            "queueMs": 0
+          },
+          "retryMs": 1083
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 12,
+          "inferenceMs": 276,
+          "searchMs": 46,
+          "ms": 327,
+          "queueMs": 0,
+          "speculative": true,
+          "rescued": false,
+          "totalMs": 1027
+        },
+        "orb": {
+          "fetch": 34.700000166893005,
+          "queryFeat": 56,
+          "refFeat": 333.19999980926514,
+          "match": 1198.5000002384186,
+          "refs": 60,
+          "winRank": 3,
+          "refsInspected": 60,
+          "refsRanked": 60,
+          "refFeatureCalls": 73,
+          "refFeatureHits": 23,
+          "refFeatureMisses": 50,
+          "sourceFeat": 16.699999928474426,
+          "sourceProbes": 5,
+          "sourceMatch": 52.700000047683716,
+          "distinctEarlyStopRank": -1,
+          "distinctNameStop": false
+        },
+        "miloOrb": [],
+        "blockedNames": []
+      },
+      "baseline": {
+        "ok": false,
+        "confidentWrong": false,
+        "ms": 8322,
+        "best": {
+          "name": "Illicit Masquerade",
+          "set": "mkm",
+          "collector_number": "88",
+          "scryfall_id": "2a7a3ec4-afaa-45e1-8cde-f15bf4bd7379",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/2/a/2a7a3ec4-afaa-45e1-8cde-f15bf4bd7379.jpg",
+          "scryfall_uri": "https://scryfall.com/card/mkm/88",
+          "distance": 188,
+          "confidence": 0.3,
+          "strategy": "isolate-sideways-raw-4-35-44-44",
+          "art_inliers": 7,
+          "color_sim": 0.9268657707216335,
+          "click_inliers": 6,
+          "click_art_inliers": 4,
+          "click_text_inliers": 2,
+          "click_half_inliers": [
+            4,
+            2
+          ],
+          "click_inside": null,
+          "click_blocked": false
+        },
+        "artBest": {
+          "name": "Illicit Masquerade",
+          "inliers": 7,
+          "color": 93,
+          "weak": true,
+          "clickInside": null,
+          "clickInliers": 6,
+          "clickArtInliers": 4,
+          "clickTextInliers": 2,
+          "clickHalfInliers": [
+            4,
+            2
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.03072667308151722,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.033911533653736115,
+              "accepted": true,
+              "reason": "accepted"
+            }
+          ],
+          "ms": 181,
+          "fastMs": 843,
+          "fastHit": false,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 2,
+            "probes": [
+              {
+                "sharpness": 0.02231588400900364,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.04319758340716362,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.05219775438308716,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.04269428923726082,
+                "accepted": true,
+                "reason": "accepted"
+              }
+            ],
+            "ms": 353
+          },
+          "retryMs": 974
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 12,
+          "inferenceMs": 276,
+          "searchMs": 47,
+          "ms": 334,
+          "speculative": true,
+          "rescued": false,
+          "totalMs": 1033
+        },
+        "orb": {
+          "fetch": 36.39999997615814,
+          "queryFeat": 56.39999997615814,
+          "refFeat": 333.2999999523163,
+          "match": 1187.4999997615814,
+          "refs": 60,
+          "winRank": 3
+        },
+        "blockedNames": []
+      }
+    },
+    {
+      "name": "Whirlwing Stormbrood",
+      "sourceFile": "whirlwing-art-series.jpg",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "expectedOutcome": "correct-or-unresolved",
+      "ai": true,
+      "baseline": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 1819,
+        "best": {
+          "name": "Whirlwing Stormbrood",
+          "set": "atdm",
+          "collector_number": "27",
+          "scryfall_id": "91e81f3a-6901-42dc-9c87-55419941101e",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/9/1/91e81f3a-6901-42dc-9c87-55419941101e.jpg",
+          "scryfall_uri": "https://scryfall.com/card/atdm/27",
+          "distance": 51,
+          "confidence": 0.69,
+          "strategy": "outline-4",
+          "click_inside": false,
+          "click_inliers": 186,
+          "click_art_inliers": 80,
+          "click_text_inliers": 95,
+          "click_half_inliers": [
+            48,
+            138
+          ],
+          "regional_proof": true,
+          "art_inliers": 186,
+          "color_sim": 0.9398969773137651,
+          "ring_sim": 0.8567572031461168,
+          "click_blocked": false
+        },
+        "artBest": {
+          "name": "Whirlwing Stormbrood",
+          "inliers": 186,
+          "color": 94,
+          "weak": true,
+          "clickInside": false,
+          "clickInliers": 186,
+          "clickArtInliers": 80,
+          "clickTextInliers": 95,
+          "clickHalfInliers": [
+            48,
+            138
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.01899079605937004,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.02034686505794525,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            }
+          ],
+          "ms": 178,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.007755131460726261,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.03624216467142105,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.016207322478294373,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.015456104651093483,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 356
+          },
+          "retryMs": 357
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "orb": {
+          "fetch": 129.5,
+          "queryFeat": 16.700000047683716,
+          "refFeat": 60.299999833106995,
+          "match": 93.80000007152557,
+          "refs": 36,
+          "winRank": 0
+        },
+        "blockedNames": []
+      },
+      "off": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 1939,
+        "best": {
+          "name": "Whirlwing Stormbrood",
+          "set": "atdm",
+          "collector_number": "27",
+          "scryfall_id": "91e81f3a-6901-42dc-9c87-55419941101e",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/9/1/91e81f3a-6901-42dc-9c87-55419941101e.jpg",
+          "scryfall_uri": "https://scryfall.com/card/atdm/27",
+          "distance": 51,
+          "confidence": 0.69,
+          "strategy": "outline-4",
+          "click_inside": false,
+          "click_inliers": 186,
+          "click_art_inliers": 80,
+          "click_text_inliers": 95,
+          "click_half_inliers": [
+            48,
+            138
+          ],
+          "regional_proof": true,
+          "art_inliers": 186,
+          "color_sim": 0.9398969773137651,
+          "ring_sim": 0.8567572031461168,
+          "click_blocked": false
+        },
+        "artBest": {
+          "name": "Whirlwing Stormbrood",
+          "inliers": 186,
+          "color": 94,
+          "weak": true,
+          "clickInside": false,
+          "clickInliers": 186,
+          "clickArtInliers": 80,
+          "clickTextInliers": 95,
+          "clickHalfInliers": [
+            48,
+            138
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.01899079605937004,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.02034686505794525,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            }
+          ],
+          "ms": 177,
+          "queueMs": 0,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.007755131460726261,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.03624216467142105,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.016207322478294373,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.015456104651093483,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 362,
+            "queueMs": 0
+          },
+          "retryMs": 362
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "orb": {
+          "fetch": 240.19999992847443,
+          "queryFeat": 17.200000047683716,
+          "refFeat": 63.90000009536743,
+          "match": 101.00000011920929,
+          "refs": 36,
+          "winRank": 0,
+          "refsInspected": 10,
+          "refsRanked": 10,
+          "refFeatureCalls": 14,
+          "refFeatureHits": 4,
+          "refFeatureMisses": 10,
+          "sourceFeat": 12.100000023841858,
+          "sourceProbes": 2,
+          "sourceMatch": 11.300000071525574,
+          "distinctEarlyStopRank": -1,
+          "distinctNameStop": false
+        },
+        "miloOrb": [],
+        "blockedNames": []
+      },
+      "on": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 2075,
+        "best": {
+          "name": "Whirlwing Stormbrood",
+          "set": "atdm",
+          "collector_number": "27",
+          "scryfall_id": "91e81f3a-6901-42dc-9c87-55419941101e",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/9/1/91e81f3a-6901-42dc-9c87-55419941101e.jpg",
+          "scryfall_uri": "https://scryfall.com/card/atdm/27",
+          "distance": 51,
+          "confidence": 0.69,
+          "strategy": "outline-4",
+          "click_inside": false,
+          "click_inliers": 186,
+          "click_art_inliers": 80,
+          "click_text_inliers": 95,
+          "click_half_inliers": [
+            48,
+            138
+          ],
+          "regional_proof": true,
+          "art_inliers": 186,
+          "color_sim": 0.9398969773137651,
+          "ring_sim": 0.8567572031461168,
+          "click_blocked": false
+        },
+        "artBest": {
+          "name": "Whirlwing Stormbrood",
+          "inliers": 186,
+          "color": 94,
+          "weak": true,
+          "clickInside": false,
+          "clickInliers": 186,
+          "clickArtInliers": 80,
+          "clickTextInliers": 95,
+          "clickHalfInliers": [
+            48,
+            138
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.01899079605937004,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.02034686505794525,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            }
+          ],
+          "ms": 177,
+          "queueMs": 0,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 0,
+            "probes": [
+              {
+                "sharpness": 0.007755131460726261,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.03624216467142105,
+                "accepted": false,
+                "reason": "geometry-or-click"
+              },
+              {
+                "sharpness": 0.016207322478294373,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.015456104651093483,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 353,
+            "queueMs": 0
+          },
+          "retryMs": 354
+        },
+        "milo": {
+          "status": "skipped"
+        },
+        "orb": {
+          "fetch": 330.19999980926514,
+          "queryFeat": 17.200000047683716,
+          "refFeat": 67.39999997615814,
+          "match": 105.39999997615814,
+          "refs": 36,
+          "winRank": 0,
+          "refsInspected": 10,
+          "refsRanked": 10,
+          "refFeatureCalls": 14,
+          "refFeatureHits": 4,
+          "refFeatureMisses": 10,
+          "sourceFeat": 12,
+          "sourceProbes": 2,
+          "sourceMatch": 11,
+          "distinctEarlyStopRank": -1,
+          "distinctNameStop": true
+        },
+        "miloOrb": [],
+        "blockedNames": []
+      }
+    },
+    {
+      "name": "Royal // Virtuous",
+      "sourceFile": "000.jpg",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.1657086515710495
+      },
+      "expectedOutcome": "correct-or-unresolved",
+      "ai": true,
+      "on": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 970,
+        "best": {
+          "name": "Royal // Virtuous",
+          "set": "twoc",
+          "collector_number": "2",
+          "scryfall_id": "ce7ac41f-ea0e-46b5-bab4-be1a4e451524",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/c/e/ce7ac41f-ea0e-46b5-bab4-be1a4e451524.jpg",
+          "scryfall_uri": "https://scryfall.com/card/twoc/2",
+          "distance": 174,
+          "confidence": 1,
+          "strategy": "milo",
+          "milo_retrieval": true,
+          "milo_highres": true,
+          "ai_supplement": true,
+          "identified_by": "art-match",
+          "art_inliers": 110,
+          "color_sim": 0.9549430012702942,
+          "ring_sim": 0.9637525495199952,
+          "click_inside": true,
+          "click_inliers": 110,
+          "click_art_inliers": 51,
+          "click_text_inliers": 59,
+          "click_half_inliers": [
+            46,
+            64
+          ],
+          "click_blocked": false,
+          "regional_proof": true,
+          "shared_artwork": true
+        },
+        "artBest": {
+          "name": "Royal // Virtuous",
+          "inliers": 110,
+          "color": 95,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 110,
+          "clickArtInliers": 51,
+          "clickTextInliers": 59,
+          "clickHalfInliers": [
+            46,
+            64
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.04667104780673981,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.06432083249092102,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 174,
+          "queueMs": 0,
+          "fastMs": 253,
+          "fastHit": false
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 8,
+          "inferenceMs": 276,
+          "searchMs": 46,
+          "ms": 326,
+          "queueMs": 0,
+          "speculative": true,
+          "rescued": true,
+          "totalMs": 541
+        },
+        "orb": {
+          "fetch": 76.200000166893,
+          "queryFeat": 4,
+          "refFeat": 64.30000007152557,
+          "match": 27.699999928474426,
+          "refs": 36,
+          "winRank": 13,
+          "refsInspected": 14,
+          "refsRanked": 14,
+          "refFeatureCalls": 15,
+          "refFeatureHits": 1,
+          "refFeatureMisses": 14,
+          "sourceFeat": 13.699999928474426,
+          "sourceProbes": 1,
+          "sourceMatch": 7.899999976158142,
+          "distinctEarlyStopRank": -1,
+          "distinctNameStop": true
+        },
+        "miloOrb": [
+          {
+            "contrast": false,
+            "fetch": 108.39999997615814,
+            "queryFeat": 3.899999976158142,
+            "refFeat": 153.60000038146973,
+            "match": 105.39999973773956,
+            "refs": 43,
+            "winRank": 0,
+            "refsInspected": 43,
+            "refsRanked": 43,
+            "refFeatureCalls": 53,
+            "refFeatureHits": 20,
+            "refFeatureMisses": 33,
+            "sourceFeat": 13.700000047683716,
+            "sourceProbes": 1,
+            "sourceMatch": 15.5,
+            "distinctEarlyStopRank": -1,
+            "distinctNameStop": true
+          }
+        ],
+        "blockedNames": []
+      },
+      "off": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 953,
+        "best": {
+          "name": "Royal // Virtuous",
+          "set": "twoc",
+          "collector_number": "2",
+          "scryfall_id": "ce7ac41f-ea0e-46b5-bab4-be1a4e451524",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/c/e/ce7ac41f-ea0e-46b5-bab4-be1a4e451524.jpg",
+          "scryfall_uri": "https://scryfall.com/card/twoc/2",
+          "distance": 174,
+          "confidence": 1,
+          "strategy": "milo",
+          "milo_retrieval": true,
+          "milo_highres": true,
+          "ai_supplement": true,
+          "identified_by": "art-match",
+          "art_inliers": 110,
+          "color_sim": 0.9549430012702942,
+          "ring_sim": 0.9637525495199952,
+          "click_inside": true,
+          "click_inliers": 110,
+          "click_art_inliers": 51,
+          "click_text_inliers": 59,
+          "click_half_inliers": [
+            46,
+            64
+          ],
+          "click_blocked": false,
+          "regional_proof": true,
+          "shared_artwork": true
+        },
+        "artBest": {
+          "name": "Royal // Virtuous",
+          "inliers": 110,
+          "color": 95,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 110,
+          "clickArtInliers": 51,
+          "clickTextInliers": 59,
+          "clickHalfInliers": [
+            46,
+            64
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.04667104780673981,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.06432083249092102,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 177,
+          "queueMs": 0,
+          "fastMs": 311,
+          "fastHit": false
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 8,
+          "inferenceMs": 278,
+          "searchMs": 45,
+          "ms": 327,
+          "queueMs": 0,
+          "speculative": true,
+          "rescued": true,
+          "totalMs": 463
+        },
+        "orb": {
+          "fetch": 132.60000014305115,
+          "queryFeat": 4.100000023841858,
+          "refFeat": 64.09999978542328,
+          "match": 28.600000143051147,
+          "refs": 36,
+          "winRank": 13,
+          "refsInspected": 14,
+          "refsRanked": 14,
+          "refFeatureCalls": 15,
+          "refFeatureHits": 1,
+          "refFeatureMisses": 14,
+          "sourceFeat": 13.700000047683716,
+          "sourceProbes": 1,
+          "sourceMatch": 7.599999904632568,
+          "distinctEarlyStopRank": -1,
+          "distinctNameStop": false
+        },
+        "miloOrb": [
+          {
+            "contrast": false,
+            "fetch": 88.79999995231628,
+            "queryFeat": 4.100000023841858,
+            "refFeat": 154.09999978542328,
+            "match": 102.19999992847443,
+            "refs": 43,
+            "winRank": 0,
+            "refsInspected": 43,
+            "refsRanked": 43,
+            "refFeatureCalls": 53,
+            "refFeatureHits": 20,
+            "refFeatureMisses": 33,
+            "sourceFeat": 13.700000047683716,
+            "sourceProbes": 1,
+            "sourceMatch": 15.599999904632568,
+            "distinctEarlyStopRank": -1,
+            "distinctNameStop": false
+          }
+        ],
+        "blockedNames": []
+      },
+      "baseline": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 913,
+        "best": {
+          "name": "Royal // Virtuous",
+          "set": "twoc",
+          "collector_number": "2",
+          "scryfall_id": "ce7ac41f-ea0e-46b5-bab4-be1a4e451524",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/c/e/ce7ac41f-ea0e-46b5-bab4-be1a4e451524.jpg",
+          "scryfall_uri": "https://scryfall.com/card/twoc/2",
+          "distance": 174,
+          "confidence": 1,
+          "strategy": "milo",
+          "milo_retrieval": true,
+          "milo_highres": true,
+          "ai_supplement": true,
+          "identified_by": "art-match",
+          "art_inliers": 110,
+          "color_sim": 0.9549430012702942,
+          "ring_sim": 0.9637525495199952,
+          "click_inside": true,
+          "click_inliers": 110,
+          "click_art_inliers": 51,
+          "click_text_inliers": 59,
+          "click_half_inliers": [
+            46,
+            64
+          ],
+          "click_blocked": false,
+          "regional_proof": true,
+          "shared_artwork": true
+        },
+        "artBest": {
+          "name": "Royal // Virtuous",
+          "inliers": 110,
+          "color": 95,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 110,
+          "clickArtInliers": 51,
+          "clickTextInliers": 59,
+          "clickHalfInliers": [
+            46,
+            64
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.04667104780673981,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.06432083249092102,
+              "accepted": false,
+              "reason": "duplicate"
+            }
+          ],
+          "ms": 177,
+          "fastMs": 274,
+          "fastHit": false
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 8,
+          "inferenceMs": 271,
+          "searchMs": 46,
+          "ms": 322,
+          "speculative": true,
+          "rescued": true,
+          "totalMs": 460
+        },
+        "orb": {
+          "fetch": 95.90000009536743,
+          "queryFeat": 3.9000000953674316,
+          "refFeat": 64.29999947547913,
+          "match": 27.800000071525574,
+          "refs": 36,
+          "winRank": 13
+        },
+        "blockedNames": []
+      }
+    },
+    {
+      "name": "Bebop, Porcine Punk",
+      "sourceFile": "000.jpg",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "expectedOutcome": "correct-or-unresolved",
+      "ai": true,
+      "baseline": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 2989,
+        "best": {
+          "name": "Bebop, Porcine Punk",
+          "set": "ttmc",
+          "collector_number": "5",
+          "scryfall_id": "66acff08-ba29-4785-8d10-127d023a055e",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/6/6/66acff08-ba29-4785-8d10-127d023a055e.jpg",
+          "scryfall_uri": "https://scryfall.com/card/ttmc/5",
+          "distance": 262,
+          "confidence": 1,
+          "strategy": "milo",
+          "milo_retrieval": true,
+          "milo_highres": false,
+          "ai_supplement": true,
+          "identified_by": "art-match",
+          "art_inliers": 41,
+          "color_sim": 0.7048016600310802,
+          "ring_sim": 0.9231877447964507,
+          "click_inside": true,
+          "click_inliers": 41,
+          "click_art_inliers": 41,
+          "click_text_inliers": 0,
+          "click_half_inliers": [
+            41,
+            0
+          ],
+          "click_blocked": false,
+          "regional_proof": true
+        },
+        "artBest": {
+          "name": "Bebop, Porcine Punk",
+          "inliers": 41,
+          "color": 70,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 41,
+          "clickArtInliers": 41,
+          "clickTextInliers": 0,
+          "clickHalfInliers": [
+            41,
+            0
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.052102990448474884,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.012534558773040771,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 180,
+          "fastMs": 343,
+          "fastHit": false,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 1,
+            "probes": [
+              {
+                "sharpness": 0.010023999959230423,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.028076600283384323,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.013412443920969963,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.01772943139076233,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 350,
+            "milo": {
+              "model": "milo1",
+              "status": "ready",
+              "crops": 1,
+              "proposals": 12,
+              "inferenceMs": 276,
+              "searchMs": 45,
+              "ms": 326
+            }
+          },
+          "retryHit": true,
+          "retryMs": 1530
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 12,
+          "inferenceMs": 273,
+          "searchMs": 45,
+          "ms": 323,
+          "rescued": true,
+          "totalMs": 935,
+          "retry": true
+        },
+        "orb": {
+          "fetch": 74.29999995231628,
+          "queryFeat": 8.299999952316284,
+          "refFeat": 214.00000023841858,
+          "match": 91.49999988079071,
+          "refs": 36,
+          "winRank": 4
+        },
+        "blockedNames": []
+      },
+      "off": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 3007,
+        "best": {
+          "name": "Bebop, Porcine Punk",
+          "set": "ttmc",
+          "collector_number": "5",
+          "scryfall_id": "66acff08-ba29-4785-8d10-127d023a055e",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/6/6/66acff08-ba29-4785-8d10-127d023a055e.jpg",
+          "scryfall_uri": "https://scryfall.com/card/ttmc/5",
+          "distance": 262,
+          "confidence": 1,
+          "strategy": "milo",
+          "milo_retrieval": true,
+          "milo_highres": false,
+          "ai_supplement": true,
+          "identified_by": "art-match",
+          "art_inliers": 41,
+          "color_sim": 0.7048016600310802,
+          "ring_sim": 0.9231877447964507,
+          "click_inside": true,
+          "click_inliers": 41,
+          "click_art_inliers": 41,
+          "click_text_inliers": 0,
+          "click_half_inliers": [
+            41,
+            0
+          ],
+          "click_blocked": false,
+          "regional_proof": true
+        },
+        "artBest": {
+          "name": "Bebop, Porcine Punk",
+          "inliers": 41,
+          "color": 70,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 41,
+          "clickArtInliers": 41,
+          "clickTextInliers": 0,
+          "clickHalfInliers": [
+            41,
+            0
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.052102990448474884,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.012534558773040771,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 182,
+          "queueMs": 0,
+          "fastMs": 376,
+          "fastHit": false,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 1,
+            "probes": [
+              {
+                "sharpness": 0.010023999959230423,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.028076600283384323,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.013412443920969963,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.01772943139076233,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 359,
+            "queueMs": 0,
+            "milo": {
+              "model": "milo1",
+              "status": "ready",
+              "crops": 1,
+              "proposals": 12,
+              "inferenceMs": 275,
+              "searchMs": 45,
+              "ms": 326,
+              "queueMs": 0
+            }
+          },
+          "retryHit": true,
+          "retryMs": 1519
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 12,
+          "inferenceMs": 270,
+          "searchMs": 45,
+          "ms": 320,
+          "queueMs": 0,
+          "rescued": true,
+          "totalMs": 929,
+          "retry": true
+        },
+        "orb": {
+          "fetch": 66.89999997615814,
+          "queryFeat": 7.899999976158142,
+          "refFeat": 213.49999976158142,
+          "match": 90.39999985694885,
+          "refs": 36,
+          "winRank": 4,
+          "refsInspected": 36,
+          "refsRanked": 36,
+          "refFeatureCalls": 42,
+          "refFeatureHits": 7,
+          "refFeatureMisses": 35,
+          "sourceFeat": 17.600000023841858,
+          "sourceProbes": 6,
+          "sourceMatch": 63.799999952316284,
+          "distinctEarlyStopRank": -1,
+          "distinctNameStop": false
+        },
+        "miloOrb": [
+          {
+            "contrast": false,
+            "fetch": 86.60000002384186,
+            "queryFeat": 7.899999976158142,
+            "refFeat": 93.5,
+            "match": 37.799999952316284,
+            "refs": 48,
+            "winRank": 0,
+            "refsInspected": 14,
+            "refsRanked": 10,
+            "refFeatureCalls": 20,
+            "refFeatureHits": 6,
+            "refFeatureMisses": 14,
+            "sourceFeat": 17.700000047683716,
+            "sourceProbes": 5,
+            "sourceMatch": 55.5,
+            "distinctEarlyStopRank": -1,
+            "distinctNameStop": false
+          }
+        ],
+        "blockedNames": []
+      },
+      "on": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 3204,
+        "best": {
+          "name": "Bebop, Porcine Punk",
+          "set": "ttmc",
+          "collector_number": "5",
+          "scryfall_id": "66acff08-ba29-4785-8d10-127d023a055e",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/6/6/66acff08-ba29-4785-8d10-127d023a055e.jpg",
+          "scryfall_uri": "https://scryfall.com/card/ttmc/5",
+          "distance": 262,
+          "confidence": 1,
+          "strategy": "milo",
+          "milo_retrieval": true,
+          "milo_highres": false,
+          "ai_supplement": true,
+          "identified_by": "art-match",
+          "art_inliers": 41,
+          "color_sim": 0.7048016600310802,
+          "ring_sim": 0.9231877447964507,
+          "click_inside": true,
+          "click_inliers": 41,
+          "click_art_inliers": 41,
+          "click_text_inliers": 0,
+          "click_half_inliers": [
+            41,
+            0
+          ],
+          "click_blocked": false,
+          "regional_proof": true
+        },
+        "artBest": {
+          "name": "Bebop, Porcine Punk",
+          "inliers": 41,
+          "color": 70,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 41,
+          "clickArtInliers": 41,
+          "clickTextInliers": 0,
+          "clickHalfInliers": [
+            41,
+            0
+          ]
+        },
+        "ai": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 1,
+          "probes": [
+            {
+              "sharpness": 0.052102990448474884,
+              "accepted": true,
+              "reason": "accepted"
+            },
+            {
+              "sharpness": 0.012534558773040771,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 179,
+          "queueMs": 0,
+          "fastMs": 458,
+          "fastHit": false,
+          "retry": {
+            "model": "cornelius-2.12",
+            "status": "ready",
+            "proposals": 1,
+            "probes": [
+              {
+                "sharpness": 0.010023999959230423,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.028076600283384323,
+                "accepted": true,
+                "reason": "accepted"
+              },
+              {
+                "sharpness": 0.013412443920969963,
+                "accepted": false,
+                "reason": "weak"
+              },
+              {
+                "sharpness": 0.01772943139076233,
+                "accepted": false,
+                "reason": "weak"
+              }
+            ],
+            "ms": 351,
+            "queueMs": 0,
+            "milo": {
+              "model": "milo1",
+              "status": "ready",
+              "crops": 1,
+              "proposals": 12,
+              "inferenceMs": 273,
+              "searchMs": 45,
+              "ms": 323,
+              "queueMs": 0
+            }
+          },
+          "retryHit": true,
+          "retryMs": 1606
+        },
+        "milo": {
+          "model": "milo1",
+          "status": "ready",
+          "crops": 1,
+          "proposals": 12,
+          "inferenceMs": 274,
+          "searchMs": 46,
+          "ms": 326,
+          "queueMs": 0,
+          "rescued": true,
+          "totalMs": 959,
+          "retry": true
+        },
+        "orb": {
+          "fetch": 87.799999833107,
+          "queryFeat": 8.200000047683716,
+          "refFeat": 209.79999947547913,
+          "match": 90.40000021457672,
+          "refs": 36,
+          "winRank": 4,
+          "refsInspected": 36,
+          "refsRanked": 36,
+          "refFeatureCalls": 42,
+          "refFeatureHits": 7,
+          "refFeatureMisses": 35,
+          "sourceFeat": 17.5,
+          "sourceProbes": 6,
+          "sourceMatch": 64.39999997615814,
+          "distinctEarlyStopRank": -1,
+          "distinctNameStop": true
+        },
+        "miloOrb": [
+          {
+            "contrast": false,
+            "fetch": 159.5,
+            "queryFeat": 8,
+            "refFeat": 99.59999966621399,
+            "match": 39.200000166893005,
+            "refs": 48,
+            "winRank": 0,
+            "refsInspected": 14,
+            "refsRanked": 10,
+            "refFeatureCalls": 20,
+            "refFeatureHits": 6,
+            "refFeatureMisses": 14,
+            "sourceFeat": 17.199999928474426,
+            "sourceProbes": 5,
+            "sourceMatch": 54.60000002384186,
+            "distinctEarlyStopRank": -1,
+            "distinctNameStop": true
+          }
+        ],
+        "blockedNames": []
+      }
+    },
+    {
+      "name": "Event: Baxter's Experiments",
+      "sourceFile": "baxter-shared-art-dice.jpg",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.6193040045017879
+      },
+      "expectedOutcome": "correct",
+      "ai": false,
+      "on": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 1706,
+        "best": {
+          "name": "Event: Baxter's Experiments",
+          "set": "ttmc",
+          "collector_number": "15",
+          "scryfall_id": "cb231e4d-dbba-4475-a01b-212d83859722",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/c/b/cb231e4d-dbba-4475-a01b-212d83859722.jpg",
+          "scryfall_uri": "https://scryfall.com/card/ttmc/15",
+          "distance": 104,
+          "confidence": 0.9,
+          "strategy": "outline-5",
+          "art_inliers": 12,
+          "color_sim": 0.6615260859107366,
+          "ring_sim": 0.8846217846876243,
+          "click_inliers": 12,
+          "click_art_inliers": 7,
+          "click_text_inliers": 5,
+          "click_half_inliers": [
+            7,
+            5
+          ],
+          "click_inside": null,
+          "click_blocked": false,
+          "shared_artwork": true
+        },
+        "artBest": {
+          "name": "Event: Baxter's Experiments",
+          "inliers": 12,
+          "color": 66,
+          "weak": false,
+          "clickInside": null,
+          "clickInliers": 12,
+          "clickArtInliers": 7,
+          "clickTextInliers": 5,
+          "clickHalfInliers": [
+            7,
+            5
+          ]
+        },
+        "ai": {
+          "status": "off"
+        },
+        "milo": {
+          "status": "off"
+        },
+        "orb": {
+          "fetch": 6.099999904632568,
+          "queryFeat": 45.200000047683716,
+          "refFeat": 57.40000021457672,
+          "match": 130.299999833107,
+          "refs": 36,
+          "winRank": 1,
+          "refsInspected": 11,
+          "refsRanked": 10,
+          "refFeatureCalls": 13,
+          "refFeatureHits": 2,
+          "refFeatureMisses": 11,
+          "sourceFeat": 14.199999928474426,
+          "sourceProbes": 3,
+          "sourceMatch": 26.00000011920929,
+          "distinctEarlyStopRank": -1,
+          "distinctNameStop": true
+        },
+        "miloOrb": [],
+        "blockedNames": []
+      },
+      "off": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 1705,
+        "best": {
+          "name": "Event: Baxter's Experiments",
+          "set": "ttmc",
+          "collector_number": "15",
+          "scryfall_id": "cb231e4d-dbba-4475-a01b-212d83859722",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/c/b/cb231e4d-dbba-4475-a01b-212d83859722.jpg",
+          "scryfall_uri": "https://scryfall.com/card/ttmc/15",
+          "distance": 104,
+          "confidence": 0.9,
+          "strategy": "outline-5",
+          "art_inliers": 12,
+          "color_sim": 0.6615260859107366,
+          "ring_sim": 0.8846217846876243,
+          "click_inliers": 12,
+          "click_art_inliers": 7,
+          "click_text_inliers": 5,
+          "click_half_inliers": [
+            7,
+            5
+          ],
+          "click_inside": null,
+          "click_blocked": false,
+          "shared_artwork": true
+        },
+        "artBest": {
+          "name": "Event: Baxter's Experiments",
+          "inliers": 12,
+          "color": 66,
+          "weak": false,
+          "clickInside": null,
+          "clickInliers": 12,
+          "clickArtInliers": 7,
+          "clickTextInliers": 5,
+          "clickHalfInliers": [
+            7,
+            5
+          ]
+        },
+        "ai": {
+          "status": "off"
+        },
+        "milo": {
+          "status": "off"
+        },
+        "orb": {
+          "fetch": 4.399999976158142,
+          "queryFeat": 44.89999997615814,
+          "refFeat": 58.50000035762787,
+          "match": 129.9999998807907,
+          "refs": 36,
+          "winRank": 1,
+          "refsInspected": 11,
+          "refsRanked": 10,
+          "refFeatureCalls": 13,
+          "refFeatureHits": 2,
+          "refFeatureMisses": 11,
+          "sourceFeat": 13.699999928474426,
+          "sourceProbes": 3,
+          "sourceMatch": 26,
+          "distinctEarlyStopRank": -1,
+          "distinctNameStop": false
+        },
+        "miloOrb": [],
+        "blockedNames": []
+      },
+      "baseline": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 1666,
+        "best": {
+          "name": "Event: Baxter's Experiments",
+          "set": "ttmc",
+          "collector_number": "15",
+          "scryfall_id": "cb231e4d-dbba-4475-a01b-212d83859722",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/c/b/cb231e4d-dbba-4475-a01b-212d83859722.jpg",
+          "scryfall_uri": "https://scryfall.com/card/ttmc/15",
+          "distance": 104,
+          "confidence": 0.9,
+          "strategy": "outline-5",
+          "art_inliers": 12,
+          "color_sim": 0.6615260859107366,
+          "ring_sim": 0.8846217846876243,
+          "click_inliers": 12,
+          "click_art_inliers": 7,
+          "click_text_inliers": 5,
+          "click_half_inliers": [
+            7,
+            5
+          ],
+          "click_inside": null,
+          "click_blocked": false,
+          "shared_artwork": true
+        },
+        "artBest": {
+          "name": "Event: Baxter's Experiments",
+          "inliers": 12,
+          "color": 66,
+          "weak": false,
+          "clickInside": null,
+          "clickInliers": 12,
+          "clickArtInliers": 7,
+          "clickTextInliers": 5,
+          "clickHalfInliers": [
+            7,
+            5
+          ]
+        },
+        "ai": {
+          "status": "off"
+        },
+        "milo": {
+          "status": "off"
+        },
+        "orb": {
+          "fetch": 6.5,
+          "queryFeat": 45.39999997615814,
+          "refFeat": 57.199999928474426,
+          "match": 127.09999990463257,
+          "refs": 36,
+          "winRank": 1
+        },
+        "blockedNames": []
+      }
+    },
+    {
+      "name": "Whirlwing Stormbrood",
+      "sourceFile": "whirlwing-art-series.jpg",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "expectedOutcome": "correct-or-unresolved",
+      "ai": false,
+      "baseline": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 1133,
+        "best": {
+          "name": "Whirlwing Stormbrood",
+          "set": "atdm",
+          "collector_number": "27",
+          "scryfall_id": "91e81f3a-6901-42dc-9c87-55419941101e",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/9/1/91e81f3a-6901-42dc-9c87-55419941101e.jpg",
+          "scryfall_uri": "https://scryfall.com/card/atdm/27",
+          "distance": 51,
+          "confidence": 0.69,
+          "strategy": "outline-4",
+          "click_inside": false,
+          "click_inliers": 186,
+          "click_art_inliers": 80,
+          "click_text_inliers": 95,
+          "click_half_inliers": [
+            48,
+            138
+          ],
+          "regional_proof": true,
+          "art_inliers": 186,
+          "color_sim": 0.9398969773137651,
+          "ring_sim": 0.8567572031461168,
+          "click_blocked": false
+        },
+        "artBest": {
+          "name": "Whirlwing Stormbrood",
+          "inliers": 186,
+          "color": 94,
+          "weak": true,
+          "clickInside": false,
+          "clickInliers": 186,
+          "clickArtInliers": 80,
+          "clickTextInliers": 95,
+          "clickHalfInliers": [
+            48,
+            138
+          ]
+        },
+        "ai": {
+          "status": "off"
+        },
+        "milo": {
+          "status": "off"
+        },
+        "orb": {
+          "fetch": 0,
+          "queryFeat": 17.100000023841858,
+          "refFeat": 55.50000023841858,
+          "match": 88.89999961853027,
+          "refs": 36,
+          "winRank": 0
+        },
+        "blockedNames": []
+      },
+      "off": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 1129,
+        "best": {
+          "name": "Whirlwing Stormbrood",
+          "set": "atdm",
+          "collector_number": "27",
+          "scryfall_id": "91e81f3a-6901-42dc-9c87-55419941101e",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/9/1/91e81f3a-6901-42dc-9c87-55419941101e.jpg",
+          "scryfall_uri": "https://scryfall.com/card/atdm/27",
+          "distance": 51,
+          "confidence": 0.69,
+          "strategy": "outline-4",
+          "click_inside": false,
+          "click_inliers": 186,
+          "click_art_inliers": 80,
+          "click_text_inliers": 95,
+          "click_half_inliers": [
+            48,
+            138
+          ],
+          "regional_proof": true,
+          "art_inliers": 186,
+          "color_sim": 0.9398969773137651,
+          "ring_sim": 0.8567572031461168,
+          "click_blocked": false
+        },
+        "artBest": {
+          "name": "Whirlwing Stormbrood",
+          "inliers": 186,
+          "color": 94,
+          "weak": true,
+          "clickInside": false,
+          "clickInliers": 186,
+          "clickArtInliers": 80,
+          "clickTextInliers": 95,
+          "clickHalfInliers": [
+            48,
+            138
+          ]
+        },
+        "ai": {
+          "status": "off"
+        },
+        "milo": {
+          "status": "off"
+        },
+        "orb": {
+          "fetch": 0,
+          "queryFeat": 17.299999952316284,
+          "refFeat": 56.90000009536743,
+          "match": 89.799999833107,
+          "refs": 36,
+          "winRank": 0,
+          "refsInspected": 10,
+          "refsRanked": 10,
+          "refFeatureCalls": 12,
+          "refFeatureHits": 2,
+          "refFeatureMisses": 10,
+          "sourceFeat": 12,
+          "sourceProbes": 2,
+          "sourceMatch": 11,
+          "distinctEarlyStopRank": -1,
+          "distinctNameStop": false
+        },
+        "miloOrb": [],
+        "blockedNames": []
+      },
+      "on": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 1163,
+        "best": {
+          "name": "Whirlwing Stormbrood",
+          "set": "atdm",
+          "collector_number": "27",
+          "scryfall_id": "91e81f3a-6901-42dc-9c87-55419941101e",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/9/1/91e81f3a-6901-42dc-9c87-55419941101e.jpg",
+          "scryfall_uri": "https://scryfall.com/card/atdm/27",
+          "distance": 51,
+          "confidence": 0.69,
+          "strategy": "outline-4",
+          "click_inside": false,
+          "click_inliers": 186,
+          "click_art_inliers": 80,
+          "click_text_inliers": 95,
+          "click_half_inliers": [
+            48,
+            138
+          ],
+          "regional_proof": true,
+          "art_inliers": 186,
+          "color_sim": 0.9398969773137651,
+          "ring_sim": 0.8567572031461168,
+          "click_blocked": false
+        },
+        "artBest": {
+          "name": "Whirlwing Stormbrood",
+          "inliers": 186,
+          "color": 94,
+          "weak": true,
+          "clickInside": false,
+          "clickInliers": 186,
+          "clickArtInliers": 80,
+          "clickTextInliers": 95,
+          "clickHalfInliers": [
+            48,
+            138
+          ]
+        },
+        "ai": {
+          "status": "off"
+        },
+        "milo": {
+          "status": "off"
+        },
+        "orb": {
+          "fetch": 0,
+          "queryFeat": 17.399999976158142,
+          "refFeat": 55.50000023841858,
+          "match": 87.99999976158142,
+          "refs": 36,
+          "winRank": 0,
+          "refsInspected": 10,
+          "refsRanked": 10,
+          "refFeatureCalls": 12,
+          "refFeatureHits": 2,
+          "refFeatureMisses": 10,
+          "sourceFeat": 11.800000071525574,
+          "sourceProbes": 2,
+          "sourceMatch": 10.699999928474426,
+          "distinctEarlyStopRank": -1,
+          "distinctNameStop": true
+        },
+        "miloOrb": [],
+        "blockedNames": []
+      }
+    },
+    {
+      "name": "Royal // Virtuous",
+      "sourceFile": "000.jpg",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.1657086515710495
+      },
+      "expectedOutcome": "correct-or-unresolved",
+      "ai": false,
+      "on": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 1745,
+        "best": {
+          "name": "Royal // Virtuous",
+          "set": "twoc",
+          "collector_number": "2",
+          "scryfall_id": "ce7ac41f-ea0e-46b5-bab4-be1a4e451524",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/c/e/ce7ac41f-ea0e-46b5-bab4-be1a4e451524.jpg",
+          "scryfall_uri": "https://scryfall.com/card/twoc/2",
+          "distance": 180,
+          "confidence": 1,
+          "strategy": "outline-7",
+          "click_inside": true,
+          "click_inliers": 104,
+          "click_art_inliers": 61,
+          "click_text_inliers": 38,
+          "click_half_inliers": [
+            61,
+            43
+          ],
+          "regional_proof": true,
+          "art_inliers": 104,
+          "color_sim": 0.9549430012702942,
+          "ring_sim": 0.9638356423747609,
+          "click_blocked": false,
+          "identified_by": "art-match"
+        },
+        "artBest": {
+          "name": "Royal // Virtuous",
+          "inliers": 104,
+          "color": 95,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 104,
+          "clickArtInliers": 61,
+          "clickTextInliers": 38,
+          "clickHalfInliers": [
+            61,
+            43
+          ]
+        },
+        "ai": {
+          "status": "off"
+        },
+        "milo": {
+          "status": "off"
+        },
+        "orb": {
+          "fetch": 123.79999995231628,
+          "queryFeat": 15.699999928474426,
+          "refFeat": 33.799999952316284,
+          "match": 46.90000009536743,
+          "refs": 36,
+          "winRank": 0,
+          "refsInspected": 12,
+          "refsRanked": 10,
+          "refFeatureCalls": 14,
+          "refFeatureHits": 2,
+          "refFeatureMisses": 12,
+          "sourceFeat": 13.599999904632568,
+          "sourceProbes": 4,
+          "sourceMatch": 37.199999928474426,
+          "distinctEarlyStopRank": -1,
+          "distinctNameStop": true
+        },
+        "miloOrb": [],
+        "blockedNames": []
+      },
+      "off": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 1974,
+        "best": {
+          "name": "Royal // Virtuous",
+          "set": "twoc",
+          "collector_number": "2",
+          "scryfall_id": "ce7ac41f-ea0e-46b5-bab4-be1a4e451524",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/c/e/ce7ac41f-ea0e-46b5-bab4-be1a4e451524.jpg",
+          "scryfall_uri": "https://scryfall.com/card/twoc/2",
+          "distance": 180,
+          "confidence": 1,
+          "strategy": "outline-7",
+          "click_inside": true,
+          "click_inliers": 104,
+          "click_art_inliers": 61,
+          "click_text_inliers": 38,
+          "click_half_inliers": [
+            61,
+            43
+          ],
+          "regional_proof": true,
+          "art_inliers": 104,
+          "color_sim": 0.9549430012702942,
+          "ring_sim": 0.9638356423747609,
+          "click_blocked": false,
+          "identified_by": "art-match"
+        },
+        "artBest": {
+          "name": "Royal // Virtuous",
+          "inliers": 104,
+          "color": 95,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 104,
+          "clickArtInliers": 61,
+          "clickTextInliers": 38,
+          "clickHalfInliers": [
+            61,
+            43
+          ]
+        },
+        "ai": {
+          "status": "off"
+        },
+        "milo": {
+          "status": "off"
+        },
+        "orb": {
+          "fetch": 328.10000014305115,
+          "queryFeat": 15.399999976158142,
+          "refFeat": 40.00000023841858,
+          "match": 53.09999978542328,
+          "refs": 36,
+          "winRank": 0,
+          "refsInspected": 12,
+          "refsRanked": 10,
+          "refFeatureCalls": 14,
+          "refFeatureHits": 2,
+          "refFeatureMisses": 12,
+          "sourceFeat": 13.599999904632568,
+          "sourceProbes": 4,
+          "sourceMatch": 36.60000002384186,
+          "distinctEarlyStopRank": -1,
+          "distinctNameStop": false
+        },
+        "miloOrb": [],
+        "blockedNames": []
+      },
+      "baseline": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 1924,
+        "best": {
+          "name": "Royal // Virtuous",
+          "set": "twoc",
+          "collector_number": "2",
+          "scryfall_id": "ce7ac41f-ea0e-46b5-bab4-be1a4e451524",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/c/e/ce7ac41f-ea0e-46b5-bab4-be1a4e451524.jpg",
+          "scryfall_uri": "https://scryfall.com/card/twoc/2",
+          "distance": 180,
+          "confidence": 1,
+          "strategy": "outline-7",
+          "click_inside": true,
+          "click_inliers": 104,
+          "click_art_inliers": 61,
+          "click_text_inliers": 38,
+          "click_half_inliers": [
+            61,
+            43
+          ],
+          "regional_proof": true,
+          "art_inliers": 104,
+          "color_sim": 0.9549430012702942,
+          "ring_sim": 0.9638356423747609,
+          "click_blocked": false,
+          "identified_by": "art-match"
+        },
+        "artBest": {
+          "name": "Royal // Virtuous",
+          "inliers": 104,
+          "color": 95,
+          "weak": false,
+          "clickInside": true,
+          "clickInliers": 104,
+          "clickArtInliers": 61,
+          "clickTextInliers": 38,
+          "clickHalfInliers": [
+            61,
+            43
+          ]
+        },
+        "ai": {
+          "status": "off"
+        },
+        "milo": {
+          "status": "off"
+        },
+        "orb": {
+          "fetch": 284.1999999284744,
+          "queryFeat": 15.600000023841858,
+          "refFeat": 32.19999980926514,
+          "match": 46.10000002384186,
+          "refs": 36,
+          "winRank": 0
+        },
+        "blockedNames": []
+      }
+    },
+    {
+      "name": "Bebop, Porcine Punk",
+      "sourceFile": "000.jpg",
+      "point": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "expectedOutcome": "correct-or-unresolved",
+      "ai": false,
+      "baseline": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 953,
+        "best": {
+          "name": "Bebop, Porcine Punk",
+          "set": "atmt",
+          "collector_number": "52",
+          "scryfall_id": "e13ef7cf-364c-4f67-97a1-5d6b0d1c8acc",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/e/1/e13ef7cf-364c-4f67-97a1-5d6b0d1c8acc.jpg",
+          "scryfall_uri": "https://scryfall.com/card/atmt/52",
+          "distance": 50,
+          "confidence": 0.69,
+          "strategy": "outline-1",
+          "click_inside": false,
+          "click_inliers": 226,
+          "click_art_inliers": 138,
+          "click_text_inliers": 79,
+          "click_half_inliers": [
+            133,
+            93
+          ],
+          "regional_proof": true,
+          "art_inliers": 226,
+          "color_sim": 0.610888347029686,
+          "ring_sim": 0.43719280109507963,
+          "click_blocked": false
+        },
+        "artBest": {
+          "name": "Bebop, Porcine Punk",
+          "inliers": 226,
+          "color": 61,
+          "weak": true,
+          "clickInside": false,
+          "clickInliers": 226,
+          "clickArtInliers": 138,
+          "clickTextInliers": 79,
+          "clickHalfInliers": [
+            133,
+            93
+          ]
+        },
+        "ai": {
+          "status": "off"
+        },
+        "milo": {
+          "status": "off"
+        },
+        "orb": {
+          "fetch": 67.59999990463257,
+          "queryFeat": 26.5,
+          "refFeat": 53.10000014305115,
+          "match": 93.80000019073486,
+          "refs": 36,
+          "winRank": 0
+        },
+        "blockedNames": []
+      },
+      "off": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 965,
+        "best": {
+          "name": "Bebop, Porcine Punk",
+          "set": "atmt",
+          "collector_number": "52",
+          "scryfall_id": "e13ef7cf-364c-4f67-97a1-5d6b0d1c8acc",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/e/1/e13ef7cf-364c-4f67-97a1-5d6b0d1c8acc.jpg",
+          "scryfall_uri": "https://scryfall.com/card/atmt/52",
+          "distance": 50,
+          "confidence": 0.69,
+          "strategy": "outline-1",
+          "click_inside": false,
+          "click_inliers": 226,
+          "click_art_inliers": 138,
+          "click_text_inliers": 79,
+          "click_half_inliers": [
+            133,
+            93
+          ],
+          "regional_proof": true,
+          "art_inliers": 226,
+          "color_sim": 0.610888347029686,
+          "ring_sim": 0.43719280109507963,
+          "click_blocked": false
+        },
+        "artBest": {
+          "name": "Bebop, Porcine Punk",
+          "inliers": 226,
+          "color": 61,
+          "weak": true,
+          "clickInside": false,
+          "clickInliers": 226,
+          "clickArtInliers": 138,
+          "clickTextInliers": 79,
+          "clickHalfInliers": [
+            133,
+            93
+          ]
+        },
+        "ai": {
+          "status": "off"
+        },
+        "milo": {
+          "status": "off"
+        },
+        "orb": {
+          "fetch": 82.79999995231628,
+          "queryFeat": 26.90000009536743,
+          "refFeat": 52.199999928474426,
+          "match": 92.70000004768372,
+          "refs": 36,
+          "winRank": 0,
+          "refsInspected": 12,
+          "refsRanked": 10,
+          "refFeatureCalls": 15,
+          "refFeatureHits": 4,
+          "refFeatureMisses": 11,
+          "sourceFeat": 17.100000023841858,
+          "sourceProbes": 5,
+          "sourceMatch": 43.40000009536743,
+          "distinctEarlyStopRank": -1,
+          "distinctNameStop": false
+        },
+        "miloOrb": [],
+        "blockedNames": []
+      },
+      "on": {
+        "ok": true,
+        "confidentWrong": false,
+        "ms": 1014,
+        "best": {
+          "name": "Bebop, Porcine Punk",
+          "set": "atmt",
+          "collector_number": "52",
+          "scryfall_id": "e13ef7cf-364c-4f67-97a1-5d6b0d1c8acc",
+          "face": 0,
+          "image": "https://cards.scryfall.io/normal/front/e/1/e13ef7cf-364c-4f67-97a1-5d6b0d1c8acc.jpg",
+          "scryfall_uri": "https://scryfall.com/card/atmt/52",
+          "distance": 50,
+          "confidence": 0.69,
+          "strategy": "outline-1",
+          "click_inside": false,
+          "click_inliers": 226,
+          "click_art_inliers": 138,
+          "click_text_inliers": 79,
+          "click_half_inliers": [
+            133,
+            93
+          ],
+          "regional_proof": true,
+          "art_inliers": 226,
+          "color_sim": 0.610888347029686,
+          "ring_sim": 0.43719280109507963,
+          "click_blocked": false
+        },
+        "artBest": {
+          "name": "Bebop, Porcine Punk",
+          "inliers": 226,
+          "color": 61,
+          "weak": true,
+          "clickInside": false,
+          "clickInliers": 226,
+          "clickArtInliers": 138,
+          "clickTextInliers": 79,
+          "clickHalfInliers": [
+            133,
+            93
+          ]
+        },
+        "ai": {
+          "status": "off"
+        },
+        "milo": {
+          "status": "off"
+        },
+        "orb": {
+          "fetch": 126.700000166893,
+          "queryFeat": 27.899999976158142,
+          "refFeat": 55.80000019073486,
+          "match": 94.89999973773956,
+          "refs": 36,
+          "winRank": 0,
+          "refsInspected": 12,
+          "refsRanked": 10,
+          "refFeatureCalls": 15,
+          "refFeatureHits": 4,
+          "refFeatureMisses": 11,
+          "sourceFeat": 17.40000009536743,
+          "sourceProbes": 5,
+          "sourceMatch": 42.699999928474426,
+          "distinctEarlyStopRank": -1,
+          "distinctNameStop": true
+        },
+        "miloOrb": [],
+        "blockedNames": []
+      }
+    }
+  ],
+  "catalog": {
+    "public/carddata/manifest.json": "8938f2b3c2e6f49f4e78c346fb662388be9be76e23a9d9efc3b2752d9e855d44",
+    "public/carddata/cards.json": "79f0775b3b84f509edc614170e325607bd0f7245b9c9006f029e8adc6553cadc",
+    "public/carddata/milo/manifest.json": "dd2c83e7bd3654944d9b92142ebb2300004f95170f96ea762703afb44d6305bc",
+    "public/snaptest/cards.json": "93d34c980422a585589d6038d297f2eaa88e22a2e57ab62952f91d75d57d40c1",
+    "public/snaptest/arcane/manifest.json": "beef48b2d4aed723d49e80980adeca3f68716e4529e32765c14c7a0dc96f6197"
+  },
+  "sourceFingerprints": {
+    "baseline": {
+      "src/recognition/matcher.js": "fa820c7ccf5bb6b42de8255a1b3cd1e5cdffa04330fd5fc32f96261a44ddd9f2",
+      "src/recognition/recognizer.js": "5950df24cc0559bc4b0fc721ad34dd2879af2b9e056ffc01215bbe2dda225ce6",
+      "src/recognition/aiCrop.js": "9e6291bd8d151010042dc59043a3aeb6868c3a4e1618f8aec5de1635d65d09e2",
+      "src/recognition/aiCropWorker.js": "ad5aecaf05ba3ef91c770a77f23476fa1d9d13b1486ec56d59750a0bd921ba87",
+      "src/SnapTest.jsx": "d03090798f4c8832341051253fd7ed6c6d327a037ea9eee841fcf2f00297cac6",
+      "src/snaptest/scene.js": "c3aed501c5787dea50b752ba35d959b5e71caf93f617eb7b24790e86ab62e345",
+      "src/snaptest/degrade.js": "ef006310323143b974fe29847c48d7dd3ed3cb077bc41683cbce8203eaf675d2"
+    },
+    "candidate60": {
+      "src/recognition/matcher.js": "65c138e26bca0dd50213548aef4aab7d055365c428682df0c3e83d1c77c5bf9f",
+      "src/recognition/recognizer.js": "3863daeebd65c1457d8ce9f96461f9017ad868a6e662103cf23fd0d53bd078d5",
+      "src/recognition/aiCrop.js": "4f0d418abeca864f90b2a15b0287e5ffc4054096ddb5878b0f71101063ac72bb",
+      "src/recognition/aiCropWorker.js": "ad5aecaf05ba3ef91c770a77f23476fa1d9d13b1486ec56d59750a0bd921ba87",
+      "src/SnapTest.jsx": "d03090798f4c8832341051253fd7ed6c6d327a037ea9eee841fcf2f00297cac6",
+      "src/snaptest/scene.js": "c3aed501c5787dea50b752ba35d959b5e71caf93f617eb7b24790e86ab62e345",
+      "src/snaptest/degrade.js": "ef006310323143b974fe29847c48d7dd3ed3cb077bc41683cbce8203eaf675d2"
+    }
+  }
+}

@@ -80,22 +80,28 @@ async function runProposal(bitmap, point, retry = false) {
 // Warmup and scans share one model worker; callbacks cannot overlap or replace
 // an active scan. Recognition keeps its own newest-click queue above this.
 let proposalQueue = Promise.resolve();
-export function proposeAiCrops(bitmap, point, retry = false) {
-  const job = proposalQueue.then(() => runProposal(bitmap, point, retry));
+function queueModelJob(run, isActive = () => true) {
+  const queuedAt = performance.now();
+  const job = proposalQueue.then(async () => {
+    const queueMs = Math.max(0, Math.round(performance.now() - queuedAt));
+    const result = isActive() ? await run()
+      : { quads: [], diagnostic: { status: "canceled", proposals: 0, ms: 0 } };
+    return { ...result, diagnostic: { ...result.diagnostic, queueMs } };
+  });
   proposalQueue = job.catch(() => {});
   return job;
 }
+export function proposeAiCrops(bitmap, point, retry = false, { isActive = () => true } = {}) {
+  // Preparation owns its original bitmap. If it is superseded while queued,
+  // skip copying/inference without disabling or interrupting the shared worker.
+  return queueModelJob(() => runProposal(bitmap, point, retry), isActive);
+}
 export function lookupAiCrops(images) {
-  const job = proposalQueue.then(() => runMilo("milo-lookup", images));
-  proposalQueue = job.catch(() => {});
-  return job;
+  return queueModelJob(() => runMilo("milo-lookup", images));
 }
 export function preloadMilo() {
   if (!miloEnabled()) return Promise.resolve();
-  if (!miloWarmup) {
-    miloWarmup = proposalQueue.then(() => runMilo("milo-warmup"));
-    proposalQueue = miloWarmup.catch(() => {});
-  }
+  if (!miloWarmup) miloWarmup = queueModelJob(() => runMilo("milo-warmup"));
   return miloWarmup;
 }
 let warmupPromise;

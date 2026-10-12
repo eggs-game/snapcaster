@@ -1,0 +1,4012 @@
+{
+  "ok": true,
+  "controlBuild": "milo-click-33 (local vision)",
+  "candidateBuild": "milo-click-34 (local vision)",
+  "catalogDigests": {
+    "public/carddata/manifest.json": "50a1e0e3f62dd34f3242c70fad24a1f3510085caebb7eb01b22743ee9b2b14ac",
+    "public/carddata/cards.json": "e9527a3801fe60d9bf42882c919b4473956a293c8cb66ea732071d804a9d2f8c",
+    "public/carddata/milo/manifest.json": "85bdd724d69300c33e6f48b7bd7cbe90cbd0cdf7a26f4a28a373b665a36d2a6d"
+  },
+  "controlSourceDigests": {
+    "src/AccountProfile.jsx": "243d81f218d05cc34745a562b4406f0f18321b37278ee0903282e38185d89f9b",
+    "src/AccountPrompt.jsx": "e909d3110913ac25f5c65a9e296e311d1cdecc24d2a887a39821c9afa49d4806",
+    "src/App.jsx": "2909fa7118d20bb77647294484fefae86c676e03c5d6d4e543beccdcf5cac156",
+    "src/AppDropdown.css": "8fa2de0da48406580a71a40703b643a3ab9041aad7f36c467f605c53ab195795",
+    "src/AppDropdown.jsx": "1feaf1c4f36ca6641e6563cc8c637b4d6ef3c445d09cb298abf67ae248dae9b5",
+    "src/AppToast.jsx": "6e585f7acc433b144175df677c89f9bf0ea2485c220f74387a1deac73e085343",
+    "src/CardSidebar.jsx": "9b4269eaae4f689f1fc975c3f8a299786119f5b2385c09d1491c60b8ae55ee43",
+    "src/Community.jsx": "e4eebaa71a83060d204b609046902e297324e4f565a3c03fc3d375c9acde849d",
+    "src/ConfirmDialog.css": "5caf5fe3d2a125eb9802d66767898ef6135be77b2d76c6a22c6c0353fb5f98e7",
+    "src/ConfirmDialog.jsx": "2a636b4fdb7fc1f1defff0e9e8d6bead5ca9a8726d89f5aaf197689ab2aa008f",
+    "src/DeckPage.jsx": "82283794ba81bfb7504d5025dc45fe6c769bcf7eb80e8c44a0135c6e92c814a1",
+    "src/DiscordMark.jsx": "30ea165a5f0fa4542ce84c66b971cf5ded05da5dbfdf0847ab2995d9a64ce6e4",
+    "src/FriendsPage.jsx": "15eb9e0b32050bd1d882d896e0005b4206b55cb9edd31c48d2b4501fdb85830c",
+    "src/Game.jsx": "66adf92a6fed1c1c0b1ba4fff595cc048c493c873134de092c9ecdc5074f9baa",
+    "src/GamePreview.jsx": "21d4c95128df04f8686edcfb059f61fab1fa33e4ad6e9cd8c65d7427744efcfc",
+    "src/LegalPage.jsx": "c842376ad789fbf9b8eadee7b2358229ef66b228215ee758536331b203c932e0",
+    "src/Lobby.jsx": "c1ec6936c9b80cf2fba5b5284f8ab5441dc63f81237e4068bbbd31b7d76be72c",
+    "src/LocalMockGameConnection.js": "52255bc7832a23e383f298c8c3cee9a959c09451e4b6b93a6142431dcbc02e20",
+    "src/ModerationPage.jsx": "0887060cf1d9042dba6095d0f1bd3379cf299b9d2c819594fe3b0fad3b384758",
+    "src/NotificationsPage.jsx": "fd673f25dacb403fcfc226d2977b26642bb99a8cb0b530fbdf8c2f5ae8bd9e23",
+    "src/Privacy.jsx": "4532df6da1895e4418496dee8133e25452a4ff440569267779b8bb7bd2ca4eb7",
+    "src/ProfilePage.jsx": "3eab9592a02faabcf86b7ec386991b3f30be2fc67b09919f507162b5aabcdfef",
+    "src/PublicGames.jsx": "b3d501d7cd1ca54bd71076fb89e959672a0ded383d3cdfe2f4764da132031a3a",
+    "src/ReviewPrompt.jsx": "6fdc8e3aa16ba40efe46c3d6238c2a2d276bf77cbd769281570f27de63343252",
+    "src/RoutedSiteHeader.jsx": "8a160538f7c91bb0937eb91db51c3f1d13d2ab39820c6ddde2c969dde813aab6",
+    "src/SettingsPage.jsx": "bae16930ce13eb0ffc3a6b9e84db612786c9748ca7e370615f5f2ecd47bc03f4",
+    "src/SiteFooter.jsx": "bf82cb83fde8fb24de6864877484f9979a7cc9d93ebb6a2bf65cd86d6e3d4eaa",
+    "src/SiteHeader.jsx": "984afe73d1ce7b803b93256db888d3b8cda526b7126b2e3157156c832dd51bd8",
+    "src/SnapTest.jsx": "d03090798f4c8832341051253fd7ed6c6d327a037ea9eee841fcf2f00297cac6",
+    "src/Terms.jsx": "20a1994d3d6cd5d15d8e3a2c6ffb1a673db66df69c9b8dbe14e29f101056cb1d",
+    "src/TurnTest.jsx": "c65f1b30cb6665b884d125e617b69d3932edbb18c6470a7f1bbd74d3c3fe1dbd",
+    "src/account.js": "0ba9b309af466a9138a562645983b68a51ba392301e4038b0d2f0f209f5f9f8d",
+    "src/accountIdentity.js": "0418b635540561070669294b8ca95a8abd8d576625286b7be0db0fd9ef5cde1f",
+    "src/authIntent.js": "19b87ae74f11390611a84da0f0dd11d306ecdaa954d9d9968e8b56d2c84ba950",
+    "src/captureGeometry.js": "b01a716377211eb5489d779eccaeaffb57b98f67f3f067481f0dac10a4c131cc",
+    "src/cardNameIndex.js": "85e4b825f9e2395ce545b8f58e17b66391c2be53de07d03ac94372f219d335b8",
+    "src/cardPresentation.js": "54cad20b8a1d02a2cb479db54a4877e41d31ed200ad388825635f1bb4664936d",
+    "src/cardSearch.js": "8889197c199dc5c01a585198e2698f35e227bd87f24f8dc08e64b8e7a43ff509",
+    "src/chatCommands.js": "8757eb9612f5905bc157177b4e50350304c31d123dc188d6632b9daac4e1152e",
+    "src/commanderRules.js": "c8fc05c319d85afdcf03ff3707ed18b5d098f02b7544998492b36aa8d8c89e99",
+    "src/deckAnalysis.js": "b7881627d7c8d286f3117d16bb2e2b9888a9f6c3cdebdebbc01a026ef414ebd9",
+    "src/deckImport.js": "7eff53e86b3bc63a3acfb0efdd2ccaad0561145d21b6777bc4eb46b9fd4fe74a",
+    "src/gameControls.js": "862b94ff514b96b45170bb4f573046b5f3c2277b3acf919ec631e92c32b550e1",
+    "src/gameRooms.js": "b27f9c1fe93bcdee37a6f2f56e54404d29dc28224b6a2b0ebc40b84c30d26607",
+    "src/localMock.js": "9e3e62b45b5eb9af6b9c1344cad7017a945a45d8396510880efa4dab0f55273f",
+    "src/main.jsx": "ee91f40f409bd5dda70725762497e25485314cab19af72129ca2e214390f790b",
+    "src/mediaDevices.js": "353346a3f83ff8a995bbc06da3c51162e1f0916546557d832fa37100aac7b2ed",
+    "src/mediaPlayback.js": "c1c959d3ea5ca1bb551708556a82e9d62e638fa442006308ca04446bcda9fcde",
+    "src/mockDeckFixtures.js": "66439ec7f3ef3269ed1cb17b6ab0cf5a6fdb7c13693417f82d30b457e800b437",
+    "src/realtimeEpochRotation.js": "c9c4488de4644408457d4c6ce64b856d78eb89e47932120c261199b819cc5a53",
+    "src/recognition/aiCrop.js": "4f0d418abeca864f90b2a15b0287e5ffc4054096ddb5878b0f71101063ac72bb",
+    "src/recognition/aiCropGeometry.js": "a9153c763e917e15703a1d5fe8a80714e4722c6f73948e61a733170c064343cb",
+    "src/recognition/aiCropWorker.js": "ad5aecaf05ba3ef91c770a77f23476fa1d9d13b1486ec56d59750a0bd921ba87",
+    "src/recognition/hash.js": "6c3bfa012e82927b783c021886b669eece2c75712e11eaa9039a5e51794b6ea6",
+    "src/recognition/matcher.js": "885576da20058a08fa0161efbca020e197eab4833b3708315728f1cb141f1159",
+    "src/recognition/metadataEvidence.js": "eb34b3521b5ecec0a756a31638bbfa4f4b301274e471428b5d65518960172ab0",
+    "src/recognition/miloLookup.js": "f61d901f0d300f12dacb1d7860eee94ab1b66ba065347bcc450f1952de177a2f",
+    "src/recognition/recognizer.js": "5067be9ff711d14e71ab21e9318ed0ef14ee640604c7566d760fe6ecbde0c033",
+    "src/recognitionHints.js": "f4f1c04d3f9443ea44c334c2570de40e7102d2e621e65befd08db8d1764ab294",
+    "src/roomCode.js": "ce2502c643a8545a77da4450e929650f5ae7952c0fc7376d1aad0f40dace147c",
+    "src/signaling.js": "af1ae4d06f354f5e997e512757742271298f58ba8604ef50af0e37ae4b62d20d",
+    "src/snaptest/degrade.js": "ef006310323143b974fe29847c48d7dd3ed3cb077bc41683cbce8203eaf675d2",
+    "src/snaptest/scene.js": "c3aed501c5787dea50b752ba35d959b5e71caf93f617eb7b24790e86ab62e345",
+    "src/soundEffects.js": "f5581047a433575f75a73a00c45a17ed3f4d407d64dbddaf9f466bf9315fe7ac",
+    "src/styles.css": "8a07c5060c66ac3b6b29922d73033dc91ed986df048887ad2c1d1a7604b9b0f0",
+    "src/supabase.js": "e33dec02002ed526de8187d308cdf906fe4cc206b29ced988232beee75ef6669",
+    "src/videoCounters.js": "319e0cc48089409e7bdd7ec343a54078feace56ab26a6ec1a6980b27c29afd84",
+    "src/videoQuality.js": "eecd3cdf80ff2a0ef463ba98c4bc33072aaa35baf0df9eb0520ad79a9020679a",
+    "src/visitorAudio.js": "e0e585aea417f782e2e82ef1de0328c9aedd1fa9f937c47fb75f5661381df977",
+    "src/webrtc.js": "0ddb617d0a57f45076cb8a938bb155dbc530cbad0769d759131b9018a3f1d88e"
+  },
+  "candidateSourceDigests": {
+    "src/AccountProfile.jsx": "243d81f218d05cc34745a562b4406f0f18321b37278ee0903282e38185d89f9b",
+    "src/AccountPrompt.jsx": "e909d3110913ac25f5c65a9e296e311d1cdecc24d2a887a39821c9afa49d4806",
+    "src/App.jsx": "2909fa7118d20bb77647294484fefae86c676e03c5d6d4e543beccdcf5cac156",
+    "src/AppDropdown.css": "8fa2de0da48406580a71a40703b643a3ab9041aad7f36c467f605c53ab195795",
+    "src/AppDropdown.jsx": "1feaf1c4f36ca6641e6563cc8c637b4d6ef3c445d09cb298abf67ae248dae9b5",
+    "src/AppToast.jsx": "6e585f7acc433b144175df677c89f9bf0ea2485c220f74387a1deac73e085343",
+    "src/CardSidebar.jsx": "9b4269eaae4f689f1fc975c3f8a299786119f5b2385c09d1491c60b8ae55ee43",
+    "src/Community.jsx": "e4eebaa71a83060d204b609046902e297324e4f565a3c03fc3d375c9acde849d",
+    "src/ConfirmDialog.css": "5caf5fe3d2a125eb9802d66767898ef6135be77b2d76c6a22c6c0353fb5f98e7",
+    "src/ConfirmDialog.jsx": "2a636b4fdb7fc1f1defff0e9e8d6bead5ca9a8726d89f5aaf197689ab2aa008f",
+    "src/DeckPage.jsx": "82283794ba81bfb7504d5025dc45fe6c769bcf7eb80e8c44a0135c6e92c814a1",
+    "src/DiscordMark.jsx": "30ea165a5f0fa4542ce84c66b971cf5ded05da5dbfdf0847ab2995d9a64ce6e4",
+    "src/FriendsPage.jsx": "15eb9e0b32050bd1d882d896e0005b4206b55cb9edd31c48d2b4501fdb85830c",
+    "src/Game.jsx": "5f8f55c46378001db6bfde3f1cd159d1fa38fa3608090cd8ced164d0e16c89bc",
+    "src/GamePreview.jsx": "21d4c95128df04f8686edcfb059f61fab1fa33e4ad6e9cd8c65d7427744efcfc",
+    "src/LegalPage.jsx": "c842376ad789fbf9b8eadee7b2358229ef66b228215ee758536331b203c932e0",
+    "src/Lobby.jsx": "c1ec6936c9b80cf2fba5b5284f8ab5441dc63f81237e4068bbbd31b7d76be72c",
+    "src/LocalMockGameConnection.js": "52255bc7832a23e383f298c8c3cee9a959c09451e4b6b93a6142431dcbc02e20",
+    "src/ModerationPage.jsx": "0887060cf1d9042dba6095d0f1bd3379cf299b9d2c819594fe3b0fad3b384758",
+    "src/NotificationsPage.jsx": "fd673f25dacb403fcfc226d2977b26642bb99a8cb0b530fbdf8c2f5ae8bd9e23",
+    "src/Privacy.jsx": "4532df6da1895e4418496dee8133e25452a4ff440569267779b8bb7bd2ca4eb7",
+    "src/ProfilePage.jsx": "3eab9592a02faabcf86b7ec386991b3f30be2fc67b09919f507162b5aabcdfef",
+    "src/PublicGames.jsx": "b3d501d7cd1ca54bd71076fb89e959672a0ded383d3cdfe2f4764da132031a3a",
+    "src/ReviewPrompt.jsx": "6fdc8e3aa16ba40efe46c3d6238c2a2d276bf77cbd769281570f27de63343252",
+    "src/RoutedSiteHeader.jsx": "8a160538f7c91bb0937eb91db51c3f1d13d2ab39820c6ddde2c969dde813aab6",
+    "src/SettingsPage.jsx": "bae16930ce13eb0ffc3a6b9e84db612786c9748ca7e370615f5f2ecd47bc03f4",
+    "src/SiteFooter.jsx": "bf82cb83fde8fb24de6864877484f9979a7cc9d93ebb6a2bf65cd86d6e3d4eaa",
+    "src/SiteHeader.jsx": "984afe73d1ce7b803b93256db888d3b8cda526b7126b2e3157156c832dd51bd8",
+    "src/SnapTest.jsx": "d03090798f4c8832341051253fd7ed6c6d327a037ea9eee841fcf2f00297cac6",
+    "src/Terms.jsx": "20a1994d3d6cd5d15d8e3a2c6ffb1a673db66df69c9b8dbe14e29f101056cb1d",
+    "src/TurnTest.jsx": "c65f1b30cb6665b884d125e617b69d3932edbb18c6470a7f1bbd74d3c3fe1dbd",
+    "src/account.js": "0ba9b309af466a9138a562645983b68a51ba392301e4038b0d2f0f209f5f9f8d",
+    "src/accountIdentity.js": "0418b635540561070669294b8ca95a8abd8d576625286b7be0db0fd9ef5cde1f",
+    "src/authIntent.js": "19b87ae74f11390611a84da0f0dd11d306ecdaa954d9d9968e8b56d2c84ba950",
+    "src/captureGeometry.js": "b01a716377211eb5489d779eccaeaffb57b98f67f3f067481f0dac10a4c131cc",
+    "src/cardNameIndex.js": "85e4b825f9e2395ce545b8f58e17b66391c2be53de07d03ac94372f219d335b8",
+    "src/cardPresentation.js": "54cad20b8a1d02a2cb479db54a4877e41d31ed200ad388825635f1bb4664936d",
+    "src/cardSearch.js": "8889197c199dc5c01a585198e2698f35e227bd87f24f8dc08e64b8e7a43ff509",
+    "src/chatCommands.js": "8757eb9612f5905bc157177b4e50350304c31d123dc188d6632b9daac4e1152e",
+    "src/commanderRules.js": "c8fc05c319d85afdcf03ff3707ed18b5d098f02b7544998492b36aa8d8c89e99",
+    "src/deckAnalysis.js": "b7881627d7c8d286f3117d16bb2e2b9888a9f6c3cdebdebbc01a026ef414ebd9",
+    "src/deckImport.js": "7eff53e86b3bc63a3acfb0efdd2ccaad0561145d21b6777bc4eb46b9fd4fe74a",
+    "src/gameControls.js": "862b94ff514b96b45170bb4f573046b5f3c2277b3acf919ec631e92c32b550e1",
+    "src/gameRooms.js": "b27f9c1fe93bcdee37a6f2f56e54404d29dc28224b6a2b0ebc40b84c30d26607",
+    "src/localMock.js": "9e3e62b45b5eb9af6b9c1344cad7017a945a45d8396510880efa4dab0f55273f",
+    "src/main.jsx": "70abd4804ece205ce6ef2fc18490fb6bc9b6c2b8d63dd611741e915fffb0322b",
+    "src/mediaDevices.js": "353346a3f83ff8a995bbc06da3c51162e1f0916546557d832fa37100aac7b2ed",
+    "src/mediaPlayback.js": "c1c959d3ea5ca1bb551708556a82e9d62e638fa442006308ca04446bcda9fcde",
+    "src/mockDeckFixtures.js": "66439ec7f3ef3269ed1cb17b6ab0cf5a6fdb7c13693417f82d30b457e800b437",
+    "src/realtimeEpochRotation.js": "c9c4488de4644408457d4c6ce64b856d78eb89e47932120c261199b819cc5a53",
+    "src/recognition/aiCrop.js": "4f0d418abeca864f90b2a15b0287e5ffc4054096ddb5878b0f71101063ac72bb",
+    "src/recognition/aiCropGeometry.js": "a9153c763e917e15703a1d5fe8a80714e4722c6f73948e61a733170c064343cb",
+    "src/recognition/aiCropWorker.js": "ad5aecaf05ba3ef91c770a77f23476fa1d9d13b1486ec56d59750a0bd921ba87",
+    "src/recognition/hash.js": "6c3bfa012e82927b783c021886b669eece2c75712e11eaa9039a5e51794b6ea6",
+    "src/recognition/matcher.js": "914063ef18e7373f20e2a85b9c82400745d1c645e45e286c7e1a337fa656dbd9",
+    "src/recognition/metadataEvidence.js": "eb34b3521b5ecec0a756a31638bbfa4f4b301274e471428b5d65518960172ab0",
+    "src/recognition/miloLookup.js": "f61d901f0d300f12dacb1d7860eee94ab1b66ba065347bcc450f1952de177a2f",
+    "src/recognition/recognizer.js": "6e5c70249c18075c623f476e7999c26addd2f1a24e26290565976906e6cbead8",
+    "src/recognitionHints.js": "f4f1c04d3f9443ea44c334c2570de40e7102d2e621e65befd08db8d1764ab294",
+    "src/roomCode.js": "ce2502c643a8545a77da4450e929650f5ae7952c0fc7376d1aad0f40dace147c",
+    "src/signaling.js": "af1ae4d06f354f5e997e512757742271298f58ba8604ef50af0e37ae4b62d20d",
+    "src/snaptest/degrade.js": "ef006310323143b974fe29847c48d7dd3ed3cb077bc41683cbce8203eaf675d2",
+    "src/snaptest/scene.js": "c3aed501c5787dea50b752ba35d959b5e71caf93f617eb7b24790e86ab62e345",
+    "src/soundEffects.js": "f5581047a433575f75a73a00c45a17ed3f4d407d64dbddaf9f466bf9315fe7ac",
+    "src/styles.css": "8a07c5060c66ac3b6b29922d73033dc91ed986df048887ad2c1d1a7604b9b0f0",
+    "src/supabase.js": "e33dec02002ed526de8187d308cdf906fe4cc206b29ced988232beee75ef6669",
+    "src/videoCounters.js": "319e0cc48089409e7bdd7ec343a54078feace56ab26a6ec1a6980b27c29afd84",
+    "src/videoQuality.js": "eecd3cdf80ff2a0ef463ba98c4bc33072aaa35baf0df9eb0520ad79a9020679a",
+    "src/visitorAudio.js": "e0e585aea417f782e2e82ef1de0328c9aedd1fa9f937c47fb75f5661381df977",
+    "src/webrtc.js": "0ddb617d0a57f45076cb8a938bb155dbc530cbad0769d759131b9018a3f1d88e"
+  },
+  "sameNativeJPEGAndGeometryScans": 60,
+  "sameActualPriorHintPrintingsAndFaces": 20,
+  "recovered": [
+    "Necroblossom Snarl",
+    "Consecrated Sphinx",
+    "Horizon of Progress",
+    "Birds of Paradise",
+    "Descent into Avernus",
+    "Westvale Abbey"
+  ],
+  "regressed": [],
+  "noHintAllIdentityConfidencePathwayWinningProofParity": true,
+  "noHintDifferences": [],
+  "controlSummary": {
+    "noHints": {
+      "n": 20,
+      "correct": 18,
+      "correctUnder1s": 14,
+      "hintHits": 0,
+      "prepared": 20,
+      "accepted": {
+        "n": 18,
+        "correct": 18
+      },
+      "byPathway": {
+        "art-match": {
+          "n": 18,
+          "correct": 18
+        },
+        "(unresolved)": {
+          "n": 2,
+          "correct": 0
+        }
+      },
+      "displayMs": {
+        "p50": 836,
+        "p90": 2171,
+        "max": 2472
+      },
+      "recognitionMs": {
+        "p50": 579,
+        "p90": 6918
+      },
+      "captureMs": {
+        "p50": 258,
+        "p90": 266
+      }
+    },
+    "staleHint": {
+      "n": 20,
+      "correct": 12,
+      "correctUnder1s": 0,
+      "hintHits": 0,
+      "prepared": 0,
+      "accepted": {
+        "n": 12,
+        "correct": 12
+      },
+      "byPathway": {
+        "art-match": {
+          "n": 12,
+          "correct": 12
+        },
+        "(unresolved)": {
+          "n": 8,
+          "correct": 0
+        }
+      },
+      "displayMs": {
+        "p50": 2954,
+        "p90": 4789,
+        "max": 4905
+      },
+      "recognitionMs": {
+        "p50": 3966,
+        "p90": 4663
+      },
+      "captureMs": {
+        "p50": 264,
+        "p90": 280
+      }
+    }
+  },
+  "candidateSummary": {
+    "noHints": {
+      "n": 20,
+      "correct": 18,
+      "correctUnder1s": 15,
+      "hintHits": 0,
+      "prepared": 20,
+      "accepted": {
+        "n": 18,
+        "correct": 18
+      },
+      "byPathway": {
+        "art-match": {
+          "n": 18,
+          "correct": 18
+        },
+        "(unresolved)": {
+          "n": 2,
+          "correct": 0
+        }
+      },
+      "displayMs": {
+        "p50": 808,
+        "p90": 1441,
+        "max": 1473
+      },
+      "recognitionMs": {
+        "p50": 547,
+        "p90": 6085
+      },
+      "captureMs": {
+        "p50": 258,
+        "p90": 261
+      }
+    },
+    "staleHint": {
+      "n": 20,
+      "correct": 18,
+      "correctUnder1s": 11,
+      "hintHits": 0,
+      "prepared": 20,
+      "accepted": {
+        "n": 18,
+        "correct": 18
+      },
+      "byPathway": {
+        "art-match": {
+          "n": 18,
+          "correct": 18
+        },
+        "(unresolved)": {
+          "n": 2,
+          "correct": 0
+        }
+      },
+      "displayMs": {
+        "p50": 788,
+        "p90": 2352,
+        "max": 2833
+      },
+      "recognitionMs": {
+        "p50": 626,
+        "p90": 7366
+      },
+      "captureMs": {
+        "p50": 258,
+        "p90": 264
+      }
+    }
+  },
+  "acceptedStaleCorrect": {
+    "control": "12/12",
+    "candidate": "18/18"
+  },
+  "candidateStaleConfidentWrong": 0,
+  "notes": [
+    "Successful-picture percentiles exclude unresolved cases. Correct-under1-second counts include all20 attempts.",
+    "Both arms in each run share reference caches and alternate order; the second arm may be warmer. Cross-build latency is workflow evidence, not an isolated single-function timer.",
+    "Two cards remain unresolved in both builds and both hint arms: High Market and Anger.",
+    "No-hint got/name/confidence/pathway/printing/face/distance/strategy/source click/regional proof are identical for all20. Stale branch intentionally now chooses ordinary AI proposals, so different same-name printings/distances/strategies are expected and explicitly recorded."
+  ],
+  "records": [
+    {
+      "i": 0,
+      "expectedName": "Ghalta and Mavren",
+      "expectedID": "05e1189b-837d-4c1f-85a2-35d229c4dee8",
+      "oldName": "Trailblazer's Boots",
+      "realPriorHint": {
+        "name": "Trailblazer's Boots",
+        "scryfall_id": "70e3ce5d-cfb1-4fe9-99b7-9e4f58f892ec",
+        "face": 0,
+        "set": "onc",
+        "collector_number": "144"
+      },
+      "sameJPEGAndGeometry": true,
+      "changes": {
+        "noHints": [],
+        "staleHint": [
+          "winner"
+        ]
+      },
+      "arms": {
+        "noHints": {
+          "control33": {
+            "correct": true,
+            "got": "Ghalta and Mavren",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "5762edde-90ff-405c-a394-873991c3d641",
+              "face": 0,
+              "distance": 128,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 789,
+            "timing": {
+              "at": 1791776494485,
+              "remote": true,
+              "captureMs": 265,
+              "recognitionMs": 516,
+              "totalMs": 781,
+              "stages": {
+                "prep": 14,
+                "rankSeeds": 37,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1,
+                "rank": 0,
+                "orb": 462,
+                "aiCrop": 179,
+                "captureOverlap": 180,
+                "aiAttempt": 515,
+                "modelQueue": 0,
+                "total": 516,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Ghalta and Mavren",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "5762edde-90ff-405c-a394-873991c3d641",
+              "face": 0,
+              "distance": 128,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 802,
+            "timing": {
+              "at": 1791776761592,
+              "remote": true,
+              "captureMs": 254,
+              "recognitionMs": 543,
+              "totalMs": 797,
+              "stages": {
+                "prep": 14,
+                "rankSeeds": 39,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1,
+                "rank": 0,
+                "orb": 487,
+                "aiCrop": 183,
+                "captureOverlap": 185,
+                "aiAttempt": 541,
+                "modelQueue": 0,
+                "total": 543,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        },
+        "staleHint": {
+          "control33": {
+            "correct": true,
+            "got": "Ghalta and Mavren",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "05e1189b-837d-4c1f-85a2-35d229c4dee8",
+              "face": 0,
+              "distance": 129,
+              "strategy": "outline-5",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 2623,
+            "timing": {
+              "at": 1791776497139,
+              "remote": true,
+              "captureMs": 264,
+              "recognitionMs": 2355,
+              "totalMs": 2619,
+              "stages": {
+                "hintPrep": 272,
+                "hint": 0,
+                "prep": 387,
+                "rankSeeds": 651,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1036,
+                "rank": 0,
+                "orb": 6,
+                "aiCrop": 0,
+                "modelQueue": 0,
+                "total": 2355,
+                "queue": 0
+              },
+              "candidatesTried": 41,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Ghalta and Mavren",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "5762edde-90ff-405c-a394-873991c3d641",
+              "face": 0,
+              "distance": 128,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 707,
+            "timing": {
+              "at": 1791776762325,
+              "remote": true,
+              "captureMs": 257,
+              "recognitionMs": 445,
+              "totalMs": 702,
+              "stages": {
+                "prep": 13,
+                "rankSeeds": 40,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1,
+                "rank": 0,
+                "orb": 114,
+                "hintPrep": 273,
+                "hint": 0,
+                "aiCrop": 180,
+                "captureOverlap": 182,
+                "aiAttempt": 169,
+                "modelQueue": 0,
+                "total": 445,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "i": 1,
+      "expectedName": "Necroblossom Snarl",
+      "expectedID": "9332dbfb-1994-4431-8d8d-a628062d8fc6",
+      "oldName": "Reprieve",
+      "realPriorHint": {
+        "name": "Reprieve",
+        "scryfall_id": "1bd3fa8a-6c50-4f7f-9ae3-0810eec5e3db",
+        "face": 0,
+        "set": "ltr",
+        "collector_number": "26"
+      },
+      "sameJPEGAndGeometry": true,
+      "changes": {
+        "noHints": [],
+        "staleHint": [
+          "correct",
+          "got",
+          "by",
+          "confidence",
+          "winner"
+        ]
+      },
+      "arms": {
+        "noHints": {
+          "control33": {
+            "correct": true,
+            "got": "Necroblossom Snarl",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "9332dbfb-1994-4431-8d8d-a628062d8fc6",
+              "face": 0,
+              "distance": 130,
+              "strategy": "milo",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 2472,
+            "timing": {
+              "at": 1791776504309,
+              "remote": true,
+              "captureMs": 258,
+              "recognitionMs": 2197,
+              "totalMs": 2454,
+              "stages": {
+                "prep": 22,
+                "rankSeeds": 73,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1,
+                "rank": 0,
+                "orb": 443,
+                "aiCrop": 176,
+                "captureOverlap": 178,
+                "aiAttempt": 540,
+                "milo": 1656,
+                "modelQueue": 0,
+                "total": 2197,
+                "queue": 0
+              },
+              "candidatesTried": 2,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Necroblossom Snarl",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "9332dbfb-1994-4431-8d8d-a628062d8fc6",
+              "face": 0,
+              "distance": 130,
+              "strategy": "milo",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 1473,
+            "timing": {
+              "at": 1791776767773,
+              "remote": true,
+              "captureMs": 254,
+              "recognitionMs": 1213,
+              "totalMs": 1467,
+              "stages": {
+                "prep": 23,
+                "rankSeeds": 76,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 63,
+                "aiCrop": 181,
+                "captureOverlap": 182,
+                "aiAttempt": 162,
+                "milo": 1050,
+                "modelQueue": 0,
+                "total": 1213,
+                "queue": 0
+              },
+              "candidatesTried": 2,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        },
+        "staleHint": {
+          "control33": {
+            "correct": false,
+            "got": null,
+            "by": null,
+            "confidence": null,
+            "winner": null,
+            "displayMs": null,
+            "timing": {
+              "at": 1791776501840,
+              "remote": true,
+              "captureMs": 260,
+              "recognitionMs": 3371,
+              "totalMs": 3631,
+              "stages": {
+                "hintPrep": 275,
+                "hint": 0,
+                "prep": 356,
+                "rankSeeds": 644,
+                "earlyOrbProbe": 0,
+                "rankRefine": 829,
+                "isolatePrep": 648,
+                "isolateScore": 266,
+                "rank": 0,
+                "orb": 352,
+                "aiCrop": 0,
+                "modelQueue": 0,
+                "total": 3371,
+                "queue": 0
+              },
+              "candidatesTried": 110,
+              "isolationCandidates": 72,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Necroblossom Snarl",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "9332dbfb-1994-4431-8d8d-a628062d8fc6",
+              "face": 0,
+              "distance": 130,
+              "strategy": "milo",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 2833,
+            "timing": {
+              "at": 1791776766265,
+              "remote": true,
+              "captureMs": 254,
+              "recognitionMs": 2565,
+              "totalMs": 2818,
+              "stages": {
+                "prep": 21,
+                "rankSeeds": 79,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1,
+                "rank": 0,
+                "orb": 450,
+                "hintPrep": 272,
+                "hint": 0,
+                "aiCrop": 182,
+                "captureOverlap": 184,
+                "aiAttempt": 554,
+                "milo": 1737,
+                "modelQueue": 0,
+                "total": 2565,
+                "queue": 0
+              },
+              "candidatesTried": 2,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "i": 2,
+      "expectedName": "Fake Your Own Death",
+      "expectedID": "693635a6-df50-44c5-9598-0c79b45d4df4",
+      "oldName": "Sunbillow Verge",
+      "realPriorHint": {
+        "name": "Sunbillow Verge",
+        "scryfall_id": "bdccc238-6555-4f21-9b89-f3cf9319cbe4",
+        "face": 0,
+        "set": "pdft",
+        "collector_number": "264s"
+      },
+      "sameJPEGAndGeometry": true,
+      "changes": {
+        "noHints": [],
+        "staleHint": [
+          "winner"
+        ]
+      },
+      "arms": {
+        "noHints": {
+          "control33": {
+            "correct": true,
+            "got": "Fake Your Own Death",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "693635a6-df50-44c5-9598-0c79b45d4df4",
+              "face": 0,
+              "distance": 106,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 805,
+            "timing": {
+              "at": 1791776506364,
+              "remote": true,
+              "captureMs": 256,
+              "recognitionMs": 537,
+              "totalMs": 793,
+              "stages": {
+                "prep": 14,
+                "rankSeeds": 37,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 483,
+                "aiCrop": 183,
+                "captureOverlap": 185,
+                "aiAttempt": 534,
+                "modelQueue": 0,
+                "total": 537,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Fake Your Own Death",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "693635a6-df50-44c5-9598-0c79b45d4df4",
+              "face": 0,
+              "distance": 106,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 824,
+            "timing": {
+              "at": 1791776769680,
+              "remote": true,
+              "captureMs": 258,
+              "recognitionMs": 551,
+              "totalMs": 809,
+              "stages": {
+                "prep": 13,
+                "rankSeeds": 38,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1,
+                "rank": 0,
+                "orb": 498,
+                "aiCrop": 184,
+                "captureOverlap": 185,
+                "aiAttempt": 550,
+                "modelQueue": 0,
+                "total": 551,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        },
+        "staleHint": {
+          "control33": {
+            "correct": true,
+            "got": "Fake Your Own Death",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "693635a6-df50-44c5-9598-0c79b45d4df4",
+              "face": 0,
+              "distance": 112,
+              "strategy": "isolate-portrait--10-50-56-65",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 4356,
+            "timing": {
+              "at": 1791776510744,
+              "remote": true,
+              "captureMs": 263,
+              "recognitionMs": 4078,
+              "totalMs": 4341,
+              "stages": {
+                "hintPrep": 233,
+                "hint": 0,
+                "prep": 378,
+                "rankSeeds": 636,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1131,
+                "isolatePrep": 689,
+                "isolateScore": 275,
+                "rank": 0,
+                "orb": 734,
+                "aiCrop": 0,
+                "modelQueue": 0,
+                "total": 4078,
+                "queue": 0
+              },
+              "candidatesTried": 113,
+              "isolationCandidates": 72,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Fake Your Own Death",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "693635a6-df50-44c5-9598-0c79b45d4df4",
+              "face": 0,
+              "distance": 106,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 704,
+            "timing": {
+              "at": 1791776770416,
+              "remote": true,
+              "captureMs": 258,
+              "recognitionMs": 433,
+              "totalMs": 691,
+              "stages": {
+                "prep": 13,
+                "rankSeeds": 41,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 143,
+                "hintPrep": 234,
+                "hint": 0,
+                "aiCrop": 179,
+                "captureOverlap": 180,
+                "aiAttempt": 198,
+                "modelQueue": 0,
+                "total": 433,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "i": 3,
+      "expectedName": "Consecrated Sphinx",
+      "expectedID": "2fddeced-9d04-4b4c-bf3f-e9add96f4f5a",
+      "oldName": "Mines of Moria",
+      "realPriorHint": {
+        "name": "Mines of Moria",
+        "scryfall_id": "679335e5-f425-4dc2-bcb2-03cc328ac664",
+        "face": 0,
+        "set": "pltr",
+        "collector_number": "257s"
+      },
+      "sameJPEGAndGeometry": true,
+      "changes": {
+        "noHints": [],
+        "staleHint": [
+          "correct",
+          "got",
+          "by",
+          "confidence",
+          "winner"
+        ]
+      },
+      "arms": {
+        "noHints": {
+          "control33": {
+            "correct": true,
+            "got": "Consecrated Sphinx",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "2fddeced-9d04-4b4c-bf3f-e9add96f4f5a",
+              "face": 0,
+              "distance": 121,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 635,
+            "timing": {
+              "at": 1791776519426,
+              "remote": true,
+              "captureMs": 255,
+              "recognitionMs": 364,
+              "totalMs": 619,
+              "stages": {
+                "prep": 24,
+                "rankSeeds": 78,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 259,
+                "aiCrop": 184,
+                "captureOverlap": 185,
+                "aiAttempt": 362,
+                "modelQueue": 0,
+                "total": 364,
+                "queue": 0
+              },
+              "candidatesTried": 2,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Consecrated Sphinx",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "2fddeced-9d04-4b4c-bf3f-e9add96f4f5a",
+              "face": 0,
+              "distance": 121,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 439,
+            "timing": {
+              "at": 1791776775661,
+              "remote": true,
+              "captureMs": 258,
+              "recognitionMs": 163,
+              "totalMs": 421,
+              "stages": {
+                "prep": 24,
+                "rankSeeds": 74,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 62,
+                "aiCrop": 179,
+                "captureOverlap": 181,
+                "aiAttempt": 161,
+                "modelQueue": 0,
+                "total": 163,
+                "queue": 0
+              },
+              "candidatesTried": 2,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        },
+        "staleHint": {
+          "control33": {
+            "correct": false,
+            "got": null,
+            "by": null,
+            "confidence": null,
+            "winner": null,
+            "displayMs": null,
+            "timing": {
+              "at": 1791776518766,
+              "remote": true,
+              "captureMs": 264,
+              "recognitionMs": 4384,
+              "totalMs": 4647,
+              "stages": {
+                "hintPrep": 246,
+                "hint": 0,
+                "prep": 400,
+                "rankSeeds": 684,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1220,
+                "isolatePrep": 746,
+                "isolateScore": 266,
+                "rank": 0,
+                "orb": 822,
+                "aiCrop": 0,
+                "modelQueue": 0,
+                "total": 4383,
+                "queue": 0
+              },
+              "candidatesTried": 114,
+              "isolationCandidates": 72,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Consecrated Sphinx",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "2fddeced-9d04-4b4c-bf3f-e9add96f4f5a",
+              "face": 0,
+              "distance": 121,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 886,
+            "timing": {
+              "at": 1791776775209,
+              "remote": true,
+              "captureMs": 256,
+              "recognitionMs": 626,
+              "totalMs": 882,
+              "stages": {
+                "prep": 24,
+                "rankSeeds": 79,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1,
+                "rank": 0,
+                "orb": 264,
+                "hintPrep": 255,
+                "hint": 0,
+                "aiCrop": 183,
+                "captureOverlap": 185,
+                "aiAttempt": 369,
+                "modelQueue": 0,
+                "total": 626,
+                "queue": 0
+              },
+              "candidatesTried": 2,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "i": 4,
+      "expectedName": "Pact of Negation",
+      "expectedID": "5f0e1481-a2a3-43d0-a33f-6f450c176e43",
+      "oldName": "Curiosity",
+      "realPriorHint": {
+        "name": "Curiosity",
+        "scryfall_id": "5c353b2d-ba5c-4e5d-8936-c8bff002c713",
+        "face": 0,
+        "set": "awoe",
+        "collector_number": "65"
+      },
+      "sameJPEGAndGeometry": true,
+      "changes": {
+        "noHints": [],
+        "staleHint": [
+          "winner"
+        ]
+      },
+      "arms": {
+        "noHints": {
+          "control33": {
+            "correct": true,
+            "got": "Pact of Negation",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "5f0e1481-a2a3-43d0-a33f-6f450c176e43",
+              "face": 0,
+              "distance": 107,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 836,
+            "timing": {
+              "at": 1791776521588,
+              "remote": true,
+              "captureMs": 253,
+              "recognitionMs": 579,
+              "totalMs": 832,
+              "stages": {
+                "prep": 13,
+                "rankSeeds": 38,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1,
+                "rank": 0,
+                "orb": 523,
+                "aiCrop": 181,
+                "captureOverlap": 183,
+                "aiAttempt": 576,
+                "modelQueue": 0,
+                "total": 579,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Pact of Negation",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "5f0e1481-a2a3-43d0-a33f-6f450c176e43",
+              "face": 0,
+              "distance": 107,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 822,
+            "timing": {
+              "at": 1791776777813,
+              "remote": true,
+              "captureMs": 260,
+              "recognitionMs": 547,
+              "totalMs": 807,
+              "stages": {
+                "prep": 13,
+                "rankSeeds": 38,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 494,
+                "aiCrop": 180,
+                "captureOverlap": 182,
+                "aiAttempt": 545,
+                "modelQueue": 0,
+                "total": 547,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        },
+        "staleHint": {
+          "control33": {
+            "correct": true,
+            "got": "Pact of Negation",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "5f0e1481-a2a3-43d0-a33f-6f450c176e43",
+              "face": 0,
+              "distance": 128,
+              "strategy": "outline-3",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 2737,
+            "timing": {
+              "at": 1791776524348,
+              "remote": true,
+              "captureMs": 264,
+              "recognitionMs": 2462,
+              "totalMs": 2727,
+              "stages": {
+                "hintPrep": 266,
+                "hint": 0,
+                "prep": 399,
+                "rankSeeds": 642,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1151,
+                "rank": 0,
+                "orb": 2,
+                "aiCrop": 0,
+                "modelQueue": 0,
+                "total": 2462,
+                "queue": 0
+              },
+              "candidatesTried": 41,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Pact of Negation",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "5f0e1481-a2a3-43d0-a33f-6f450c176e43",
+              "face": 0,
+              "distance": 107,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 722,
+            "timing": {
+              "at": 1791776778563,
+              "remote": true,
+              "captureMs": 257,
+              "recognitionMs": 450,
+              "totalMs": 707,
+              "stages": {
+                "prep": 13,
+                "rankSeeds": 41,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 130,
+                "hintPrep": 262,
+                "hint": 0,
+                "aiCrop": 182,
+                "captureOverlap": 184,
+                "aiAttempt": 185,
+                "modelQueue": 0,
+                "total": 450,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "i": 5,
+      "expectedName": "Horizon of Progress",
+      "expectedID": "5ae3a9c8-194e-421b-b77d-9c8784442651",
+      "oldName": "Ninjas",
+      "realPriorHint": {
+        "name": "Ninjas",
+        "scryfall_id": "f2c8cf2c-2a2f-4609-baf5-c58da0c91cc2",
+        "face": 0,
+        "set": "fj25",
+        "collector_number": "14"
+      },
+      "sameJPEGAndGeometry": true,
+      "changes": {
+        "noHints": [],
+        "staleHint": [
+          "correct",
+          "got",
+          "by",
+          "confidence",
+          "winner"
+        ]
+      },
+      "arms": {
+        "noHints": {
+          "control33": {
+            "correct": true,
+            "got": "Horizon of Progress",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "5ae3a9c8-194e-421b-b77d-9c8784442651",
+              "face": 0,
+              "distance": 127,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 622,
+            "timing": {
+              "at": 1791776531315,
+              "remote": true,
+              "captureMs": 258,
+              "recognitionMs": 354,
+              "totalMs": 612,
+              "stages": {
+                "prep": 13,
+                "rankSeeds": 39,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1,
+                "rank": 0,
+                "orb": 298,
+                "aiCrop": 190,
+                "captureOverlap": 192,
+                "aiAttempt": 351,
+                "modelQueue": 0,
+                "total": 354,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Horizon of Progress",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "5ae3a9c8-194e-421b-b77d-9c8784442651",
+              "face": 0,
+              "distance": 127,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 440,
+            "timing": {
+              "at": 1791776781214,
+              "remote": true,
+              "captureMs": 258,
+              "recognitionMs": 168,
+              "totalMs": 426,
+              "stages": {
+                "prep": 13,
+                "rankSeeds": 37,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1,
+                "rank": 0,
+                "orb": 115,
+                "aiCrop": 180,
+                "captureOverlap": 181,
+                "aiAttempt": 166,
+                "modelQueue": 0,
+                "total": 168,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        },
+        "staleHint": {
+          "control33": {
+            "correct": false,
+            "got": null,
+            "by": null,
+            "confidence": null,
+            "winner": null,
+            "displayMs": null,
+            "timing": {
+              "at": 1791776530674,
+              "remote": true,
+              "captureMs": 274,
+              "recognitionMs": 4809,
+              "totalMs": 5083,
+              "stages": {
+                "hintPrep": 389,
+                "hint": 0,
+                "prep": 400,
+                "rankSeeds": 697,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1359,
+                "isolatePrep": 1107,
+                "isolateScore": 445,
+                "rank": 0,
+                "orb": 410,
+                "aiCrop": 0,
+                "modelQueue": 0,
+                "total": 4809,
+                "queue": 0
+              },
+              "candidatesTried": 146,
+              "isolationCandidates": 104,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Horizon of Progress",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "5ae3a9c8-194e-421b-b77d-9c8784442651",
+              "face": 0,
+              "distance": 127,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 1006,
+            "timing": {
+              "at": 1791776780753,
+              "remote": true,
+              "captureMs": 258,
+              "recognitionMs": 739,
+              "totalMs": 997,
+              "stages": {
+                "prep": 13,
+                "rankSeeds": 39,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 308,
+                "hintPrep": 372,
+                "hint": 0,
+                "aiCrop": 178,
+                "captureOverlap": 180,
+                "aiAttempt": 363,
+                "modelQueue": 0,
+                "total": 739,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "i": 6,
+      "expectedName": "Birds of Paradise",
+      "expectedID": "06ee339e-a912-4f7c-b091-eba71ab68bbc",
+      "oldName": "Chasm Skulker",
+      "realPriorHint": {
+        "name": "Chasm Skulker",
+        "scryfall_id": "886ce333-44d7-458e-a3bb-a58d1d7fc69b",
+        "face": 0,
+        "set": "fic",
+        "collector_number": "262"
+      },
+      "sameJPEGAndGeometry": true,
+      "changes": {
+        "noHints": [],
+        "staleHint": [
+          "correct",
+          "got",
+          "by",
+          "confidence",
+          "winner"
+        ]
+      },
+      "arms": {
+        "noHints": {
+          "control33": {
+            "correct": true,
+            "got": "Birds of Paradise",
+            "by": "art-match",
+            "confidence": 0.65,
+            "winner": {
+              "id": "06ee339e-a912-4f7c-b091-eba71ab68bbc",
+              "face": 0,
+              "distance": 139,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 798,
+            "timing": {
+              "at": 1791776534244,
+              "remote": true,
+              "captureMs": 267,
+              "recognitionMs": 517,
+              "totalMs": 783,
+              "stages": {
+                "prep": 24,
+                "rankSeeds": 82,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1,
+                "rank": 0,
+                "orb": 408,
+                "aiCrop": 183,
+                "captureOverlap": 185,
+                "aiAttempt": 515,
+                "modelQueue": 0,
+                "total": 517,
+                "queue": 0
+              },
+              "candidatesTried": 2,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Birds of Paradise",
+            "by": "art-match",
+            "confidence": 0.65,
+            "winner": {
+              "id": "06ee339e-a912-4f7c-b091-eba71ab68bbc",
+              "face": 0,
+              "distance": 139,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 756,
+            "timing": {
+              "at": 1791776784100,
+              "remote": true,
+              "captureMs": 258,
+              "recognitionMs": 486,
+              "totalMs": 744,
+              "stages": {
+                "prep": 25,
+                "rankSeeds": 74,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 385,
+                "aiCrop": 181,
+                "captureOverlap": 183,
+                "aiAttempt": 485,
+                "modelQueue": 0,
+                "total": 486,
+                "queue": 0
+              },
+              "candidatesTried": 2,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        },
+        "staleHint": {
+          "control33": {
+            "correct": false,
+            "got": null,
+            "by": null,
+            "confidence": null,
+            "winner": null,
+            "displayMs": null,
+            "timing": {
+              "at": 1791776538633,
+              "remote": true,
+              "captureMs": 257,
+              "recognitionMs": 4052,
+              "totalMs": 4310,
+              "stages": {
+                "hintPrep": 313,
+                "hint": 0,
+                "prep": 417,
+                "rankSeeds": 732,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1240,
+                "isolatePrep": 757,
+                "isolateScore": 252,
+                "rank": 0,
+                "orb": 340,
+                "aiCrop": 0,
+                "modelQueue": 0,
+                "total": 4052,
+                "queue": 0
+              },
+              "candidatesTried": 118,
+              "isolationCandidates": 72,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Birds of Paradise",
+            "by": "art-match",
+            "confidence": 0.65,
+            "winner": {
+              "id": "06ee339e-a912-4f7c-b091-eba71ab68bbc",
+              "face": 0,
+              "distance": 139,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 773,
+            "timing": {
+              "at": 1791776784892,
+              "remote": true,
+              "captureMs": 258,
+              "recognitionMs": 495,
+              "totalMs": 754,
+              "stages": {
+                "prep": 23,
+                "rankSeeds": 75,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 90,
+                "hintPrep": 296,
+                "hint": 0,
+                "aiCrop": 186,
+                "captureOverlap": 187,
+                "aiAttempt": 190,
+                "modelQueue": 0,
+                "total": 495,
+                "queue": 0
+              },
+              "candidatesTried": 2,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "i": 7,
+      "expectedName": "Hall of Heliod's Generosity",
+      "expectedID": "f08dfd99-59fa-4a6c-bd69-c647f639de4d",
+      "oldName": "Razorgrass Ambush",
+      "realPriorHint": {
+        "name": "Razorgrass Ambush",
+        "scryfall_id": "57065dca-f90e-4184-bbc4-95d726a4160b",
+        "face": 0,
+        "set": "mh3",
+        "collector_number": "238"
+      },
+      "sameJPEGAndGeometry": true,
+      "changes": {
+        "noHints": [],
+        "staleHint": [
+          "winner"
+        ]
+      },
+      "arms": {
+        "noHints": {
+          "control33": {
+            "correct": true,
+            "got": "Hall of Heliod's Generosity",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "f08dfd99-59fa-4a6c-bd69-c647f639de4d",
+              "face": 0,
+              "distance": 154,
+              "strategy": "milo",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 1206,
+            "timing": {
+              "at": 1791776545691,
+              "remote": true,
+              "captureMs": 260,
+              "recognitionMs": 928,
+              "totalMs": 1189,
+              "stages": {
+                "prep": 12,
+                "rankSeeds": 38,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 574,
+                "aiCrop": 177,
+                "captureOverlap": 178,
+                "aiAttempt": 625,
+                "milo": 302,
+                "modelQueue": 0,
+                "total": 928,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Hall of Heliod's Generosity",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "f08dfd99-59fa-4a6c-bd69-c647f639de4d",
+              "face": 0,
+              "distance": 154,
+              "strategy": "milo",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 839,
+            "timing": {
+              "at": 1791776788372,
+              "remote": true,
+              "captureMs": 260,
+              "recognitionMs": 573,
+              "totalMs": 833,
+              "stages": {
+                "prep": 13,
+                "rankSeeds": 37,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1,
+                "rank": 0,
+                "orb": 210,
+                "aiCrop": 176,
+                "captureOverlap": 178,
+                "aiAttempt": 262,
+                "milo": 310,
+                "modelQueue": 0,
+                "total": 573,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        },
+        "staleHint": {
+          "control33": {
+            "correct": true,
+            "got": "Hall of Heliod's Generosity",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "f08dfd99-59fa-4a6c-bd69-c647f639de4d",
+              "face": 0,
+              "distance": 166,
+              "strategy": "isolate-sideways-rotated-76-50-65-44",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 4789,
+            "timing": {
+              "at": 1791776544468,
+              "remote": true,
+              "captureMs": 263,
+              "recognitionMs": 4519,
+              "totalMs": 4782,
+              "stages": {
+                "hintPrep": 305,
+                "hint": 0,
+                "prep": 388,
+                "rankSeeds": 662,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1340,
+                "isolatePrep": 724,
+                "isolateScore": 267,
+                "rank": 0,
+                "orb": 830,
+                "aiCrop": 0,
+                "modelQueue": 0,
+                "total": 4519,
+                "queue": 0
+              },
+              "candidatesTried": 119,
+              "isolationCandidates": 72,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Hall of Heliod's Generosity",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "f08dfd99-59fa-4a6c-bd69-c647f639de4d",
+              "face": 0,
+              "distance": 154,
+              "strategy": "milo",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 1525,
+            "timing": {
+              "at": 1791776787495,
+              "remote": true,
+              "captureMs": 257,
+              "recognitionMs": 1251,
+              "totalMs": 1508,
+              "stages": {
+                "prep": 13,
+                "rankSeeds": 38,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 588,
+                "hintPrep": 295,
+                "hint": 0,
+                "aiCrop": 178,
+                "captureOverlap": 179,
+                "aiAttempt": 639,
+                "milo": 315,
+                "modelQueue": 0,
+                "total": 1251,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "i": 8,
+      "expectedName": "Walking Ballista",
+      "expectedID": "33622675-7bb3-4d4c-9bca-5db68d7d166b",
+      "oldName": "Janosch K\u00fchn Bio (1997)",
+      "realPriorHint": {
+        "name": "Janosch K\u00fchn Bio (1997)",
+        "scryfall_id": "c420f353-0d9f-44ad-a566-5ed0b58964c2",
+        "face": 0,
+        "set": "wc97",
+        "collector_number": "jk0a"
+      },
+      "sameJPEGAndGeometry": true,
+      "changes": {
+        "noHints": [],
+        "staleHint": [
+          "winner"
+        ]
+      },
+      "arms": {
+        "noHints": {
+          "control33": {
+            "correct": true,
+            "got": "Walking Ballista",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "33622675-7bb3-4d4c-9bca-5db68d7d166b",
+              "face": 0,
+              "distance": 152,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 809,
+            "timing": {
+              "at": 1791776547631,
+              "remote": true,
+              "captureMs": 261,
+              "recognitionMs": 538,
+              "totalMs": 800,
+              "stages": {
+                "prep": 14,
+                "rankSeeds": 43,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 461,
+                "aiCrop": 178,
+                "captureOverlap": 180,
+                "aiAttempt": 519,
+                "modelQueue": 0,
+                "total": 538,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Walking Ballista",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "33622675-7bb3-4d4c-9bca-5db68d7d166b",
+              "face": 0,
+              "distance": 152,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 790,
+            "timing": {
+              "at": 1791776790327,
+              "remote": true,
+              "captureMs": 260,
+              "recognitionMs": 513,
+              "totalMs": 773,
+              "stages": {
+                "prep": 13,
+                "rankSeeds": 37,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 461,
+                "aiCrop": 182,
+                "captureOverlap": 184,
+                "aiAttempt": 511,
+                "modelQueue": 0,
+                "total": 513,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        },
+        "staleHint": {
+          "control33": {
+            "correct": true,
+            "got": "Walking Ballista",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "33622675-7bb3-4d4c-9bca-5db68d7d166b",
+              "face": 0,
+              "distance": 177,
+              "strategy": "isolate-portrait-10-45-20-44",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 4905,
+            "timing": {
+              "at": 1791776552566,
+              "remote": true,
+              "captureMs": 262,
+              "recognitionMs": 4635,
+              "totalMs": 4898,
+              "stages": {
+                "hintPrep": 283,
+                "hint": 0,
+                "prep": 393,
+                "rankSeeds": 688,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1388,
+                "isolatePrep": 739,
+                "isolateScore": 265,
+                "rank": 0,
+                "orb": 878,
+                "aiCrop": 0,
+                "modelQueue": 0,
+                "total": 4635,
+                "queue": 0
+              },
+              "candidatesTried": 119,
+              "isolationCandidates": 72,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Walking Ballista",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "33622675-7bb3-4d4c-9bca-5db68d7d166b",
+              "face": 0,
+              "distance": 152,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 739,
+            "timing": {
+              "at": 1791776791104,
+              "remote": true,
+              "captureMs": 260,
+              "recognitionMs": 472,
+              "totalMs": 732,
+              "stages": {
+                "prep": 13,
+                "rankSeeds": 39,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 143,
+                "hintPrep": 274,
+                "hint": 0,
+                "aiCrop": 177,
+                "captureOverlap": 179,
+                "aiAttempt": 196,
+                "modelQueue": 0,
+                "total": 472,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "i": 9,
+      "expectedName": "High Market",
+      "expectedID": "7ab4104c-7826-410c-b250-4000f7dc86eb",
+      "oldName": "Foretell",
+      "realPriorHint": {
+        "name": "Foretell",
+        "scryfall_id": "207b3d62-2541-4a51-8152-3c54218ab6f7",
+        "face": 0,
+        "set": "tfic",
+        "collector_number": "10"
+      },
+      "sameJPEGAndGeometry": true,
+      "changes": {
+        "noHints": [],
+        "staleHint": []
+      },
+      "arms": {
+        "noHints": {
+          "control33": {
+            "correct": false,
+            "got": null,
+            "by": null,
+            "confidence": null,
+            "winner": null,
+            "displayMs": null,
+            "timing": {
+              "at": 1791776569917,
+              "remote": true,
+              "captureMs": 257,
+              "recognitionMs": 9756,
+              "totalMs": 10013,
+              "stages": {
+                "prep": 734,
+                "rankSeeds": 707,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1212,
+                "isolatePrep": 772,
+                "isolateScore": 255,
+                "rank": 0,
+                "orb": 1420,
+                "aiCrop": 182,
+                "captureOverlap": 184,
+                "aiAttempt": 608,
+                "milo": 1117,
+                "aiRetry": 2930,
+                "modelQueue": 0,
+                "total": 9756,
+                "queue": 0
+              },
+              "candidatesTried": 116,
+              "isolationCandidates": 72,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": false,
+            "got": null,
+            "by": null,
+            "confidence": null,
+            "winner": null,
+            "displayMs": null,
+            "timing": {
+              "at": 1791776812958,
+              "remote": true,
+              "captureMs": 253,
+              "recognitionMs": 8879,
+              "totalMs": 9132,
+              "stages": {
+                "prep": 734,
+                "rankSeeds": 700,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1208,
+                "isolatePrep": 777,
+                "isolateScore": 259,
+                "rank": 0,
+                "orb": 1395,
+                "aiCrop": 175,
+                "captureOverlap": 177,
+                "aiAttempt": 340,
+                "milo": 923,
+                "aiRetry": 2536,
+                "modelQueue": 0,
+                "total": 8879,
+                "queue": 0
+              },
+              "candidatesTried": 116,
+              "isolationCandidates": 72,
+              "hintHit": false
+            }
+          }
+        },
+        "staleHint": {
+          "control33": {
+            "correct": false,
+            "got": null,
+            "by": null,
+            "confidence": null,
+            "winner": null,
+            "displayMs": null,
+            "timing": {
+              "at": 1791776559879,
+              "remote": true,
+              "captureMs": 265,
+              "recognitionMs": 4663,
+              "totalMs": 4927,
+              "stages": {
+                "hintPrep": 376,
+                "hint": 0,
+                "prep": 427,
+                "rankSeeds": 707,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1353,
+                "isolatePrep": 772,
+                "isolateScore": 255,
+                "rank": 0,
+                "orb": 771,
+                "aiCrop": 0,
+                "modelQueue": 0,
+                "total": 4663,
+                "queue": 0
+              },
+              "candidatesTried": 116,
+              "isolationCandidates": 72,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": false,
+            "got": null,
+            "by": null,
+            "confidence": null,
+            "winner": null,
+            "displayMs": null,
+            "timing": {
+              "at": 1791776803803,
+              "remote": true,
+              "captureMs": 264,
+              "recognitionMs": 10124,
+              "totalMs": 10387,
+              "stages": {
+                "hintPrep": 727,
+                "hint": 0,
+                "prep": 393,
+                "rankSeeds": 695,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1368,
+                "isolatePrep": 751,
+                "isolateScore": 265,
+                "rank": 0,
+                "orb": 1458,
+                "aiCrop": 182,
+                "captureOverlap": 184,
+                "aiAttempt": 573,
+                "milo": 988,
+                "aiRetry": 2902,
+                "modelQueue": 0,
+                "total": 10124,
+                "queue": 0
+              },
+              "candidatesTried": 116,
+              "isolationCandidates": 72,
+              "hintHit": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "i": 10,
+      "expectedName": "Thornplate Intimidator",
+      "expectedID": "53fd3dd0-81b6-4f4a-86e6-920170017c92",
+      "oldName": "Exsanguinate",
+      "realPriorHint": {
+        "name": "Exsanguinate",
+        "scryfall_id": "f11d7311-4066-4a5d-ba28-9857fa707a0b",
+        "face": 0,
+        "set": "fdn",
+        "collector_number": "173"
+      },
+      "sameJPEGAndGeometry": true,
+      "changes": {
+        "noHints": [],
+        "staleHint": [
+          "winner"
+        ]
+      },
+      "arms": {
+        "noHints": {
+          "control33": {
+            "correct": true,
+            "got": "Thornplate Intimidator",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "53fd3dd0-81b6-4f4a-86e6-920170017c92",
+              "face": 0,
+              "distance": 95,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 638,
+            "timing": {
+              "at": 1791776571846,
+              "remote": true,
+              "captureMs": 261,
+              "recognitionMs": 366,
+              "totalMs": 627,
+              "stages": {
+                "prep": 24,
+                "rankSeeds": 75,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 265,
+                "aiCrop": 177,
+                "captureOverlap": 179,
+                "aiAttempt": 365,
+                "modelQueue": 0,
+                "total": 366,
+                "queue": 0
+              },
+              "candidatesTried": 2,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Thornplate Intimidator",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "53fd3dd0-81b6-4f4a-86e6-920170017c92",
+              "face": 0,
+              "distance": 95,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 622,
+            "timing": {
+              "at": 1791776814981,
+              "remote": true,
+              "captureMs": 260,
+              "recognitionMs": 349,
+              "totalMs": 608,
+              "stages": {
+                "prep": 25,
+                "rankSeeds": 75,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 247,
+                "aiCrop": 180,
+                "captureOverlap": 182,
+                "aiAttempt": 347,
+                "modelQueue": 0,
+                "total": 349,
+                "queue": 0
+              },
+              "candidatesTried": 2,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        },
+        "staleHint": {
+          "control33": {
+            "correct": true,
+            "got": "Thornplate Intimidator",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "53fd3dd0-81b6-4f4a-86e6-920170017c92",
+              "face": 0,
+              "distance": 105,
+              "strategy": "outline-4",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 2706,
+            "timing": {
+              "at": 1791776574575,
+              "remote": true,
+              "captureMs": 281,
+              "recognitionMs": 2411,
+              "totalMs": 2691,
+              "stages": {
+                "hintPrep": 331,
+                "hint": 0,
+                "prep": 411,
+                "rankSeeds": 690,
+                "earlyOrbProbe": 0,
+                "rankRefine": 507,
+                "rank": 0,
+                "orb": 471,
+                "aiCrop": 0,
+                "modelQueue": 0,
+                "total": 2410,
+                "queue": 0
+              },
+              "candidatesTried": 47,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Thornplate Intimidator",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "53fd3dd0-81b6-4f4a-86e6-920170017c92",
+              "face": 0,
+              "distance": 95,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 788,
+            "timing": {
+              "at": 1791776815796,
+              "remote": true,
+              "captureMs": 259,
+              "recognitionMs": 515,
+              "totalMs": 774,
+              "stages": {
+                "prep": 24,
+                "rankSeeds": 77,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1,
+                "rank": 0,
+                "orb": 90,
+                "hintPrep": 318,
+                "hint": 0,
+                "aiCrop": 178,
+                "captureOverlap": 180,
+                "aiAttempt": 194,
+                "modelQueue": 0,
+                "total": 515,
+                "queue": 0
+              },
+              "candidatesTried": 2,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "i": 11,
+      "expectedName": "Anger",
+      "expectedID": "ed8d665e-9df6-4ae9-a567-977c687fa8e2",
+      "oldName": "Teferi's Puzzle Box",
+      "realPriorHint": {
+        "name": "Teferi's Puzzle Box",
+        "scryfall_id": "b5fb88b2-5dc6-43de-8a38-1f8982ed395a",
+        "face": 0,
+        "set": "sld",
+        "collector_number": "368"
+      },
+      "sameJPEGAndGeometry": true,
+      "changes": {
+        "noHints": [],
+        "staleHint": []
+      },
+      "arms": {
+        "noHints": {
+          "control33": {
+            "correct": false,
+            "got": null,
+            "by": null,
+            "confidence": null,
+            "winner": null,
+            "displayMs": null,
+            "timing": {
+              "at": 1791776588461,
+              "remote": true,
+              "captureMs": 259,
+              "recognitionMs": 6918,
+              "totalMs": 7176,
+              "stages": {
+                "prep": 581,
+                "rankSeeds": 647,
+                "earlyOrbProbe": 0,
+                "rankRefine": 593,
+                "isolatePrep": 635,
+                "isolateScore": 296,
+                "rank": 0,
+                "orb": 536,
+                "aiCrop": 176,
+                "captureOverlap": 178,
+                "aiAttempt": 393,
+                "milo": 1053,
+                "aiRetry": 2181,
+                "modelQueue": 0,
+                "total": 6918,
+                "queue": 0
+              },
+              "candidatesTried": 104,
+              "isolationCandidates": 72,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": false,
+            "got": null,
+            "by": null,
+            "confidence": null,
+            "winner": null,
+            "displayMs": null,
+            "timing": {
+              "at": 1791776832948,
+              "remote": true,
+              "captureMs": 254,
+              "recognitionMs": 6085,
+              "totalMs": 6339,
+              "stages": {
+                "prep": 563,
+                "rankSeeds": 678,
+                "earlyOrbProbe": 0,
+                "rankRefine": 573,
+                "isolatePrep": 615,
+                "isolateScore": 293,
+                "rank": 0,
+                "orb": 490,
+                "aiCrop": 177,
+                "captureOverlap": 179,
+                "aiAttempt": 195,
+                "milo": 833,
+                "aiRetry": 1843,
+                "modelQueue": 0,
+                "total": 6085,
+                "queue": 0
+              },
+              "candidatesTried": 104,
+              "isolationCandidates": 72,
+              "hintHit": false
+            }
+          }
+        },
+        "staleHint": {
+          "control33": {
+            "correct": false,
+            "got": null,
+            "by": null,
+            "confidence": null,
+            "winner": null,
+            "displayMs": null,
+            "timing": {
+              "at": 1791776581267,
+              "remote": true,
+              "captureMs": 275,
+              "recognitionMs": 3301,
+              "totalMs": 3576,
+              "stages": {
+                "hintPrep": 268,
+                "hint": 0,
+                "prep": 353,
+                "rankSeeds": 653,
+                "earlyOrbProbe": 0,
+                "rankRefine": 725,
+                "isolatePrep": 637,
+                "isolateScore": 301,
+                "rank": 0,
+                "orb": 362,
+                "aiCrop": 0,
+                "modelQueue": 0,
+                "total": 3301,
+                "queue": 0
+              },
+              "candidatesTried": 104,
+              "isolationCandidates": 72,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": false,
+            "got": null,
+            "by": null,
+            "confidence": null,
+            "winner": null,
+            "displayMs": null,
+            "timing": {
+              "at": 1791776826579,
+              "remote": true,
+              "captureMs": 265,
+              "recognitionMs": 7366,
+              "totalMs": 7631,
+              "stages": {
+                "hintPrep": 515,
+                "hint": 0,
+                "prep": 342,
+                "rankSeeds": 643,
+                "earlyOrbProbe": 0,
+                "rankRefine": 755,
+                "isolatePrep": 616,
+                "isolateScore": 295,
+                "rank": 0,
+                "orb": 594,
+                "aiCrop": 181,
+                "captureOverlap": 182,
+                "aiAttempt": 422,
+                "milo": 1044,
+                "aiRetry": 2137,
+                "modelQueue": 0,
+                "total": 7366,
+                "queue": 0
+              },
+              "candidatesTried": 104,
+              "isolationCandidates": 72,
+              "hintHit": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "i": 12,
+      "expectedName": "Drivnod, Carnage Dominus",
+      "expectedID": "7676cf76-027d-423b-a84c-19179cee9d08",
+      "oldName": "Sunpetal Grove",
+      "realPriorHint": {
+        "name": "Sunpetal Grove",
+        "scryfall_id": "6a918ba2-5f03-4024-999d-2d2942a1cac1",
+        "face": 0,
+        "set": "ltc",
+        "collector_number": "336"
+      },
+      "sameJPEGAndGeometry": true,
+      "changes": {
+        "noHints": [],
+        "staleHint": [
+          "winner"
+        ]
+      },
+      "arms": {
+        "noHints": {
+          "control33": {
+            "correct": true,
+            "got": "Drivnod, Carnage Dominus",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "7676cf76-027d-423b-a84c-19179cee9d08",
+              "face": 0,
+              "distance": 175,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 771,
+            "timing": {
+              "at": 1791776590372,
+              "remote": true,
+              "captureMs": 256,
+              "recognitionMs": 498,
+              "totalMs": 754,
+              "stages": {
+                "prep": 13,
+                "rankSeeds": 38,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 442,
+                "aiCrop": 182,
+                "captureOverlap": 184,
+                "aiAttempt": 494,
+                "modelQueue": 0,
+                "total": 498,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Drivnod, Carnage Dominus",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "7676cf76-027d-423b-a84c-19179cee9d08",
+              "face": 0,
+              "distance": 175,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 705,
+            "timing": {
+              "at": 1791776834767,
+              "remote": true,
+              "captureMs": 256,
+              "recognitionMs": 439,
+              "totalMs": 696,
+              "stages": {
+                "prep": 13,
+                "rankSeeds": 37,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 385,
+                "aiCrop": 179,
+                "captureOverlap": 180,
+                "aiAttempt": 435,
+                "modelQueue": 0,
+                "total": 439,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        },
+        "staleHint": {
+          "control33": {
+            "correct": true,
+            "got": "Drivnod, Carnage Dominus",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "7676cf76-027d-423b-a84c-19179cee9d08",
+              "face": 0,
+              "distance": 109,
+              "strategy": "isolate-sideways-rotated-100-48-68-44",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 4736,
+            "timing": {
+              "at": 1791776595141,
+              "remote": true,
+              "captureMs": 261,
+              "recognitionMs": 4461,
+              "totalMs": 4721,
+              "stages": {
+                "hintPrep": 284,
+                "hint": 0,
+                "prep": 394,
+                "rankSeeds": 655,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1321,
+                "isolatePrep": 693,
+                "isolateScore": 252,
+                "rank": 0,
+                "orb": 860,
+                "aiCrop": 0,
+                "modelQueue": 0,
+                "total": 4461,
+                "queue": 0
+              },
+              "candidatesTried": 119,
+              "isolationCandidates": 72,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Drivnod, Carnage Dominus",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "7676cf76-027d-423b-a84c-19179cee9d08",
+              "face": 0,
+              "distance": 175,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 722,
+            "timing": {
+              "at": 1791776835520,
+              "remote": true,
+              "captureMs": 259,
+              "recognitionMs": 456,
+              "totalMs": 715,
+              "stages": {
+                "prep": 12,
+                "rankSeeds": 39,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1,
+                "rank": 0,
+                "orb": 130,
+                "hintPrep": 272,
+                "hint": 0,
+                "aiCrop": 177,
+                "captureOverlap": 178,
+                "aiAttempt": 183,
+                "modelQueue": 0,
+                "total": 456,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "i": 13,
+      "expectedName": "Invasion of Ikoria",
+      "expectedID": "e277f9d2-b809-4edd-aa8f-e28e13a6d349",
+      "oldName": "Sky Diamond",
+      "realPriorHint": {
+        "name": "Sky Diamond",
+        "scryfall_id": "6bc62a1e-830b-4b07-91e4-303e66d93648",
+        "face": 0,
+        "set": "cmr",
+        "collector_number": "341"
+      },
+      "sameJPEGAndGeometry": true,
+      "changes": {
+        "noHints": [],
+        "staleHint": [
+          "winner"
+        ]
+      },
+      "arms": {
+        "noHints": {
+          "control33": {
+            "correct": true,
+            "got": "Invasion of Ikoria",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "e277f9d2-b809-4edd-aa8f-e28e13a6d349",
+              "face": 0,
+              "distance": 138,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 838,
+            "timing": {
+              "at": 1791776600234,
+              "remote": true,
+              "captureMs": 257,
+              "recognitionMs": 577,
+              "totalMs": 834,
+              "stages": {
+                "prep": 13,
+                "rankSeeds": 39,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 523,
+                "aiCrop": 176,
+                "captureOverlap": 177,
+                "aiAttempt": 576,
+                "modelQueue": 0,
+                "total": 577,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Invasion of Ikoria",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "e277f9d2-b809-4edd-aa8f-e28e13a6d349",
+              "face": 0,
+              "distance": 138,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 454,
+            "timing": {
+              "at": 1791776838398,
+              "remote": true,
+              "captureMs": 256,
+              "recognitionMs": 187,
+              "totalMs": 443,
+              "stages": {
+                "prep": 14,
+                "rankSeeds": 37,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 134,
+                "aiCrop": 181,
+                "captureOverlap": 182,
+                "aiAttempt": 185,
+                "modelQueue": 0,
+                "total": 187,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        },
+        "staleHint": {
+          "control33": {
+            "correct": true,
+            "got": "Invasion of Ikoria",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "e277f9d2-b809-4edd-aa8f-e28e13a6d349",
+              "face": 0,
+              "distance": 69,
+              "strategy": "outline-4",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 2822,
+            "timing": {
+              "at": 1791776599344,
+              "remote": true,
+              "captureMs": 263,
+              "recognitionMs": 2547,
+              "totalMs": 2810,
+              "stages": {
+                "hintPrep": 187,
+                "hint": 0,
+                "prep": 411,
+                "rankSeeds": 601,
+                "earlyOrbProbe": 0,
+                "rankRefine": 294,
+                "rank": 0,
+                "orb": 1053,
+                "aiCrop": 0,
+                "modelQueue": 0,
+                "total": 2547,
+                "queue": 0
+              },
+              "candidatesTried": 41,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Invasion of Ikoria",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "e277f9d2-b809-4edd-aa8f-e28e13a6d349",
+              "face": 0,
+              "distance": 138,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 1054,
+            "timing": {
+              "at": 1791776837922,
+              "remote": true,
+              "captureMs": 256,
+              "recognitionMs": 795,
+              "totalMs": 1051,
+              "stages": {
+                "prep": 12,
+                "rankSeeds": 37,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1,
+                "rank": 0,
+                "orb": 558,
+                "hintPrep": 182,
+                "hint": 0,
+                "aiCrop": 181,
+                "captureOverlap": 183,
+                "aiAttempt": 609,
+                "modelQueue": 0,
+                "total": 795,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "i": 14,
+      "expectedName": "Phyrexian Obliterator",
+      "expectedID": "44c4476d-58f9-420d-9545-f5d580c589de",
+      "oldName": "Barad-d\u00fbr",
+      "realPriorHint": {
+        "name": "Barad-d\u00fbr",
+        "scryfall_id": "8306fe9f-e6c2-4875-958c-e79c0513e254",
+        "face": 0,
+        "set": "ltr",
+        "collector_number": "751"
+      },
+      "sameJPEGAndGeometry": true,
+      "changes": {
+        "noHints": [],
+        "staleHint": [
+          "confidence",
+          "winner"
+        ]
+      },
+      "arms": {
+        "noHints": {
+          "control33": {
+            "correct": true,
+            "got": "Phyrexian Obliterator",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "44c4476d-58f9-420d-9545-f5d580c589de",
+              "face": 0,
+              "distance": 117,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 852,
+            "timing": {
+              "at": 1791776602354,
+              "remote": true,
+              "captureMs": 250,
+              "recognitionMs": 584,
+              "totalMs": 834,
+              "stages": {
+                "prep": 13,
+                "rankSeeds": 38,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1,
+                "rank": 0,
+                "orb": 527,
+                "aiCrop": 181,
+                "captureOverlap": 183,
+                "aiAttempt": 579,
+                "modelQueue": 0,
+                "total": 584,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Phyrexian Obliterator",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "44c4476d-58f9-420d-9545-f5d580c589de",
+              "face": 0,
+              "distance": 117,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 808,
+            "timing": {
+              "at": 1791776840534,
+              "remote": true,
+              "captureMs": 261,
+              "recognitionMs": 538,
+              "totalMs": 799,
+              "stages": {
+                "prep": 13,
+                "rankSeeds": 37,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1,
+                "rank": 0,
+                "orb": 485,
+                "aiCrop": 180,
+                "captureOverlap": 182,
+                "aiAttempt": 536,
+                "modelQueue": 0,
+                "total": 538,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        },
+        "staleHint": {
+          "control33": {
+            "correct": true,
+            "got": "Phyrexian Obliterator",
+            "by": "art-match",
+            "confidence": 0.95,
+            "winner": {
+              "id": "44c4476d-58f9-420d-9545-f5d580c589de",
+              "face": 0,
+              "distance": 138,
+              "strategy": "outline-5",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 2339,
+            "timing": {
+              "at": 1791776604721,
+              "remote": true,
+              "captureMs": 261,
+              "recognitionMs": 2060,
+              "totalMs": 2321,
+              "stages": {
+                "hintPrep": 267,
+                "hint": 0,
+                "prep": 404,
+                "rankSeeds": 685,
+                "earlyOrbProbe": 0,
+                "rankRefine": 699,
+                "rank": 0,
+                "orb": 2,
+                "aiCrop": 0,
+                "modelQueue": 0,
+                "total": 2060,
+                "queue": 0
+              },
+              "candidatesTried": 41,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Phyrexian Obliterator",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "44c4476d-58f9-420d-9545-f5d580c589de",
+              "face": 0,
+              "distance": 117,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 706,
+            "timing": {
+              "at": 1791776841267,
+              "remote": true,
+              "captureMs": 258,
+              "recognitionMs": 439,
+              "totalMs": 698,
+              "stages": {
+                "prep": 12,
+                "rankSeeds": 37,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 135,
+                "hintPrep": 252,
+                "hint": 0,
+                "aiCrop": 179,
+                "captureOverlap": 180,
+                "aiAttempt": 184,
+                "modelQueue": 0,
+                "total": 439,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "i": 15,
+      "expectedName": "Descent into Avernus",
+      "expectedID": "7a5e84d8-ac85-4aef-9373-4d26f9f11c85",
+      "oldName": "Phyrexian Obliterator",
+      "realPriorHint": {
+        "name": "Phyrexian Obliterator",
+        "scryfall_id": "44c4476d-58f9-420d-9545-f5d580c589de",
+        "face": 0,
+        "set": "nph",
+        "collector_number": "68"
+      },
+      "sameJPEGAndGeometry": true,
+      "changes": {
+        "noHints": [],
+        "staleHint": [
+          "correct",
+          "got",
+          "by",
+          "confidence",
+          "winner"
+        ]
+      },
+      "arms": {
+        "noHints": {
+          "control33": {
+            "correct": true,
+            "got": "Descent into Avernus",
+            "by": "art-match",
+            "confidence": 0.775,
+            "winner": {
+              "id": "7a5e84d8-ac85-4aef-9373-4d26f9f11c85",
+              "face": 0,
+              "distance": 130,
+              "strategy": "milo",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 2138,
+            "timing": {
+              "at": 1791776612051,
+              "remote": true,
+              "captureMs": 255,
+              "recognitionMs": 1879,
+              "totalMs": 2134,
+              "stages": {
+                "prep": 13,
+                "rankSeeds": 39,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1,
+                "rank": 0,
+                "orb": 555,
+                "aiCrop": 178,
+                "captureOverlap": 180,
+                "aiAttempt": 609,
+                "milo": 1269,
+                "modelQueue": 0,
+                "total": 1879,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Descent into Avernus",
+            "by": "art-match",
+            "confidence": 0.775,
+            "winner": {
+              "id": "7a5e84d8-ac85-4aef-9373-4d26f9f11c85",
+              "face": 0,
+              "distance": 130,
+              "strategy": "milo",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 1090,
+            "timing": {
+              "at": 1791776845670,
+              "remote": true,
+              "captureMs": 255,
+              "recognitionMs": 828,
+              "totalMs": 1084,
+              "stages": {
+                "prep": 14,
+                "rankSeeds": 40,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 155,
+                "aiCrop": 175,
+                "captureOverlap": 177,
+                "aiAttempt": 209,
+                "milo": 618,
+                "modelQueue": 0,
+                "total": 828,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        },
+        "staleHint": {
+          "control33": {
+            "correct": false,
+            "got": null,
+            "by": null,
+            "confidence": null,
+            "winner": null,
+            "displayMs": null,
+            "timing": {
+              "at": 1791776609895,
+              "remote": true,
+              "captureMs": 262,
+              "recognitionMs": 3966,
+              "totalMs": 4228,
+              "stages": {
+                "hintPrep": 253,
+                "hint": 0,
+                "prep": 395,
+                "rankSeeds": 665,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1138,
+                "isolatePrep": 731,
+                "isolateScore": 244,
+                "rank": 0,
+                "orb": 536,
+                "aiCrop": 0,
+                "modelQueue": 0,
+                "total": 3966,
+                "queue": 0
+              },
+              "candidatesTried": 113,
+              "isolationCandidates": 72,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Descent into Avernus",
+            "by": "art-match",
+            "confidence": 0.775,
+            "winner": {
+              "id": "7a5e84d8-ac85-4aef-9373-4d26f9f11c85",
+              "face": 0,
+              "distance": 130,
+              "strategy": "milo",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 2352,
+            "timing": {
+              "at": 1791776844549,
+              "remote": true,
+              "captureMs": 256,
+              "recognitionMs": 2086,
+              "totalMs": 2342,
+              "stages": {
+                "prep": 13,
+                "rankSeeds": 37,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 551,
+                "hintPrep": 237,
+                "hint": 0,
+                "aiCrop": 182,
+                "captureOverlap": 184,
+                "aiAttempt": 600,
+                "milo": 1246,
+                "modelQueue": 0,
+                "total": 2086,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "i": 16,
+      "expectedName": "Hellkite Courser",
+      "expectedID": "d33eca2e-fef0-42fd-9970-46d5bdb4bd4b",
+      "oldName": "Descent into Avernus",
+      "realPriorHint": {
+        "name": "Descent into Avernus",
+        "scryfall_id": "7a5e84d8-ac85-4aef-9373-4d26f9f11c85",
+        "face": 0,
+        "set": "plst",
+        "collector_number": "CLB-169"
+      },
+      "sameJPEGAndGeometry": true,
+      "changes": {
+        "noHints": [],
+        "staleHint": [
+          "winner"
+        ]
+      },
+      "arms": {
+        "noHints": {
+          "control33": {
+            "correct": true,
+            "got": "Hellkite Courser",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "d33eca2e-fef0-42fd-9970-46d5bdb4bd4b",
+              "face": 0,
+              "distance": 119,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 923,
+            "timing": {
+              "at": 1791776614555,
+              "remote": true,
+              "captureMs": 260,
+              "recognitionMs": 646,
+              "totalMs": 907,
+              "stages": {
+                "prep": 13,
+                "rankSeeds": 37,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 593,
+                "aiCrop": 181,
+                "captureOverlap": 183,
+                "aiAttempt": 645,
+                "modelQueue": 0,
+                "total": 646,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Hellkite Courser",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "d33eca2e-fef0-42fd-9970-46d5bdb4bd4b",
+              "face": 0,
+              "distance": 119,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 852,
+            "timing": {
+              "at": 1791776848075,
+              "remote": true,
+              "captureMs": 255,
+              "recognitionMs": 580,
+              "totalMs": 834,
+              "stages": {
+                "prep": 14,
+                "rankSeeds": 37,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 524,
+                "aiCrop": 181,
+                "captureOverlap": 183,
+                "aiAttempt": 576,
+                "modelQueue": 0,
+                "total": 580,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        },
+        "staleHint": {
+          "control33": {
+            "correct": true,
+            "got": "Hellkite Courser",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "d33eca2e-fef0-42fd-9970-46d5bdb4bd4b",
+              "face": 0,
+              "distance": 112,
+              "strategy": "outline-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 3055,
+            "timing": {
+              "at": 1791776617647,
+              "remote": true,
+              "captureMs": 262,
+              "recognitionMs": 2785,
+              "totalMs": 3047,
+              "stages": {
+                "hintPrep": 331,
+                "hint": 0,
+                "prep": 441,
+                "rankSeeds": 632,
+                "earlyOrbProbe": 0,
+                "rankRefine": 315,
+                "rank": 0,
+                "orb": 1064,
+                "aiCrop": 0,
+                "modelQueue": 0,
+                "total": 2785,
+                "queue": 0
+              },
+              "candidatesTried": 41,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Hellkite Courser",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "d33eca2e-fef0-42fd-9970-46d5bdb4bd4b",
+              "face": 0,
+              "distance": 119,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 788,
+            "timing": {
+              "at": 1791776848890,
+              "remote": true,
+              "captureMs": 259,
+              "recognitionMs": 510,
+              "totalMs": 769,
+              "stages": {
+                "prep": 13,
+                "rankSeeds": 38,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1,
+                "rank": 0,
+                "orb": 134,
+                "hintPrep": 321,
+                "hint": 0,
+                "aiCrop": 177,
+                "captureOverlap": 179,
+                "aiAttempt": 186,
+                "modelQueue": 0,
+                "total": 510,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "i": 17,
+      "expectedName": "Tireless Tracker",
+      "expectedID": "66444549-ad9b-49c6-a7c6-34e977c1085d",
+      "oldName": "Hellkite Courser",
+      "realPriorHint": {
+        "name": "Hellkite Courser",
+        "scryfall_id": "d33eca2e-fef0-42fd-9970-46d5bdb4bd4b",
+        "face": 0,
+        "set": "tdc",
+        "collector_number": "218"
+      },
+      "sameJPEGAndGeometry": true,
+      "changes": {
+        "noHints": [],
+        "staleHint": [
+          "winner"
+        ]
+      },
+      "arms": {
+        "noHints": {
+          "control33": {
+            "correct": true,
+            "got": "Tireless Tracker",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "66444549-ad9b-49c6-a7c6-34e977c1085d",
+              "face": 0,
+              "distance": 117,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 789,
+            "timing": {
+              "at": 1791776622344,
+              "remote": true,
+              "captureMs": 259,
+              "recognitionMs": 520,
+              "totalMs": 779,
+              "stages": {
+                "prep": 13,
+                "rankSeeds": 38,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 467,
+                "aiCrop": 179,
+                "captureOverlap": 181,
+                "aiAttempt": 519,
+                "modelQueue": 0,
+                "total": 520,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Tireless Tracker",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "66444549-ad9b-49c6-a7c6-34e977c1085d",
+              "face": 0,
+              "distance": 117,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 455,
+            "timing": {
+              "at": 1791776851510,
+              "remote": true,
+              "captureMs": 256,
+              "recognitionMs": 184,
+              "totalMs": 440,
+              "stages": {
+                "prep": 13,
+                "rankSeeds": 37,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 131,
+                "aiCrop": 178,
+                "captureOverlap": 179,
+                "aiAttempt": 182,
+                "modelQueue": 0,
+                "total": 184,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        },
+        "staleHint": {
+          "control33": {
+            "correct": true,
+            "got": "Tireless Tracker",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "695ac524-b54a-4de7-90b7-ec4e5e94717e",
+              "face": 0,
+              "distance": 149,
+              "strategy": "outline-8",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 2954,
+            "timing": {
+              "at": 1791776621519,
+              "remote": true,
+              "captureMs": 264,
+              "recognitionMs": 2671,
+              "totalMs": 2934,
+              "stages": {
+                "hintPrep": 338,
+                "hint": 0,
+                "prep": 406,
+                "rankSeeds": 672,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1247,
+                "rank": 0,
+                "orb": 7,
+                "aiCrop": 0,
+                "modelQueue": 0,
+                "total": 2671,
+                "queue": 0
+              },
+              "candidatesTried": 42,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Tireless Tracker",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "66444549-ad9b-49c6-a7c6-34e977c1085d",
+              "face": 0,
+              "distance": 117,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 1189,
+            "timing": {
+              "at": 1791776851023,
+              "remote": true,
+              "captureMs": 258,
+              "recognitionMs": 928,
+              "totalMs": 1186,
+              "stages": {
+                "prep": 13,
+                "rankSeeds": 40,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1,
+                "rank": 0,
+                "orb": 552,
+                "hintPrep": 320,
+                "hint": 0,
+                "aiCrop": 182,
+                "captureOverlap": 185,
+                "aiAttempt": 606,
+                "modelQueue": 0,
+                "total": 928,
+                "queue": 0
+              },
+              "candidatesTried": 1,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "i": 18,
+      "expectedName": "Mutational Advantage",
+      "expectedID": "41e14f3b-e3fd-4975-94b7-654f14150d96",
+      "oldName": "Desperate Ritual",
+      "realPriorHint": {
+        "name": "Desperate Ritual",
+        "scryfall_id": "0827c728-5526-4abe-ad21-311594a0bc13",
+        "face": 0,
+        "set": "mma",
+        "collector_number": "110"
+      },
+      "sameJPEGAndGeometry": true,
+      "changes": {
+        "noHints": [],
+        "staleHint": [
+          "winner"
+        ]
+      },
+      "arms": {
+        "noHints": {
+          "control33": {
+            "correct": true,
+            "got": "Mutational Advantage",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "41e14f3b-e3fd-4975-94b7-654f14150d96",
+              "face": 0,
+              "distance": 89,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 932,
+            "timing": {
+              "at": 1791776624725,
+              "remote": true,
+              "captureMs": 266,
+              "recognitionMs": 653,
+              "totalMs": 918,
+              "stages": {
+                "prep": 24,
+                "rankSeeds": 75,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1,
+                "rank": 0,
+                "orb": 549,
+                "aiCrop": 180,
+                "captureOverlap": 182,
+                "aiAttempt": 650,
+                "modelQueue": 0,
+                "total": 653,
+                "queue": 0
+              },
+              "candidatesTried": 2,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Mutational Advantage",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "41e14f3b-e3fd-4975-94b7-654f14150d96",
+              "face": 0,
+              "distance": 89,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 849,
+            "timing": {
+              "at": 1791776853783,
+              "remote": true,
+              "captureMs": 265,
+              "recognitionMs": 574,
+              "totalMs": 839,
+              "stages": {
+                "prep": 24,
+                "rankSeeds": 73,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 474,
+                "aiCrop": 184,
+                "captureOverlap": 186,
+                "aiAttempt": 572,
+                "modelQueue": 0,
+                "total": 574,
+                "queue": 0
+              },
+              "candidatesTried": 2,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        },
+        "staleHint": {
+          "control33": {
+            "correct": true,
+            "got": "Mutational Advantage",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "8fa8edfc-6a80-4982-a009-70d3d4259fd1",
+              "face": 0,
+              "distance": 150,
+              "strategy": "outline-8",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 2923,
+            "timing": {
+              "at": 1791776627669,
+              "remote": true,
+              "captureMs": 280,
+              "recognitionMs": 2624,
+              "totalMs": 2904,
+              "stages": {
+                "hintPrep": 259,
+                "hint": 0,
+                "prep": 398,
+                "rankSeeds": 677,
+                "earlyOrbProbe": 0,
+                "rankRefine": 287,
+                "rank": 0,
+                "orb": 1001,
+                "aiCrop": 0,
+                "modelQueue": 0,
+                "total": 2624,
+                "queue": 0
+              },
+              "candidatesTried": 40,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Mutational Advantage",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "41e14f3b-e3fd-4975-94b7-654f14150d96",
+              "face": 0,
+              "distance": 89,
+              "strategy": "ai-crop-1",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 722,
+            "timing": {
+              "at": 1791776854536,
+              "remote": true,
+              "captureMs": 260,
+              "recognitionMs": 456,
+              "totalMs": 716,
+              "stages": {
+                "prep": 23,
+                "rankSeeds": 74,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 109,
+                "hintPrep": 249,
+                "hint": 0,
+                "aiCrop": 177,
+                "captureOverlap": 179,
+                "aiAttempt": 206,
+                "modelQueue": 0,
+                "total": 456,
+                "queue": 0
+              },
+              "candidatesTried": 2,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "i": 19,
+      "expectedName": "Westvale Abbey",
+      "expectedID": "d3182b40-a731-4957-9d6e-a1f69c3aeb5e",
+      "oldName": "Snow-Covered Plains",
+      "realPriorHint": {
+        "name": "Snow-Covered Plains",
+        "scryfall_id": "e0ed0c75-0ec3-4f06-8c37-750fefb8136d",
+        "face": 0,
+        "set": "sld",
+        "collector_number": "325"
+      },
+      "sameJPEGAndGeometry": true,
+      "changes": {
+        "noHints": [],
+        "staleHint": [
+          "correct",
+          "got",
+          "by",
+          "confidence",
+          "winner"
+        ]
+      },
+      "arms": {
+        "noHints": {
+          "control33": {
+            "correct": true,
+            "got": "Westvale Abbey",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "d3182b40-a731-4957-9d6e-a1f69c3aeb5e",
+              "face": 0,
+              "distance": 178,
+              "strategy": "milo",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 2171,
+            "timing": {
+              "at": 1791776635887,
+              "remote": true,
+              "captureMs": 255,
+              "recognitionMs": 1899,
+              "totalMs": 2154,
+              "stages": {
+                "prep": 24,
+                "rankSeeds": 75,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 578,
+                "aiCrop": 178,
+                "captureOverlap": 179,
+                "aiAttempt": 677,
+                "milo": 1220,
+                "modelQueue": 0,
+                "total": 1899,
+                "queue": 0
+              },
+              "candidatesTried": 2,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Westvale Abbey",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "d3182b40-a731-4957-9d6e-a1f69c3aeb5e",
+              "face": 0,
+              "distance": 178,
+              "strategy": "milo",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 1441,
+            "timing": {
+              "at": 1791776859878,
+              "remote": true,
+              "captureMs": 259,
+              "recognitionMs": 1166,
+              "totalMs": 1425,
+              "stages": {
+                "prep": 24,
+                "rankSeeds": 75,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 155,
+                "aiCrop": 178,
+                "captureOverlap": 180,
+                "aiAttempt": 254,
+                "milo": 910,
+                "modelQueue": 0,
+                "total": 1166,
+                "queue": 0
+              },
+              "candidatesTried": 2,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        },
+        "staleHint": {
+          "control33": {
+            "correct": false,
+            "got": null,
+            "by": null,
+            "confidence": null,
+            "winner": null,
+            "displayMs": null,
+            "timing": {
+              "at": 1791776633715,
+              "remote": true,
+              "captureMs": 269,
+              "recognitionMs": 4149,
+              "totalMs": 4418,
+              "stages": {
+                "hintPrep": 244,
+                "hint": 0,
+                "prep": 381,
+                "rankSeeds": 621,
+                "earlyOrbProbe": 0,
+                "rankRefine": 1226,
+                "isolatePrep": 746,
+                "isolateScore": 258,
+                "rank": 0,
+                "orb": 670,
+                "aiCrop": 0,
+                "modelQueue": 0,
+                "total": 4149,
+                "queue": 0
+              },
+              "candidatesTried": 115,
+              "isolationCandidates": 72,
+              "hintHit": false
+            }
+          },
+          "fixed34": {
+            "correct": true,
+            "got": "Westvale Abbey",
+            "by": "art-match",
+            "confidence": 1,
+            "winner": {
+              "id": "d3182b40-a731-4957-9d6e-a1f69c3aeb5e",
+              "face": 0,
+              "distance": 178,
+              "strategy": "milo",
+              "clickInside": true,
+              "regionalProof": true
+            },
+            "displayMs": 2276,
+            "timing": {
+              "at": 1791776858420,
+              "remote": true,
+              "captureMs": 260,
+              "recognitionMs": 2010,
+              "totalMs": 2270,
+              "stages": {
+                "prep": 23,
+                "rankSeeds": 78,
+                "earlyOrbProbe": 0,
+                "rankRefine": 0,
+                "rank": 0,
+                "orb": 512,
+                "hintPrep": 227,
+                "hint": 0,
+                "aiCrop": 179,
+                "captureOverlap": 181,
+                "aiAttempt": 615,
+                "milo": 1164,
+                "modelQueue": 0,
+                "total": 2010,
+                "queue": 0
+              },
+              "candidatesTried": 2,
+              "isolationCandidates": 0,
+              "hintHit": false
+            }
+          }
+        }
+      }
+    }
+  ],
+  "allPreviouslyCorrectStaleResultsRetained": true,
+  "fixedNoHintVsStaleAllIdentityConfidencePathwayWinningProofParity": true,
+  "previouslyCorrectStalePrintingChanges": [
+    {
+      "name": "Ghalta and Mavren",
+      "controlPrintingID": "05e1189b-837d-4c1f-85a2-35d229c4dee8",
+      "candidatePrintingID": "5762edde-90ff-405c-a394-873991c3d641",
+      "face": 0
+    },
+    {
+      "name": "Tireless Tracker",
+      "controlPrintingID": "695ac524-b54a-4de7-90b7-ec4e5e94717e",
+      "candidatePrintingID": "66444549-ad9b-49c6-a7c6-34e977c1085d",
+      "face": 0
+    },
+    {
+      "name": "Mutational Advantage",
+      "controlPrintingID": "8fa8edfc-6a80-4982-a009-70d3d4259fd1",
+      "candidatePrintingID": "41e14f3b-e3fd-4975-94b7-654f14150d96",
+      "face": 0
+    }
+  ],
+  "previouslyCorrectStaleConfidenceChanges": [
+    {
+      "name": "Phyrexian Obliterator",
+      "control": 0.95,
+      "candidate": 1
+    }
+  ]
+}

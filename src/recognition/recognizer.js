@@ -1150,6 +1150,10 @@ const orbTiming = { fetch: 0, queryFeat: 0, refFeat: 0, match: 0, refs: 0, winRa
 // entry that ends up leading. If leaders are always near the top, the tail is
 // free to remove.
 let ORB_SHORTLIST = 36;
+// Opt-in experiment: treat reprints as one identity in the early-stop margin.
+// Later unseen rival names can still matter, so keep the established rule on
+// production until paired accuracy and full-click timings justify promotion.
+let DISTINCT_NAME_ORB_STOP = false;
 
 // Probe: would ORB have settled the answer BEFORE the isolation sweep ran?
 //
@@ -1755,7 +1759,7 @@ function waitForCV(ms) {
   });
 }
 
-async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads = [], aiOnly = false, aiCandidates = [], useMilo = false, notifyMilo = null) {
+async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads = [], aiOnly = false, aiCandidates = [], useMilo = false, notifyMilo = null, hintsOnly = false) {
   await loadIndex();
   // Prefer the accurate OpenCV pipeline, but don't hang the first scan forever
   // if it's still compiling — fall back to center-crop this once; the diagnostic
@@ -1907,6 +1911,20 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads =
         console.warn("[snapcast worker] hint outline detection failed", e);
       }
     }
+  }
+
+  // A missed room hint must not delay a caller's learned-crop trial by running
+  // the complete crop family here. This optional pass uses the unchanged two
+  // hint tiers above; the ordinary identify call retains its full fallback.
+  if (hintsOnly) {
+    if (bmp.close) bmp.close();
+    return {
+      matches: [], printingMatches: [], queryCandidates: [], titleSource: [],
+      titleCount: 0, candidatesTried: 0, cardFound: false, cvStatus, shardedIndex,
+      artBest: null, artChecked: 0, artDecisive: false, hintMiss: true,
+      stageMs: stage.ms,
+      wasmHeapMB: self.cv?.HEAPU8 ? Math.round(self.cv.HEAPU8.length / 1e6) : null,
+    };
   }
 
   let clickInsideCardLikeQuad = false;
@@ -2870,14 +2888,20 @@ function orbFeatures(imageData, nfeatures, restoreContrast = false) {
 
 const referenceFeatureCache = [];
 function referenceFeatures(image, restoreContrast = false) {
-  if (typeof WeakRef !== "function") return orbFeatures(image, 300, restoreContrast);
+  orbTiming.refFeatureCalls = (orbTiming.refFeatureCalls || 0) + 1;
+  if (typeof WeakRef !== "function") {
+    orbTiming.refFeatureMisses = (orbTiming.refFeatureMisses || 0) + 1;
+    return orbFeatures(image, 300, restoreContrast);
+  }
   const found = referenceFeatureCache.findIndex(entry => entry.image.deref() === image && entry.restoreContrast === restoreContrast);
   if (found >= 0) {
+    orbTiming.refFeatureHits = (orbTiming.refFeatureHits || 0) + 1;
     const [entry] = referenceFeatureCache.splice(found, 1);
     referenceFeatureCache.push(entry);
     return entry.features;
   }
-  if (referenceFeatureCache.length >= 60) {
+  orbTiming.refFeatureMisses = (orbTiming.refFeatureMisses || 0) + 1;
+  if (referenceFeatureCache.length >= 120) {
     const oldest = referenceFeatureCache.shift().features;
     oldest.kp.delete(); oldest.desc.delete();
   }
@@ -3166,15 +3190,37 @@ function ringSignature(imageData) {
   return hist;
 }
 
+const referenceColorCache = new WeakMap();
+function referenceColorSignature(reference, ring = false, balanced = false) {
+  let cached = referenceColorCache.get(reference);
+  if (!cached) {
+    cached = {};
+    referenceColorCache.set(reference, cached);
+  }
+  const key = balanced ? ring ? "balancedRing" : "balancedColor" : ring ? "ring" : "color";
+  if (!cached[key]) {
+    if (balanced) {
+      // Reference pixels are immutable. Retain only the two tiny signatures,
+      // not the extra balanced image; the weak key follows reference eviction.
+      const image = whiteBalance(reference);
+      cached.balancedColor = colorSignature(image);
+      cached.balancedRing = ringSignature(image);
+    } else {
+      cached[key] = ring ? ringSignature(reference) : colorSignature(reference);
+    }
+  }
+  return cached[key];
+}
+
 function registeredColorAgreement(frame, reference) {
   // Apply matching illumination variants only after the camera footprint is
   // registered. Balancing a single-color card alone can erase its true hue.
-  const balancedFrame = whiteBalance(frame), balancedRef = whiteBalance(reference);
+  const balancedFrame = whiteBalance(frame);
   return {
-    color: Math.max(colorSimilarity(colorSignature(frame), colorSignature(reference)),
-      colorSimilarity(colorSignature(balancedFrame), colorSignature(balancedRef))),
-    ring: Math.max(colorSimilarity(ringSignature(frame), ringSignature(reference)),
-      colorSimilarity(ringSignature(balancedFrame), ringSignature(balancedRef))),
+    color: Math.max(colorSimilarity(colorSignature(frame), referenceColorSignature(reference)),
+      colorSimilarity(colorSignature(balancedFrame), referenceColorSignature(reference, false, true))),
+    ring: Math.max(colorSimilarity(ringSignature(frame), referenceColorSignature(reference, true)),
+      colorSimilarity(ringSignature(balancedFrame), referenceColorSignature(reference, true, true))),
   };
 }
 
@@ -3254,13 +3300,20 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source 
   const shortlist = matches.slice(0, limit);
   orbTiming.fetch = 0; orbTiming.queryFeat = 0; orbTiming.refFeat = 0;
   orbTiming.match = 0; orbTiming.refs = shortlist.length;
+  orbTiming.refsInspected = 0; orbTiming.refsRanked = 0;
+  orbTiming.refFeatureCalls = 0; orbTiming.refFeatureHits = 0; orbTiming.refFeatureMisses = 0;
+  orbTiming.sourceFeat = 0; orbTiming.sourceProbes = 0; orbTiming.sourceMatch = 0;
+  orbTiming.distinctEarlyStopRank = -1;
+  orbTiming.distinctNameStop = DISTINCT_NAME_ORB_STOP;
   const jobs = shortlist.map(m => fetchReference(m.scryfall_id, m.face || 0));
   const detailJobs = shortlist.map(m => m.milo_highres ? fetchReference(m.scryfall_id, m.face || 0, "normal") : null);
   const enlargedQuery = queryImages.some(image => Math.min(image.width, image.height) > CARD_W * 1.2
     && Math.max(image.width, image.height) > CARD_H * 1.2);
   const enlargedJobs = shortlist.map(m => m.milo_highres && enlargedQuery ? fetchReference(m.scryfall_id, m.face || 0, "detail") : null);
   const refs = new Array(shortlist.length), detailed = new Array(shortlist.length), enlarged = new Array(shortlist.length);
+  const inspected = new Set();
   const referenceAt = async i => {
+    inspected.add(i); orbTiming.refsInspected = inspected.size;
     const started = performance.now();
     [refs[i], detailed[i], enlarged[i]] = await Promise.all([jobs[i], detailJobs[i], enlargedJobs[i]]);
     orbTiming.fetch += performance.now() - started;
@@ -3277,10 +3330,12 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source 
   const clippedFrame = queryIsCardShaped && queryImages.includes(source);
   try {
     let lead = 0, second = 0;
+    const nameScores = new Map();
     for (let i = 0; i < shortlist.length; i++) {
+      orbTiming.refsRanked++;
       await referenceAt(i);
       if (!refs[i]) { shortlist[i].art_inliers = 0; shortlist[i].color_sim = 0; continue; }
-      let inliers = 0, registeredFrame = null;
+      let inliers = 0, registeredCorners = null;
       for (const reference of [refs[i], detailed[i], enlarged[i]].filter(Boolean)) {
         const tRF = performance.now();
         const rf = referenceFeatures(reference, contrastRescue);
@@ -3292,25 +3347,42 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source 
             const alignment = orbAlignment(queryFeats[j], rf, region?.mappedClick || null, region || null);
             inliers = Math.max(inliers, artworkInlierScore(alignment));
             if (region && recordRegionalProof(shortlist[i], alignment) && alignment.inside === true && alignment.corners) {
-              registeredFrame = rectifyCard(source, alignment.corners);
+              registeredCorners = alignment.corners;
             }
           }
           orbTiming.match += performance.now() - tM;
           shortlist[i].art_inliers = inliers;
         } finally { releaseReferenceFeatures(rf); }
       }
-      shortlist[i].color_sim = colorSimilarity(querySig, colorSignature(refs[i]));
-      if (queryRing) shortlist[i].ring_sim = colorSimilarity(queryRing, ringSignature(refs[i]));
-      if (registeredFrame) {
+      shortlist[i].color_sim = colorSimilarity(querySig, referenceColorSignature(refs[i]));
+      if (queryRing) shortlist[i].ring_sim = colorSimilarity(queryRing, referenceColorSignature(refs[i], true));
+      if (registeredCorners) {
+        // Improving views can replace the registered corners several times.
+        // Color uses only the final accepted frame, so warp exactly that one.
+        const tR = performance.now();
+        const registeredFrame = rectifyCard(source, registeredCorners);
+        orbTiming.match += performance.now() - tR;
         const agreement = registeredColorAgreement(registeredFrame, refs[i]);
         shortlist[i].color_sim = agreement.color;
         shortlist[i].ring_sim = agreement.ring;
       }
       if (inliers > lead) { second = lead; lead = inliers; orbTiming.winRank = i; }
       else if (inliers > second) second = inliers;
+      nameScores.set(shortlist[i].name, Math.max(nameScores.get(shortlist[i].name) || 0, inliers));
+      const legacyStop = i >= 9 && lead >= 28 && lead >= 2 * (second + 1);
+      let distinctStop = false;
+      if (i >= 9 && !legacyStop && (DISTINCT_NAME_ORB_STOP || orbTiming.distinctEarlyStopRank < 0)) {
+        let nameLead = 0, nameRival = 0;
+        for (const score of nameScores.values()) {
+          if (score > nameLead) { nameRival = nameLead; nameLead = score; }
+          else if (score > nameRival) nameRival = score;
+        }
+        distinctStop = nameLead >= 28 && nameLead >= 2 * (nameRival + 1);
+        if (distinctStop && orbTiming.distinctEarlyStopRank < 0) orbTiming.distinctEarlyStopRank = i + 1;
+      }
       // Early stop: after the top-ranked references, an overwhelming keypoint
       // leader can't be displaced by lower-ranked cards — skip the rest.
-      if (i >= 9 && lead >= 28 && lead >= 2 * (second + 1)) break;
+      if (legacyStop || DISTINCT_NAME_ORB_STOP && distinctStop) break;
     }
   } finally {
     for (const qf of queryFeats) { qf.kp.delete(); qf.desc.delete(); }
@@ -3324,7 +3396,9 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source 
       if (!probes.includes(item)) probes.push(item);
     }
     const needsFull = probes.some(item => !(item.regional_proof && hasPositiveClickProof(item)));
+    const tSF = performance.now();
     const full = needsFull ? orbFeatures(source, 1600, contrastRescue) : null;
+    orbTiming.sourceFeat = needsFull ? performance.now() - tSF : 0;
     try {
       for (const item of probes) {
         // These keypoints already map the original source click through the
@@ -3335,6 +3409,7 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source 
         if (refs[index] === undefined) await referenceAt(index);
         let ref = refs[index];
         if (!ref) continue;
+        orbTiming.sourceProbes++;
         {
           let alignment = null;
           const quality = a => (a.inside === true && a.inliers >= 16 && contentSupportsIdentity(a, 8) ? 10000 : 0)
@@ -3342,7 +3417,9 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source 
           for (const image of [ref, detailed[index], enlarged[index]].filter(Boolean)) {
             const rf = referenceFeatures(image, contrastRescue);
             try {
+              const tSM = performance.now();
               const candidate = orbAlignment(full, rf, click, null, clippedFrame);
+              orbTiming.sourceMatch += performance.now() - tSM;
               if (!alignment || quality(candidate) > quality(alignment)) { alignment = candidate; ref = image; }
             } finally { releaseReferenceFeatures(rf); }
           }
@@ -3596,12 +3673,14 @@ async function verifyMiloRows(scanId, rows, fingerprint) {
   const pool = [...added, ...base], regions = queries.map(image => context.sourceRegions?.get(image) || null);
   let verified = await verifyTopMatches(pool, queries,
     context.cardShaped, context.source, context.click, added.length, regions);
+  const miloOrbTiming = [{ contrast: false, ...orbTiming }];
   if (!verified.artDecisive && added.length) {
     // Retrieval provides the bounded identities; local contrast restores
     // keypoints lost to a lighting gradient. Keep the same geometric/content
     // acceptance rules and preserve the ordinary verifier's successful reads.
     const enhanced = await verifyTopMatches(pool.map(m => ({ ...m })), queries,
       context.cardShaped, context.source, context.click, added.length, regions, true);
+    miloOrbTiming.push({ contrast: true, ...orbTiming });
     if (enhanced.artDecisive && enhanced.matches[0]?.milo_retrieval) verified = enhanced;
   }
   const winner = verified.matches[0];
@@ -3620,7 +3699,7 @@ async function verifyMiloRows(scanId, rows, fingerprint) {
       clickInside: m.click_inside, clickInliers: m.click_inliers || 0, clickArtInliers: m.click_art_inliers || 0,
       regionalProof: !!m.regional_proof, blocked: !!m.click_blocked,
     })),
-    miloRescued: rescued };
+    miloRescued: rescued, miloOrbTiming };
 }
 
 self.onmessage = async (e) => {
@@ -3653,6 +3732,11 @@ self.onmessage = async (e) => {
   if (type === "set-orb-shortlist") {
     ORB_SHORTLIST = Math.max(4, Math.min(36, e.data.size | 0));
     self.postMessage({ id, orbShortlist: ORB_SHORTLIST });
+    return;
+  }
+  if (type === "set-distinct-name-orb-stop") {
+    DISTINCT_NAME_ORB_STOP = e.data.enabled === true;
+    self.postMessage({ id, distinctNameOrbStop: DISTINCT_NAME_ORB_STOP });
     return;
   }
   if (type === "set-half-rotations") {
@@ -3694,13 +3778,14 @@ self.onmessage = async (e) => {
     try {
       lastMiloContext = null;
       const res = await identify(bmp, point, hints, aiQuads, aiOnly, aiCandidates, e.data.milo,
-        e.data.miloPreviewEnabled ? images => self.postMessage({ id, type: "milo-preview", images }) : null);
+        e.data.miloPreviewEnabled ? images => self.postMessage({ id, type: "milo-preview", images }) : null,
+        e.data.hintsOnly === true);
       lastTitleSource = { scanId: id, candidates: res.titleSource || [] };
       delete res.titleSource; // ImageData payloads stay in-worker
       const context = res.miloContext;
       delete res.miloContext;
       if (context) lastMiloContext = { ...context, scanId: id, result: { ...res, miloImages: [] } };
-      self.postMessage({ id, ...res, referencePreview: cachedReferencePreview(res.matches?.[0]) });
+      self.postMessage({ id, ...res, referencePreview: res.hintMiss ? null : cachedReferencePreview(res.matches?.[0]) });
     } catch (err) {
       if (bmp && bmp.close) bmp.close();
       self.postMessage({ id, error: String((err && err.message) || err) });

@@ -338,7 +338,7 @@ must match the loaded `cards.json` before retrieved rows can be used. Learned
 shortlists enter the same clicked-card verification boundary as hash candidates.
 An eligible uncertain crop can start Milo alongside ordinary artwork verification;
 only the completed scan context can accept its result. The OpenCV worker retains
-at most sixty public-reference feature pairs and releases camera-query features
+at most 120 public-reference feature pairs and releases camera-query features
 after every check. See [recognition.md](recognition.md) for the full decision flow.
 
 This split exists because OpenCV's WASM compile froze the UI when it ran on

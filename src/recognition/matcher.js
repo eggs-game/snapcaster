@@ -93,6 +93,10 @@ export function setOrbShortlist(size) {
   getWorker().postMessage({ id: `orb-${Date.now()}`, type: "set-orb-shortlist", size });
 }
 
+export function setDistinctNameOrbStop(enabled) {
+  getWorker().postMessage({ id: `dns-${Date.now()}`, type: "set-distinct-name-orb-stop", enabled });
+}
+
 export function setHalfRotations(enabled) {
   getWorker().postMessage({ id: `rot-${Date.now()}`, type: "set-half-rotations", enabled });
 }
@@ -164,8 +168,8 @@ function getWorker() {
         id, matches, printingMatches, titleCandidates, metadataStrips, titleCount, queryCandidates,
         shardedIndex, cardFound, cvStatus, candidatesTried, cropsDropped, artBest, artChecked,
         artDecisive, isolationDebug, isolationCandidates, detectorUsed, detectorState, detectorDistance, isolationTiming, scoreFullTiming, prepTiming, orbTiming, earlyOrb,
-        stageMs, wasmHeapMB, blockedNames, miloImages, miloRescued, miloVerification, referencePreview,
-        hintHit, preloaded, indexReady, indexCount, workerMs, error,
+        stageMs, wasmHeapMB, blockedNames, miloImages, miloRescued, miloVerification, miloOrbTiming, referencePreview,
+        hintHit, hintMiss, preloaded, indexReady, indexCount, workerMs, error,
       } = e.data || {};
       const p = pending.get(id);
       if (!p) return;
@@ -190,6 +194,7 @@ function getWorker() {
         milo_images: miloImages || [],
         milo_rescued: !!miloRescued,
         milo_verification: miloVerification || [],
+        milo_orb_timing: miloOrbTiming || [],
         reference_preview: referencePreview || null,
         title_count: titleCount || 0,
         query_candidates: queryCandidates || [],
@@ -212,6 +217,7 @@ function getWorker() {
         orb_timing: orbTiming || null,
         early_orb: earlyOrb || null,
         hint_hit: !!hintHit,
+        hint_miss: !!hintMiss,
         stage_ms: stageMs || {},
         wasm_heap_mb: typeof wasmHeapMB === "number" ? wasmHeapMB : null,
       }));
@@ -244,6 +250,48 @@ async function sourceToBitmap(source) {
       ? new Blob([source], { type: "image/jpeg" })
       : await (await fetch(source)).blob();
   return await createImageBitmap(blob);
+}
+
+// The camera still selects the sharpest of three samples. Only the exact
+// winning Blob may reuse geometry prepared during that sampling window;
+// neither another frame nor another click can inherit these proposals.
+const capturePreparations = new WeakMap();
+export function canPrepareRecognitionCapture() { return aiCropEnabled(); }
+function sameCapturePoint(a, b) {
+  return a?.nx === b?.nx && a?.ny === b?.ny;
+}
+export function prepareRecognitionCapture(source, point, { isActive = () => true } = {}) {
+  if (!(source instanceof Blob) || !aiCropEnabled()) return () => {};
+  const previous = capturePreparations.get(source);
+  if (previous) previous.active = false;
+  const entry = { active: true, point: { nx: point?.nx, ny: point?.ny }, startedAt: performance.now() };
+  capturePreparations.set(source, entry);
+  entry.job = (async () => {
+    let bitmap;
+    try {
+      bitmap = await sourceToBitmap(source);
+      return await proposeAiCrops(bitmap, entry.point, false, { isActive: () => entry.active && isActive() });
+    } catch {
+      return null; // Preparation is optional; the selected frame retains its normal pipeline.
+    } finally {
+      bitmap?.close();
+      entry.finishedAt = performance.now();
+    }
+  })();
+  return () => {
+    entry.active = false;
+    if (capturePreparations.get(source) === entry) capturePreparations.delete(source);
+  };
+}
+function takeCapturePreparation(source, point, hints, aiCrop) {
+  const entry = source instanceof Blob ? capturePreparations.get(source) : null;
+  if (!entry) return null;
+  capturePreparations.delete(source);
+  if (!aiCrop || !entry.active || !sameCapturePoint(entry.point, point)) {
+    entry.active = false;
+    return null;
+  }
+  return entry;
 }
 
 // OCR runs in a small pool of tesseract workers so title reads execute in
@@ -783,7 +831,7 @@ function applyTitleOCR(result) {
   return withOCRLock(() => applyTitleOCRUnlocked(result));
 }
 
-function runOnWorker(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads = [], aiOnly = false, aiCandidates = [], milo = false, onMilo = null) {
+function runOnWorker(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads = [], aiOnly = false, aiCandidates = [], milo = false, onMilo = null, hintsOnly = false) {
   const w = getWorker();
   const id = ++seq;
   return new Promise((resolve, reject) => {
@@ -792,7 +840,7 @@ function runOnWorker(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads = []
       reject(new Error("Card recognition timed out. Please try again."));
     }, IDENTIFY_TIMEOUT_MS);
     pending.set(id, { resolve, reject, timer, onMilo });
-    w.postMessage({ type: "identify", id, bmp, point, hints: Array.isArray(hints) ? hints.slice(0, 12) : [], aiQuads, aiOnly, aiCandidates, milo, miloPreviewEnabled: typeof onMilo === "function" }, [bmp]);
+    w.postMessage({ type: "identify", id, bmp, point, hints: Array.isArray(hints) ? hints.slice(0, 12) : [], aiQuads, aiOnly, aiCandidates, milo, miloPreviewEnabled: typeof onMilo === "function", hintsOnly }, [bmp]);
   });
 }
 
@@ -936,7 +984,7 @@ async function finishIdentify(result) {
   return out;
 }
 
-async function performIdentify(source, point, hints, aiCrop, useMilo) {
+async function performIdentify(source, point, hints, aiCrop, useMilo, preparation = null) {
   const retryAccepted = attempt => {
     if (attempt?.art_best?.clickInside === false) return false;
     if ((attempt?.matches[0]?.distance ?? Infinity) <= VISUAL_EXACT_DISTANCE) return true;
@@ -949,17 +997,51 @@ async function performIdentify(source, point, hints, aiCrop, useMilo) {
   };
   const t0 = performance.now();
   const bmp = await sourceToBitmap(source);
-  const inputCard = aiCrop && useMilo && !hints?.length
+  if (preparation && !preparation.active) {
+    bmp.close();
+    throw supersededRecognitionError();
+  }
+  let raw, hintPrepass;
+  if (aiCrop && hints?.length) {
+    // Preserve the same verified hint tiers before waiting for any model.
+    // A stale hint must not suppress the ordinary clicked-card AI pipeline.
+    try {
+      hintPrepass = await runOnWorker(await createImageBitmap(bmp), point, hints, [], false, [], false, null, true);
+      if (hintPrepass.hint_hit) {
+        raw = hintPrepass;
+        bmp.close();
+        if (preparation) preparation.active = false;
+      }
+    } catch (error) {
+      hintPrepass = { error: String(error?.message || error) };
+    }
+  }
+  if (!raw && preparation && !preparation.active) {
+    bmp.close();
+    throw supersededRecognitionError();
+  }
+  const inputCard = !raw && aiCrop && useMilo
     && Math.abs(Math.max(bmp.width, bmp.height) / Math.min(bmp.width, bmp.height) - 340 / 244) < 0.03;
-  // Verified recent-card hints already have a cheaper local prepass. Do not
-  // charge those scans model inference before they can use it.
-  const ai = aiCrop && !hints?.length && !inputCard ? await proposeAiCrops(bmp, point)
-    : { quads: [], diagnostic: { status: inputCard ? "input-card" : aiCrop ? "skipped-hints" : "off" } };
-  let raw, fast, speculative, speculativeResult, miloVerification = [], milo = { status: useMilo ? "skipped" : "off" };
+  const prepared = !raw && preparation && !inputCard ? await preparation.job : null;
+  if (!raw && preparation && !preparation.active) {
+    bmp.close();
+    throw supersededRecognitionError();
+  }
+  const usePrepared = prepared && preparation.active && prepared.diagnostic?.status !== "canceled";
+  const ai = !raw && aiCrop && !inputCard ? (usePrepared
+    ? { ...prepared, diagnostic: { ...prepared.diagnostic, prepared: true,
+      overlapMs: Math.max(0, Math.round(Math.min(t0, preparation.finishedAt) - preparation.startedAt)) } }
+    : await proposeAiCrops(bmp, point))
+    : { quads: [], diagnostic: { status: raw ? "hint-hit" : inputCard ? "input-card" : "off" } };
+  if (hintPrepass) {
+    ai.diagnostic.hintPrepass = { hit: !!hintPrepass.hint_hit, miss: !!hintPrepass.hint_miss,
+      ...(hintPrepass.error ? { error: hintPrepass.error } : {}) };
+  }
+  let fast, speculative, speculativeResult, miloVerification = [], milo = { status: useMilo ? "skipped" : "off" };
   // A good learned crop should bypass contour enumeration and thousands of
   // isolation windows. Try only the two proposals, with the SAME identity
   // gates. Weak reads still receive the complete established pipeline.
-  if ((ai.quads.length || inputCard) && !hints?.length) {
+  if (!raw && (ai.quads.length || inputCard)) {
     const fastStarted = performance.now();
     try { fast = await runOnWorker(await createImageBitmap(bmp), point, [], ai.quads, true, [], useMilo, images => {
       if (speculative || !useMilo || !images?.length) return;
@@ -1005,7 +1087,7 @@ async function performIdentify(source, point, hints, aiCrop, useMilo) {
         speculative: true, unused: true, pending: !speculativeResult, rescued: false };
     }
   }
-  if (!raw && useMilo && !hints?.length && ai.diagnostic.status === "ready") {
+  if (!raw && useMilo && ai.diagnostic.status === "ready") {
     const retryStarted = performance.now();
     const retry = await proposeAiCrops(bmp, point, true);
     ai.diagnostic.retry = retry.diagnostic;
@@ -1033,10 +1115,17 @@ async function performIdentify(source, point, hints, aiCrop, useMilo) {
   out.milo = milo;
   out.milo_verification = miloVerification;
   out.ai_crop = ai.diagnostic;
+  if (!out.hint_hit && hintPrepass?.stage_ms) {
+    out.stage_ms = { ...(out.stage_ms || {}) };
+    for (const key of ["hintPrep", "hint"]) out.stage_ms[key] = (out.stage_ms[key] || 0) + (hintPrepass.stage_ms[key] || 0);
+  }
   if (aiCrop) out.stage_ms = { ...(out.stage_ms || {}), aiCrop: ai.diagnostic.ms || 0 };
+  if (ai.diagnostic.prepared) out.stage_ms.captureOverlap = ai.diagnostic.overlapMs || 0;
   if (ai.diagnostic.fastMs) out.stage_ms.aiAttempt = ai.diagnostic.fastMs;
   if (milo.totalMs) out.stage_ms.milo = milo.totalMs;
   if (ai.diagnostic.retryMs) out.stage_ms.aiRetry = ai.diagnostic.retryMs;
+  out.stage_ms.modelQueue = (ai.diagnostic.queueMs || 0) + (ai.diagnostic.retry?.queueMs || 0)
+    + (milo.unused ? 0 : milo.queueMs || 0) + (ai.diagnostic.retry?.milo?.queueMs || 0);
   out.stage_ms = { ...(out.stage_ms || {}), total: Math.round(performance.now() - t0) };
   return out;
 }
@@ -1054,7 +1143,7 @@ function startIdentifyJob(job) {
   identifyActive = true;
   const queuedMs = Math.max(0, Math.round(performance.now() - job.enqueuedAt));
   globalThis.__SNAP_RECOGNITION_QUEUE = { active: true, waiting: !!queuedIdentify };
-  performIdentify(job.source, job.point, job.hints, job.aiCrop, job.milo)
+  performIdentify(job.source, job.point, job.hints, job.aiCrop, job.milo, job.preparation)
     .then(result => {
       result.stage_ms = { ...(result.stage_ms || {}), queue: queuedMs };
       job.resolve(result);
@@ -1083,11 +1172,15 @@ export function identify(source, point, { hints = [], aiCrop = aiCropEnabled(), 
       resolve,
       reject,
     };
+    job.preparation = takeCapturePreparation(job.source, job.point, job.hints, job.aiCrop);
     if (!identifyActive) {
       startIdentifyJob(job);
       return;
     }
-    if (queuedIdentify) queuedIdentify.reject(supersededRecognitionError());
+    if (queuedIdentify) {
+      if (queuedIdentify.preparation) queuedIdentify.preparation.active = false;
+      queuedIdentify.reject(supersededRecognitionError());
+    }
     queuedIdentify = job;
     globalThis.__SNAP_RECOGNITION_QUEUE = { active: true, waiting: true };
   });

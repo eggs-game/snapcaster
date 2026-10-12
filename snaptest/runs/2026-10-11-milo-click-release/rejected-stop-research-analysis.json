@@ -1,0 +1,729 @@
+{
+  "completed": 200,
+  "correct": [
+    189,
+    189
+  ],
+  "accepted": [
+    {
+      "n": 186,
+      "correct": 186
+    },
+    {
+      "n": 186,
+      "correct": 186
+    }
+  ],
+  "errors": [
+    0,
+    0
+  ],
+  "recovered": [],
+  "regressed": [],
+  "changes": {
+    "got": [],
+    "by": [],
+    "confidence": [],
+    "printing": [
+      {
+        "i": 2,
+        "name": "Mind Stone",
+        "baseline": "162e81d3-6cd4-4cb8-8ed8-cfbd8d34ca71",
+        "candidate": "cb3b2998-a7c6-4e6a-b467-71106feb6974"
+      },
+      {
+        "i": 73,
+        "name": "Plains",
+        "baseline": "080a001b-7815-469b-bd0c-c92453d80e9a",
+        "candidate": "334ca29a-7fb3-426f-922b-5a2b905a5565"
+      },
+      {
+        "i": 157,
+        "name": "Fists of Flame",
+        "baseline": "4fa3c0d8-0a3e-43b0-b81e-a3d22ce6a4b2",
+        "candidate": "1897b60d-7e15-488c-84d5-505187739b00"
+      },
+      {
+        "i": 189,
+        "name": "Mutational Advantage",
+        "baseline": "b1ff92f1-9dc7-48e6-9e7c-9ef4a88518cb",
+        "candidate": "0d60c2e0-4881-4651-8550-339a15e7566e"
+      }
+    ],
+    "face": [],
+    "distance": [
+      {
+        "i": 2,
+        "name": "Mind Stone",
+        "baseline": 143,
+        "candidate": 174
+      },
+      {
+        "i": 73,
+        "name": "Plains",
+        "baseline": 118,
+        "candidate": 109
+      },
+      {
+        "i": 157,
+        "name": "Fists of Flame",
+        "baseline": 125,
+        "candidate": 119
+      },
+      {
+        "i": 189,
+        "name": "Mutational Advantage",
+        "baseline": 88,
+        "candidate": 135
+      }
+    ],
+    "strategy": [],
+    "regionalProof": [
+      {
+        "i": 65,
+        "name": "Tyrite Sanctum",
+        "baseline": true,
+        "candidate": false
+      },
+      {
+        "i": 73,
+        "name": "Plains",
+        "baseline": true,
+        "candidate": false
+      },
+      {
+        "i": 189,
+        "name": "Mutational Advantage",
+        "baseline": true,
+        "candidate": false
+      }
+    ]
+  },
+  "confidentWrong": [],
+  "stopUsed": [
+    {
+      "i": 0,
+      "name": "Trailblazer's Boots",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 2,
+      "name": "Mind Stone",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 3,
+      "name": "Drana and Linvala",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 6,
+      "name": "Defense Grid",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 7,
+      "name": "Alien Angel",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 8,
+      "name": "Green Sun's Zenith",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 10,
+      "name": "Ghalta and Mavren",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 11,
+      "name": "Witch's Clinic",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 17,
+      "name": "Up the Beanstalk",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 18,
+      "name": "Boros Signet",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 20,
+      "name": "Blooming Marsh",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 21,
+      "name": "Escape Tunnel",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 29,
+      "name": "Miirym, Sentinel Wyrm",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 30,
+      "name": "Blood Crypt",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 32,
+      "name": "Mountain",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 33,
+      "name": "Astartes Warrior",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 34,
+      "name": "Fake Your Own Death",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 35,
+      "name": "Snow-Covered Island",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 39,
+      "name": "Caduceus, Staff of Hermes",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 42,
+      "name": "Curiosity",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 44,
+      "name": "Ardenn, Intrepid Archaeologist",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 47,
+      "name": "Consecrated Sphinx",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 49,
+      "name": "Muraganda Raceway",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 50,
+      "name": "Flare of Denial",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 52,
+      "name": "Pact of Negation",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 54,
+      "name": "Enduring Curiosity",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 59,
+      "name": "Fireshrieker",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 62,
+      "name": "Lazotep Quarry",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 64,
+      "name": "Growth Spiral",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 65,
+      "name": "Tyrite Sanctum",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 68,
+      "name": "Meticulous Archive",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 73,
+      "name": "Plains",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 82,
+      "name": "Hydroid Krasis",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 84,
+      "name": "Giver of Runes",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 87,
+      "name": "Atarka, World Render",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 88,
+      "name": "Necron Warrior",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 91,
+      "name": "Walking Ballista",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 96,
+      "name": "Exsanguinate",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 101,
+      "name": "Profane Tutor",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 103,
+      "name": "Lifecrafter's Bestiary",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 105,
+      "name": "Cat Warrior",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 107,
+      "name": "Scrawling Crawler",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 110,
+      "name": "Kodama of the East Tree",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 111,
+      "name": "Angel",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 113,
+      "name": "Wooded Foothills",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 124,
+      "name": "Drivnod, Carnage Dominus",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 125,
+      "name": "Meteor Golem",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 127,
+      "name": "Ash Barrens",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 128,
+      "name": "Sky Diamond",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 129,
+      "name": "Finale of Devastation",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 130,
+      "name": "Iron Myr",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 131,
+      "name": "Barad-dûr",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 133,
+      "name": "Sakura-Tribe Elder",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 138,
+      "name": "Invasion of Ikoria",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 139,
+      "name": "Starting Town",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 141,
+      "name": "Phyrexian Obliterator",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 142,
+      "name": "Snake Umbra",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 144,
+      "name": "Volcanic Island",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 147,
+      "name": "Auton Soldier",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 152,
+      "name": "Wonder",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 157,
+      "name": "Fists of Flame",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 159,
+      "name": "Undercity Sewers",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 160,
+      "name": "Mount Doom",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 161,
+      "name": "Hellkite Courser",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 166,
+      "name": "Orcish Bowmasters",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 171,
+      "name": "Tireless Tracker",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 174,
+      "name": "Shadowy Backstreet",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 176,
+      "name": "Teferi's Ageless Insight",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 177,
+      "name": "Platinum Angel",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 178,
+      "name": "Fate Unraveler",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 179,
+      "name": "Desperate Ritual",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 182,
+      "name": "Losheel, Clockwork Scholar",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 183,
+      "name": "The Mycosynth Gardens",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 189,
+      "name": "Mutational Advantage",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 190,
+      "name": "Talisman of Progress",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 193,
+      "name": "Tezzeret's Gambit",
+      "rank": 10,
+      "nominal": 36
+    },
+    {
+      "i": 196,
+      "name": "Thousand-Year Storm",
+      "rank": 10,
+      "nominal": 36
+    }
+  ],
+  "sourceProofChanges": [
+    {
+      "i": 2,
+      "name": "Mind Stone",
+      "baseline": {
+        "name": "Mind Stone",
+        "inliers": 56,
+        "color": 83,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 56,
+        "clickArtInliers": 30,
+        "clickTextInliers": 23,
+        "clickHalfInliers": [
+          30,
+          26
+        ]
+      },
+      "candidate": {
+        "name": "Mind Stone",
+        "inliers": 43,
+        "color": 91,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 43,
+        "clickArtInliers": 40,
+        "clickTextInliers": 3,
+        "clickHalfInliers": [
+          40,
+          3
+        ]
+      }
+    },
+    {
+      "i": 65,
+      "name": "Tyrite Sanctum",
+      "baseline": {
+        "name": "Tyrite Sanctum",
+        "inliers": 86,
+        "color": 84,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 86,
+        "clickArtInliers": 53,
+        "clickTextInliers": 33,
+        "clickHalfInliers": [
+          53,
+          33
+        ]
+      },
+      "candidate": {
+        "name": "Tyrite Sanctum",
+        "inliers": 96,
+        "color": 85,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 96,
+        "clickArtInliers": 47,
+        "clickTextInliers": 49,
+        "clickHalfInliers": [
+          47,
+          49
+        ]
+      }
+    },
+    {
+      "i": 73,
+      "name": "Plains",
+      "baseline": {
+        "name": "Plains",
+        "inliers": 103,
+        "color": 98,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 103,
+        "clickArtInliers": 0,
+        "clickTextInliers": 97,
+        "clickHalfInliers": [
+          0,
+          103
+        ]
+      },
+      "candidate": {
+        "name": "Plains",
+        "inliers": 100,
+        "color": 95,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 100,
+        "clickArtInliers": 0,
+        "clickTextInliers": 98,
+        "clickHalfInliers": [
+          0,
+          100
+        ]
+      }
+    },
+    {
+      "i": 157,
+      "name": "Fists of Flame",
+      "baseline": {
+        "name": "Fists of Flame",
+        "inliers": 71,
+        "color": 79,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 71,
+        "clickArtInliers": 63,
+        "clickTextInliers": 8,
+        "clickHalfInliers": [
+          63,
+          8
+        ]
+      },
+      "candidate": {
+        "name": "Fists of Flame",
+        "inliers": 59,
+        "color": 85,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 59,
+        "clickArtInliers": 50,
+        "clickTextInliers": 9,
+        "clickHalfInliers": [
+          50,
+          9
+        ]
+      }
+    },
+    {
+      "i": 189,
+      "name": "Mutational Advantage",
+      "baseline": {
+        "name": "Mutational Advantage",
+        "inliers": 88,
+        "color": 71,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 88,
+        "clickArtInliers": 88,
+        "clickTextInliers": 0,
+        "clickHalfInliers": [
+          85,
+          3
+        ]
+      },
+      "candidate": {
+        "name": "Mutational Advantage",
+        "inliers": 89,
+        "color": 79,
+        "weak": false,
+        "clickInside": true,
+        "clickInliers": 89,
+        "clickArtInliers": 89,
+        "clickTextInliers": 0,
+        "clickHalfInliers": [
+          89,
+          0
+        ]
+      }
+    }
+  ]
+}

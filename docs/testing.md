@@ -67,6 +67,18 @@ preview (`--url=http://127.0.0.1:5184`). Reports/screenshots are in
 `.cache/`; review screenshots as well as assertions. Fixtures cannot establish
 real OAuth, physical media, WebRTC/TURN or durable server-write correctness.
 
+`scripts/test_game_preview.mjs` renders the actual homepage preview in the fast
+set and verifies all 52 decorative card slots use small full-frame printing
+references, with lazy loading and four retained player tiles. The featured
+lookup keeps its normal image. `scripts/test_game_preview_browser.mjs` adds
+desktop/mobile DOM and featured-card cycle checks; select Chrome with
+`SNAPCAST_CHROME_PATH`. `SNAPCAST_PREVIEW_REAL_REFERENCES=1` permits only public
+image reads and saves visual screenshots. The smaller URLs reduce image
+transfer; this test does not claim an every-click recognition speedup.
+The existing fixed-scale miniature can clip its right-hand player column at
+390px. Its image-size checks do not establish responsive visibility; that CSS
+issue is separate from this recognition speed work.
+
 `scripts/test_milo_parallel.mjs` holds unused learned retrieval after the real
 matcher has verified an answer: delivery must finish before releasing that
 work, and late completion cannot mutate the result. The model adapter still
@@ -77,6 +89,34 @@ for unused normal images or creating another image cache.
 delayed earlier camera reply; obsolete captures skip recognition, final winners
 validate preview printing/face, and transient URLs stay bounded. All run in the
 fast policy set.
+The model tests also hold older work to check queued-time diagnostics and
+cancel a losing preparation before it starts: no bitmap copy, worker post,
+termination, or global disable is allowed, and the next live job keeps its own
+callback. `stage_ms.modelQueue` is nonexclusive because speculative work may
+overlap artwork verification; report it separately rather than adding stage
+values. `scripts/test_verifier_work.mjs` compares immutable reference color
+signatures and deferred warps with the original formulas in the fast set.
+`test_capture_preparation.mjs` requires exact selected-Blob and click-point
+ownership before reusing geometry, checks supersession/cancellation and releases
+preparation bitmaps. `test_progressive_capture.mjs` preserves the selected
+sharpest-frame bytes over the actual data-channel handler while a first-sample
+notification travels earlier; malformed, late, and canceled replies cannot
+replace the selected frame. Both run in the fast policy set.
+
+`scripts/test_hint_prepass.mjs` runs the actual worker entry, the six local hint
+crops, outline tier and `matchRecentHints` gate with controlled hash/artwork
+evidence. Only explicit `hintsOnly: true` stops a miss before the full crop
+family. Verified hits preserve printing, face and ordinary result fields;
+invalid/exact-face mismatches, distance boundaries, nondecisive artwork,
+unavailable outlines and worker errors cannot create a hit. The transferred
+bitmap is released on every tested exit, and ordinary calls keep their fallback.
+`scripts/test_stale_recognition_hints.mjs` exercises the actual matcher bridge:
+a verified hint finishes while prepared model work is held indefinitely,
+a stale hint permits exact-frame learned verification, and supersession during
+the prepass rejects without waiting for unused preparation or starting obsolete
+work. Weak learned evidence retains the original hints for complete fallback;
+AI-off and optional prepass errors retain recognition. Both run in the fast set;
+the controlled waits prove ordering and ownership, not native performance.
 
 `npm run test:card:delivery -- --chrome=<chrome-path>` runs the actual sidebar
 with a held normal-image response and an available verified reference. It checks
@@ -101,6 +141,80 @@ For paired current-main comparisons with local AI enabled in both arms, pass
 normalized clicks and alternating order. The default control still disables AI
 for detector comparisons. Warmed recognition timing alone is not click-to-image
 paint timing.
+
+`scripts/benchmark_native_card_delivery.mjs` measures a real compiled Game click,
+three native video-frame samples at 120 ms intervals, the unchanged sharpness
+winner/JPEG encoder, native WebRTC data-channel transfer, recognition and a
+decoded full-opacity reference followed by `requestAnimationFrame`. Its source
+camera is a deterministic SNAPTEST canvas track and its signaling is loopback;
+models and index are warmed. This includes capture/transport/UI work omitted by
+the ordinary worker benchmark, while still excluding physical cameras, remote
+NAT/TURN and first-visit downloads. `--repeat=0` measures all 200 fresh clicks;
+retaining repeats also records verified room-hint behavior.
+
+The simulated camera composites every repaint onto opaque black before drawing
+the source scene; transparent playmat pixels must not accumulate across frames.
+The driver checks raw RGBA equality after one versus ten paints for all 20
+scenes. It saves lossless source PNGs and metadata; pass
+`--sceneFixtures=CONTROL_OUTPUT/scenes` to replay them in the candidate.
+An earlier run failed the JPEG gate on three first cards because its camera
+stacked transparency; that entire pair was invalidated and rerun.
+
+`scripts/check_native_card_delivery_pair.mjs CONTROL.json CANDIDATE.json`
+requires complete ordered 200-card reports, identical scene source and every
+corresponding captured JPEG SHA256, identical catalog manifest/cards/Milo
+digests, and matching model/gallery IDs and counts. A changed or missing image hash is reported as
+`not-valid-exact-pair`, even when accuracy or latency improves; a subset of
+matching physics frames cannot establish a same-pixel comparison. It recomputes
+names, confidence precision, rotations/layouts, first/second halves, display
+median/p90 and correct subsecond counts from rows rather than trusting report
+summaries. Previously correct identities and winning faces are preserved;
+every confident candidate answer must be correct and include confidence and
+printing/face metadata. Confidence buckets must be nonzero. Changed printings,
+pathways or confidence are listed even when the named identity and face agree.
+Before the full pair, the fresh speed gate was declared as at least a 10%
+display-median reduction (`maxFreshMedianRatio: 0.9`) and five more correct
+subsecond reads (`minFreshUnder1Gain: 5`, beyond the two-per-100 noise band).
+These defaults cannot be relaxed to pass observed results. CLI overrides
+`--max-fresh-median-ratio` and `--min-fresh-under1-gain` may only be stricter.
+If both full reports
+include repeats, their hashes/accuracy are checked too and
+`--max-repeat-median-ratio` / `--min-repeat-under1-gain` are required. Repeats may
+be absent from both reports; partial or one-sided repeats are invalid. There
+are no default repeat speed thresholds. `--output` saves the validation JSON.
+`test_native_card_delivery_pair.mjs` injects changed pixels, wrong identities,
+false confidence, missing rows, invisible results and fabricated summaries to
+verify rejection in the fast set. This additional native timing gate does not
+replace or weaken the existing recognition accuracy release matrix.
+
+The native stale-hint probe adds 20 replacement-card cases to that method. Each
+case first clicks a real card from the previous scene, snapshots the verified
+hint produced by Game, then clicks the replacement with either that nearby
+hint or an empty hint ref. Case selection uses the prior geometry and verified
+source card, not the replacement's expected success. Arm order alternates;
+reference caches remain shared, so the second arm can be warmer. Application
+source and catalog are frozen and recorded, and every scan must reproduce the
+original native JPEG SHA256 and crop geometry before its result is accepted.
+That prevents a changed scene, frame selection or build from explaining an
+apparent hint benefit.
+
+On frozen BUILD `milo-click-33`, this probe reproduced 18/20 correct without
+hints versus 12/20 with stale hints, with no confidently wrong stale result.
+Correct subsecond displays were 14/20 versus 0/20. This is a targeted moved-card
+regression, not a new 200-card accuracy estimate or a physical-camera guarantee.
+BUILD 34 restores 18/20 correct with those same stale hints, matching the
+no-hint arm. Correct subsecond displays increase from 0 to 11; successful-image
+median falls from 2954ms to 788ms, with all 18 confident answers correct.
+Four separate valid-hint controls across three rotations retain their exact
+printing/face/confidence and 691ms display median. A stored Voja hint that
+misses the prepass improves from 2456ms to 857ms while preserving its answer;
+the hint still requires normal learned verification.
+`scripts/benchmark_native_card_hints.mjs --help` documents replay inputs and
+the intentional source-change flag. `scripts/test_native_valid_hints.mjs`
+uses preserved compiled bundles with configurable scene/proof paths.
+The release artifact directory archives the control/fixed reports, selection,
+source/catalog versions and paired analysis. These targeted measurements
+supplement the complete 200-card native release pair.
 
 **SNAPTEST** is the benchmark, at
 **[snapcast.app/snaptest](https://snapcast.app/snaptest)**.
@@ -305,7 +419,7 @@ lookup jobs. Its wrapper is written only into a temporary compiled `dist`; it
 is not production instrumentation. Run it separately from timed benchmarks.
 `scripts/test_reference_features_browser.mjs BASE DIST OUTPUT` separately checks
 raw/contrast descriptor and keypoint parity for the thumbnail, legacy normal
-downsample and enlarged reference, reuse after eviction, the sixty-entry
+downsample and enlarged reference, reuse after eviction, the 120-entry
 bound, and actual OpenCV WASM allocation across 320 replacements. Its worker
 wrapper also lives only in the temporary build. The companion unit test checks
 native ownership and the older-browser fallback.
@@ -489,6 +603,8 @@ These do not replace SNAPTEST, but catch contracts that do not require pixels:
 
 ```sh
 node scripts/test_recognition_hints.mjs
+node scripts/test_hint_prepass.mjs
+node scripts/test_stale_recognition_hints.mjs
 node scripts/test_recognition_queue.mjs
 node scripts/test_ai_crop.mjs
 node scripts/test_video_quality.mjs

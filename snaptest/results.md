@@ -9,6 +9,87 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-10-11 — `milo-click-34` — overlap capture work and recover missed hints
+
+Click-to-display improves by preparing Cornelius geometry during the unchanged
+three-frame camera capture. Only the exact selected Blob and crop click can
+reuse it; a later sharper sample retains normal detection. Remote peers opt
+into one early binary still, committed only after sharpness selection. Legacy
+peers keep a single final result. Cancellation, backpressure, capture deadlines
+and peer replacement release obsolete work and URLs.
+
+The verifier defers duplicate source rectifications, caches small immutable
+reference signatures and raises the bounded descriptor cache from 60 to 120
+entries. Hashes, crop seeds, scoring and confidence gates stay unchanged. A
+distinct-name stopping experiment is rejected: its controlled late-rival case
+can confidently select the wrong card. It remains disabled. Decorative lobby
+preview slots use small images; the featured recognition result keeps its normal
+image. That transfer change is separately verified rather than credited for
+recognition latency.
+
+The final full native pair freezes control main `52c52fe` and candidate source,
+with the same refreshed 113,269-face / 35,650-name catalog. All 200 JPEG hashes,
+all winning names/printings/faces/confidence/pathways/source proofs and all 20
+opaque camera-source proofs agree. All 70 final source fingerprints also match
+the fixed hinted-card tests. The predeclared performance gate requires at least
+a 10% median gain and five additional correct subsecond displays; this pair
+passes without relaxing either threshold.
+
+| Actual game click through decoded card display | Main control | Candidate |
+| --- | --- | --- |
+| Correct visible identities | 189/200 | 189/200 |
+| Confident answers | 189/189 correct | 189/189 correct |
+| Successful display median / p90 | 1029ms / 2278ms | 808ms / 2128ms |
+| Correct visible displays under one second | 84/200 | 131/200 |
+| Upright / tapped / inverted accuracy | 102/109, 53/55, 34/36 | 102/109, 53/55, 34/36 |
+| Median capture / recognition | 268ms / 762ms | 259ms / 555ms |
+| OpenCV WASM heap | 128MiB, flat | 128MiB, flat |
+
+Median capture overlap is 181ms; it is nonexclusive. The display statistics
+cover only the 189 successful images; all 200 clicks count in the subsecond
+metric. Eleven remain unresolved, and slower successful cards still exceed
+one second. This is a warmed desktop test with deterministic 1920 × 1080 canvas
+camera tracks, real local WebRTC, production quality-0.9 JPEG selection and the
+actual Game/sidebar. Static scenes always select sample one; separate moving
+controls preserve later sharper winners. Physical sensors, remote NAT/TURN and
+cold model/reference downloads are outside this guarantee. The earlier supplied
+quality-0.62 JPEG benchmark has a different input/latency boundary.
+
+Room hints exposed a separate real regression: a missed hint skipped the learned
+path and entered the slow full search. BUILD 34 first runs the identical local
+and outline hint tiers without awaiting model work; a verified hit returns,
+while a miss now permits ordinary AI/Milo/retry. The original shortlist remains
+available in the complete fallback. In 20 preselected replacement-card cases,
+actual previously verified Game hints caused six extra unresolved results:
+
+| Targeted stale-hint game clicks | BUILD 33 | BUILD 34 |
+| --- | --- | --- |
+| Correct identities with stale hints | 12/20 | 18/20 |
+| Correct pictures under one second | 0/20 | 11/20 |
+| Successful display median / p90 | 2954ms / 4789ms | 788ms / 2352ms |
+| Confident answers | 12/12 correct | 18/18 correct |
+
+All 60 prior/replacement JPEGs and geometry match; all 12 earlier successes
+survive. The fixed no-hint and stale-hint outputs agree in every recorded winning
+field, including their two unresolved cards. The pair lists three same-name
+printing changes from the old stale branch and one confidence increase; no face
+changes. This targeted recovery is not a new estimate of all-card accuracy.
+
+Four independent valid-hint controls across all three rotations retain every
+printing/face/confidence and a 691ms repeat display median in both builds. Voja
+is a separate unchanged-card stored-hint miss: it improves from 2456ms to 857ms,
+with `hintHit: false` in both builds and normal verified artwork in the fixed
+path. No lookup adds a paid model call or image upload.
+
+The complete fast policy suite and production build pass, including real
+hint-tier gates, held-model/cancellation controls, exact-frame ownership,
+progressive/legacy transport and a validator with deliberate negative controls.
+An earlier transparent test-camera painter changed three JPEGs; that entire
+pair was excluded, its painter fixed to opaque composition, and the complete
+pair rerun. [Archived reports and reproducibility notes](runs/2026-10-11-milo-click-release/)
+separate the final catalog/pair from historical accuracy-only and rejected
+stopping experiments. The goal of 200/200, each under one second, remains unmet.
+
 ## 2026-10-11 — `milo-display-32` — deliver verified results without extra waits
 
 This fixes click-to-display delays without changing identity scoring or confidence

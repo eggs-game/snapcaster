@@ -64,6 +64,10 @@ try {
       window.aiMatcher = await import("/src/recognition/matcher.js");
       await window.aiMatcher.preload();
     });
+    if (name === "ai" && flags.distinctNameStop === "1") {
+      if (flags.production) throw new Error("Distinct-name experiment requires an explicit source matcher hook");
+      await page.evaluate(() => window.aiMatcher.setDistinctNameOrbStop(true));
+    }
     console.log(`${name}: recognition ready`);
     arms[name] = page;
   }
@@ -163,10 +167,11 @@ try {
               } catch (error) { perfectControl = { ok: false, error: String(error) }; }
             }
             return { build: window.__SNAP_BUILD, perfectControl, ok: best?.name === item.name, got: best?.name, by: best?.identified_by,
-              strategy: best?.strategy, distance: best?.distance, trueRank: rank < 0 ? null : rank + 1,
+              strategy: best?.strategy, distance: best?.distance, confidence: best?.confidence, printing: best?.scryfall_id, face: best?.face || 0, trueRank: rank < 0 ? null : rank + 1,
               ms, stages: result.stage_ms,
               aiCrop: result.ai_crop, milo: result.milo, miloVerification: result.milo_verification, regionalProof: !!best?.regional_proof, wasmHeapMB: result.wasm_heap_mb,
-              artBest: result.art_best, blockedNames: result.blocked_names, top3: result.matches.slice(0, 3).map((m) => ({ name: m.name, distance: m.distance })) };
+              artBest: result.art_best, blockedNames: result.blocked_names, orbTiming: result.orb_timing, miloOrbTiming: result.milo_orb_timing,
+              top3: result.matches.slice(0, 3).map((m) => ({ name: m.name, distance: m.distance })) };
           } catch (error) { return { ok: false, ms: Math.round(performance.now() - start), error: String(error?.message || error) }; }
         }, { item, milo: name === "ai" || baselineMilo, production: !!flags.production });
       }
@@ -209,7 +214,7 @@ async function save(log = true) {
   await mkdir(path.dirname(path.resolve(output)), { recursive: true });
   const payload = { build: records[0]?.ai?.build || "unknown", suite, severity: flags.severity,
     sample: suite === "realLife" ? "authoritative SNAPTEST realLife sampler, seed 20260803, identical production captures" : suite === "arcane" ? `supplied Arcane ${flags.severity || "heavy"} photos, unchanged manifest order and source pixels` : "frozen snaptest/cards.json", paired: true, completed: records.length,
-    baselineMilo, workerMemory, summary: { baseline: summary("baseline"), ai: summary("ai"),
+    baselineMilo, distinctNameStop: flags.distinctNameStop === "1", workerMemory, summary: { baseline: summary("baseline"), ai: summary("ai"),
       recovered: records.filter((r) => !r.baseline.ok && r.ai.ok).map((r) => r.i),
       regressed: records.filter((r) => r.baseline.ok && !r.ai.ok).map((r) => r.i),
       proposals: records.filter((r) => r.ai.aiCrop?.proposals > 0).length,

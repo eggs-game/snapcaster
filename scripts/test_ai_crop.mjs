@@ -62,7 +62,7 @@ for (const failure of ["failed", "timeout"]) {
 }
 
 const switchedOff = vm.createContext({
-  URL, URLSearchParams, location: { search: "?aiCrop=0" },
+  URL, URLSearchParams, performance, location: { search: "?aiCrop=0" },
   OffscreenCanvas: class {},
   createImageBitmap() { throw new Error("disabled inference must not copy images for inference"); },
   Worker() { throw new Error("disabled inference must not load the model worker"); },
@@ -73,15 +73,16 @@ assert.equal(switchedOff.aiCropEnabled(), false, "explicit kill switch skips inf
 assert.equal((await switchedOff.proposeAiCrops({}, point)).diagnostic.status, "off");
 
 // Model warmup and concurrent scans must not replace each other's callbacks.
-let posted = [], created = 0, closedWarmBitmap = 0;
+let posted = [], created = 0, closedWarmBitmap = 0, copiedBitmaps = 0, serialTerminations = 0;
 const serial = vm.createContext({
   URL, URLSearchParams, performance, setTimeout, clearTimeout,
   location: { search: "" },
-  createImageBitmap: async () => ({ close() {} }),
+  createImageBitmap: async () => { copiedBitmaps++; return { close() {} }; },
   OffscreenCanvas: class { transferToImageBitmap() { return { close() { closedWarmBitmap++; } }; } },
   Worker: class {
     constructor() { created++; }
     postMessage({ id }) { posted.push(() => this.onmessage({ data: { id, quads: [], diagnostic: { status: "ready" } } })); }
+    terminate() { serialTerminations++; }
   },
 });
 vm.runInContext(source, serial);
@@ -99,9 +100,40 @@ assert.equal(created, 1);
 assert.equal(closedWarmBitmap, 1);
 assert.equal(serial.preloadAiCrop(), warm, "warmup runs once");
 
+// A losing sample can be canceled while older Milo work occupies the worker.
+// Cancellation is checked when its turn arrives, not when it was enqueued.
+const busyLookup = serial.lookupAiCrops([]);
+await new Promise(resolve => setImmediate(resolve));
+assert.equal(posted.length, 3);
+let activePreparation = true, closedPreparation = 0;
+const preparationBitmap = { close() { closedPreparation++; } };
+const beforeCancellationCopies = copiedBitmaps;
+const canceledPreparation = serial.proposeAiCrops(preparationBitmap, point, false, { isActive: () => activePreparation });
+const followingScan = serial.proposeAiCrops({}, point);
+activePreparation = false;
+await new Promise(resolve => setImmediate(resolve));
+assert.equal(posted.length, 3, "the busy model keeps its existing callback");
+posted[2]();
+await busyLookup;
+const canceled = await canceledPreparation;
+assert.equal(canceled.diagnostic.status, "canceled");
+assert.equal(canceled.diagnostic.ms, 0);
+assert.ok(canceled.diagnostic.queueMs >= 0);
+assert.equal(canceled.quads.length, 0);
+assert.equal(closedPreparation, 0, "the caller retains ownership of the original preparation bitmap");
+await new Promise(resolve => setImmediate(resolve));
+assert.equal(copiedBitmaps, beforeCancellationCopies + 1, "only the following live scan copies a bitmap");
+assert.equal(posted.length, 4, "canceled preparation never posts a worker job");
+assert.equal(created, 1);
+assert.equal(serialTerminations, 0);
+posted[3]();
+assert.equal((await followingScan).diagnostic.status, "ready", "cancellation must not disable cropping or corrupt the next callback");
+preparationBitmap.close();
+assert.equal(closedPreparation, 1);
+
 // Exercise the integration with different identity evidence, a failed fast
 // trial, and a recent-card hint. Only the established strong evidence may
-// bypass full recognition; hints must avoid paying for model inference.
+// bypass full recognition; verified hints must avoid waiting for inference.
 const matcher = readFileSync(new URL("../src/recognition/matcher.js", import.meta.url), "utf8");
 const perform = matcher.slice(matcher.indexOf("async function performIdentify("), matcher.indexOf("let identifyActive ="));
 for (const scenario of ["off", "hint", "empty", "exact", "art", "weak", "bad-art-flag", "error", "neighbour-art", "neighbour-exact"]) {
@@ -116,12 +148,12 @@ for (const scenario of ["off", "hint", "empty", "exact", "art", "weak", "bad-art
       modelCalls++;
       return { quads: scenario === "empty" ? [] : [portrait], diagnostic: { status: "ready", ms: 1 } };
     },
-    runOnWorker: async (bmp, _point, hints, quads, aiOnly) => {
+    runOnWorker: async (bmp, _point, hints, quads, aiOnly, _candidates, _milo, _preview, hintsOnly) => {
       calls.push({ bmp, hints, quads, aiOnly });
       if (aiOnly && scenario === "error") throw new Error("injected fast-trial failure");
       return { matches: [{ distance: aiOnly && !["exact","neighbour-exact"].includes(scenario) ? 91 : 90,
         identified_by: ["art","neighbour-art"].includes(scenario) ? "art-match" : undefined }],
-        art_decisive: ["art", "bad-art-flag", "neighbour-art"].includes(scenario), art_best: {clickInside: scenario.startsWith("neighbour-") ? false : null}, stage_ms: {} };
+        art_decisive: ["art", "bad-art-flag", "neighbour-art"].includes(scenario), hint_hit: !!hintsOnly, art_best: {clickInside: scenario.startsWith("neighbour-") ? false : null}, stage_ms: {} };
     },
     finishIdentify: async (result) => result,
   });
@@ -134,7 +166,7 @@ for (const scenario of ["off", "hint", "empty", "exact", "art", "weak", "bad-art
   assert.equal(calls.at(-1).aiOnly, fast ? true : false, scenario);
   if (scenario === "hint") {
     assert.equal(calls[0].hints, hints);
-    assert.equal(result.ai_crop.status, "skipped-hints");
+    assert.equal(result.ai_crop.status, "hint-hit");
   }
   if (fast) assert.equal(closed, 1, "fast success releases the original capture");
 }

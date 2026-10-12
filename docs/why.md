@@ -73,20 +73,27 @@ way a player does. See [testing.md](testing.md).
 
 ## What "working" means
 
-Concretely, on the current benchmark of realistic table scenes:
+The latest complete native click-to-display test uses 200 realistic table cards:
 
-- **189/200** correct identities, including **180/187** clear cards
-- **0.77s median**, **2.42s p90** identification time on a warmed desktop browser
-- **186/186** confident artwork answers correct in the paired primary run
+- **189/200** correct visible identities; every confident answer is correct
+- **808ms median**, **2128ms p90** full click-to-image paint for those 189 matches
+- **131/200** correct visible matches within one second
 
-The paired current-main control also identifies 189/200; every previously
-correct crowded-table identity is preserved. Correct reads under one second
-are 131/200 versus 133/200 in the control, so this release does not establish a
-camera speed gain. Eleven captures still fail, including clear cards that the
-verifier cannot settle. Three become correct through the same full verifier on
-an exact crop.
+The current-main control also displays 189/200 correctly, with a 1029ms median,
+2278ms p90 and 84 correct subsecond displays. Every selected JPEG, winning
+printing, confidence and source-registration proof agrees across all 200 pairs.
+Eleven clicks still cannot be confidently identified. The goal of 200 correct
+answers, all within one second, remains unmet.
 
-Supplied Arcane Medium photographs improve from **160/200 to 198/200**, with
+This is a warmed desktop test with unhinted clicks, production three-frame
+capture/JPEG selection, real local WebRTC transfer and the actual game/sidebar.
+Its static simulated camera always selects the first sample; it cannot establish
+that frequency for a physical sensor, or remote-network/cold-download latency.
+Separate moving-frame controls preserve later sharper samples. The older
+recognition-only primary replay remains 189/200 with 186/186 confident answers
+correct; its JPEG quality and latency boundary differ from the native test.
+
+The `milo-photo-27` supplied Arcane Medium photographs improved from **160/200 to 198/200**, with
 **196/196 confident answers correct** and no individually lost identity. The
 median falls from **4.85s to 0.75s**, p90 from **8.56s to 1.44s**, and correct
 subsecond reads increase from **22/200 to 139/200**. Both arms use the corrected
@@ -96,8 +103,8 @@ The Hive and Seven Dwarves still fail verification. A high model retrieval
 score cannot replace missing geometric/text evidence. The goal of 200 correct
 answers each in under one second remains unmet.
 
-These timings include decoding, detection and verification, but exclude camera
-transport and first-visit downloads. See [the release results](../snaptest/results.md)
+The supplied-photo timings include decoding, detection and verification, but
+exclude camera transport and first-visit downloads. See [the release results](../snaptest/results.md)
 for the broader suites, individual misses and release evidence.
 
 ## Constraints that shape everything

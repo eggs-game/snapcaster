@@ -85,13 +85,15 @@ for (const evidence of ["weak", "neighbour", "unregistered", "verified", "contra
   const winner = { name: "Retrieved card", scryfall_id: "new", milo_retrieval: true, face: 0, distance: 150,
     click_inside: evidence === "unregistered" ? null : !evidence.includes("neighbour"), click_inliers: 24, click_art_inliers: 12 };
   let calls = 0;
+  const timing = {};
   const context = vm.createContext({splitIdentitySupported:()=>true,
-    self: {}, cards: [[], []], cardsSha256: "current",
+    self: {}, cards: [[], []], cardsSha256: "current", orbTiming: timing,
     lastMiloContext: { scanId: 7, base: [initial], images: [{}], queryImages: [{}], dists: [190,150], blockedNames: [],
       result: { matches: [initial], printingMatches: [initial], artChecked: 1 } },
     cardMeta: row => row === 1 ? { ...winner } : { ...initial },
     verifyTopMatches: async (pool, _images, _shaped, _source, _click, _budget, _regions, contrast) => {
       calls++; assert.ok(pool.some(m => m.name === "Old guess"));
+      timing.refsRanked = calls * 10; timing.sourceFeat = calls * 7;
       if (evidence.startsWith("contrast")) assert.equal(!!contrast, calls === 2);
       return { matches: [winner], artDecisive: evidence !== "weak" && (!evidence.startsWith("contrast") || !!contrast), artChecked: 2 };
     },
@@ -105,6 +107,10 @@ for (const evidence of ["weak", "neighbour", "unregistered", "verified", "contra
   assert.equal(result.miloRescued, rescued);
   assert.equal(result.matches[0].name, rescued ? winner.name : initial.name, "a high model score alone cannot replace the established result");
   assert.equal(initial.milo_retrieval, undefined, "rescue verification must not mutate baseline matches");
+  assert.deepEqual(Array.from(result.miloOrbTiming, t => [t.contrast, t.refsRanked, t.sourceFeat]), evidence.startsWith("contrast")
+    ? [[false,10,7],[true,20,14]] : evidence === "weak" ? [[false,10,7],[true,20,14]] : [[false,10,7]]);
+  timing.refsRanked = 999;
+  assert.equal(result.miloOrbTiming[0].refsRanked, 10, "later passes cannot mutate diagnostic snapshots");
 }
 console.log("Milo keeps a diverse bounded shortlist, rejects stale catalogs, and requires decisive artwork plus positive clicked-card proof");
 
@@ -142,7 +148,10 @@ for (const scenario of ["clear", "verified", "weak", "failed", "stale", "hint"])
     performance, VISUAL_EXACT_DISTANCE: 90,
     sourceToBitmap: async () => ({ close() { closed++; } }), createImageBitmap: async () => ({}),
     proposeAiCrops: async (_bmp, _point, retry) => ({ quads: retry ? [] : [{}], diagnostic: { status: "ready", ms: 1 } }),
-    runOnWorker: async (_bmp, _point, _hints, _quads, aiOnly) => { if (!aiOnly) fallbacks++; return { ...base }; },
+    runOnWorker: async (_bmp, _point, _hints, _quads, aiOnly, _candidates, _milo, _preview, hintsOnly) => {
+      if (!aiOnly && !hintsOnly) fallbacks++;
+      return { ...base, hint_hit: !!hintsOnly };
+    },
     lookupAiCrops: async () => { lookupCalls++; return { diagnostic: { status: scenario === "failed" ? "failed" : "ready" }, rows: scenario === "failed" ? [] : [{ row: 1, score: .999 }] }; },
     runMiloVerification: async () => {
       if (scenario === "stale") throw new Error("catalog mismatch");
@@ -154,7 +163,7 @@ for (const scenario of ["clear", "verified", "weak", "failed", "stale", "hint"])
   const result = await context.performIdentify("capture", {}, scenario === "hint" ? [{}] : [], true, true);
   const rescue = scenario === "verified";
   assert.equal(lookupCalls, ["clear", "hint"].includes(scenario) ? 0 : 1);
-  assert.equal(fallbacks, ["clear", "verified"].includes(scenario) ? 0 : 1);
+  assert.equal(fallbacks, ["clear", "verified", "hint"].includes(scenario) ? 0 : 1);
   assert.equal(result.matches[0].name, rescue ? "New verified card" : "Old guess");
   assert.equal(result.milo_images, undefined, "capture pixels must not escape into final diagnostics");
   if (rescue || scenario === "clear") assert.equal(closed, 1);
