@@ -2801,9 +2801,10 @@ function fetchReference(id, face, size = "small") {
   };
   const downloadSize = size === "detail" ? "normal" : size;
   const key = `${id}/${face}/${downloadSize}`;
-  if (!refCache.has(key)) {
+  let cached = refCache.get(key);
+  if (!cached) {
     if (refCache.size > 400) refCache.delete(refCache.keys().next().value);
-    refCache.set(key, (async () => {
+    cached = (async () => {
       const side = face === 1 ? "back" : "front";
       const resp = await fetch(`https://cards.scryfall.io/${downloadSize}/${side}/${id[0]}/${id[1]}/${id}.jpg`);
       if (!resp.ok) throw new Error("ref fetch failed");
@@ -2813,11 +2814,16 @@ function fetchReference(id, face, size = "small") {
         // Preserve the exact legacy normal-size pixels for small camera
         // crops. Keep the compressed original for a lazily requested larger
         // view; small camera queries never allocate that view or download twice.
-        return { image: render(bmp, CARD_W), blob: downloadSize === "normal" ? blob : null, detail: null };
+        const image = render(bmp, CARD_W);
+        // Reuse a verified public reference for immediate result display. This
+        // belongs to the same bounded entry, so eviction releases it as well.
+        cached.previewBlob = blob;
+        return { image, blob: downloadSize === "normal" ? blob : null, detail: null };
       } finally { if (bmp.close) bmp.close(); }
-    })().catch(() => null));
+    })().catch(() => null);
+    refCache.set(key, cached);
   }
-  return refCache.get(key).then(images => {
+  return cached.then(images => {
     if (!images) return null;
     if (size !== "detail") return images.image;
     if (!images.detail) images.detail = (async () => {
@@ -2827,6 +2833,17 @@ function fetchReference(id, face, size = "small") {
     })().catch(() => null);
     return images.detail;
   });
+}
+
+function cachedReferencePreview(match) {
+  if (!match?.scryfall_id) return null;
+  const face = match.face || 0;
+  for (const size of ["normal", "small"]) {
+    const blob = refCache.get(`${match.scryfall_id}/${face}/${size}`)?.previewBlob;
+    // Never await an unused download or fetch a new image to deliver a result.
+    if (blob) return { scryfall_id: match.scryfall_id, face, blob };
+  }
+  return null;
 }
 
 function orbFeatures(imageData, nfeatures, restoreContrast = false) {
@@ -3671,7 +3688,7 @@ self.onmessage = async (e) => {
     try {
       const res = await verifyMiloRows(scanId, e.data.rows, e.data.cards_sha256);
       lastTitleSource.scanId = id;
-      self.postMessage({ id, ...res });
+      self.postMessage({ id, ...res, referencePreview: cachedReferencePreview(res.matches?.[0]) });
     } catch (err) { self.postMessage({ id, error: String(err?.message || err) }); }
   } else if (type === "identify") {
     try {
@@ -3683,7 +3700,7 @@ self.onmessage = async (e) => {
       const context = res.miloContext;
       delete res.miloContext;
       if (context) lastMiloContext = { ...context, scanId: id, result: { ...res, miloImages: [] } };
-      self.postMessage({ id, ...res });
+      self.postMessage({ id, ...res, referencePreview: cachedReferencePreview(res.matches?.[0]) });
     } catch (err) {
       if (bmp && bmp.close) bmp.close();
       self.postMessage({ id, error: String((err && err.message) || err) });

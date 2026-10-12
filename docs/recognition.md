@@ -124,8 +124,19 @@ catalog fingerprint. The final raw result and scan context must arrive before
 those rows can be verified; the early notification cannot settle recognition.
 The same exact crop pixels and identity gates apply. Two-crop scans keep the
 ordinary schedule because speculative inference delayed easy reads in the
-pilot. An unused speculative job drains before the next click enters the shared
-model worker, preserving callback ownership and honest end-to-end timing.
+pilot. Once artwork/hash verification settles identity, unused speculative work
+drains in the background instead of holding back the answer. The model adapter
+still serializes every crop/lookup job and owns its callbacks by request ID.
+Late unused rows may warm public references but cannot change the published
+answer or its timing. Recognition queue wait is reported separately from the
+pipeline's own processing time.
+
+For display, the worker also returns the already downloaded public reference
+for the winning printing and face. Reading this bounded cache never starts or
+awaits another download. The game validates it against the final winner, then
+shows its pixels immediately while the normal image loads. Transient preview
+URLs stay local to the result panel and share the game's bounded cleanup; they
+never enter room hints or shared cards. Card selection is unchanged.
 
 Two different card names can reuse the same illustration. A bounded check
 compares the artwork leader's reference with up to two plausible rival names;
@@ -246,10 +257,14 @@ returns the crop. The compressed video stream is never used for recognition.
 
 - Camera requested at up to 4K.
 - Takes the sharpest of 3 frames (gradient variance) to dodge motion blur.
+- Samples 120ms apart, so capture has an approximately 240ms selection floor
+  before encoding or remote transport. Delivery fixes preserve this selection.
 - Reuses the video/canvas capture buffers for that camera track and encodes the
   chosen frame asynchronously as JPEG.
 - Sends bounded 48KB binary chunks over the reliable data channel. Legacy tabs
   still receive a data URL during a rolling deploy.
+- An approved request over the capture budget receives an immediate opaque
+  failure instead of waiting ten seconds. Unapproved memberships remain silent.
 - The square crop is **clamped inside the frame**. It used to be centred on
   the click and black-padded when it ran off the edge — a card held beside
   someone's head lost 30%+ of the capture to black, which skewed the colour
@@ -456,9 +471,16 @@ Only the latest requested result may update the card panel.
 
 ## Where the time goes
 
-The deterministic 100-card realistic tableau currently measures a 1.84s
-median and 5.05s p90. The harder edge-targeted set measures a 4.8s median
-because most scans activate click-local isolation:
+The `milo-photo-27` release measures 770ms median / 2417ms p90 on its
+200 crowded-table clicks, and 746ms / 1438ms on its 200 supplied photographs.
+These are warmed recognition measurements; camera sampling/transport, queue
+wait and final image display are separate parts of the player's experience.
+The latest complete evidence is in [results.md](../snaptest/results.md).
+
+For comparison, the earlier full-fallback deterministic tableau measured a
+1.84s median / 5.05s p90; its harder edge set measured a 4.8s median because
+most scans activated click-local isolation. Its stage breakdown illustrates
+that fallback's cost rather than the current learned fast path:
 
 | Stage | Typical |
 | --- | --- |

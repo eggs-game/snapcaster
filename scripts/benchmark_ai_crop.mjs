@@ -105,13 +105,13 @@ try {
       const order = records.length % 2 ? ["ai", "baseline"] : ["baseline", "ai"];
       for (const name of order) {
         await arms[name].bringToFront();
-        rec[name] = await arms[name].evaluate(async ({ item, name, production }) => {
+        rec[name] = await arms[name].evaluate(async ({ item, name, production, baselineAi }) => {
           const start = performance.now();
           try {
             if (document.visibilityState !== "visible") throw new Error("Benchmark page is hidden");
             const scan = (source, point) => production
-              ? window.__scIdentifyUrl(source, point, [], { aiCrop: name === "ai" })
-              : window.aiMatcher.identify(source, point, { aiCrop: name === "ai" });
+              ? window.__scIdentifyUrl(source, point, [], { aiCrop: name === "ai" || baselineAi })
+              : window.aiMatcher.identify(source, point, { aiCrop: name === "ai" || baselineAi });
             const result = await scan(item.source, item.point);
             const best = result.matches[0];
             const rank = result.matches.findIndex((m) => m.name === item.name);
@@ -129,7 +129,7 @@ try {
               aiCrop: result.ai_crop, wasmHeapMB: result.wasm_heap_mb,
               artBest: result.art_best, blockedNames: result.blocked_names, top3: result.matches.slice(0, 3).map((m) => ({ name: m.name, distance: m.distance })) };
           } catch (error) { return { ok: false, ms: Math.round(performance.now() - start), error: String(error?.message || error) }; }
-        }, { item, name, production: !!flags.production });
+        }, { item, name, production: !!flags.production, baselineAi: flags.baselineAi === "1" });
       }
       records.push(rec);
       console.log(`${records.length}: ${item.name}: baseline=${rec.baseline.ok}/${rec.baseline.ms}ms ai=${rec.ai.ok}/${rec.ai.ms}ms fast=${!!rec.ai.aiCrop?.fastHit} proposals=${rec.ai.aiCrop?.proposals ?? 0} (${rec.ai.aiCrop?.status || "unknown"})`);
@@ -166,6 +166,7 @@ function summary(name) {
 async function save(log = true) {
   await mkdir(path.dirname(path.resolve(output)), { recursive: true });
   const payload = { build: records[0]?.ai?.build || "unknown", suite, severity: flags.severity,
+    baselineAi: flags.baselineAi === "1",
     sample: suite === "realLife" ? "authoritative SNAPTEST realLife sampler, seed 20260803, identical production captures" : "frozen snaptest/cards.json", paired: true, completed: records.length,
     summary: { baseline: summary("baseline"), ai: summary("ai"),
       recovered: records.filter((r) => !r.baseline.ok && r.ai.ok).map((r) => r.i),
@@ -184,7 +185,7 @@ async function save(log = true) {
       summary.wasmHeapStartMB = summary.wasmHeapMB[0]; summary.wasmHeapEndMB = summary.wasmHeapMB[1];
       summary.firstHalfAcc = summary.firstHalf / 100; summary.secondHalfAcc = summary.secondHalf / 100;
       await mkdir(directory, {recursive:true});
-      await writeFile(path.join(directory,"realLife.json"), JSON.stringify({build:records[0][arm].build, aiCropEnabled:arm === "ai", mode:"realLife", summary,
+      await writeFile(path.join(directory,"realLife.json"), JSON.stringify({build:records[0][arm].build, aiCropEnabled:arm === "ai" || flags.baselineAi === "1", mode:"realLife", summary,
         misses:records.filter(r=>!r[arm].ok && !r[arm].error).map(r=>({name:r.name,id:r.id,i:r.i,scene:r.scene,rot:r.rotation,layout:r.layout,coverage:r.coverage,got:r[arm].got,by:r[arm].by,trueRank:r[arm].trueRank,artBest:r[arm].artBest,aiCrop:r[arm].aiCrop,stages:r[arm].stages,ms:r[arm].ms,perfectControl:r[arm].perfectControl})),
         errors:records.filter(r=>r[arm].error).map(r=>({i:r.i,name:r.name,error:r[arm].error}))}, null, 2)+"\n");
     }

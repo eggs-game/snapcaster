@@ -893,7 +893,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
     let captureMs = 0;
     let captureChars = 0;
     let phase = "capture";
-    setCurrent({ loading: true });
+    setCurrent({ loading: true, requestId });
     try {
       // Captures are native-resolution crops around the clicked point (both
       // local and remote). The crop is clamped to stay inside the camera frame,
@@ -911,6 +911,9 @@ export default function Game({ session, account, onLeave, themePreference, onThe
       }
       captureMs = Math.round(performance.now() - captureStartedAt);
       captureChars = Number(cap.bytes) || String(cap.url || "").length;
+      // A slow remote capture may arrive after a newer click. Do not let that
+      // obsolete image occupy the recognition queue ahead of the current one.
+      if (requestId !== latestRecognitionRequestRef.current) return;
       phase = "recognition";
       recognitionStartedAt = performance.now();
       const hints = nearbyRecognitionHints(
@@ -964,8 +967,20 @@ export default function Game({ session, account, onLeave, themePreference, onThe
       // hint, but never let an older queued scan replace the card the player
       // most recently asked for.
       if (requestId !== latestRecognitionRequestRef.current) return;
+      let previewImage = "";
+      const preview = data.reference_preview;
+      if (preview?.blob instanceof Blob && preview.scryfall_id === top?.scryfall_id
+        && (preview.face || 0) === (top.face || 0)) {
+        previewImage = URL.createObjectURL(preview.blob);
+        captureObjectUrlsRef.current.push(previewImage);
+        while (captureObjectUrlsRef.current.length > 32) {
+          URL.revokeObjectURL(captureObjectUrlsRef.current.shift());
+        }
+      }
       setCurrent({
+        requestId,
         matches: data.matches || [],
+        previewImage,
         cardFound: data.card_found,
         cvStatus: data.cv_status,
         candidatesTried: data.candidates_tried,
@@ -1034,7 +1049,7 @@ export default function Game({ session, account, onLeave, themePreference, onThe
         outcome,
         captureChars,
       }, tileId);
-      if (requestId === latestRecognitionRequestRef.current) setCurrent({ error: message });
+      if (requestId === latestRecognitionRequestRef.current) setCurrent({ error: message, requestId });
     } finally {
       if (activeRecognitionRef.current?.requestId === requestId) {
         activeRecognitionRef.current = null;
@@ -1048,16 +1063,18 @@ export default function Game({ session, account, onLeave, themePreference, onThe
   const lookupCommanderName = useCallback(async (name) => {
     const cardName = String(name || "").trim();
     if (!cardName) return;
+    const requestId = ++latestRecognitionRequestRef.current;
     openCardPanel();
-    setCurrent({ loading: true });
+    setCurrent({ loading: true, requestId });
     try {
       const result = await fetchCardByName(cardName);
       if (!result) throw new Error("Card not found");
       const card = cardFromScryfall(result);
-      setCurrent({ matches: [card] });
+      if (requestId !== latestRecognitionRequestRef.current) return;
+      setCurrent({ matches: [card], requestId });
       setLookups((l) => [...l.slice(-11), { by: session.name, card, at: Date.now() }]);
     } catch (e) {
-      setCurrent({ error: String(e.message || e) });
+      if (requestId === latestRecognitionRequestRef.current) setCurrent({ error: String(e.message || e), requestId });
     }
   }, [openCardPanel, session.name]);
 
@@ -1946,17 +1963,19 @@ export default function Game({ session, account, onLeave, themePreference, onThe
             onGenerateVideoCounter={generateVideoCounter}
             onStartVideoCounterDrag={setCounterPointerDrag}
             onPick={(m) => setCurrent({
+              requestId: ++latestRecognitionRequestRef.current,
               // A card chosen from chat is an explicit user selection, not a
               // recognizer guess, so it should always render in the Cards tab.
               matches: [{ ...m, identified_by: "search", distance: m.distance ?? 0 }],
             })}
             onShareCard={shareCard}
             onSearch={(cardOrError) => {
+              const requestId = ++latestRecognitionRequestRef.current;
               if (cardOrError.error) {
-                setCurrent({ error: cardOrError.error });
+                setCurrent({ error: cardOrError.error, requestId });
                 return;
               }
-              setCurrent({ matches: [cardOrError] });
+              setCurrent({ matches: [cardOrError], requestId });
               setLookups((l) => [...l.slice(-11), { by: session.name, card: cardOrError, at: Date.now() }]);
             }}
             onClose={() => setSidebarClosing(true)}

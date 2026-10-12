@@ -67,6 +67,41 @@ preview (`--url=http://127.0.0.1:5184`). Reports/screenshots are in
 `.cache/`; review screenshots as well as assertions. Fixtures cannot establish
 real OAuth, physical media, WebRTC/TURN or durable server-write correctness.
 
+`scripts/test_milo_parallel.mjs` holds unused learned retrieval after the real
+matcher has verified an answer: delivery must finish before releasing that
+work, and late completion cannot mutate the result. The model adapter still
+serializes subsequent model jobs. `test_reference_preview.mjs` verifies that
+display uses the exact cached reference face without extra downloads, waiting
+for unused normal images or creating another image cache.
+`test_game_recognition_delivery.mjs` runs the actual Game click handler with a
+delayed earlier camera reply; obsolete captures skip recognition, final winners
+validate preview printing/face, and transient URLs stay bounded. All run in the
+fast policy set.
+
+`npm run test:card:delivery -- --chrome=<chrome-path>` runs the actual sidebar
+with a held normal-image response and an available verified reference. It checks
+immediate preview display, stable image geometry, decode upgrades, late image
+completion and loading/result batching from Chat. `--baseline=<git-ref>` can
+reproduce the missing-image and hidden-result failures. Image files and transport
+delays are controlled fixtures; this is a delivery regression, not an accuracy
+or live-network benchmark.
+
+`npm run test:game:card-delivery` checks a real pointer click in the compiled
+practice game through the actual recognition worker and sidebar. It verifies
+the visible reference bytes against the worker's winning printing/face and
+requires a verified room-hint hit on the repeated click. It records capture,
+recognition, title and preview decode timings separately while holding only the
+DOM normal-image download. The local practice capture excludes production's
+three-frame selection, remote RTT and TURN; those numbers must not be presented
+as a full native-camera latency guarantee.
+
+For paired current-main comparisons with local AI enabled in both arms, pass
+`--baselineAi=1 --baselineUrl=<frozen-control-url>` to
+`scripts/benchmark_ai_crop.mjs`. Both arms retain identical rendered pixels,
+normalized clicks and alternating order. The default control still disables AI
+for detector comparisons. Warmed recognition timing alone is not click-to-image
+paint timing.
+
 **SNAPTEST** is the benchmark, at
 **[snapcast.app/snaptest](https://snapcast.app/snaptest)**.
 Pick a sample, press Run, read the results, paste the JSON.

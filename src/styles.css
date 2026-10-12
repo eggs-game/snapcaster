@@ -4984,7 +4984,7 @@ h3.profile-tab-heading {
   color: var(--text-tertiary);
   font-size: var(--text-xs);
 }
-.sidebar-content > *:not(.sidebar-head) { animation: sidebar-view-in 0.14s ease-out; }
+.sidebar-content > *:not(.sidebar-head):not(.card-hit) { animation: sidebar-view-in 0.14s ease-out; }
 @keyframes sidebar-view-in {
   from { opacity: 0; transform: translateY(3px); }
   to { opacity: 1; transform: translateY(0); }
@@ -5098,8 +5098,10 @@ h3.profile-tab-heading {
   margin-top: 8px; padding: 6px; border: 1px solid var(--border-subtle); border-radius: 15px;
   background: var(--bg-surface);
 }
-.card-hit-image { display: block; width: 100%; padding: 0; border: 0; border-radius: 14px; background: none; cursor: zoom-in; }
-.card-hit-image img { display: block; width: 100%; border-radius: 14px; }
+.card-hit-image { position: relative; display: block; width: 100%; aspect-ratio: 244 / 340; overflow: hidden; padding: 0; border: 0; border-radius: 14px; background: none; cursor: zoom-in; }
+.card-hit-image img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; border-radius: 14px; }
+.card-result-normal { opacity: 0; }
+.card-result-normal.is-ready { opacity: 1; }
 .card-preview-backdrop { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; padding: 24px; background: var(--overlay-scrim); -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); animation: overlay-in var(--duration-standard) var(--ease-standard); }
 .card-preview-tile { display: flex; max-width: min(480px, calc(100vw - 48px)); max-height: calc(100vh - 48px); padding: 8px; overflow: hidden; border: 1px solid var(--glass-border-strong); border-radius: 40px; background: var(--glass-bg-dense); -webkit-backdrop-filter: blur(18px) saturate(var(--glass-saturation)); backdrop-filter: blur(18px) saturate(var(--glass-saturation)); box-shadow: inset 0 1px 0 var(--glass-highlight), var(--overlay-shadow); }
 .card-preview-tile img { display: block; width: auto; height: auto; max-width: 100%; max-height: calc(100vh - 64px); border-radius: 32px; object-fit: contain; }

@@ -14,6 +14,8 @@
     "test:auth-callback": "node scripts/test_auth_callback.mjs",
     "test:ui:simulation": "node scripts/test_ui_simulation.mjs",
     "test:ui:sidebar": "node scripts/test_card_sidebar_browser.mjs",
+    "test:card:delivery": "node scripts/test_card_result_delivery_browser.mjs",
+    "test:game:card-delivery": "node scripts/test_game_card_delivery_browser.mjs",
     "test:ui:pages": "node scripts/test_account_pages_browser.mjs",
     "test:media:setup": "node scripts/test_media_setup_browser.mjs",
     "test:media:playback": "node scripts/test_media_playback_browser.mjs",

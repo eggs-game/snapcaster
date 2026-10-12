@@ -1141,6 +1141,16 @@ art at the larger zoomed scale, removing visible white card corners. It closes
 on a backdrop click or Escape; do not add a separate close button unless the
 preview gains other controls.
 
+The settled card result reserves the reference's 244:340 image area immediately
+and appears at full opacity, so a verified answer is visible as soon as its
+pixels are ready.
+An available small reference of the exact winning printing and face appears
+while its normal image loads and decodes, then the normal image replaces it
+without a fade or layout jump. This reference is separate from the photographed
+capture: a camera crop never substitutes for the recognized artwork. Each new
+lookup request selects Cards once; image and metadata upgrades for that same
+request preserve any later choice to read Chat.
+
 ## Video tile fit modes
 
 Camera tiles keep video playback muted so displaying a board does not depend on

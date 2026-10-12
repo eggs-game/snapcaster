@@ -1345,7 +1345,15 @@ export class GameConnection {
         // privileged message on sender role; this transport did not, so a
         // visitor — who has no camera of their own — could pull frames from
         // everyone, unthrottled and with nothing shown on this screen.
-        if (!this._mayCapture(peerId)) return;
+        if (!this._mayCapture(peerId)) {
+          // An approved participant needs an answer when the bounded capture
+          // budget is exhausted. Silence otherwise leaves their lookup waiting
+          // for the full request timeout. Unapproved peers receive no reply.
+          if (this._isCaptureParticipant(peerId)) {
+            this._dcSend(peerId, { t: "cap-res", id: m.id, error: "capture failed" });
+          }
+          return;
+        }
         try {
           const cap = await captureLocalFrame(this.localStream, m.nx, m.ny);
           try {
@@ -1441,10 +1449,14 @@ export class GameConnection {
   // capture path and visible scan notice as seated players.
   // Without this a peer can poll cap-req in a loop and reconstruct a video
   // feed of this player at full camera resolution.
+  _isCaptureParticipant(peerId) {
+    const member = this.roster.find((participant) => participant.id === peerId);
+    if (member?.role !== "player" && member?.role !== "visitor") return false;
+    return !this.allowedMembershipIds || this.allowedMembershipIds.has(member.membershipId);
+  }
+
   _mayCapture(peerId) {
-    if (!this.localStream) return false;
-    const role = this.roster.find((r) => r.id === peerId)?.role;
-    if (role !== "player" && role !== "visitor") return false;
+    if (!this.localStream || !this._isCaptureParticipant(peerId)) return false;
     const entry = this.peers.get(peerId);
     if (!entry) return false;
     const now = Date.now();

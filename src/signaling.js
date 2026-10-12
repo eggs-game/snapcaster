@@ -54,7 +54,10 @@ const RECOGNITION_OUTCOMES = new Set([
   "capture-error",
   "recognition-error",
 ]);
-const RECOGNITION_STAGE_KEYS = new Set(["hintPrep", "prep", "hint", "rank", "orb", "ocr", "total"]);
+const RECOGNITION_STAGE_KEYS = new Set([
+  "hintPrep", "prep", "hint", "rank", "orb", "ocr", "total",
+  "aiCrop", "aiAttempt", "milo", "aiRetry", "queue",
+]);
 const VIDEO_QUALITY_VALUES = new Set(["720p", "1080p", "1440p", "2160p"]);
 
 function boundedInteger(value, max) {

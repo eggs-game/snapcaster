@@ -1,0 +1,51 @@
+{
+  "purpose": "Controlled actual-sidebar delivery regression; synthetic public-reference images and held normal response. Not an accuracy or real-network benchmark.",
+  "baseline": [
+    {
+      "name": "held-normal-reference",
+      "elapsedMs": 23,
+      "title": "Printing A",
+      "imagePaintable": false,
+      "height": 0
+    },
+    {
+      "name": "late-previous-printing",
+      "title": "Printing B"
+    },
+    {
+      "name": "same-request-upgrade-preserves-chat",
+      "chatVisible": true
+    },
+    {
+      "name": "batched-loading-to-result-from-chat",
+      "title": "",
+      "chatVisible": true,
+      "cardVisible": false
+    }
+  ],
+  "candidate": [
+    {
+      "name": "held-normal-reference",
+      "elapsedMs": 26,
+      "title": "Printing A",
+      "imagePaintable": true,
+      "height": 374.828125,
+      "cardHitOpacity": 1
+    },
+    {
+      "name": "late-previous-printing",
+      "title": "Printing B"
+    },
+    {
+      "name": "same-request-upgrade-preserves-chat",
+      "chatVisible": true
+    },
+    {
+      "name": "batched-loading-to-result-from-chat",
+      "title": "Fast printing",
+      "chatVisible": false,
+      "cardVisible": true
+    }
+  ],
+  "errors": []
+}

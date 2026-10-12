@@ -164,7 +164,7 @@ function getWorker() {
         id, matches, printingMatches, titleCandidates, metadataStrips, titleCount, queryCandidates,
         shardedIndex, cardFound, cvStatus, candidatesTried, cropsDropped, artBest, artChecked,
         artDecisive, isolationDebug, isolationCandidates, detectorUsed, detectorState, detectorDistance, isolationTiming, scoreFullTiming, prepTiming, orbTiming, earlyOrb,
-        stageMs, wasmHeapMB, blockedNames, miloImages, miloRescued, miloVerification,
+        stageMs, wasmHeapMB, blockedNames, miloImages, miloRescued, miloVerification, referencePreview,
         hintHit, preloaded, indexReady, indexCount, workerMs, error,
       } = e.data || {};
       const p = pending.get(id);
@@ -190,6 +190,7 @@ function getWorker() {
         milo_images: miloImages || [],
         milo_rescued: !!miloRescued,
         milo_verification: miloVerification || [],
+        reference_preview: referencePreview || null,
         title_count: titleCount || 0,
         query_candidates: queryCandidates || [],
         sharded_index: !!shardedIndex,
@@ -954,7 +955,7 @@ async function performIdentify(source, point, hints, aiCrop, useMilo) {
   // charge those scans model inference before they can use it.
   const ai = aiCrop && !hints?.length && !inputCard ? await proposeAiCrops(bmp, point)
     : { quads: [], diagnostic: { status: inputCard ? "input-card" : aiCrop ? "skipped-hints" : "off" } };
-  let raw, fast, speculative, miloVerification = [], milo = { status: useMilo ? "skipped" : "off" };
+  let raw, fast, speculative, speculativeResult, miloVerification = [], milo = { status: useMilo ? "skipped" : "off" };
   // A good learned crop should bypass contour enumeration and thousands of
   // isolation windows. Try only the two proposals, with the SAME identity
   // gates. Weak reads still receive the complete established pipeline.
@@ -963,9 +964,13 @@ async function performIdentify(source, point, hints, aiCrop, useMilo) {
     try { fast = await runOnWorker(await createImageBitmap(bmp), point, [], ai.quads, true, [], useMilo, images => {
       if (speculative || !useMilo || !images?.length) return;
       speculative = lookupAiCrops(images).then(lookup => {
+        speculativeResult = lookup;
         prefetchMiloReferences(lookup);
         return lookup;
-      }).catch(error => ({ rows: [], diagnostic: { status: "failed", error: String(error?.message || error) } }));
+      }).catch(error => {
+        speculativeResult = { rows: [], diagnostic: { status: "failed", error: String(error?.message || error) } };
+        return speculativeResult;
+      });
     }); }
     catch (error) { ai.diagnostic.fastError = String(error?.message || error); }
     ai.diagnostic.fastMs = (ai.diagnostic.fastMs || 0) + Math.round(performance.now() - fastStarted);
@@ -993,11 +998,11 @@ async function performIdentify(source, point, hints, aiCrop, useMilo) {
       milo.totalMs = Math.round(performance.now() - started);
     }
     if (raw && speculative && ai.diagnostic.fastHit) {
-      // Finish the bounded speculative job before another click uses the
-      // shared model worker. A verified hash/art result remains the answer.
-      const started = performance.now(), lookup = await speculative;
-      milo = { ...lookup.diagnostic, speculative: true, unused: true, rescued: false,
-        totalMs: Math.round(performance.now() - started) };
+      // Identity is settled. The model adapter serializes its own callbacks,
+      // so unused lookup work may drain without delaying this answer. Keep
+      // published diagnostics immutable when that background lookup finishes.
+      milo = { ...(speculativeResult?.diagnostic || { status: "pending" }),
+        speculative: true, unused: true, pending: !speculativeResult, rescued: false };
     }
   }
   if (!raw && useMilo && !hints?.length && ai.diagnostic.status === "ready") {
@@ -1047,9 +1052,13 @@ function supersededRecognitionError() {
 
 function startIdentifyJob(job) {
   identifyActive = true;
+  const queuedMs = Math.max(0, Math.round(performance.now() - job.enqueuedAt));
   globalThis.__SNAP_RECOGNITION_QUEUE = { active: true, waiting: !!queuedIdentify };
   performIdentify(job.source, job.point, job.hints, job.aiCrop, job.milo)
-    .then(job.resolve, job.reject)
+    .then(result => {
+      result.stage_ms = { ...(result.stage_ms || {}), queue: queuedMs };
+      job.resolve(result);
+    }, job.reject)
     .finally(() => {
       identifyActive = false;
       const next = queuedIdentify;
@@ -1070,6 +1079,7 @@ export function identify(source, point, { hints = [], aiCrop = aiCropEnabled(), 
       hints: Array.isArray(hints) ? hints.slice(0, 12) : [],
       aiCrop: !!aiCrop && aiCropEnabled(),
       milo: !!aiCrop && !!milo && miloEnabled(),
+      enqueuedAt: performance.now(),
       resolve,
       reject,
     };

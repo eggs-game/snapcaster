@@ -97,6 +97,38 @@ function CardPlaceholder({ identifying = false, failed = false, onFix }) {
   );
 }
 
+function CardResultImage({ card, previewImage }) {
+  const [normalReady, setNormalReady] = useState(false);
+  const activeRef = useRef(true);
+  useEffect(() => {
+    activeRef.current = true;
+    return () => { activeRef.current = false; };
+  }, []);
+  // A small public reference is a useful fallback for manual lookups. Change
+  // only the size segment of the exact printing/face URL; never show a camera
+  // crop or a different card as the recognition result.
+  const preview = previewImage || (/^https:\/\/cards\.scryfall\.io\/normal\/(front|back)\//.test(card.image || "")
+    ? card.image.replace("/normal/", "/small/") : "");
+  return (
+    <>
+      {preview && <img className="card-result-preview" src={preview} alt={card.name} aria-hidden={normalReady} />}
+      <img
+        className={`card-result-normal${normalReady || !preview ? " is-ready" : ""}`}
+        src={card.image}
+        alt={card.name}
+        aria-hidden={Boolean(preview && !normalReady)}
+        decoding="async"
+        onLoad={(event) => {
+          const image = event.currentTarget;
+          const ready = () => { if (activeRef.current) setNormalReady(true); };
+          if (image.decode) image.decode().then(ready, () => {});
+          else ready();
+        }}
+      />
+    </>
+  );
+}
+
 export default function CardSidebar({
   current,
   lookups,
@@ -214,6 +246,7 @@ export default function CardSidebar({
   const previewStopRef = useRef(null);
   const chatMessagesRef = useRef(null);
   const lastChatMessageIdRef = useRef(chatMessages?.[chatMessages.length - 1]?.id || "");
+  const lastCardRequestRef = useRef(null);
   // One-shot open slide; cleared after the panel settles into place.
   const [entering, setEntering] = useState(true);
   const settings = view === "settings";
@@ -267,12 +300,15 @@ export default function CardSidebar({
     return () => cancelAnimationFrame(frame);
   }, [chatVisible]);
 
-  // A video-card click opens the outer lookup view before recognition starts.
-  // Follow that loading state into the Cards tab so the panel cannot remain
-  // visibly parked on Chat while the requested card is being identified.
+  // A fast result can batch away the loading render. Select Cards once for
+  // each request, including that terminal result; later image/metadata upgrades
+  // retain the ID and must respect a player's subsequent tab choice.
+  const cardRequest = current?.requestId ?? current?.matches?.[0] ?? (current?.loading ? current : null);
   useEffect(() => {
-    if (view === "lookup" && current?.loading) setLookupTab("cards");
-  }, [current?.loading, view]);
+    if (view !== "lookup" || cardRequest == null || cardRequest === lastCardRequestRef.current) return;
+    lastCardRequestRef.current = cardRequest;
+    setLookupTab("cards");
+  }, [cardRequest, view]);
 
   // Keep a message the local player just sent in view without pulling someone
   // reading older room activity away from their place for incoming messages.
@@ -1018,7 +1054,11 @@ export default function CardSidebar({
                   onClick={() => setCardPreview(top)}
                   aria-label={`Expand ${top.name}`}
                 >
-                  <img src={top.image} alt={top.name} />
+                  <CardResultImage
+                    key={`${top.scryfall_id || top.name}:${top.face || 0}:${top.image}`}
+                    card={top}
+                    previewImage={current.previewImage}
+                  />
                 </button>
                 <div className="card-meta">
                   <b>{top.name}</b>

@@ -1,0 +1,28 @@
+{
+  "controlCommit": "8f3211b3dfd3df5485854f44e6e71062d2f1712f",
+  "controlBuild": "milo-media-31 (local vision)",
+  "candidateBuild": "milo-display-32 (local vision)",
+  "scope": "Frozen source previews, same production JPEG sampler and clicks; AI/Milo enabled in both arms. Recognition fingerprints match the final compiled source. Excludes native camera transport and UI image display.",
+  "fingerprints": [
+    {
+      "file": "src/recognition/matcher.js",
+      "control": "d79aca8d6b0dd9d18793104c0687cffcbaccb4647d5214c738d8d0e101d85e93",
+      "candidate": "fa820c7ccf5bb6b42de8255a1b3cd1e5cdffa04330fd5fc32f96261a44ddd9f2"
+    },
+    {
+      "file": "src/recognition/recognizer.js",
+      "control": "c307195a4001d04e956ab460f9836968515f141eaca6c6dec3f76c826a98872a",
+      "candidate": "5950df24cc0559bc4b0fc721ad34dd2879af2b9e056ffc01215bbe2dda225ce6"
+    },
+    {
+      "file": "src/recognition/aiCrop.js",
+      "control": "9e6291bd8d151010042dc59043a3aeb6868c3a4e1618f8aec5de1635d65d09e2",
+      "candidate": "9e6291bd8d151010042dc59043a3aeb6868c3a4e1618f8aec5de1635d65d09e2"
+    },
+    {
+      "file": "src/recognition/hash.js",
+      "control": "6c3bfa012e82927b783c021886b669eece2c75712e11eaa9039a5e51794b6ea6",
+      "candidate": "6c3bfa012e82927b783c021886b669eece2c75712e11eaa9039a5e51794b6ea6"
+    }
+  ]
+}

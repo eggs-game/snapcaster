@@ -1,0 +1,80 @@
+{
+  "ok": true,
+  "errors": [],
+  "blockedWrites": [],
+  "limitations": [
+    "Recognition, worker reference previews, Game state and the rendered sidebar are real compiled application code.",
+    "Three opponents and remote capture are simulated: direct canvas JPEG capture has no native three-frame sampling, WebRTC RTT, TURN or physical-camera delay.",
+    "Models/index are warmed before the first click. DOM normal-size image requests are deliberately delayed 750 ms to verify the preview appears independently.",
+    "Two lookups of one supplied card verify delivery and verified room hints; this is not a 200-card accuracy or latency benchmark."
+  ],
+  "build": "milo-display-32 (local vision)",
+  "lookups": [
+    {
+      "title": "Contagion",
+      "winner": {
+        "name": "Contagion",
+        "scryfall_id": "00c8f94a-7690-47f5-b664-61411a32ab74",
+        "face": 0,
+        "identified_by": "art-match"
+      },
+      "milliseconds": {
+        "capture": 8,
+        "recognition": 812,
+        "clickToTitle": 822,
+        "recognitionToPreviewDecode": 54,
+        "recognitionToPreviewFullyVisible": 54,
+        "clickToPreviewDecode": 875,
+        "clickToPreviewFullyVisible": 875
+      },
+      "exactReference": {
+        "kind": "cached-worker-reference",
+        "id": "00c8f94a-7690-47f5-b664-61411a32ab74",
+        "face": 0,
+        "referenceHash": "b99d34ca0d06b0414396f8a0c43ac539f7bdfa24a6a44e0949978d690c859cce",
+        "renderedHash": "b99d34ca0d06b0414396f8a0c43ac539f7bdfa24a6a44e0949978d690c859cce"
+      },
+      "hintHit": false,
+      "images": [
+        {
+          "kind": "preview",
+          "width": 146,
+          "height": 204
+        }
+      ]
+    },
+    {
+      "title": "Contagion",
+      "winner": {
+        "name": "Contagion",
+        "scryfall_id": "00c8f94a-7690-47f5-b664-61411a32ab74",
+        "face": 0,
+        "identified_by": "art-match"
+      },
+      "milliseconds": {
+        "capture": 12,
+        "recognition": 207,
+        "clickToTitle": 221,
+        "recognitionToPreviewDecode": 7,
+        "recognitionToPreviewFullyVisible": 7,
+        "clickToPreviewDecode": 227,
+        "clickToPreviewFullyVisible": 227
+      },
+      "exactReference": {
+        "kind": "cached-worker-reference",
+        "id": "00c8f94a-7690-47f5-b664-61411a32ab74",
+        "face": 0,
+        "referenceHash": "b99d34ca0d06b0414396f8a0c43ac539f7bdfa24a6a44e0949978d690c859cce",
+        "renderedHash": "b99d34ca0d06b0414396f8a0c43ac539f7bdfa24a6a44e0949978d690c859cce"
+      },
+      "hintHit": true,
+      "images": [
+        {
+          "kind": "preview",
+          "width": 146,
+          "height": 204
+        }
+      ]
+    }
+  ]
+}

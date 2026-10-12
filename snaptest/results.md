@@ -9,6 +9,56 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-10-11 — `milo-display-32` — deliver verified results without extra waits
+
+This fixes click-to-display delays without changing identity scoring or confidence
+gates. An already verified fast answer no longer waits for unused speculative
+Milo work; the model adapter still serializes its jobs. The worker returns an
+already downloaded reference for the winning printing/face, and the Cards panel
+shows it immediately while the larger image loads. New request IDs also select
+Cards when React batches loading and completion together; same-request upgrades
+preserve the user's later Chat choice. Settled cards appear at full opacity.
+Older captures skip recognition after a newer click, and approved over-budget
+capture requests fail immediately rather than hanging until the ten-second
+timeout. Native three-frame capture selection and image quality are unchanged.
+
+The last ten production local timing records preceding the fix had a 3032ms
+click-to-result median, including 324ms capture and 2626ms recognition medians.
+Those small-sample timings are diagnostic evidence, not a population estimate
+or an accuracy benchmark. Their older telemetry omitted learned-stage timings;
+those bounded numeric stages and queue wait are now retained.
+
+The paired 200-card run uses frozen main `8f3211b` and frozen candidate source
+previews, identical production JPEG captures/clicks, separate warmed contexts
+and alternating order, with AI/Milo enabled in both arms. Recognition source
+fingerprints match the final compiled source. Every winning name and pathway
+label is identical, including the misses:
+
+| Crowded-table recognition | Main control | Delivery candidate |
+| --- | --- | --- |
+| Correct identity | 189/200 | 189/200 |
+| Confident artwork answers | 186/186 correct | 186/186 correct |
+| Median / p90 | 740ms / 2346ms | 765ms / 2453ms |
+| Correct under one second | 134/200 | 135/200 |
+| Upright / tapped / inverted | 103/109, 53/55, 33/36 | 103/109, 53/55, 33/36 |
+| Side by side / spaced / overlapping | 116/120, 57/60, 16/20 | 116/120, 57/60, 16/20 |
+| OpenCV WASM start / end | 134/134 MB | 134/134 MB |
+
+These warmed recognition numbers establish no algorithm speed or accuracy gain.
+They preserve every identity while separately verified delivery paths improve.
+In the controlled actual-sidebar regression, a held normal-image response leaves
+the baseline with a title but no paintable card image; the candidate's matching
+reference appears by the first two animation frames (26ms), at full opacity.
+Late earlier-image completion cannot replace the current card, and batched fast
+results open Cards. Compiled practice-game clicks also verify reference bytes
+against the actual worker's winning printing/face and retain verified room hints.
+Practice capture excludes native sampling, RTT and TURN, so its subsecond clicks
+cannot establish a production camera guarantee. Difficult/cold scans still exceed
+one second, and 200/200 remains unmet.
+
+[Paired records and delivery evidence](runs/2026-10-11-milo-display-release/)
+include unchanged confident precision, individual outcomes and source hashes.
+
 ## 2026-10-11 — `milo-photo-27` — faster supplied photos with stronger verification
 
 Tightly framed photographs try their original frame before corner inference,

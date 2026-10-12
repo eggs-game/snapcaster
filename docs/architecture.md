@@ -51,6 +51,16 @@ the old device until all peer senders switch. Failure stops the attempted track
 and restores earlier senders; mute/camera controls also cover replacement tracks
 while a switch is pending.
 
+Click-to-card delivery includes native camera capture, recognition queue wait,
+verification and result-image display. Supplied-image benchmarks exclude camera
+transport and first-visit downloads. Captures superseded by a newer click skip
+recognition; each result carries the request ID that opens the Cards tab, even
+when cached loading and completion are batched together. Verified references
+can appear immediately from the worker's bounded cache while their larger image
+loads. Unused model work cannot hold back an already verified answer. Timing
+telemetry keeps the existing content-free contract and includes the learned
+stages and queue wait.
+
 Visitor self-mute and the game owner's mute remain independent. The latter
 disables the local microphone and every receiver's audio element, and cannot be
 overridden by a visitor's self-unmute broadcast. Removing host mute restores the
