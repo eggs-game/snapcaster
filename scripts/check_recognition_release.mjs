@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
-import { readNativeReleaseEvidence, assertNativeMatrixPrecision, assertNativePrimaryRetention, sha256 } from "./native_recognition_release.mjs";
+import { readNativeReleaseEvidence, assertNativeMatrixPrecision, assertNativePrimaryRetention, sha256, listRecognitionSources } from "./native_recognition_release.mjs";
 const directory = process.argv[2] || ".cache/recognition-release/click-match-1";
 const gates = { realLife: [200, 0], tableauEdh10: [100, .92], tableauVegasEdh20: [200, .83], tableauEdhDice10: [100, .90], random200: [200, .95], edh200: [200, .93] };
 const primaryOnly=process.argv.includes("--primary");
@@ -21,7 +21,7 @@ if (nativeEvidencePath !== undefined) {
   assert.ok(process.argv[3] && !process.argv[3].startsWith("--"), "native improvement requires a current-main control directory");
   const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..");
   const git=(...args)=>execFileSync("git",args,{cwd:root,encoding:"utf8"});
-  const sourceFiles=execFileSync("rg",["--files","src"],{cwd:root,encoding:"utf8"}).trim().split("\n").filter(file=>/\.(jsx?|css)$/.test(file));
+  const sourceFiles=listRecognitionSources(root);
   const mainFiles=git("ls-tree","-r","--name-only","main","--","src").trim().split("\n").filter(file=>/\.(jsx?|css)$/.test(file));
   const build=source=>JSON.parse(source.match(/const BUILD = ("[^"]+")/)?.[1] || '"unknown"');
   const snapshot={

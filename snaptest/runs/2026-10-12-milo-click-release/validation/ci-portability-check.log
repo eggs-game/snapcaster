@@ -1,0 +1,113 @@
+OK: production fixture cleanup stays inside the configured build output
+OK: metadata evidence compatibility gates
+video quality policy passed
+OK: stale device IDs recover in real game startup, capture preferences and visitor mode survive, and permission/busy failures are not retried
+card search local index and request cache passed
+deck import parsing and source validation passed
+deck analysis tests passed
+account-only OAuth intent handling passed
+Account APIs accept the canonical production origin and still reject unrelated origins before authentication.
+Deployment check detects missing deck configuration without sessions, secrets, or mutations.
+anonymous identity retention keeps recent guests and permanent accounts
+realtime epoch rotation is serialized and latest-wins
+game rejoin preserves membership and rotates its capability
+OK: plain Space preserves controls/modal focus; durable Commander damage retains bounded partner maxima by membership UUID
+OK: local Commander validation uses real card rules, creature/background types, active player guards, and the unchanged production server path
+OK: actual transport reset clears refresh state and remote damage/stickers, restores the opening turn for reconnects, preserves device preferences, and is a visitor no-op
+OK: actual WebRTC transport preserves early authorized SDP/ICE, elects equal-time peers, bounds admission queues, blocks revoked/actions, and aggregates remote audio/video
+OK: denied approved captures fail immediately, removed/unknown peers receive no reply, timers clear, and four-request burst/camera privacy remain intact
+OK: progressive capture retains native quality, exact winning Blob and later-sharpness fallback; legacy/async responses, owner bounds, deadlines, backpressure cancellation and URL/removal cleanup pass
+OK: actual transport swaps preserve mute/camera state even while replacement is pending, serialize concurrent selections, retain quality, release failed/late media, and clear departure/close negotiation queues
+OK: authoritative visitor mute survives self broadcasts, blocks unmute and replacement tracks, and restores the independent self-mute choice
+OK: small counter text meets 4.5:1 across tile palette, reported failures and 4096 RGB samples
+OK: verified room-hint and direct results render confidently; unverified candidates do not
+OK: private chat resolves full names, duplicate IDs, departure, and prefix overlap without public fallback
+Four-player local transport passed: fixture images, events, whispers, three ready responses, reconnect indicators, cleanup and loopback isolation.
+Actual preview DOM keeps 52 lazy small decorative cards, all four players, and the normal-size featured lookup
+OK: recognition hints are bounded, spatial, sanitized, expire after four hours, and are confidence-gated
+OK: the worker hint-only route preserves both verification tiers, exact printing/face hits, bitmap ownership, errors, and ordinary fallback
+OK: valid hints avoid model waits; stale hints regain exact-frame learned verification and preserve the complete fallback
+recognition queue keeps one active/newest waiting job and reports queue wait separately from pipeline total
+OK: latest clicks skip obsolete captures, display only the matching verified face, and retain bounded preview URLs
+OK: capture preparation reuses only exact selected pixels and click; stale hints, cancellation, failures and other frames retain verification
+PASS: exact Blob/point/options adopt one owner; hints/empty geometry/busy queue/new owner/options/frame/cancel/decode failures preserve normal paths, private results and close-once ownership
+Native pair gate requires all 200 exact fresh JPEG pairs, checks any included repeats, and preserves identities, confident precision, visible paint and explicit measured latency thresholds
+Native tail policy preserves the same 200-pixel/accuracy proof and requires predeclared p90/subsecond gains with bounded median change
+Native stale-hint pair: 70/71-file binding and forged/raw-result/pixel/source/hint controls passed
+Native alternate release mode revalidates exact 200-pair current-source evidence, enforces predeclared material speed, full-matrix confident precision and individual primary retention; ordinary/photo gates remain unchanged
+AI crop gates reject neighbours; failures/weak reads fall back; strong reads bypass isolation; recent hints skip inference
+Milo backend preserves exact fallback inputs, frees tensor/session ownership, rejects invalid embeddings and handles late initialization/device loss/CPU failures
+Optional Milo GPU runtime files match the pinned ORT 1.30.0 archive and retain its licenses
+Milo keeps a diverse bounded shortlist, rejects stale catalogs, and requires decisive artwork plus positive clicked-card proof
+Milo failures preserve cropping; fast reads/hints skip lookup; only verified rescues skip the full fallback
+Adaptive crop rescues retain verified acceptance and preserve the original fallback after weak or failed retries
+OK: normal successes skip FAST8; failed initial/retry snapshots preserve rivals/source and cannot survive new-owner, release, timeout or cancellation
+Parallel Milo returns verified answers before unused lookup, retains model/request ownership, bounded prefetch, immutable diagnostics and failed-model fallback
+Photo trials preserve fallback and kill switches; detailed references retain bounded extra pixels and release temporary buffers
+Clipped registration retains printed-text, strength, bounded-area and outside-click guards at both resolutions
+Registered color comparisons correct lighting on both images and retain the clicked-footprint gate
+Clipped sideways retrieval is bounded to the frame edge, retains every orientation quota and creates no regional confidence proof
+Photo releases require significant paired gains, unchanged pixels and confident precision; crowded identities and the ordinary primary noise gate remain protected
+Decisive verification finishes while unused reference downloads are stalled
+Shared artwork cannot override stronger whole-card evidence without distinguishing text
+Missing shortlist rivals still prevent shared-art confidence; catalog probes are bounded, diverse and never introduce an answer
+OK: reference display reuses cached winning-printing pixels without waiting for unused downloads, extra fetches, face confusion, or unbounded retention
+Reference descriptors preserve identity and contrast mode; native ownership stays bounded across repeated eviction and reuse
+Source bitmap region lifecycle tests passed.
+OK: weak feature provenance, exact primitive image/caps/geometry bindings, bounded clones, mode/error fallback and collected image ownership
+Combined primitive cache/owner checks preserve active raw/CLAHE/FAST8 proofs, clean held query/source/rival awaits, and process warm-loop cancellation within eight references
+Verifier output exactly matches eager-warp control while caching tiny immutable reference signatures; work counters do not alter early stopping
+source/reference mappings distinguish the clicked card from neighbours, including rotation and perspective
+negative click proof survives printing selection, title OCR and visual re-search
+outside registration retains an off-centre guess without confidently naming an unreadable target's neighbour
+Shared split-card halves require both registered content regions; ordinary and near-exact identity paths remain intact
+word-based distance is bit-exact for all variants, alignments and existing minima
+OK: 9 hashing functions identical in hash.js and recognizer.js
+account security guards passed (29 RLS tables)
+vite v6.4.3 building for production...
+transforming...
+✓ 1930 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                              0.84 kB │ gzip:  0.42 kB
+dist/assets/aiCropWorker-Ce9mJVca.js         9.89 kB
+dist/assets/recognizer-CyU_JA8J.js          71.43 kB
+dist/assets/index-BFFMH3yV.css             197.12 kB │ gzip: 30.88 kB
+dist/assets/captureGeometry-BxES11FZ.js      0.28 kB │ gzip:  0.20 kB
+dist/assets/minus-BgA8JAhl.js                0.29 kB │ gzip:  0.24 kB
+dist/assets/users-round-COPcj-Jd.js          0.42 kB │ gzip:  0.32 kB
+dist/assets/external-link-C1-Gtxja.js        0.42 kB │ gzip:  0.30 kB
+dist/assets/user-plus-YHpcvhJR.js            0.48 kB │ gzip:  0.34 kB
+dist/assets/LegalPage-Baok0uXb.js            0.56 kB │ gzip:  0.31 kB
+dist/assets/star-tQiEZnEc.js                 0.64 kB │ gzip:  0.40 kB
+dist/assets/RoutedSiteHeader-BCVOJySM.js     0.70 kB │ gzip:  0.42 kB
+dist/assets/TurnTest-CLlo1Tfh.js             0.71 kB │ gzip:  0.46 kB
+dist/assets/list-BjHGXEXb.js                 0.83 kB │ gzip:  0.38 kB
+dist/assets/shuffle-DkMrt255.js              0.91 kB │ gzip:  0.46 kB
+dist/assets/cardNameIndex-Cw5hK1Kw.js        1.05 kB │ gzip:  0.62 kB
+dist/assets/commanderRules-DDo951Q0.js       1.63 kB │ gzip:  0.65 kB
+dist/assets/AppToast-DegxmXdT.js             1.70 kB │ gzip:  0.76 kB
+dist/assets/FriendsPage-DDHMH1Xj.js          1.71 kB │ gzip:  0.86 kB
+dist/assets/SettingsPage-ByY6OJhV.js         2.10 kB │ gzip:  1.03 kB
+dist/assets/play-DGn_mhnC.js                 2.41 kB │ gzip:  0.73 kB
+dist/assets/Community-DWjD062B.js            2.55 kB │ gzip:  1.18 kB
+dist/assets/cardSearch-DrfcCeG8.js           3.50 kB │ gzip:  1.43 kB
+dist/assets/ModerationPage-BzZkH9gT.js       5.70 kB │ gzip:  1.78 kB
+dist/assets/PublicGames-C_YGxRJU.js          7.80 kB │ gzip:  2.96 kB
+dist/assets/NotificationsPage-B-Ge2G_k.js    9.08 kB │ gzip:  2.84 kB
+dist/assets/gameRooms-kCSCAXQC.js           10.13 kB │ gzip:  3.28 kB
+dist/assets/Privacy-DrgFm99B.js             11.70 kB │ gzip:  4.31 kB
+dist/assets/ProfilePage-DaoLEZvo.js         11.86 kB │ gzip:  3.63 kB
+dist/assets/GamePreview-CHYOmDUf.js         12.91 kB │ gzip:  4.79 kB
+dist/assets/Terms-fnbqmzYX.js               15.34 kB │ gzip:  5.62 kB
+dist/assets/index-B8HIKJzD.js               15.89 kB │ gzip:  6.87 kB
+dist/assets/DeckPage-xUQjBdRl.js            27.86 kB │ gzip:  8.56 kB
+dist/assets/matcher-BGtgrdnB.js             32.26 kB │ gzip: 11.32 kB
+dist/assets/account-CJRC06UC.js             33.00 kB │ gzip: 10.24 kB
+dist/assets/AccountProfile-C85HYgoE.js      40.38 kB │ gzip: 10.96 kB
+dist/assets/SnapTest-CsFektPW.js            44.87 kB │ gzip: 16.43 kB
+dist/assets/webrtc-DynKEmZX.js              71.04 kB │ gzip: 21.79 kB
+dist/assets/Game-ktR1l9_R.js               138.37 kB │ gzip: 42.20 kB
+dist/assets/supabase-CPYPzTiH.js           218.87 kB │ gzip: 57.17 kB
+dist/assets/index-CjDvjgms.js              251.83 kB │ gzip: 78.32 kB
+✓ built in 2.01s

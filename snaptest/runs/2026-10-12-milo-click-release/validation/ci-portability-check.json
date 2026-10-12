@@ -1,0 +1,19 @@
+{
+  "ok": true,
+  "validatedAt": "2026-10-12T07:54:51.463Z",
+  "cause": "GitHub runner lacks rg; detached PR checkouts may lack a main ref",
+  "fix": "Node filesystem source enumeration and guarded shallow main control fetch in build workflow",
+  "checks": [
+    {
+      "command": "node scripts/check.mjs --build",
+      "exitCode": 0
+    },
+    {
+      "command": "PATH=/usr/bin:/bin node scripts/test_native_recognition_release.mjs",
+      "exitCode": 0
+    }
+  ],
+  "recognitionSourceCount": 71,
+  "recognitionSourceExact": true,
+  "logSHA256": "f7180942f25ad19cb671d79d116db79b78486365b6608ca6eacdce1bf91d9166"
+}

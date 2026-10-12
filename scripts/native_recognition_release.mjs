@@ -1,11 +1,27 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { validateNativePair, validateNativeTailPair, NATIVE_PAIR_THRESHOLDS, NATIVE_TAIL_THRESHOLDS } from "./check_native_card_delivery_pair.mjs";
 
 export const sha256 = bytes => createHash("sha256").update(bytes).digest("hex");
 const CONFIDENT = new Set(["art-match", "visual-exact", "recent-hint", "ocr-title"]);
+
+// CI and release checks need the complete source tree without requiring a
+// machine-specific search executable. Return the same repository paths used
+// in the frozen browser reports, including nested source directories.
+export function listRecognitionSources(root) {
+  const files = [];
+  function visit(directory) {
+    for (const entry of readdirSync(path.join(root, directory), { withFileTypes: true })) {
+      const file = `${directory}/${entry.name}`;
+      if (entry.isDirectory()) visit(file);
+      else if (entry.isFile() && /\.(jsx?|css)$/.test(entry.name)) files.push(file);
+    }
+  }
+  visit("src");
+  return files.sort();
+}
 
 function exactFingerprints(actual, expected, label) {
   assert.ok(expected && Object.keys(expected).length > 0, `${label}: expected fingerprints are required`);

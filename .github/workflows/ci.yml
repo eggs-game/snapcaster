@@ -49,6 +49,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Make main control available for recognition checks
+        run: |
+          if ! git show-ref --verify --quiet refs/heads/main; then
+            git fetch --no-tags --depth=1 origin main
+            git branch main FETCH_HEAD
+          fi
       - uses: actions/setup-node@v4
         with:
           node-version: "22"

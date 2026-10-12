@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { validateNativePair, validateNativeTailPair, NATIVE_PAIR_THRESHOLDS, NATIVE_TAIL_THRESHOLDS } from "./check_native_card_delivery_pair.mjs";
-import { validateNativeReleaseEvidence, readNativeReleaseEvidence, assertNativeMatrixPrecision, assertNativePrimaryRetention, sha256 } from "./native_recognition_release.mjs";
+import { validateNativeReleaseEvidence, readNativeReleaseEvidence, assertNativeMatrixPrecision, assertNativePrimaryRetention, sha256, listRecognitionSources } from "./native_recognition_release.mjs";
 
 // Historical report bodies are structural fixtures only. These tests replace
 // build/source/catalog metadata deliberately; they make no performance claim.
@@ -16,7 +16,7 @@ assert.ok(Number.isFinite(Date.parse(policy.predeclaredAt)),"Record policy decla
 assert.deepEqual(policy.median,NATIVE_PAIR_THRESHOLDS,"Retain the recorded original median policy");
 assert.deepEqual(policy.tail,NATIVE_TAIL_THRESHOLDS,"Retain the recorded alternate tail policy");
 const git=(...args)=>execFileSync("git",args,{cwd:root,encoding:"utf8"});
-const files=execFileSync("rg",["--files","src"],{cwd:root,encoding:"utf8"}).trim().split("\n").filter(file=>/\.(jsx?|css)$/.test(file));
+const files=listRecognitionSources(root);
 const mainFiles=git("ls-tree","-r","--name-only","main","--","src").trim().split("\n").filter(file=>/\.(jsx?|css)$/.test(file));
 const build=source=>JSON.parse(source.match(/const BUILD = ("[^"]+")/)?.[1]);
 const snapshot={build:build(readFileSync(path.join(root,"src/main.jsx"),"utf8")),controlBuild:build(git("show","main:src/main.jsx")),controlCommit:git("rev-parse","main").trim(),

@@ -224,6 +224,24 @@
       "sha256": "83b51c7f91e80b4a7941b510c2fbaa09e3c5625878bfcf798f03cef8f3da87e4",
       "originalBytes": 7622,
       "originalSha256": "83b51c7f91e80b4a7941b510c2fbaa09e3c5625878bfcf798f03cef8f3da87e4"
+    },
+    {
+      "file": "validation/ci-portability-check.log",
+      "source": "Postpush CI portability repair validation",
+      "encoding": "identity",
+      "bytes": 10683,
+      "sha256": "f7180942f25ad19cb671d79d116db79b78486365b6608ca6eacdce1bf91d9166",
+      "originalBytes": 10683,
+      "originalSha256": "f7180942f25ad19cb671d79d116db79b78486365b6608ca6eacdce1bf91d9166"
+    },
+    {
+      "file": "validation/ci-portability-check.json",
+      "source": "Postpush CI portability repair validation",
+      "encoding": "identity",
+      "bytes": 618,
+      "sha256": "a2ce585fdc218e30ebb2c10ae6151c854265fe9210994a79660c2e30a99ea30e",
+      "originalBytes": 618,
+      "originalSha256": "a2ce585fdc218e30ebb2c10ae6151c854265fe9210994a79660c2e30a99ea30e"
     }
   ],
   "readmeRefreshedAt": "2026-10-12T07:45:27.466Z"
