@@ -916,7 +916,8 @@ export default function Game({ session, account, onLeave, themePreference, onThe
           firstBlob = first.blob;
           cancelPreparation = prepareRecognitionCapture(firstBlob, {
             nx: first.px ?? 0.5, ny: first.py ?? 0.5,
-          }, { isActive: () => requestId === latestRecognitionRequestRef.current });
+          }, { isActive: () => requestId === latestRecognitionRequestRef.current,
+            hints: nearbyRecognitionHints(recognitionHintsRef.current, tileId, pt.nx, pt.ny) });
           recognitionPreparationRef.current = cancelPreparation;
         },
       } : undefined;

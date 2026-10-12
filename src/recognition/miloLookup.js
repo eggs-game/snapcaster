@@ -1,9 +1,10 @@
 // Milo retrieves printings. Cosine similarity is never identity confidence.
+import { createMiloBackend } from "./miloBackend.js";
 export const MILO_REVISION = "9bcc5e809e936b8c5630d1e7101aae1de1e76621";
 export const MILO_MODEL_SHA = "bd13d8d60383c69da04dce261f32e93fdaeaa8fd618fbc991e7385f71b3d45df";
 export const MILO_PREPROCESS = "milo1-rgb-portrait-ccw-bilinear448-imagenet-v1";
 const SIZE = 448, DIM = 128;
-let ready, ort, model, gallery, norms, names, catalog;
+let ready, model, gallery, norms, names, catalog;
 
 export async function sha256(bytes) {
   return Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)), b => b.toString(16).padStart(2, "0")).join("");
@@ -23,9 +24,8 @@ export function validateMiloCatalog(manifest, vectors, lengths, groups) {
   }
 }
 
-export function miloCatalog(runtime) {
+export function miloCatalog(runtime, options = {}) {
   if (!ready) ready = (async () => {
-    ort = runtime;
     const base = "/carddata/milo/";
     const response = await fetch(base + "manifest.json", { cache: "no-cache" });
     if (!response.ok) throw new Error("Milo catalog unavailable");
@@ -46,12 +46,8 @@ export function miloCatalog(runtime) {
     if (!r.ok) throw new Error("Milo model unavailable");
     const bytes = await r.arrayBuffer();
     if (await sha256(bytes) !== MILO_MODEL_SHA) throw new Error("Milo model checksum mismatch");
-    model = await ort.InferenceSession.create(bytes, { executionProviders: ["wasm"] });
-    const input = new ort.Tensor("float32", new Float32Array(3 * SIZE * SIZE), [1, 3, SIZE, SIZE]);
-    let output;
-    try { output = await model.run({ image: input }); }
-    finally { input.dispose(); if (output) for (const value of Object.values(output)) value.dispose(); }
-    return { count: catalog.count, cards_sha256: catalog.cards_sha256 };
+    model = await createMiloBackend(bytes, runtime, options.loadGpuRuntime, options.gpuBudgetMs);
+    return { count: catalog.count, cards_sha256: catalog.cards_sha256, backend: model.kind };
   })();
   return ready;
 }
@@ -104,12 +100,12 @@ function inputFor(source, rotation) {
   const mean = [.485, .456, .406], std = [.229, .224, .225];
   for (let i = 0; i < SIZE * SIZE; i++) for (let c = 0; c < 3; c++) values[c * SIZE * SIZE + i] = (pixels[i * 4 + c] / 255 - mean[c]) / std[c];
   canvas.width = canvas.height = 0;
-  return new ort.Tensor("float32", values, [1, 3, SIZE, SIZE]);
+  return values;
 }
 
-export async function lookupMilo(images, runtime) {
+export async function lookupMilo(images, runtime, options = {}) {
   const started = performance.now();
-  await miloCatalog(runtime);
+  await miloCatalog(runtime, options);
   const scores = new Float32Array(catalog.count).fill(-Infinity);
   let inferenceMs = 0, searchMs = 0;
   for (const image of images.slice(0, 2)) {
@@ -123,15 +119,11 @@ export async function lookupMilo(images, runtime) {
     const embeddings = [], t = performance.now();
     try {
       for (const rotation of [0, Math.PI]) {
-        const input = inputFor(source, rotation); let output;
-        try {
-          output = await model.run({ image: input });
-          const embedding = Float32Array.from(output.embedding.data);
-          const norm = Math.hypot(...embedding);
-          if (embedding.length !== DIM || !Number.isFinite(norm) || norm < .01) throw new Error("Invalid Milo query embedding");
-          for (let d = 0; d < DIM; d++) embedding[d] /= norm;
-          embeddings.push(embedding);
-        } finally { input.dispose(); if (output) for (const value of Object.values(output)) value.dispose(); }
+        const embedding = await model.embed(inputFor(source, rotation));
+        const norm = Math.hypot(...embedding);
+        if (embedding.length !== DIM || !Number.isFinite(norm) || norm < .01) throw new Error("Invalid Milo query embedding");
+        for (let d = 0; d < DIM; d++) embedding[d] /= norm;
+        embeddings.push(embedding);
       }
     } finally { source.width = source.height = 0; }
     inferenceMs += performance.now() - t;
@@ -145,6 +137,7 @@ export async function lookupMilo(images, runtime) {
   }
   const rows = diverseMiloRows(scores, names);
   return { rows, cards_sha256: catalog.cards_sha256,
-    diagnostic: { model: "milo1", status: "ready", crops: Math.min(2, images.length), proposals: rows.length,
+    diagnostic: { model: "milo1", status: "ready", backend: model.kind, gpuRecovered: model.recovered,
+      crops: Math.min(2, images.length), proposals: rows.length,
       inferenceMs: Math.round(inferenceMs), searchMs: Math.round(searchMs), ms: Math.round(performance.now() - started) } };
 }

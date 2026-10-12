@@ -61,13 +61,21 @@ loads. Unused model work cannot hold back an already verified answer. Timing
 telemetry keeps the existing content-free contract and includes the learned
 stages and queue wait.
 
+With valid first-sample geometry, an idle unhinted matcher can begin recognition
+during the remaining camera sampling. Only the exact selected Blob, click,
+options and request owner can reuse that private result. A later sharper frame
+cancels it; pending reference waits stop immediately and cached verification
+yields periodically to process cancellation. Scan-local primitive alignment
+caches retain no camera pixels or native handles and preserve all identity gates.
+
 Visitor self-mute and the game owner's mute remain independent. The latter
 disables the local microphone and every receiver's audio element, and cannot be
 overridden by a visitor's self-unmute broadcast. Removing host mute restores the
 visitor's existing self-mute choice.
 
 Dependencies are deliberately few: `react`, `react-dom`, `@supabase/supabase-js`,
-`tesseract.js`, `lucide-react`. OpenCV loads at runtime from `docs.opencv.org`.
+`tesseract.js`, `lucide-react`. OpenCV loads at runtime from the pinned
+self-hosted `/vendor/opencv/4.9.0/` assets.
 
 ## Optional accounts
 
@@ -187,9 +195,10 @@ src/
     recognizer.js       ★ Web Worker: OpenCV, crops, hashing, ORB
     matcher.js          main-thread front end: worker plumbing, OCR, gating
     hash.js             hashing reference implementation (see the note below)
-    aiCropWorker.js     serialized Cornelius/Milo inference in shared ONNX WASM
+    aiCropWorker.js     serialized Cornelius WASM / optional Milo GPU inference
     aiCropGeometry.js   bounded click-containing detector windows
     miloLookup.js       catalog validation and diverse printing shortlist
+    miloBackend.js      bounded GPU startup, tensor ownership and CPU recovery
   snaptest/
     scene.js            renders realistic multi-card table scenes
     degrade.js          single-card degradations
@@ -331,7 +340,11 @@ The main thread (`matcher.js`) owns worker plumbing, the OCR pool, and the
 decision gates about which answer to trust.
 
 The separate `aiCropWorker.js` serializes Cornelius corner detection and Milo
-embedding lookup in one ONNX Runtime WASM instance. Both models and the complete
+embedding lookup. Cornelius keeps its original ONNX Runtime WASM instance;
+Milo optionally uses hardware WebGPU with the same fp32 model and a pinned
+matching runtime. A missing adapter, blocked runtime, startup deadline or lost
+GPU session falls back to the original CPU path. Model jobs still retain the
+same serialized callbacks, and GPU retrieval cannot skip geometric verification. Both models and the complete
 printing-face embedding catalog are static, pinned assets; recognition does not
 call a paid inference API or send camera captures to a server. Catalog fingerprints
 must match the loaded `cards.json` before retrieved rows can be used. Learned

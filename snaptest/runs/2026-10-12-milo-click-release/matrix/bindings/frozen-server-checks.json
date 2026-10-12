@@ -1,0 +1,43 @@
+{
+  "ok": true,
+  "checkedAt": "2026-10-12T06:54:25.817Z",
+  "sourceFinalExact": true,
+  "all71V4Exact": true,
+  "catalogExact": true,
+  "compiledExact": true,
+  "initialJavaScriptGzipBytes": 78323,
+  "initialBudgetBytes": 81920,
+  "sourceProofSHA256": {
+    "control": "b83e25ab58ff8618ddfc4f83bf027b1c857b36b4d68e0d316bda0892c8406094",
+    "candidate": "52dbfac879be102fa0e98b59526be44f9c4e19c1e3f69472aaf6611cf7ec82cc"
+  },
+  "catalogDigests": {
+    "public/carddata/manifest.json": "50a1e0e3f62dd34f3242c70fad24a1f3510085caebb7eb01b22743ee9b2b14ac",
+    "public/carddata/cards.json": "e9527a3801fe60d9bf42882c919b4473956a293c8cb66ea732071d804a9d2f8c",
+    "public/carddata/milo/manifest.json": "85bdd724d69300c33e6f48b7bd7cbe90cbd0cdf7a26f4a28a373b665a36d2a6d"
+  },
+  "checks": [
+    {
+      "arm": "control",
+      "url": "http://127.0.0.1:5187",
+      "build": "milo-click-34 (local vision)",
+      "sourceCount": 70,
+      "headersExact": true,
+      "frozenHTMLExact": true,
+      "sceneModuleExact": true,
+      "mocksUnavailable": true,
+      "mutationsBlocked": true
+    },
+    {
+      "arm": "candidate",
+      "url": "http://127.0.0.1:5188",
+      "build": "milo-click-35 (local vision)",
+      "sourceCount": 71,
+      "headersExact": true,
+      "frozenHTMLExact": true,
+      "sceneModuleExact": true,
+      "mocksUnavailable": true,
+      "mutationsBlocked": true
+    }
+  ]
+}

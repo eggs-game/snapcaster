@@ -26,6 +26,16 @@ if (flags.summarize) {
 const baseline=flags.baseline||"";
 const sourceFiles=(baseline?execFileSync("git",["ls-tree","-r","--name-only",baseline,"--","src"],{cwd:root,encoding:"utf8"}):execFileSync("rg",["--files","src"],{cwd:root,encoding:"utf8"})).trim().split("\n").filter(file=>/\.(jsx?|css)$/.test(file));
 const frozenSource=new Map(await Promise.all(sourceFiles.map(async file=>[path.join(root,file),baseline?execFileSync("git",["show",`${baseline}:${file}`],{cwd:root,encoding:"utf8"}):await readFile(path.join(root,file),"utf8")])));
+// Research overrides are frozen and fingerprinted before compiling, just like
+// tracked source. They cannot masquerade as the checkout's production bytes.
+if (flags.sourceOverrides) {
+ const overrides=JSON.parse(await readFile(path.resolve(flags.sourceOverrides),"utf8"));
+ assert.ok(overrides && typeof overrides==="object" && !Array.isArray(overrides));
+ for (const [file,code] of Object.entries(overrides)) {
+  assert.ok(sourceFiles.includes(file) && typeof code==="string",`Invalid source override: ${file}`);
+  frozenSource.set(path.join(root,file),code);
+ }
+}
 const readSource=file=>frozenSource.get(path.join(root,file));
 const output = path.resolve(flags.output || path.join(root, ".cache/native-card-delivery"));
 const sceneFixtureDir=flags.sceneFixtures?path.resolve(flags.sceneFixtures):null;
@@ -34,6 +44,8 @@ const scenes = Math.max(1, Math.min(20, Number(flags.scenes || 20)));
 const startScene = Math.max(0, Math.min(19, Number(flags.startScene || 0)));
 const repeat = flags.repeat !== "0";
 const indices = flags.indices ? flags.indices.split(",").map(Number) : null;
+const cases = flags.cases ? new Set(flags.cases.split(",").map(Number)) : null;
+if (cases) assert.ok([...cases].every(i=>Number.isInteger(i)&&i>=0&&i<200),"Cases must be global indices 0..199");
 await mkdir(output, { recursive: true });
 const project = path.join(output, "project");
 const dist = path.join(output, "compiled");
@@ -62,6 +74,8 @@ const report = { ok: false, build: JSON.parse(buildMarker), baseline:baseline||n
 ] };
 report.limitations.push('The canvas camera composites each source scene onto opaque black before every repaint. Transparent playmat pixels must not accumulate through repeated source-over draws; each static camera frame therefore has the same pixels.');
 report.sceneFixtureSource=sceneFixtureDir;
+report.sourceOverrides=flags.sourceOverrides?path.resolve(flags.sourceOverrides):null;
+report.selectedCases=cases?[...cases]:null;
 report.limitations.push('Each source scene is exported losslessly with its exact click metadata; --sceneFixtures replays those same pixels for the other arm. Native JPEG hashes must still match before comparing accuracy or latency.');
 report.sourceDigests=Object.fromEntries(sourceFiles.sort().map(file=>[file,createHash('sha256').update(readSource(file)).digest('hex')]));
 const assetFiles=['public/carddata/manifest.json','public/carddata/cards.json','public/carddata/milo/manifest.json'];
@@ -135,23 +149,43 @@ createRoot(document.getElementById('root')).render(<ConfirmDialogProvider><Game 
 })().catch(error=>{window.__nativeErrors.push(String(error));throw error;});
 `;
 await writeFile(path.join(project, "index.html"), '<!doctype html><html><head><meta charset="utf-8"></head><body><div id="root"></div><script type="module" src="./entry.jsx"></script></body></html>');
-await writeFile(path.join(project, "entry.jsx"), entry);
+const instrumentedEntry = flags.gameCancellationControls === '1'
+  ? entry.replace('ctx.filter=window.__nativeBlur?', "if(window.__nativePaintOverride?.(ctx)){window.__nativeOwner?.localStream.getVideoTracks()[0]?.requestFrame?.();return;}ctx.filter=window.__nativeBlur?")
+  : entry;
+await writeFile(path.join(project, "entry.jsx"), instrumentedEntry);
 function testAdapters(){return {name:"native-only-test-adapters",enforce:"pre",async load(id){
  if(id===path.join(root,"src/signaling.js"))return signaling;
  if(id===path.join(root,"src/LocalMockGameConnection.js"))return adapter;
  if(id===path.join(root,"src/webrtc.js")){
   let value=frozenSource.get(id);
   value=value.replace(/async function captureFrameSet\(state, nx, ny(?:, options)?\) \{/,match=>`${match}\n const captureTrace={at:performance.now(),nx,ny,frames:[]};const recordCapture=(blob,best,firstSelected=false)=>{captureTrace.endedAt=performance.now();captureTrace.width=best.width;captureTrace.height=best.height;captureTrace.geometry={...geom};captureTrace.bytes=blob.size;captureTrace.firstSelected=firstSelected;window.__nativeCaptureRecords.push(captureTrace);void blob.arrayBuffer().then(bytes=>crypto.subtle.digest('SHA-256',bytes)).then(bytes=>captureTrace.sha256=[...new Uint8Array(bytes)].map(byte=>byte.toString(16).padStart(2,'0')).join(''));};`);
-  value=value.replace('const score = captureSharpness(state, canvas);','const score = captureSharpness(state, canvas);\n captureTrace.frames.push({index:i,at:performance.now(),score});');
+  value=value.replace('const score = captureSharpness(state, canvas);','const score = captureSharpness(state, canvas);\n captureTrace.frames.push({index:i,at:performance.now(),score});' + (flags.gameCancellationControls === '1' ? '\n window.__movingOnSample?.(captureTrace,i);window.__nativeOnCaptureSample?.(captureTrace,i);' : ''));
   value=value.replace('bestScore = score;','bestScore = score; captureTrace.selected=i;');
   value=value.replace('const blob = await canvasToBlob(best);','const blob = await canvasToBlob(best);\n recordCapture(blob,best);');
   value=value.replace('returnedFirst = true;','returnedFirst = true;recordCapture(first.blob,best,true);');
+  if(flags.gameCancellationControls==='1')value=value.replace('firstCapture = { blob, url:',"captureTrace.firstBytes=blob.size;void blob.arrayBuffer().then(bytes=>crypto.subtle.digest('SHA-256',bytes)).then(bytes=>captureTrace.firstSHA256=[...new Uint8Array(bytes)].map(v=>v.toString(16).padStart(2,'0')).join(''));\nfirstCapture = { blob, url:");
   return value;
  }
  if(id===path.join(root,'src/Game.jsx')){
   let value=frozenSource.get(id);
   value=value.replace('const recognitionHintsRef = useRef([]);','const recognitionHintsRef = useRef([]);window.__nativeClearHints=()=>{recognitionHintsRef.current=[];};');
-  value=value.replace('const recognitionMs = Math.round(performance.now() - recognitionStartedAt);','window.__nativeMatcherData={at:performance.now(),ai_crop:data.ai_crop,matches:data.matches,wasm_heap_mb:data.wasm_heap_mb};\nconst recognitionMs = Math.round(performance.now() - recognitionStartedAt);');
+  if(flags.gameCancellationControls==='1')value=value.replace('window.__nativeClearHints=()=>{recognitionHintsRef.current=[];};','window.__nativeClearHints=()=>{recognitionHintsRef.current=[];};window.__nativeReadHints=window.__nativeGetHints=()=>recognitionHintsRef.current.map(h=>({...h,card:{...h.card}}));');
+  value=value.replace('const recognitionMs = Math.round(performance.now() - recognitionStartedAt);','window.__nativeMatcherData={at:performance.now(),ai_crop:data.ai_crop,milo:data.milo,orb_timing:data.orb_timing,milo_orb_timing:data.milo_orb_timing,matches:data.matches,wasm_heap_mb:data.wasm_heap_mb};\nconst recognitionMs = Math.round(performance.now() - recognitionStartedAt);');
+  return value;
+ }
+ if(flags.gameCancellationControls==='1'&&id===path.join(root,'src/recognition/matcher.js')){
+  let value=frozenSource.get(id);
+  const event="globalThis.__nativeControlEvents?.push";
+  value=value.replace('entry.fullStartedAt = performance.now();',`entry.fullStartedAt = performance.now();${event}({kind:'early-start',ownerId:entry.ownerId,point:entry.point,at:Date.now()});`);
+  value=value.replace('entry.fullJob.then(() => { entry.fullFinishedAt = performance.now(); }, () => { entry.fullFinishedAt = performance.now(); });',`entry.fullJob.then(() => { entry.fullFinishedAt = performance.now();${event}({kind:'early-finished',ownerId:entry.ownerId,ok:true,at:Date.now()}); }, () => { entry.fullFinishedAt = performance.now();${event}({kind:'early-finished',ownerId:entry.ownerId,ok:false,at:Date.now()}); });`);
+  value=value.replace('  return () => {\n    entry.active = false;\n    if (entry.ownerId != null)',`  return () => {\n    ${event}({kind:'cancel',ownerId:entry.ownerId,hadFullJob:!!entry.fullJob,at:Date.now()});\n    entry.active = false;\n    if (entry.ownerId != null)`);
+  value=value.replace('    const selectedAt = performance.now();',`    const selectedAt = performance.now();${event}({kind:'selected-identify',point,at:Date.now()});void(source instanceof Blob?source.arrayBuffer():Promise.resolve(null)).then(bytes=>bytes&&crypto.subtle.digest('SHA-256',bytes)).then(bytes=>bytes&&${event}({kind:'selected-source-sha',sha256:[...new Uint8Array(bytes)].map(v=>v.toString(16).padStart(2,'0')).join(''),at:Date.now()}));`);
+  return value;
+ }
+ if(flags.gameCancellationControls==='1'&&id===path.join(root,'src/recognition/recognizer.js')){
+  let value=frozenSource.get(id);
+  value=value.replace('  if (type === "milo-release") { releaseMiloOwner(ownerId); return; }','  if (type === "milo-release") { releaseMiloOwner(ownerId); self.postMessage({type:"native-owner-received",messageType:type,ownerId,active:miloOwnerActive,at:Date.now()}); return; }');
+  value="self.addEventListener('message',({data})=>{if(data?.bmp)self.postMessage({type:'native-owner-received',messageType:'identify',ownerId:data.ownerId,scanId:data.id,point:data.point,at:Date.now()});});\n"+value;
   return value;
  }
  if(frozenSource.has(id))return frozenSource.get(id);
@@ -184,6 +218,20 @@ try {
   document.addEventListener('load',event=>inspect(event.target),true);
   document.addEventListener('DOMContentLoaded',()=>new MutationObserver(()=>{if(sample?.resultAt&&!sample.titleAt&&document.querySelector('.card-hit .card-meta > b')){sample.titleAt=performance.now();sample.title=document.querySelector('.card-hit .card-meta > b').textContent;}for(const image of document.querySelectorAll('.card-hit-image img'))if(image.complete&&image.naturalWidth)inspect(image);}).observe(document.documentElement,{subtree:true,childList:true,attributes:true}),{once:true});
  });
+ if(flags.gameCancellationControls==='1')await context.addInitScript(()=>{
+  window.__nativeControlEvents=[];window.__movingWorkerMessages=[];window.__nativeHeldModelMessages=[];
+  const NativeWorker=window.Worker;
+  window.Worker=class extends NativeWorker{
+   constructor(...args){super(...args);this.__nativeKind=String(args[0]).includes('recognizer')?'core':'model';this.addEventListener('message',({data})=>{if(data?.type==='native-owner-received')window.__nativeControlEvents.push({...data,kind:'worker-received',receivedAt:Date.now()});});}
+   get onmessage(){return this.__nativeMessageHandler||null;}
+   set onmessage(handler){this.__nativeMessageHandler=handler;super.onmessage=event=>{if(this.__nativeKind==='model'&&window.__nativeHoldNextModelReply&&Array.isArray(event.data?.quads)){window.__nativeHoldNextModelReply=false;window.__nativeControlEvents.push({kind:'held-model-reply',id:event.data.id,at:Date.now()});window.__nativeHeldModelMessages.push(()=>handler?.call(this,event));return;}handler?.call(this,event);};}
+   postMessage(data,...rest){if(this.__nativeKind==='core'){const event={kind:'worker-post',messageType:data?.type||(data?.bmp?'identify':'other'),ownerId:data?.ownerId,id:data?.id,point:data?.point,at:Date.now()};window.__nativeControlEvents.push(event);window.__movingWorkerMessages.push(event);}return super.postMessage(data,...rest);}
+  };
+  window.__nativeReleaseHeldModels=()=>{const held=window.__nativeHeldModelMessages.splice(0);for(const release of held)release();window.__nativeControlEvents.push({kind:'released-held-model',count:held.length,at:Date.now()});};
+  window.__nativeHoldModelReplies=()=>{window.__nativeHoldNextModelReply=true;};
+  window.__nativeReleaseModelReplies=window.__nativeReleaseHeldModels;
+  window.__nativeHeldModelReplyCount=()=>window.__nativeHeldModelMessages.length;
+ });
  page=await context.newPage();page.on('pageerror',error=>report.errors.push(error.message));
  await page.goto(base,{waitUntil:'domcontentloaded'});
  await page.waitForFunction(()=>window.__nativeViewer?.peers.get('native-source')?.dc?.readyState==='open'&&document.querySelector('.tile video')?.videoWidth===1920,null,{timeout:30000});
@@ -191,6 +239,12 @@ try {
  report.warmup=await page.evaluate(()=>({core:window.__SNAP_RECOGNITION_WARMUP,milo:window.__SNAP_MILO_WARMUP}));assert.equal(report.warmup.core.status,'ready');
  assert.equal(report.warmup.milo?.status,'ready','A native benchmark must not silently disable learned recognition');
  process.stdout.write('Native data channel, decoded source video and recognition warmup ready\n');
+ if(flags.gameCancellationControls==='1'){
+  const controlModule=path.resolve(flags.gameControlsModule||'scripts/native_game_cancellation_controls.mjs');
+  report.controlInstrumentation={harnessSHA256:createHash('sha256').update(await readFile(fileURLToPath(import.meta.url))).digest('hex'),module:controlModule,moduleSHA256:createHash('sha256').update(await readFile(controlModule)).digest('hex'),purpose:'Loopback test-only sampling, source-painter, owner/worker events, first/final SHA and held detector reply instrumentation. Production source fingerprints remain recorded separately.'};
+  const {runNativeGameControls}=await import(controlModule);
+  await runNativeGameControls({page,report,output,save,options:{...flags,requireEarly:flags.requireEarly!=='0'&&flags.requireEarly!=='false'}});await save();
+ }
  if(flags.temporalControls==='1'){
   assert.equal(baseline,'','Progressive temporal controls run against current source, not a legacy baseline');
   report.temporalControls=await page.evaluate(async()=>{
@@ -222,6 +276,7 @@ try {
   await page.waitForTimeout(180); // Receive the changed source scene before clicking; excluded from click timing.
   for(const [index,item] of items.entries()){
    if(indices&&!indices.includes(index))continue;
+   if(cases&&!cases.has(scene*10+index))continue;
    const row={...item,index,fresh:null,repeat:null};
    for(const mode of repeat?['fresh','repeat']:['fresh']){
     if(mode==='fresh')await page.evaluate(()=>window.__nativeClearHints());
@@ -232,7 +287,7 @@ try {
     assert.ok(point.visible,'Actual rendered click must be visible');
     await page.mouse.click(point.x,point.y);
     await page.waitForFunction(n=>window.__nativeSamples.length===n+1&&window.__nativeSamples.at(-1)?.timing&&(document.querySelector('.card-empty-state.failed,.lookup-status.error')||window.__nativeSamples.at(-1).images.some(image=>image.paintAt)),before,{timeout:90000});
-    row[mode]=await page.evaluate(()=>{const s=window.__nativeSamples.at(-1),image=s.images.find(v=>v.kind==='preview'&&v.paintAt)||s.images.find(v=>v.paintAt),hit=document.querySelector('.card-hit'),normal=hit?.querySelector('.card-result-normal'),record=window.__nativeMatcherData,winner=record?.at>=s.at?record.matches?.find(match=>match.image===normal?.src):null;return {wallAt:s.wallAt,got:hit?.querySelector('.card-meta > b')?.textContent||null,by:winner?.identified_by||null,confidence:winner?.confidence??null,aiCrop:record?.ai_crop||null,wasmHeapMB:record?.wasm_heap_mb,jsHeapMB:performance.memory?Math.round(performance.memory.usedJSHeapSize/1048576):null,winner:winner?{id:winner.scryfall_id,face:winner.face||0,distance:winner.distance,strategy:winner.strategy,clickInside:winner.click_inside,regionalProof:winner.regional_proof}:null,timing:s.timing,capture:window.__nativeCaptureRecords.at(-1),send:window.__nativeOwner.captureTrace.at(-1),titleMs:s.titleAt?Math.round(s.titleAt-s.at):null,displayMs:image?Math.round(image.paintAt-s.at):null,previewMs:image&&s.resultAt?Math.round(image.paintAt-s.resultAt):null,image:image?{width:image.width,height:image.height,opacity:image.opacity,kind:image.kind}:null};});
+    row[mode]=await page.evaluate(()=>{const s=window.__nativeSamples.at(-1),image=s.images.find(v=>v.kind==='preview'&&v.paintAt)||s.images.find(v=>v.paintAt),hit=document.querySelector('.card-hit'),normal=hit?.querySelector('.card-result-normal'),record=window.__nativeMatcherData,winner=record?.at>=s.at?record.matches?.find(match=>match.image===normal?.src):null;return {wallAt:s.wallAt,got:hit?.querySelector('.card-meta > b')?.textContent||null,by:winner?.identified_by||null,confidence:winner?.confidence??null,aiCrop:record?.ai_crop||null,milo:record?.milo||null,orb:record?.orb_timing||null,miloOrb:record?.milo_orb_timing||null,wasmHeapMB:record?.wasm_heap_mb,jsHeapMB:performance.memory?Math.round(performance.memory.usedJSHeapSize/1048576):null,winner:winner?{id:winner.scryfall_id,face:winner.face||0,distance:winner.distance,strategy:winner.strategy,clickInside:winner.click_inside,regionalProof:winner.regional_proof}:null,timing:s.timing,capture:window.__nativeCaptureRecords.at(-1),send:window.__nativeOwner.captureTrace.at(-1),titleMs:s.titleAt?Math.round(s.titleAt-s.at):null,displayMs:image?Math.round(image.paintAt-s.at):null,previewMs:image&&s.resultAt?Math.round(image.paintAt-s.resultAt):null,image:image?{width:image.width,height:image.height,opacity:image.opacity,kind:image.kind}:null};});
     row[mode].references=references.filter(request=>request.at>=row[mode].wallAt).map(request=>({...request,startMs:request.at-row[mode].wallAt,durationMs:request.endedAt?request.endedAt-request.at:null}));
     row[mode].correct=row[mode].got===item.name;
     process.stdout.write(`${scene*10+index+1}/200 ${item.name} ${mode}: ${row[mode].correct} ${row[mode].displayMs}ms (capture ${row[mode].timing.captureMs}, recognition ${row[mode].timing.recognitionMs}, hint ${row[mode].timing.hintHit})\n`);
@@ -246,7 +301,7 @@ try {
  await page.screenshot({path:path.join(output,'final-game.png'),fullPage:true});
  report.ok=true;
 }catch(error){report.failure=error.stack||String(error);if(page){report.failureView=await page.locator('body').innerText().catch(()=>null);report.failureState=await page.evaluate(()=>{const inspect=conn=>conn?{id:conn.myId,roster:conn.roster,pendingSignals:[...conn.pendingSignals],pendingIce:[...conn.pendingIce],tracks:conn.localStream?.getTracks().map(track=>({kind:track.kind,readyState:track.readyState,enabled:track.enabled,settings:track.getSettings()})),peers:[...conn.peers].map(([id,entry])=>({id,state:entry.pc.connectionState,signaling:entry.pc.signalingState,ice:entry.pc.iceConnectionState,local:entry.pc.localDescription?.type,remote:entry.pc.remoteDescription?.type,dc:entry.dc?.readyState,senders:entry.pc.getSenders().map(sender=>({kind:sender.track?.kind})),receivers:entry.pc.getReceivers().map(receiver=>({kind:receiver.track?.kind,muted:receiver.track?.muted}))}))}:null;return {errors:window.__nativeErrors,diagnostics:window.__SNAP_CONNECTION_DIAGNOSTICS,warmup:window.__SNAP_RECOGNITION_WARMUP,viewer:inspect(window.__nativeViewer),owner:inspect(window.__nativeOwner),videos:[...document.querySelectorAll('video')].map(video=>({width:video.videoWidth,height:video.videoHeight,paused:video.paused})),timing:window.__SNAP_RECOGNITION_TIMINGS,samples:window.__nativeSamples};}).catch(()=>null);await page.screenshot({path:path.join(output,'failure.png'),fullPage:true}).catch(()=>{});}throw error;
-}finally{await save();await browser?.close();await new Promise(resolve=>server.close(resolve));}
+}finally{await save();if(browser)for(const context of browser.contexts())await context.unrouteAll({behavior:'wait'});await browser?.close();await new Promise(resolve=>server.close(resolve));}
 function summarize(report,mode){
  const rows=report.rows.filter(row=>row[mode]);const values=rows.map(row=>row[mode]);const percentile=key=>{const list=values.map(value=>value[key]).filter(Number.isFinite).sort((a,b)=>a-b);return {p50:list[Math.floor(list.length*.5)]??null,p90:list[Math.min(list.length-1,Math.floor(list.length*.9))]??null,max:list.at(-1)??null};};
  const group=(key,bucket=value=>String(value))=>Object.fromEntries([...new Set(rows.map(row=>bucket(row[key])))].map(value=>{const list=rows.filter(row=>bucket(row[key])===value);return [value,{n:list.length,correct:list.filter(row=>row[mode].correct).length,correctUnder1s:list.filter(row=>row[mode].correct&&Number.isFinite(row[mode].displayMs)&&row[mode].displayMs<1000).length}];}));

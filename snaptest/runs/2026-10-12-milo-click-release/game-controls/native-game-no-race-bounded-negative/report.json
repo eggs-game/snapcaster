@@ -1,0 +1,608 @@
+{
+  "ok": false,
+  "build": "milo-click-35 (local vision)",
+  "baseline": null,
+  "commit": "ae8d3d2ceb23180c6c512c360b86863d9c5bc461",
+  "sample": "authoritative SNAPTEST realLife 200, seed 20260803",
+  "rows": [],
+  "errors": [],
+  "blockedWrites": [],
+  "limitations": [
+    "Actual compiled Game pointer handler, three native HTML-video samples 120 ms apart, production sharpness selection/JPEG crop, native RTC data channel, real matcher and actual sidebar.",
+    "Only source media and signaling are adapted: deterministic 1920x1080 SNAPTEST canvas MediaStream tracks and loopback memory signaling; no physical camera, microphone, real room, STUN, TURN or remote NAT.",
+    "Recognition models/index are warmed. Frame crop is encoded at production JPEG quality 0.9, which differs from supplied-image SNAPTEST quality 0.62; the resulting input is not pixel-identical to that benchmark.",
+    "Fresh clears only the test Game's room-hint ref before the actual pointer click. Prior cards can still warm reference caches. Immediate repeats keep the newly verified hint; this does not measure first-visit downloads.",
+    "Paint is approximated by decoded image pixels at full ancestor opacity plus the following requestAnimationFrame; this does not measure physical screen scanout.",
+    "The canvas camera composites each source scene onto opaque black before every repaint. Transparent playmat pixels must not accumulate through repeated source-over draws; each static camera frame therefore has the same pixels.",
+    "Each source scene is exported losslessly with its exact click metadata; --sceneFixtures replays those same pixels for the other arm. Native JPEG hashes must still match before comparing accuracy or latency.",
+    "Baseline freezes application source at the requested Git revision; both arms intentionally serve the same current working catalog. Manifest/cards SHA256 and Milo model/gallery IDs are recorded separately."
+  ],
+  "sceneFixtureSource": "/Users/zach/Cowork/snapcaster-web/.cache/native-delivery-control/scenes",
+  "sourceOverrides": "/Users/zach/Cowork/snapcaster-web/.cache/card35/native-owner-no-race-overrides.json",
+  "selectedCases": null,
+  "sourceDigests": {
+    "src/AccountProfile.jsx": "243d81f218d05cc34745a562b4406f0f18321b37278ee0903282e38185d89f9b",
+    "src/AccountPrompt.jsx": "e909d3110913ac25f5c65a9e296e311d1cdecc24d2a887a39821c9afa49d4806",
+    "src/App.jsx": "2909fa7118d20bb77647294484fefae86c676e03c5d6d4e543beccdcf5cac156",
+    "src/AppDropdown.css": "8fa2de0da48406580a71a40703b643a3ab9041aad7f36c467f605c53ab195795",
+    "src/AppDropdown.jsx": "1feaf1c4f36ca6641e6563cc8c637b4d6ef3c445d09cb298abf67ae248dae9b5",
+    "src/AppToast.jsx": "6e585f7acc433b144175df677c89f9bf0ea2485c220f74387a1deac73e085343",
+    "src/CardSidebar.jsx": "9b4269eaae4f689f1fc975c3f8a299786119f5b2385c09d1491c60b8ae55ee43",
+    "src/Community.jsx": "e4eebaa71a83060d204b609046902e297324e4f565a3c03fc3d375c9acde849d",
+    "src/ConfirmDialog.css": "5caf5fe3d2a125eb9802d66767898ef6135be77b2d76c6a22c6c0353fb5f98e7",
+    "src/ConfirmDialog.jsx": "2a636b4fdb7fc1f1defff0e9e8d6bead5ca9a8726d89f5aaf197689ab2aa008f",
+    "src/DeckPage.jsx": "82283794ba81bfb7504d5025dc45fe6c769bcf7eb80e8c44a0135c6e92c814a1",
+    "src/DiscordMark.jsx": "30ea165a5f0fa4542ce84c66b971cf5ded05da5dbfdf0847ab2995d9a64ce6e4",
+    "src/FriendsPage.jsx": "15eb9e0b32050bd1d882d896e0005b4206b55cb9edd31c48d2b4501fdb85830c",
+    "src/Game.jsx": "c0db5d9c712effe11fca7f66499ad2c8c0af06132749e3ec187519f887186c8b",
+    "src/GamePreview.jsx": "21d4c95128df04f8686edcfb059f61fab1fa33e4ad6e9cd8c65d7427744efcfc",
+    "src/LegalPage.jsx": "c842376ad789fbf9b8eadee7b2358229ef66b228215ee758536331b203c932e0",
+    "src/Lobby.jsx": "c1ec6936c9b80cf2fba5b5284f8ab5441dc63f81237e4068bbbd31b7d76be72c",
+    "src/LocalMockGameConnection.js": "52255bc7832a23e383f298c8c3cee9a959c09451e4b6b93a6142431dcbc02e20",
+    "src/ModerationPage.jsx": "0887060cf1d9042dba6095d0f1bd3379cf299b9d2c819594fe3b0fad3b384758",
+    "src/NotificationsPage.jsx": "fd673f25dacb403fcfc226d2977b26642bb99a8cb0b530fbdf8c2f5ae8bd9e23",
+    "src/Privacy.jsx": "4532df6da1895e4418496dee8133e25452a4ff440569267779b8bb7bd2ca4eb7",
+    "src/ProfilePage.jsx": "3eab9592a02faabcf86b7ec386991b3f30be2fc67b09919f507162b5aabcdfef",
+    "src/PublicGames.jsx": "b3d501d7cd1ca54bd71076fb89e959672a0ded383d3cdfe2f4764da132031a3a",
+    "src/ReviewPrompt.jsx": "6fdc8e3aa16ba40efe46c3d6238c2a2d276bf77cbd769281570f27de63343252",
+    "src/RoutedSiteHeader.jsx": "8a160538f7c91bb0937eb91db51c3f1d13d2ab39820c6ddde2c969dde813aab6",
+    "src/SettingsPage.jsx": "bae16930ce13eb0ffc3a6b9e84db612786c9748ca7e370615f5f2ecd47bc03f4",
+    "src/SiteFooter.jsx": "bf82cb83fde8fb24de6864877484f9979a7cc9d93ebb6a2bf65cd86d6e3d4eaa",
+    "src/SiteHeader.jsx": "984afe73d1ce7b803b93256db888d3b8cda526b7126b2e3157156c832dd51bd8",
+    "src/SnapTest.jsx": "d03090798f4c8832341051253fd7ed6c6d327a037ea9eee841fcf2f00297cac6",
+    "src/Terms.jsx": "20a1994d3d6cd5d15d8e3a2c6ffb1a673db66df69c9b8dbe14e29f101056cb1d",
+    "src/TurnTest.jsx": "c65f1b30cb6665b884d125e617b69d3932edbb18c6470a7f1bbd74d3c3fe1dbd",
+    "src/account.js": "0ba9b309af466a9138a562645983b68a51ba392301e4038b0d2f0f209f5f9f8d",
+    "src/accountIdentity.js": "0418b635540561070669294b8ca95a8abd8d576625286b7be0db0fd9ef5cde1f",
+    "src/authIntent.js": "19b87ae74f11390611a84da0f0dd11d306ecdaa954d9d9968e8b56d2c84ba950",
+    "src/captureGeometry.js": "b01a716377211eb5489d779eccaeaffb57b98f67f3f067481f0dac10a4c131cc",
+    "src/cardNameIndex.js": "85e4b825f9e2395ce545b8f58e17b66391c2be53de07d03ac94372f219d335b8",
+    "src/cardPresentation.js": "54cad20b8a1d02a2cb479db54a4877e41d31ed200ad388825635f1bb4664936d",
+    "src/cardSearch.js": "8889197c199dc5c01a585198e2698f35e227bd87f24f8dc08e64b8e7a43ff509",
+    "src/chatCommands.js": "8757eb9612f5905bc157177b4e50350304c31d123dc188d6632b9daac4e1152e",
+    "src/commanderRules.js": "c8fc05c319d85afdcf03ff3707ed18b5d098f02b7544998492b36aa8d8c89e99",
+    "src/deckAnalysis.js": "b7881627d7c8d286f3117d16bb2e2b9888a9f6c3cdebdebbc01a026ef414ebd9",
+    "src/deckImport.js": "7eff53e86b3bc63a3acfb0efdd2ccaad0561145d21b6777bc4eb46b9fd4fe74a",
+    "src/gameControls.js": "862b94ff514b96b45170bb4f573046b5f3c2277b3acf919ec631e92c32b550e1",
+    "src/gameRooms.js": "b27f9c1fe93bcdee37a6f2f56e54404d29dc28224b6a2b0ebc40b84c30d26607",
+    "src/localMock.js": "9e3e62b45b5eb9af6b9c1344cad7017a945a45d8396510880efa4dab0f55273f",
+    "src/main.jsx": "147cb83f8435c0ae629e87c7f8dad52a764959e522966a1fd80b7edb9c381510",
+    "src/mediaDevices.js": "353346a3f83ff8a995bbc06da3c51162e1f0916546557d832fa37100aac7b2ed",
+    "src/mediaPlayback.js": "c1c959d3ea5ca1bb551708556a82e9d62e638fa442006308ca04446bcda9fcde",
+    "src/mockDeckFixtures.js": "66439ec7f3ef3269ed1cb17b6ab0cf5a6fdb7c13693417f82d30b457e800b437",
+    "src/realtimeEpochRotation.js": "c9c4488de4644408457d4c6ce64b856d78eb89e47932120c261199b819cc5a53",
+    "src/recognition/aiCrop.js": "4ee53397b436720b4d9e5c38ae04b645aeed0a91f42332e0354b312eab94e9ff",
+    "src/recognition/aiCropGeometry.js": "a9153c763e917e15703a1d5fe8a80714e4722c6f73948e61a733170c064343cb",
+    "src/recognition/aiCropWorker.js": "affdaf85523187cb175af812e4e4c50ab0e121fcfa976a907d417197a9fa78cb",
+    "src/recognition/hash.js": "6c3bfa012e82927b783c021886b669eece2c75712e11eaa9039a5e51794b6ea6",
+    "src/recognition/matcher.js": "7315a0f651529adf3dd61edf7a9ecd0e8ff95704f0966500ff668dba7c5df198",
+    "src/recognition/metadataEvidence.js": "eb34b3521b5ecec0a756a31638bbfa4f4b301274e471428b5d65518960172ab0",
+    "src/recognition/miloBackend.js": "c1a0fba6e1234f206a901b5f9ec48e02001d00e5cfd4ed0cd6a68b071b5947ac",
+    "src/recognition/miloLookup.js": "07f17c339cb7b2dd18d17d4a10bf552773dcee9927200c3b1e2a377e65f9e584",
+    "src/recognition/recognizer.js": "9052d82d727b763a212dde9f4c69a0512d3aad9a2ab418e44889c157fac5559f",
+    "src/recognitionHints.js": "f4f1c04d3f9443ea44c334c2570de40e7102d2e621e65befd08db8d1764ab294",
+    "src/roomCode.js": "ce2502c643a8545a77da4450e929650f5ae7952c0fc7376d1aad0f40dace147c",
+    "src/signaling.js": "af1ae4d06f354f5e997e512757742271298f58ba8604ef50af0e37ae4b62d20d",
+    "src/snaptest/degrade.js": "ef006310323143b974fe29847c48d7dd3ed3cb077bc41683cbce8203eaf675d2",
+    "src/snaptest/scene.js": "c3aed501c5787dea50b752ba35d959b5e71caf93f617eb7b24790e86ab62e345",
+    "src/soundEffects.js": "f5581047a433575f75a73a00c45a17ed3f4d407d64dbddaf9f466bf9315fe7ac",
+    "src/styles.css": "8a07c5060c66ac3b6b29922d73033dc91ed986df048887ad2c1d1a7604b9b0f0",
+    "src/supabase.js": "e33dec02002ed526de8187d308cdf906fe4cc206b29ced988232beee75ef6669",
+    "src/videoCounters.js": "319e0cc48089409e7bdd7ec343a54078feace56ab26a6ec1a6980b27c29afd84",
+    "src/videoQuality.js": "eecd3cdf80ff2a0ef463ba98c4bc33072aaa35baf0df9eb0520ad79a9020679a",
+    "src/visitorAudio.js": "e0e585aea417f782e2e82ef1de0328c9aedd1fa9f937c47fb75f5661381df977",
+    "src/webrtc.js": "0ddb617d0a57f45076cb8a938bb155dbc530cbad0769d759131b9018a3f1d88e"
+  },
+  "catalogDigests": {
+    "public/carddata/manifest.json": "50a1e0e3f62dd34f3242c70fad24a1f3510085caebb7eb01b22743ee9b2b14ac",
+    "public/carddata/cards.json": "e9527a3801fe60d9bf42882c919b4473956a293c8cb66ea732071d804a9d2f8c",
+    "public/carddata/milo/manifest.json": "85bdd724d69300c33e6f48b7bd7cbe90cbd0cdf7a26f4a28a373b665a36d2a6d"
+  },
+  "catalog": {
+    "manifest": {
+      "version": 4,
+      "count": 113269,
+      "names": 35650,
+      "shards": 256,
+      "cards_fields": [
+        "name",
+        "set",
+        "collector_number",
+        "scryfall_id",
+        "face"
+      ],
+      "shard_fields": [
+        "name",
+        "set",
+        "collector_number",
+        "scryfall_id",
+        "face",
+        "hash",
+        "color",
+        "art_hash",
+        "mana_cost",
+        "type_line",
+        "oracle_text"
+      ],
+      "generated_at": "2026-10-12T02:37:11Z",
+      "source": {
+        "provider": "scryfall",
+        "bulk_type": "default_cards",
+        "updated_at": "2026-10-11T21:05:54.791+00:00",
+        "download_uri": "https://data.scryfall.io/default-cards/default-cards-20261011210554.jsonl.gz",
+        "format": "jsonl"
+      }
+    },
+    "milo": {
+      "version": 1,
+      "model": "milo1",
+      "revision": "9bcc5e809e936b8c5630d1e7101aae1de1e76621",
+      "model_sha256": "bd13d8d60383c69da04dce261f32e93fdaeaa8fd618fbc991e7385f71b3d45df",
+      "preprocess": "milo1-rgb-portrait-ccw-bilinear448-imagenet-v1",
+      "dimension": 128,
+      "count": 113269,
+      "names": 35650,
+      "cards_sha256": "e9527a3801fe60d9bf42882c919b4473956a293c8cb66ea732071d804a9d2f8c",
+      "seed_sha256": "c5cb0dc150eb9f5b183396dd25aecaa9efc5ce3d001dd8bef282fcc73ee778be",
+      "files": {
+        "vectors.bin": {
+          "bytes": 14498432,
+          "sha256": "ad622b967e7734807faf55b8def97334cd51174c4d4295f139e698d2d6d1d0c5"
+        },
+        "norms.bin": {
+          "bytes": 453076,
+          "sha256": "2747bd88a24e288d46f3ca0c6e775b9ff90558b8168281bc267265498536408e"
+        },
+        "names.bin": {
+          "bytes": 453076,
+          "sha256": "f0e607e2954e2494c7e675f5220bd1ae385aaa613a3dc8a03e831b5bc4712218"
+        }
+      }
+    }
+  },
+  "warmup": {
+    "core": {
+      "status": "ready",
+      "startedAt": 1791787579810,
+      "readyAt": 1791787580724,
+      "durationMs": 915,
+      "workerMs": 236,
+      "cvStatus": "ready",
+      "indexReady": true,
+      "count": 113269
+    },
+    "milo": {
+      "model": "milo1",
+      "status": "ready",
+      "backend": "webgpu",
+      "ms": 818,
+      "queueMs": 1
+    }
+  },
+  "controlInstrumentation": {
+    "harnessSHA256": "fcd55e39dc7562e9ab102f3656e6c0c600f72f4e19c37a3275a074742e9d9ad0",
+    "module": "/Users/zach/Cowork/snapcaster-web/.cache/card35/native-game-controls.mjs",
+    "moduleSHA256": "9cb5582bdab97590216429523796d29b4e891bc3a8700bd9a002e20bf1694842",
+    "purpose": "Loopback test-only sampling, source-painter, owner/worker events, first/final SHA and held detector reply instrumentation. Production source fingerprints remain recorded separately."
+  },
+  "gameCancellationControls": [
+    {
+      "name": "held-old-reference-deadline-failure",
+      "expected": "Drana and Linvala",
+      "oldCard": "Earthbending",
+      "held": {
+        "url": "https://cards.scryfall.io/small/front/d/d/ddc9ffa9-d743-42b1-9d54-805b94afa12b.jpg",
+        "at": 1791787582827,
+        "releasedAt": null
+      },
+      "latestDeadlineMs": 2500,
+      "error": "TimeoutError: page.waitForFunction: Timeout 2500ms exceeded.",
+      "failureState": {
+        "queue": {
+          "active": true,
+          "waiting": true
+        },
+        "title": null,
+        "events": [
+          {
+            "kind": "early-start",
+            "ownerId": 2,
+            "point": {
+              "nx": 0.5,
+              "ny": 0.5
+            },
+            "at": 1791787582758
+          },
+          {
+            "kind": "worker-post",
+            "messageType": "milo-begin",
+            "ownerId": 2,
+            "at": 1791787582758
+          },
+          {
+            "kind": "worker-post",
+            "messageType": "identify",
+            "ownerId": 2,
+            "id": 3,
+            "point": {
+              "nx": 0.5,
+              "ny": 0.5
+            },
+            "at": 1791787582759
+          },
+          {
+            "type": "native-owner-received",
+            "messageType": "identify",
+            "ownerId": 2,
+            "scanId": 3,
+            "point": {
+              "nx": 0.5,
+              "ny": 0.5
+            },
+            "at": 1791787582760,
+            "kind": "worker-received",
+            "receivedAt": 1791787582760
+          },
+          {
+            "kind": "selected-identify",
+            "point": {
+              "nx": 0.5,
+              "ny": 0.5
+            },
+            "at": 1791787582812
+          },
+          {
+            "kind": "selected-source-sha",
+            "sha256": "3f9a6047fa45efcf5ebd5a503f3e50f68a7f9ddb22c2d48f0ec8e1f6815b0467",
+            "at": 1791787582812
+          },
+          {
+            "kind": "cancel",
+            "ownerId": 2,
+            "hadFullJob": true,
+            "at": 1791787582858
+          },
+          {
+            "kind": "worker-post",
+            "messageType": "milo-release",
+            "ownerId": 2,
+            "at": 1791787582858
+          },
+          {
+            "type": "native-owner-received",
+            "messageType": "milo-release",
+            "ownerId": 2,
+            "active": false,
+            "at": 1791787582858,
+            "kind": "worker-received",
+            "receivedAt": 1791787582860
+          },
+          {
+            "kind": "worker-post",
+            "messageType": "milo-prefetch",
+            "at": 1791787582908
+          },
+          {
+            "kind": "selected-identify",
+            "point": {
+              "nx": 0.5,
+              "ny": 0.3245267318493863
+            },
+            "at": 1791787583112
+          },
+          {
+            "kind": "worker-post",
+            "messageType": "milo-begin",
+            "ownerId": 3,
+            "at": 1791787583112
+          },
+          {
+            "kind": "selected-source-sha",
+            "sha256": "35173177d21cb5479334febcd31fd0fa4f27994ee3e228a0c3eb2a208e1cbd61",
+            "at": 1791787583112
+          }
+        ],
+        "hints": []
+      }
+    }
+  ],
+  "summary": {
+    "fresh": {
+      "n": 0,
+      "correct": 0,
+      "correctUnder1s": 0,
+      "hintHits": 0,
+      "prepared": 0,
+      "displayMs": {
+        "p50": null,
+        "p90": null,
+        "max": null
+      },
+      "titleMs": {
+        "p50": null,
+        "p90": null,
+        "max": null
+      },
+      "captureMs": {
+        "p50": null,
+        "p90": null,
+        "max": null
+      },
+      "recognitionMs": {
+        "p50": null,
+        "p90": null,
+        "max": null
+      },
+      "captureOverlapMs": {
+        "p50": null,
+        "p90": null,
+        "max": null
+      },
+      "wasmHeapMB": [
+        null,
+        null
+      ],
+      "firstHalfCorrect": 0,
+      "secondHalfCorrect": 0,
+      "byRotation": {},
+      "byCoverage": {},
+      "byPool": {},
+      "byLayout": {},
+      "neighbourMisses": [],
+      "selectedFrames": {
+        "0": 0,
+        "1": 0,
+        "2": 0
+      },
+      "accepted": {
+        "n": 0,
+        "correct": 0
+      },
+      "byPathway": {}
+    }
+  },
+  "failure": "page.waitForFunction: Timeout 2500ms exceeded.\n    at waitResult (/Users/zach/Cowork/snapcaster-web/.cache/card35/native-game-controls.mjs:31:16)\n    at runNativeGameControls (/Users/zach/Cowork/snapcaster-web/.cache/card35/native-game-controls.mjs:213:28)\n    at async file:///Users/zach/Cowork/snapcaster-web/scripts/benchmark_native_card_delivery.mjs:246:3",
+  "failureView": "Native capture benchmark\n\nIdentifying…\n\nRecent\nDrana and Linvala\nNative table\nNot selected\n40",
+  "failureState": {
+    "errors": [],
+    "diagnostics": [
+      {
+        "id": "40b19537-1790-4857-a976-7fbc86343c08",
+        "type": "room-joined",
+        "at": 1791787579812,
+        "observerId": "native-viewer",
+        "observerSessionId": "8efc74df-65c4-400f-8c65-4719453a9651",
+        "subjectId": "",
+        "role": "visitor",
+        "visibilityState": "visible",
+        "browserOnline": true,
+        "details": {
+          "turnStatus": "native-loopback-test",
+          "reconnectReason": "new-session"
+        }
+      },
+      {
+        "id": "e6910a2b-57e8-47f3-9def-bfbffe65e14f",
+        "type": "room-joined",
+        "at": 1791787579884,
+        "observerId": "native-source",
+        "observerSessionId": "ef4bb1fb-7244-4bfd-81b4-031015d67b0d",
+        "subjectId": "",
+        "role": "player",
+        "visibilityState": "visible",
+        "browserOnline": true,
+        "details": {
+          "turnStatus": "native-loopback-test",
+          "reconnectReason": "new-session"
+        }
+      }
+    ],
+    "warmup": {
+      "status": "ready",
+      "startedAt": 1791787579810,
+      "readyAt": 1791787580724,
+      "durationMs": 915,
+      "workerMs": 236,
+      "cvStatus": "ready",
+      "indexReady": true,
+      "count": 113269
+    },
+    "viewer": {
+      "id": "native-viewer",
+      "roster": [
+        {
+          "id": "native-source",
+          "name": "Native table",
+          "role": "player",
+          "joinedAt": 1,
+          "protocol": 2,
+          "membershipId": "m-native-source",
+          "profileId": ""
+        },
+        {
+          "id": "native-viewer",
+          "name": "Native viewer",
+          "role": "visitor",
+          "joinedAt": 2,
+          "protocol": 2,
+          "membershipId": "m-native-viewer",
+          "profileId": ""
+        }
+      ],
+      "pendingSignals": [],
+      "pendingIce": [],
+      "tracks": [],
+      "peers": [
+        {
+          "id": "native-source",
+          "state": "connected",
+          "signaling": "stable",
+          "ice": "connected",
+          "local": "offer",
+          "remote": "answer",
+          "dc": "open",
+          "senders": [
+            {}
+          ],
+          "receivers": [
+            {
+              "kind": "video",
+              "muted": false
+            }
+          ]
+        }
+      ]
+    },
+    "owner": {
+      "id": "native-source",
+      "roster": [
+        {
+          "id": "native-source",
+          "name": "Native table",
+          "role": "player",
+          "joinedAt": 1,
+          "protocol": 2,
+          "membershipId": "m-native-source",
+          "profileId": ""
+        },
+        {
+          "id": "native-viewer",
+          "name": "Native viewer",
+          "role": "visitor",
+          "joinedAt": 2,
+          "protocol": 2,
+          "membershipId": "m-native-viewer",
+          "profileId": ""
+        }
+      ],
+      "pendingSignals": [],
+      "pendingIce": [],
+      "tracks": [
+        {
+          "kind": "video",
+          "readyState": "live",
+          "enabled": true,
+          "settings": {
+            "aspectRatio": 1.7777777777777777,
+            "deviceId": "GTQQPklSRi9krSkref3bizhi5vBnoCflPxgxhFyJ47jbGPbJ0nf6nRpjVBWrwbfRqGfvk/lmoX3CIIlNBg1RaQ==",
+            "frameRate": 24,
+            "height": 1080,
+            "resizeMode": "none",
+            "width": 1920
+          }
+        }
+      ],
+      "peers": [
+        {
+          "id": "native-viewer",
+          "state": "connected",
+          "signaling": "stable",
+          "ice": "connected",
+          "local": "answer",
+          "remote": "offer",
+          "dc": "open",
+          "senders": [
+            {
+              "kind": "video"
+            }
+          ],
+          "receivers": [
+            {
+              "kind": "video",
+              "muted": true
+            }
+          ]
+        }
+      ]
+    },
+    "videos": [
+      {
+        "width": 1920,
+        "height": 1080,
+        "paused": false
+      }
+    ],
+    "timing": [
+      {
+        "at": 1791787582517,
+        "remote": true,
+        "captureMs": 289,
+        "recognitionMs": 800,
+        "totalMs": 1088,
+        "stages": {
+          "prep": 25,
+          "rankSeeds": 43,
+          "earlyOrbProbe": 0,
+          "rankRefine": 2,
+          "rank": 0,
+          "orb": 748,
+          "aiCrop": 210,
+          "captureOverlap": 213,
+          "aiAttempt": 819,
+          "modelQueue": 0,
+          "total": 820,
+          "queue": 0,
+          "captureRecognitionOverlap": 22
+        },
+        "candidatesTried": 1,
+        "isolationCandidates": 0,
+        "hintHit": false
+      }
+    ],
+    "samples": [
+      {
+        "at": 1755,
+        "wallAt": 1791787581428,
+        "images": [
+          {
+            "src": "blob:http://127.0.0.1:61222/0c838f46-d652-42db-ac32-22e65335c696",
+            "kind": "preview",
+            "decodedAt": 2846.7999999523163,
+            "width": 146,
+            "height": 204,
+            "opacity": 1,
+            "paintAt": 2852.7999999523163
+          }
+        ],
+        "resultAt": 2843.399999976158,
+        "timing": {
+          "at": 1791787582517,
+          "remote": true,
+          "captureMs": 289,
+          "recognitionMs": 800,
+          "totalMs": 1088,
+          "stages": {
+            "prep": 25,
+            "rankSeeds": 43,
+            "earlyOrbProbe": 0,
+            "rankRefine": 2,
+            "rank": 0,
+            "orb": 748,
+            "aiCrop": 210,
+            "captureOverlap": 213,
+            "aiAttempt": 819,
+            "modelQueue": 0,
+            "total": 820,
+            "queue": 0,
+            "captureRecognitionOverlap": 22
+          },
+          "candidatesTried": 1,
+          "isolationCandidates": 0,
+          "hintHit": false
+        },
+        "titleAt": 2845.2999999523163,
+        "title": "Drana and Linvala"
+      },
+      {
+        "at": 2880.899999976158,
+        "wallAt": 1791787582554,
+        "images": []
+      },
+      {
+        "at": 3184.399999976158,
+        "wallAt": 1791787582858,
+        "images": []
+      }
+    ]
+  }
+}

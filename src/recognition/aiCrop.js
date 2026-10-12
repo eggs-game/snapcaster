@@ -32,7 +32,8 @@ function runMilo(type, images = []) {
       if (!worker) worker = new Worker(new URL("./aiCropWorker.js", import.meta.url), { type: "module" });
       worker.onmessage = ({ data }) => { if (data.id === id) finish(data); };
       worker.onerror = () => finish({ rows: [], diagnostic: { model: "milo1", status: "failed", error: "AI lookup worker failed" } }, true);
-      worker.postMessage({ id, type, images });
+      worker.postMessage({ id, type, images,
+        miloGpu: new URLSearchParams(globalThis.location?.search || "").get("milo-gpu") !== "0" });
     } catch (error) { finish({ rows: [], diagnostic: { model: "milo1", status: "failed", error: String(error?.message || error) } }, true); }
   });
 }

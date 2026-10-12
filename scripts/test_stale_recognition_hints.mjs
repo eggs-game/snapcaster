@@ -60,7 +60,7 @@ for (const scenario of ["hit", "stale", "legacy", "error", "off", "canceled"]) {
       assert.equal(output.ai_crop.status, "hint-hit");
     } else if (scenario === "off") {
       assert.equal(calls.length, 1, "AI-off retains the ordinary worker route");
-      assert.equal(calls[0].hintsOnly, undefined);
+      assert.equal(calls[0].hintsOnly, false, "AI-off still requests the complete ordinary worker pipeline");
       assert.equal(calls[0].hints[0], hint);
     } else {
       assert.equal(calls[0].hintsOnly, true);

@@ -1,0 +1,134 @@
+{
+  "schema": "snapcast-portable-native-archive-validation-v1",
+  "createdAt": "2026-10-12T07:11:27.157Z",
+  "scope": "Offline archiving/revalidation only. No browser, benchmark, build, application-source or test changes. Recognition matrix and game controls archived separately.",
+  "runtime": {
+    "node": "v24.19.0"
+  },
+  "validator": {
+    "file": "scripts/check_native_card_delivery_pair.mjs",
+    "sha256": "bdbfbd96df01d2d6a43ff9172ec78737c8a581eca766fbd5ba351ebd1b9b7b8a"
+  },
+  "policy": {
+    "file": "policy.json",
+    "sha256": "5abffdf76cdc5bbb1cf53664c2c22ac429f1762558265a4f729ef5c9911cd6ec"
+  },
+  "validations": [
+    {
+      "name": "final-native-tail-pair",
+      "command": [
+        "node",
+        "scripts/check_native_card_delivery_pair.mjs",
+        "snaptest/runs/2026-10-12-milo-click-release/native/control.json",
+        "snaptest/runs/2026-10-12-milo-click-release/native/candidate.json",
+        "--tail-improvement",
+        "--output=snaptest/runs/2026-10-12-milo-click-release/native/pair.json"
+      ],
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "output": "native/pair.json",
+      "log": "validation/final-native-pair.log",
+      "ok": true,
+      "status": "passed",
+      "exactPaired": true,
+      "matchedCaptures": 200,
+      "thresholds": {
+        "maxFreshMedianRatio": 1.05,
+        "maxFreshP90Ratio": 0.85,
+        "minFreshUnder1Gain": 10
+      },
+      "gains": {
+        "fresh": {
+          "medianRatio": 0.968019680196802,
+          "p90Ratio": 0.6063067367415194,
+          "correctUnder1s": 17
+        }
+      },
+      "inputs": {
+        "control": {
+          "file": "control.json",
+          "sha256": "717b8c7ff02464f491b85eb0f3421f1a1df40670cc76433f77a0449ee7ddc500"
+        },
+        "candidate": {
+          "file": "candidate.json",
+          "sha256": "8b45855957bca3a8afb6b5ec7379508716fec412fd12eec3e57e6828fbd06ecf"
+        }
+      }
+    },
+    {
+      "name": "rejected-first-native-tail-pair",
+      "command": [
+        "node",
+        "scripts/check_native_card_delivery_pair.mjs",
+        "snaptest/runs/2026-10-12-milo-click-release/native/control.json",
+        "snaptest/runs/2026-10-12-milo-click-release/native/rejected-candidate.json",
+        "--tail-improvement",
+        "--output=snaptest/runs/2026-10-12-milo-click-release/native/rejected-pair.json"
+      ],
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "output": "native/rejected-pair.json",
+      "log": "validation/rejected-native-pair.log",
+      "ok": false,
+      "status": "failed",
+      "exactPaired": true,
+      "matchedCaptures": 200,
+      "thresholds": {
+        "maxFreshMedianRatio": 1.05,
+        "maxFreshP90Ratio": 0.85,
+        "minFreshUnder1Gain": 10
+      },
+      "gains": {
+        "fresh": {
+          "medianRatio": 1.001230012300123,
+          "p90Ratio": 0.6980410893454372,
+          "correctUnder1s": 0
+        }
+      },
+      "inputs": {
+        "control": {
+          "file": "control.json",
+          "sha256": "717b8c7ff02464f491b85eb0f3421f1a1df40670cc76433f77a0449ee7ddc500"
+        },
+        "candidate": {
+          "file": "rejected-candidate.json",
+          "sha256": "7c76e6fef3ed0ea70eeedc3de6c5f465525ed393d52a693bf33ce8d5a2ed912c"
+        }
+      },
+      "failures": [
+        "fresh: correct subsecond count does not meet the measured threshold"
+      ]
+    }
+  ],
+  "byteAndSourceChecks": {
+    "copiedOriginalBytesPreserved": true,
+    "copyFailures": [],
+    "finalPairRegeneratedFieldsExact": true,
+    "rejectedPairRegeneratedFieldsExact": true,
+    "controlSourceMatchesFrozenManifest": [],
+    "finalSourceMatchesFrozenManifest": [],
+    "finalSourceMatchesPrivateV4": [],
+    "currentCheckoutMatchesFinalSource": [],
+    "nativeSources": {
+      "control": 70,
+      "candidate": 71,
+      "rejected": 71
+    },
+    "opaqueStaticCameraProofs": {
+      "control": true,
+      "candidate": true,
+      "rejected": true
+    },
+    "scenesManifestsIdentical": true,
+    "gpuWorkerMatchesFinalCompiledManifest": true
+  },
+  "originalLogs": {
+    "validation/original-native-final-pair.log": ".cache/card35/native-final-pair.log",
+    "validation/original-fast-check-and-build.log": ".cache/card35/final-check.log"
+  },
+  "notEstablished": [
+    "Complete release-matrix approval (separate running process).",
+    "Physical cameras, cold startup, remote network/TURN, phone/GPU-adapter coverage or GPU memory limits.",
+    "Benchmark replay from only this compact archive: source scene pixels and public reference JPEGs are not duplicated."
+  ]
+}

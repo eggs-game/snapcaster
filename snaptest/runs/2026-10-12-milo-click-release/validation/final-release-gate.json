@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "validatedAt": "2026-10-12T07:44:19.425Z",
+  "command": "node scripts/check_recognition_release.mjs snaptest/runs/2026-10-12-milo-click-release/matrix/candidate snaptest/runs/2026-10-12-milo-click-release/matrix/control --native-improvement=snaptest/runs/2026-10-12-milo-click-release/native/pair.json",
+  "exitCode": 0,
+  "controlMainCommit": "ae8d3d2ceb23180c6c512c360b86863d9c5bc461",
+  "sourceCount": 71,
+  "nativePairSHA256": "1d4b53c1b9f741e616519071a12fa4922dbe1f4d14f94e7c8120b2f91dbfed3f",
+  "matrixProofSHA256": "6fcbf39e647fa949180e49fdc6a5c06c9777d3413ce4e5865432a45dda37ccd1",
+  "logSHA256": "122510faf81c4a6b633e6f18a82f47d9510c34aa2d9465e105a4cc2e6850540b",
+  "supplementalChecks": [
+    "scripts/test_native_card_hint_pair.mjs passed after its registration in the fast suite",
+    "scripts/test_native_valid_hints.mjs syntax check passed",
+    "git diff --check passed"
+  ],
+  "scope": "Precommit native improvement plus full mandatory recognition matrix; paired photos additionally checked by matrix runner. Original final-app full fast check and production build retained separately.",
+  "finalFastCheck": {
+    "command": "node scripts/check.mjs",
+    "exitCode": 0,
+    "completedAt": "2026-10-12T07:45:51.126Z",
+    "logSHA256": "83b51c7f91e80b4a7941b510c2fbaa09e3c5625878bfcf798f03cef8f3da87e4",
+    "checkRunnerSHA256": "f58f139e7cbd240f417c3da416d0aaa08712d3bfde19eab1e9494e2bc1928021"
+  }
+}

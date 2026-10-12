@@ -1,0 +1,1396 @@
+{
+  "schema": "snapcast-frozen-production-matrix-v1",
+  "startedAt": "2026-10-12T07:00:31.479Z",
+  "completed": true,
+  "sourceProofs": {
+    "control": {
+      "file": "source-proofs/control.json",
+      "sha256": "b83e25ab58ff8618ddfc4f83bf027b1c857b36b4d68e0d316bda0892c8406094",
+      "build": "milo-click-34 (local vision)",
+      "commit": "ae8d3d2ceb23180c6c512c360b86863d9c5bc461",
+      "sourceCount": 70
+    },
+    "candidate": {
+      "file": "source-proofs/candidate.json",
+      "sha256": "52dbfac879be102fa0e98b59526be44f9c4e19c1e3f69472aaf6611cf7ec82cc",
+      "build": "milo-click-35 (local vision)",
+      "commit": "ae8d3d2ceb23180c6c512c360b86863d9c5bc461",
+      "sourceCount": 71
+    }
+  },
+  "catalogDigests": {
+    "public/carddata/manifest.json": "50a1e0e3f62dd34f3242c70fad24a1f3510085caebb7eb01b22743ee9b2b14ac",
+    "public/carddata/cards.json": "e9527a3801fe60d9bf42882c919b4473956a293c8cb66ea732071d804a9d2f8c",
+    "public/carddata/milo/manifest.json": "85bdd724d69300c33e6f48b7bd7cbe90cbd0cdf7a26f4a28a373b665a36d2a6d"
+  },
+  "modes": [
+    "realLife",
+    "tableauEdh10",
+    "tableauVegasEdh20",
+    "tableauEdhDice10",
+    "random200",
+    "edh200",
+    "recentHint20",
+    "arcaneMedium"
+  ],
+  "results": {
+    "realLife": {
+      "file": "candidate/realLife.json",
+      "sha256": "38cba0c5fe939aaf415322797a19fe1c9717f91e631342e8a69ef31449d6be72",
+      "build": "milo-click-35 (local vision)",
+      "summary": {
+        "n": 200,
+        "accuracy": 0.95,
+        "byOcclusion": {
+          "clear": {
+            "n": 187,
+            "ok": 181,
+            "acc": 0.968
+          },
+          "overlapped": {
+            "n": 10,
+            "ok": 6,
+            "acc": 0.6
+          },
+          "edge": {
+            "n": 3,
+            "ok": 3,
+            "acc": 1
+          }
+        },
+        "byPool": {
+          "card": {
+            "n": 149,
+            "ok": 142,
+            "acc": 0.953
+          },
+          "token": {
+            "n": 44,
+            "ok": 42,
+            "acc": 0.955
+          },
+          "basic": {
+            "n": 7,
+            "ok": 6,
+            "acc": 0.857
+          }
+        },
+        "byCoverage": {
+          "0 (clear)": {
+            "n": 184,
+            "ok": 178,
+            "acc": 0.967
+          },
+          "0-15%": {
+            "n": 11,
+            "ok": 11,
+            "acc": 1
+          },
+          "15-30%": {
+            "n": 3,
+            "ok": 1,
+            "acc": 0.333
+          },
+          "30%+": {
+            "n": 2,
+            "ok": 0,
+            "acc": 0
+          }
+        },
+        "byClipped": {
+          "0-5% (whole)": {
+            "n": 197,
+            "ok": 187,
+            "acc": 0.949
+          },
+          "5-15%": {
+            "n": 3,
+            "ok": 3,
+            "acc": 1
+          }
+        },
+        "avgMs": 1340,
+        "neighbourMisses": [],
+        "attempted": 200,
+        "correct": 190,
+        "errors": 0,
+        "medianMs": 792,
+        "correctUnder1s": 153,
+        "maxMs": 11609,
+        "p90Ms": 1557,
+        "accepted": {
+          "n": 187,
+          "correct": 187
+        },
+        "byPathway": {
+          "art-match": {
+            "n": 187,
+            "ok": 187,
+            "acc": 1
+          },
+          "(no match)": {
+            "n": 13,
+            "ok": 3,
+            "acc": 0.231
+          }
+        },
+        "byRotation": {
+          "upright": {
+            "n": 109,
+            "ok": 103,
+            "acc": 0.945
+          },
+          "tapped": {
+            "n": 55,
+            "ok": 53,
+            "acc": 0.964
+          },
+          "upsidedown": {
+            "n": 36,
+            "ok": 34,
+            "acc": 0.944
+          }
+        },
+        "byLayout": {
+          "side-by-side": {
+            "n": 120,
+            "ok": 117,
+            "acc": 0.975
+          },
+          "spaced": {
+            "n": 60,
+            "ok": 57,
+            "acc": 0.95
+          },
+          "overlapping": {
+            "n": 20,
+            "ok": 16,
+            "acc": 0.8
+          }
+        },
+        "absentMisses": 9,
+        "firstHalf": 94,
+        "secondHalf": 96,
+        "wasmHeapMB": [
+          134,
+          134
+        ],
+        "perfectCropControl": {
+          "n": 10,
+          "ok": 3,
+          "acc": 0.3
+        },
+        "wasmHeapStartMB": 134,
+        "wasmHeapEndMB": 134,
+        "firstHalfAcc": 0.94,
+        "secondHalfAcc": 0.96
+      }
+    },
+    "tableauEdh10": {
+      "file": "candidate/tableauEdh10.json",
+      "sha256": "75dcbbf024ff10c7b0dbbeb42fd283385411597685d6f167b054e1a652fbaceb",
+      "build": "milo-click-35 (local vision)",
+      "summary": {
+        "n": 100,
+        "errors": 0,
+        "accuracy": 0.99,
+        "avgMs": 1048,
+        "medianMs": 674,
+        "byRotation": {
+          "upright": {
+            "n": 61,
+            "ok": 61,
+            "acc": 1
+          },
+          "tapped": {
+            "n": 23,
+            "ok": 22,
+            "acc": 0.957
+          },
+          "upsidedown": {
+            "n": 16,
+            "ok": 16,
+            "acc": 1
+          }
+        },
+        "byOcclusion": {
+          "clear": {
+            "n": 93,
+            "ok": 93,
+            "acc": 1
+          },
+          "overlapped": {
+            "n": 7,
+            "ok": 6,
+            "acc": 0.857
+          }
+        },
+        "firstHalfAcc": 1,
+        "secondHalfAcc": 0.98,
+        "peakHeapMB": 32,
+        "wasmHeapStartMB": 134,
+        "wasmHeapEndMB": 134,
+        "wasmHeapPeakMB": 134,
+        "errorsByStage": {},
+        "stageAvgMs": {
+          "prep": 40,
+          "rank": 0,
+          "orb": 388,
+          "total": 1035
+        },
+        "p90Ms": 1670,
+        "maxMs": 11407,
+        "byPathway": {
+          "art-match": {
+            "n": 94,
+            "ok": 94,
+            "acc": 1
+          },
+          "visual-exact": {
+            "n": 2,
+            "ok": 2,
+            "acc": 1
+          },
+          "(no match)": {
+            "n": 4,
+            "ok": 3,
+            "acc": 0.75
+          }
+        },
+        "byLayout": {
+          "side-by-side": {
+            "n": 60,
+            "ok": 60,
+            "acc": 1
+          },
+          "spaced": {
+            "n": 30,
+            "ok": 30,
+            "acc": 1
+          },
+          "overlapping": {
+            "n": 10,
+            "ok": 9,
+            "acc": 0.9
+          }
+        },
+        "byPool": {
+          "card": {
+            "n": 72,
+            "ok": 71,
+            "acc": 0.986
+          },
+          "token": {
+            "n": 24,
+            "ok": 24,
+            "acc": 1
+          },
+          "basic": {
+            "n": 4,
+            "ok": 4,
+            "acc": 1
+          }
+        },
+        "byClipped": {
+          "0-5% (whole)": {
+            "n": 100,
+            "ok": 99,
+            "acc": 0.99
+          }
+        },
+        "missTrueRank": {
+          "rank 2": 0,
+          "rank 3-5": 0,
+          "rank 6+": 0,
+          "absent": 1
+        },
+        "missAvgDist": 169,
+        "byCoverage": {
+          "0 (clear)": {
+            "n": 91,
+            "ok": 91,
+            "acc": 1
+          },
+          "15-30%": {
+            "n": 5,
+            "ok": 5,
+            "acc": 1
+          },
+          "30%+": {
+            "n": 1,
+            "ok": 0,
+            "acc": 0
+          },
+          "0-15%": {
+            "n": 3,
+            "ok": 3,
+            "acc": 1
+          }
+        },
+        "ranAt": "2026-10-12T07:13:13.282Z"
+      }
+    },
+    "tableauVegasEdh20": {
+      "file": "candidate/tableauVegasEdh20.json",
+      "sha256": "b6aad2a06dcc7285fcee6da731f50396ffce1fc9c155dad8f1faa0929e91be4a",
+      "build": "milo-click-35 (local vision)",
+      "summary": {
+        "n": 200,
+        "errors": 0,
+        "accuracy": 0.96,
+        "avgMs": 1137,
+        "medianMs": 668,
+        "byRotation": {
+          "upright": {
+            "n": 114,
+            "ok": 110,
+            "acc": 0.965
+          },
+          "tapped": {
+            "n": 53,
+            "ok": 49,
+            "acc": 0.925
+          },
+          "upsidedown": {
+            "n": 33,
+            "ok": 33,
+            "acc": 1
+          }
+        },
+        "byOcclusion": {
+          "clear": {
+            "n": 188,
+            "ok": 182,
+            "acc": 0.968
+          },
+          "overlapped": {
+            "n": 10,
+            "ok": 8,
+            "acc": 0.8
+          },
+          "edge": {
+            "n": 2,
+            "ok": 2,
+            "acc": 1
+          }
+        },
+        "firstHalfAcc": 0.96,
+        "secondHalfAcc": 0.96,
+        "peakHeapMB": 27,
+        "wasmHeapStartMB": 134,
+        "wasmHeapEndMB": 134,
+        "wasmHeapPeakMB": 134,
+        "errorsByStage": {},
+        "stageAvgMs": {
+          "prep": 51,
+          "rank": 0,
+          "orb": 388,
+          "total": 1124
+        },
+        "p90Ms": 1582,
+        "maxMs": 11718,
+        "byPathway": {
+          "art-match": {
+            "n": 189,
+            "ok": 189,
+            "acc": 1
+          },
+          "(no match)": {
+            "n": 9,
+            "ok": 1,
+            "acc": 0.111
+          },
+          "visual-exact": {
+            "n": 2,
+            "ok": 2,
+            "acc": 1
+          }
+        },
+        "byLayout": {
+          "side-by-side": {
+            "n": 120,
+            "ok": 115,
+            "acc": 0.958
+          },
+          "spaced": {
+            "n": 60,
+            "ok": 59,
+            "acc": 0.983
+          },
+          "overlapping": {
+            "n": 20,
+            "ok": 18,
+            "acc": 0.9
+          }
+        },
+        "byPool": {
+          "card": {
+            "n": 146,
+            "ok": 140,
+            "acc": 0.959
+          },
+          "token": {
+            "n": 49,
+            "ok": 47,
+            "acc": 0.959
+          },
+          "basic": {
+            "n": 5,
+            "ok": 5,
+            "acc": 1
+          }
+        },
+        "byClipped": {
+          "0-5% (whole)": {
+            "n": 198,
+            "ok": 190,
+            "acc": 0.96
+          },
+          "5-15%": {
+            "n": 2,
+            "ok": 2,
+            "acc": 1
+          }
+        },
+        "perfectCropControl": {
+          "n": 8,
+          "ok": 4,
+          "acc": 0.5
+        },
+        "missTrueRank": {
+          "rank 2": 0,
+          "rank 3-5": 0,
+          "rank 6+": 0,
+          "absent": 8
+        },
+        "missAvgDist": 175,
+        "byCoverage": {
+          "0 (clear)": {
+            "n": 185,
+            "ok": 179,
+            "acc": 0.968
+          },
+          "15-30%": {
+            "n": 6,
+            "ok": 4,
+            "acc": 0.667
+          },
+          "0-15%": {
+            "n": 8,
+            "ok": 8,
+            "acc": 1
+          },
+          "30%+": {
+            "n": 1,
+            "ok": 1,
+            "acc": 1
+          }
+        },
+        "ranAt": "2026-10-12T07:17:37.330Z"
+      }
+    },
+    "tableauEdhDice10": {
+      "file": "candidate/tableauEdhDice10.json",
+      "sha256": "626f85b3e51aa9f3faa295547b7a74fb69fa7010181ac3eda690120acc01d6b1",
+      "build": "milo-click-35 (local vision)",
+      "summary": {
+        "n": 100,
+        "errors": 0,
+        "accuracy": 0.96,
+        "avgMs": 1351,
+        "medianMs": 688,
+        "byRotation": {
+          "upright": {
+            "n": 61,
+            "ok": 59,
+            "acc": 0.967
+          },
+          "tapped": {
+            "n": 23,
+            "ok": 21,
+            "acc": 0.913
+          },
+          "upsidedown": {
+            "n": 16,
+            "ok": 16,
+            "acc": 1
+          }
+        },
+        "byOcclusion": {
+          "clear": {
+            "n": 93,
+            "ok": 92,
+            "acc": 0.989
+          },
+          "overlapped": {
+            "n": 7,
+            "ok": 4,
+            "acc": 0.571
+          }
+        },
+        "firstHalfAcc": 0.98,
+        "secondHalfAcc": 0.94,
+        "peakHeapMB": 32,
+        "wasmHeapStartMB": 134,
+        "wasmHeapEndMB": 134,
+        "wasmHeapPeakMB": 134,
+        "errorsByStage": {},
+        "stageAvgMs": {
+          "prep": 59,
+          "rank": 0,
+          "orb": 438,
+          "total": 1338
+        },
+        "p90Ms": 2235,
+        "maxMs": 10925,
+        "byPathway": {
+          "art-match": {
+            "n": 92,
+            "ok": 92,
+            "acc": 1
+          },
+          "(no match)": {
+            "n": 8,
+            "ok": 4,
+            "acc": 0.5
+          }
+        },
+        "byLayout": {
+          "side-by-side": {
+            "n": 60,
+            "ok": 60,
+            "acc": 1
+          },
+          "spaced": {
+            "n": 30,
+            "ok": 29,
+            "acc": 0.967
+          },
+          "overlapping": {
+            "n": 10,
+            "ok": 7,
+            "acc": 0.7
+          }
+        },
+        "byPool": {
+          "card": {
+            "n": 74,
+            "ok": 70,
+            "acc": 0.946
+          },
+          "token": {
+            "n": 22,
+            "ok": 22,
+            "acc": 1
+          },
+          "basic": {
+            "n": 4,
+            "ok": 4,
+            "acc": 1
+          }
+        },
+        "byDiceColor": {
+          "white": {
+            "n": 20,
+            "ok": 19,
+            "acc": 0.95
+          },
+          "black": {
+            "n": 20,
+            "ok": 18,
+            "acc": 0.9
+          },
+          "blue": {
+            "n": 20,
+            "ok": 19,
+            "acc": 0.95
+          },
+          "red": {
+            "n": 20,
+            "ok": 20,
+            "acc": 1
+          },
+          "pink": {
+            "n": 20,
+            "ok": 20,
+            "acc": 1
+          }
+        },
+        "byClipped": {
+          "0-5% (whole)": {
+            "n": 100,
+            "ok": 96,
+            "acc": 0.96
+          }
+        },
+        "missTrueRank": {
+          "rank 2": 0,
+          "rank 3-5": 0,
+          "rank 6+": 1,
+          "absent": 3
+        },
+        "missAvgDist": 185,
+        "byCoverage": {
+          "0 (clear)": {
+            "n": 91,
+            "ok": 90,
+            "acc": 0.989
+          },
+          "15-30%": {
+            "n": 5,
+            "ok": 3,
+            "acc": 0.6
+          },
+          "30%+": {
+            "n": 1,
+            "ok": 0,
+            "acc": 0
+          },
+          "0-15%": {
+            "n": 3,
+            "ok": 3,
+            "acc": 1
+          }
+        },
+        "ranAt": "2026-10-12T07:20:02.111Z"
+      }
+    },
+    "random200": {
+      "file": "candidate/random200.json",
+      "sha256": "670cab1c25e260544f9e644c24df027d9508259a4db8bcf49ac5f14b3eb5c80b",
+      "build": "milo-click-35 (local vision)",
+      "summary": {
+        "n": 200,
+        "errors": 0,
+        "accuracy": 0.965,
+        "avgMs": 1696,
+        "medianMs": 806,
+        "byRotation": {
+          "upright": {
+            "n": 50,
+            "ok": 49,
+            "acc": 0.98
+          },
+          "tilt": {
+            "n": 50,
+            "ok": 47,
+            "acc": 0.94
+          },
+          "sideways": {
+            "n": 50,
+            "ok": 50,
+            "acc": 1
+          },
+          "upsidedown": {
+            "n": 50,
+            "ok": 47,
+            "acc": 0.94
+          }
+        },
+        "byOcclusion": {
+          "none": {
+            "n": 52,
+            "ok": 52,
+            "acc": 1
+          },
+          "fingers": {
+            "n": 52,
+            "ok": 50,
+            "acc": 0.962
+          },
+          "dice": {
+            "n": 48,
+            "ok": 47,
+            "acc": 0.979
+          },
+          "fingers-dice": {
+            "n": 48,
+            "ok": 44,
+            "acc": 0.917
+          }
+        },
+        "firstHalfAcc": 0.96,
+        "secondHalfAcc": 0.97,
+        "peakHeapMB": 41,
+        "wasmHeapStartMB": 134,
+        "wasmHeapEndMB": 134,
+        "wasmHeapPeakMB": 134,
+        "errorsByStage": {},
+        "stageAvgMs": {
+          "prep": 179,
+          "rank": 0,
+          "orb": 474,
+          "total": 1616
+        },
+        "p90Ms": 4045,
+        "maxMs": 9696,
+        "byPathway": {
+          "art-match": {
+            "n": 130,
+            "ok": 130,
+            "acc": 1
+          },
+          "(no match)": {
+            "n": 70,
+            "ok": 63,
+            "acc": 0.9
+          }
+        },
+        "byPlacement": {
+          "mild-centered-a": {
+            "n": 56,
+            "ok": 56,
+            "acc": 1
+          },
+          "above-click": {
+            "n": 48,
+            "ok": 47,
+            "acc": 0.979
+          },
+          "mild-centered-b": {
+            "n": 48,
+            "ok": 48,
+            "acc": 1
+          },
+          "top-edge-clipped": {
+            "n": 48,
+            "ok": 42,
+            "acc": 0.875
+          }
+        },
+        "missTrueRank": {
+          "rank 2": 0,
+          "rank 3-5": 0,
+          "rank 6+": 0,
+          "absent": 7
+        },
+        "missAvgDist": 180,
+        "ranAt": "2026-10-12T07:25:57.536Z"
+      }
+    },
+    "edh200": {
+      "file": "candidate/edh200.json",
+      "sha256": "0a724438863df7f9f94df170a2565bea1c39ec8465c40409f7059ddc2ec4eb06",
+      "build": "milo-click-35 (local vision)",
+      "summary": {
+        "n": 200,
+        "errors": 0,
+        "accuracy": 0.975,
+        "avgMs": 1503,
+        "medianMs": 772,
+        "byRotation": {
+          "upright": {
+            "n": 50,
+            "ok": 48,
+            "acc": 0.96
+          },
+          "tilt": {
+            "n": 50,
+            "ok": 49,
+            "acc": 0.98
+          },
+          "sideways": {
+            "n": 50,
+            "ok": 50,
+            "acc": 1
+          },
+          "upsidedown": {
+            "n": 50,
+            "ok": 48,
+            "acc": 0.96
+          }
+        },
+        "byOcclusion": {
+          "none": {
+            "n": 52,
+            "ok": 52,
+            "acc": 1
+          },
+          "fingers": {
+            "n": 52,
+            "ok": 49,
+            "acc": 0.942
+          },
+          "dice": {
+            "n": 48,
+            "ok": 47,
+            "acc": 0.979
+          },
+          "fingers-dice": {
+            "n": 48,
+            "ok": 47,
+            "acc": 0.979
+          }
+        },
+        "firstHalfAcc": 0.97,
+        "secondHalfAcc": 0.98,
+        "peakHeapMB": 24,
+        "wasmHeapStartMB": 134,
+        "wasmHeapEndMB": 134,
+        "wasmHeapPeakMB": 134,
+        "errorsByStage": {},
+        "stageAvgMs": {
+          "prep": 168,
+          "rank": 0,
+          "orb": 406,
+          "total": 1429
+        },
+        "p90Ms": 3837,
+        "maxMs": 5033,
+        "byPathway": {
+          "art-match": {
+            "n": 130,
+            "ok": 130,
+            "acc": 1
+          },
+          "(no match)": {
+            "n": 70,
+            "ok": 65,
+            "acc": 0.929
+          }
+        },
+        "byPlacement": {
+          "mild-centered-a": {
+            "n": 56,
+            "ok": 56,
+            "acc": 1
+          },
+          "above-click": {
+            "n": 48,
+            "ok": 48,
+            "acc": 1
+          },
+          "mild-centered-b": {
+            "n": 48,
+            "ok": 48,
+            "acc": 1
+          },
+          "top-edge-clipped": {
+            "n": 48,
+            "ok": 43,
+            "acc": 0.896
+          }
+        },
+        "byPool": {
+          "card": {
+            "n": 148,
+            "ok": 145,
+            "acc": 0.98
+          },
+          "token": {
+            "n": 44,
+            "ok": 42,
+            "acc": 0.955
+          },
+          "basic": {
+            "n": 8,
+            "ok": 8,
+            "acc": 1
+          }
+        },
+        "missTrueRank": {
+          "rank 2": 0,
+          "rank 3-5": 0,
+          "rank 6+": 0,
+          "absent": 5
+        },
+        "missAvgDist": 183,
+        "ranAt": "2026-10-12T07:31:05.672Z"
+      }
+    },
+    "recentHint20": {
+      "file": "candidate/recentHint20.json",
+      "sha256": "af4b416281b5aee0eb1614f301a7f9018eebc32c662907a19148012631410ff1",
+      "build": "milo-click-35 (local vision)",
+      "summary": {
+        "n": 20,
+        "errors": 0,
+        "accuracy": 1,
+        "avgMs": 167,
+        "medianMs": 166,
+        "byRotation": {
+          "upright": {
+            "n": 5,
+            "ok": 5,
+            "acc": 1
+          },
+          "tilt": {
+            "n": 5,
+            "ok": 5,
+            "acc": 1
+          },
+          "sideways": {
+            "n": 5,
+            "ok": 5,
+            "acc": 1
+          },
+          "upsidedown": {
+            "n": 5,
+            "ok": 5,
+            "acc": 1
+          }
+        },
+        "byOcclusion": {
+          "none": {
+            "n": 8,
+            "ok": 8,
+            "acc": 1
+          },
+          "fingers": {
+            "n": 4,
+            "ok": 4,
+            "acc": 1
+          },
+          "dice": {
+            "n": 4,
+            "ok": 4,
+            "acc": 1
+          },
+          "fingers-dice": {
+            "n": 4,
+            "ok": 4,
+            "acc": 1
+          }
+        },
+        "firstHalfAcc": 1,
+        "secondHalfAcc": 1,
+        "peakHeapMB": 20,
+        "wasmHeapStartMB": 134,
+        "wasmHeapEndMB": 134,
+        "wasmHeapPeakMB": 134,
+        "recentHint": {
+          "attempted": 20,
+          "hits": 20,
+          "baselineAvgMs": 819,
+          "hintAvgMs": 167,
+          "speedup": 4.9,
+          "fullCropFallbacks": []
+        },
+        "errorsByStage": {},
+        "stageAvgMs": {
+          "hintPrep": 157,
+          "hint": 4,
+          "total": 166
+        },
+        "p90Ms": 196,
+        "maxMs": 207,
+        "byPathway": {
+          "recent-hint": {
+            "n": 18,
+            "ok": 18,
+            "acc": 1
+          },
+          "art-match": {
+            "n": 2,
+            "ok": 2,
+            "acc": 1
+          }
+        },
+        "byPlacement": {
+          "mild-centered-a": {
+            "n": 16,
+            "ok": 16,
+            "acc": 1
+          },
+          "above-click": {
+            "n": 4,
+            "ok": 4,
+            "acc": 1
+          }
+        },
+        "missTrueRank": {
+          "rank 2": 0,
+          "rank 3-5": 0,
+          "rank 6+": 0,
+          "absent": 0
+        },
+        "missAvgDist": null,
+        "ranAt": "2026-10-12T07:31:43.142Z"
+      }
+    },
+    "arcaneMedium": {
+      "file": "candidate/arcaneMedium.json",
+      "sha256": "2387079343a4dd8c306b2d6dd81e84fdbe79c4a84a43449af4e073ed39ac8e71",
+      "build": "milo-click-35 (local vision)",
+      "summary": {
+        "n": 200,
+        "accuracy": 0.99,
+        "byOcclusion": {},
+        "byPool": {},
+        "byCoverage": {},
+        "byClipped": {},
+        "avgMs": 916,
+        "neighbourMisses": [],
+        "attempted": 200,
+        "correct": 198,
+        "errors": 0,
+        "medianMs": 741,
+        "correctUnder1s": 152,
+        "maxMs": 7340,
+        "p90Ms": 1200,
+        "accepted": {
+          "n": 196,
+          "correct": 196
+        },
+        "byPathway": {
+          "art-match": {
+            "n": 196,
+            "ok": 196,
+            "acc": 1
+          },
+          "(no match)": {
+            "n": 4,
+            "ok": 2,
+            "acc": 0.5
+          }
+        },
+        "byRotation": {},
+        "byLayout": {},
+        "absentMisses": 1,
+        "firstHalf": 100,
+        "secondHalf": 98,
+        "wasmHeapMB": [
+          134,
+          134
+        ],
+        "perfectCropControl": {
+          "n": 0,
+          "ok": 0,
+          "acc": 0
+        },
+        "wasmHeapStartMB": 134,
+        "wasmHeapEndMB": 134,
+        "firstHalfAcc": 1,
+        "secondHalfAcc": 0.98
+      }
+    }
+  },
+  "failures": [],
+  "limitations": [
+    "Full compiled main-app production pages with the unchanged production CSP. Models are warm; these SNAPTEST suites do not measure a physical camera click or first-visit download.",
+    "RealLife and ArcaneMedium use the actual paired production helper, identical source pixels and all per-card arm results. Six additional suites use their actual UI runner with a fresh browser per suite.",
+    "Broad random suites do not have a current-main paired arm. Their documented accuracy/rotation/hint gates and strict confident precision are checked. Every previously correct primary and supplied-photo identity must be retained.",
+    "Paired supplied-photo retention is an additional safety control. This release still selects native improvement evidence; it does not select or relax the separate photo-improvement release policy."
+  ],
+  "drivers": {
+    "benchmark_milo_lookup.mjs": {
+      "authoritativeSha256": "3d275689a60340a8fa084a3da48e1baaf24a3f8c0955d5a2d6fd03118df6edee",
+      "guardedSha256": "6d6e5e2a92794c3fa9e302ef6c709faa878b021ee089803caa6c27990285e2e1",
+      "change": "Only read-only request routing at browser context creation."
+    },
+    "benchmark_recognition_release.mjs": {
+      "authoritativeSha256": "5649dc873c9e6b3ef042228d068b3a0bd5c06a77a26cc37ec95c7a5a393c84ef",
+      "guardedSha256": "1aacf829c3dc1b718f3f710a4fcc71fd162af15f62710842bf2c372bbdb82f2a",
+      "change": "Only read-only request routing at browser context creation."
+    }
+  },
+  "controlPrimary": {
+    "file": "control/realLife.json",
+    "sha256": "9c81bed82b4724525c372e3a06bd610bb666ceae8fc252715bdde320e979ed52",
+    "summary": {
+      "n": 200,
+      "accuracy": 0.945,
+      "byOcclusion": {
+        "clear": {
+          "n": 187,
+          "ok": 180,
+          "acc": 0.963
+        },
+        "overlapped": {
+          "n": 10,
+          "ok": 6,
+          "acc": 0.6
+        },
+        "edge": {
+          "n": 3,
+          "ok": 3,
+          "acc": 1
+        }
+      },
+      "byPool": {
+        "card": {
+          "n": 149,
+          "ok": 141,
+          "acc": 0.946
+        },
+        "token": {
+          "n": 44,
+          "ok": 42,
+          "acc": 0.955
+        },
+        "basic": {
+          "n": 7,
+          "ok": 6,
+          "acc": 0.857
+        }
+      },
+      "byCoverage": {
+        "0 (clear)": {
+          "n": 184,
+          "ok": 177,
+          "acc": 0.962
+        },
+        "0-15%": {
+          "n": 11,
+          "ok": 11,
+          "acc": 1
+        },
+        "15-30%": {
+          "n": 3,
+          "ok": 1,
+          "acc": 0.333
+        },
+        "30%+": {
+          "n": 2,
+          "ok": 0,
+          "acc": 0
+        }
+      },
+      "byClipped": {
+        "0-5% (whole)": {
+          "n": 197,
+          "ok": 186,
+          "acc": 0.944
+        },
+        "5-15%": {
+          "n": 3,
+          "ok": 3,
+          "acc": 1
+        }
+      },
+      "avgMs": 1492,
+      "neighbourMisses": [],
+      "attempted": 200,
+      "correct": 189,
+      "errors": 0,
+      "medianMs": 811,
+      "correctUnder1s": 131,
+      "maxMs": 10274,
+      "p90Ms": 2507,
+      "accepted": {
+        "n": 186,
+        "correct": 186
+      },
+      "byPathway": {
+        "art-match": {
+          "n": 186,
+          "ok": 186,
+          "acc": 1
+        },
+        "(no match)": {
+          "n": 14,
+          "ok": 3,
+          "acc": 0.214
+        }
+      },
+      "byRotation": {
+        "upright": {
+          "n": 109,
+          "ok": 103,
+          "acc": 0.945
+        },
+        "tapped": {
+          "n": 55,
+          "ok": 53,
+          "acc": 0.964
+        },
+        "upsidedown": {
+          "n": 36,
+          "ok": 33,
+          "acc": 0.917
+        }
+      },
+      "byLayout": {
+        "side-by-side": {
+          "n": 120,
+          "ok": 116,
+          "acc": 0.967
+        },
+        "spaced": {
+          "n": 60,
+          "ok": 57,
+          "acc": 0.95
+        },
+        "overlapping": {
+          "n": 20,
+          "ok": 16,
+          "acc": 0.8
+        }
+      },
+      "absentMisses": 10,
+      "firstHalf": 94,
+      "secondHalf": 95,
+      "wasmHeapMB": [
+        134,
+        134
+      ],
+      "perfectCropControl": {
+        "n": 11,
+        "ok": 3,
+        "acc": 0.273
+      },
+      "wasmHeapStartMB": 134,
+      "wasmHeapEndMB": 134,
+      "firstHalfAcc": 0.94,
+      "secondHalfAcc": 0.95
+    }
+  },
+  "pairedPhotos": {
+    "file": "arcane-medium-paired.json",
+    "sha256": "42f8cbb0f28a8b40bbc635c193938dffe778d0e179ce784418cfbf1aedec22d4",
+    "summary": {
+      "baseline": {
+        "n": 200,
+        "accuracy": 0.99,
+        "byOcclusion": {},
+        "byPool": {},
+        "byCoverage": {},
+        "byClipped": {},
+        "avgMs": 913,
+        "neighbourMisses": [],
+        "attempted": 200,
+        "correct": 198,
+        "errors": 0,
+        "medianMs": 727,
+        "correctUnder1s": 148,
+        "maxMs": 6402,
+        "p90Ms": 1391,
+        "accepted": {
+          "n": 196,
+          "correct": 196
+        },
+        "byPathway": {
+          "art-match": {
+            "n": 196,
+            "ok": 196,
+            "acc": 1
+          },
+          "(no match)": {
+            "n": 4,
+            "ok": 2,
+            "acc": 0.5
+          }
+        },
+        "byRotation": {},
+        "byLayout": {},
+        "absentMisses": 1,
+        "firstHalf": 100,
+        "secondHalf": 98,
+        "wasmHeapMB": [
+          134,
+          134
+        ]
+      },
+      "ai": {
+        "n": 200,
+        "accuracy": 0.99,
+        "byOcclusion": {},
+        "byPool": {},
+        "byCoverage": {},
+        "byClipped": {},
+        "avgMs": 916,
+        "neighbourMisses": [],
+        "attempted": 200,
+        "correct": 198,
+        "errors": 0,
+        "medianMs": 741,
+        "correctUnder1s": 152,
+        "maxMs": 7340,
+        "p90Ms": 1200,
+        "accepted": {
+          "n": 196,
+          "correct": 196
+        },
+        "byPathway": {
+          "art-match": {
+            "n": 196,
+            "ok": 196,
+            "acc": 1
+          },
+          "(no match)": {
+            "n": 4,
+            "ok": 2,
+            "acc": 0.5
+          }
+        },
+        "byRotation": {},
+        "byLayout": {},
+        "absentMisses": 1,
+        "firstHalf": 100,
+        "secondHalf": 98,
+        "wasmHeapMB": [
+          134,
+          134
+        ]
+      },
+      "recovered": [],
+      "regressed": [],
+      "proposals": 0,
+      "fastHits": 143,
+      "miloLookups": 190,
+      "miloRescues": [
+        1,
+        7,
+        10,
+        13,
+        18,
+        19,
+        28,
+        37,
+        38,
+        44,
+        52,
+        58,
+        70,
+        72,
+        77,
+        78,
+        80,
+        83,
+        87,
+        88,
+        89,
+        96,
+        102,
+        110,
+        111,
+        115,
+        116,
+        118,
+        119,
+        121,
+        127,
+        137,
+        142,
+        148,
+        149,
+        150,
+        151,
+        154,
+        155,
+        156,
+        157,
+        160,
+        169,
+        172,
+        173,
+        186,
+        189,
+        194,
+        195,
+        196,
+        198
+      ],
+      "recoveredNeighbours": [],
+      "fastPrecision": {
+        "n": 143,
+        "correct": 143
+      }
+    }
+  },
+  "photoControl": {
+    "file": "control/arcaneMedium.json",
+    "sha256": "db358be73c66f54d9e7eb3fcc5392fec07935f727646409b76e74ce5647e2a1a"
+  },
+  "finishedAt": "2026-10-12T07:38:03.127Z"
+}

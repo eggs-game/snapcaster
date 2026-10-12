@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "predeclaredAt": "2026-10-12T05:17:42.108Z",
+  "candidateBuild": "milo-click-35 (local vision)",
+  "scope": "Explicit alternate improvement evidence for a complete recognition release; declared before the full native candidate 200 outcome.",
+  "median": {
+    "maxFreshMedianRatio": 0.9,
+    "minFreshUnder1Gain": 5
+  },
+  "tail": {
+    "maxFreshMedianRatio": 1.05,
+    "maxFreshP90Ratio": 0.85,
+    "minFreshUnder1Gain": 10
+  },
+  "requirements": [
+    "Complete deterministic 200 native fresh lookups with identical JPEG/geometry/catalog pairs; no subset evidence.",
+    "Recompute the selected policy from both original reports rather than trusting a saved ok flag or summary.",
+    "Candidate current BUILD and every final production source/catalog SHA must match; control must be current main.",
+    "No individually regressed primary identity; every confident native and matrix candidate answer must be correct.",
+    "The ordinary primary accuracy-improvement gate and broad accuracy floors remain unchanged outside this explicitly selected mode."
+  ]
+}

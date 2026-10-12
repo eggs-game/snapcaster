@@ -12,6 +12,12 @@ let clock = 0, enabled = true, proposals = [], decoded = [], closed = [], verifi
 let failPreparation = false, release;
 const context = vm.createContext({ Blob, performance: { now: () => clock },
   aiCropEnabled: () => enabled,
+  // These tests isolate geometry preparation. Speculative full recognition
+  // has its own owner/queue tests and must not silently run in this fixture.
+  miloEnabled: () => false, identifyActive: false, queuedIdentify: null,
+  recognitionOwnerSeq: 0, worker: null,
+  releaseMiloContexts: () => { throw new Error("geometry-only preparation cannot own a full verifier job"); },
+  startIdentifyJob: () => { throw new Error("Milo-disabled fixture cannot start speculative recognition"); },
   sourceToBitmap: async (input) => {
     const bitmap = { source: input, width: 594, height: 594, close() { closed.push(bitmap); } };
     decoded.push(bitmap); return bitmap;

@@ -5,6 +5,7 @@ import vm from "node:vm";
 // Run the real verifier with two stalled, low-ranked image downloads. A
 // decisive first-ten result must finish without waiting for the unused tail.
 const source = readFileSync(new URL("../src/recognition/recognizer.js", import.meta.url), "utf8");
+const rawHelper = source.slice(0, source.indexOf("/* eslint"));
 let downloads = 0, deleted = 0;
 const context = vm.createContext({
   performance, DISTINCT_NAME_ORB_STOP:false, splitIdentitySupported:()=>true, catalogArtworkRivals:()=>[], CARD_W:244, CARD_H:340, ORB_SHORTLIST: 12, orbTiming: {},
@@ -17,7 +18,7 @@ const context = vm.createContext({
 });
 const featureCache=source.slice(source.indexOf("const referenceFeatureCache ="),source.indexOf("function orbAlignment("));
 const signatures=source.slice(source.indexOf("const referenceColorCache ="),source.indexOf("function registeredColorAgreement("));
-vm.runInContext(featureCache+signatures+source.slice(source.indexOf("async function verifyTopMatches("), source.indexOf("async function visualFallback(")), context);
+vm.runInContext(rawHelper+featureCache+signatures+source.slice(source.indexOf("async function verifyTopMatches("), source.indexOf("async function visualFallback(")), context);
 const matches = Array.from({length:12}, (_,i) => ({name:`Card ${i}`, scryfall_id:i, distance:100+i}));
 let timer;
 try {
@@ -45,7 +46,7 @@ for (const [shared, text, expected, decisive] of [[true,0,"Event",false], [true,
     whiteBalance:image=>image,colorSignature:()=>[],colorSimilarity:()=>1,
     hasPositiveClickProof:()=>true,referencesShareArtwork:()=>shared,
   });
-  vm.runInContext(featureCache+signatures+source.slice(source.indexOf("async function verifyTopMatches("),source.indexOf("async function visualFallback(")),ctx);
+  vm.runInContext(rawHelper+featureCache+signatures+source.slice(source.indexOf("async function verifyTopMatches("),source.indexOf("async function visualFallback(")),ctx);
   const result=await ctx.verifyTopMatches([
     {name:"Creature",scryfall_id:0,distance:153,click_text_inliers:text},
     {name:"Event",scryfall_id:1,distance:123},
@@ -64,7 +65,7 @@ for (const text of [0,8]) {
     orbAlignment:()=>({score:57}),artworkInlierScore:a=>a.score,whiteBalance:image=>image,
     colorSignature:()=>[],colorSimilarity:()=>1,hasPositiveClickProof:()=>true,referencesShareArtwork:()=>true,
   });
-  vm.runInContext(featureCache+signatures+source.slice(source.indexOf("async function verifyTopMatches("),source.indexOf("async function visualFallback(")),ctx);
+  vm.runInContext(rawHelper+featureCache+signatures+source.slice(source.indexOf("async function verifyTopMatches("),source.indexOf("async function visualFallback(")),ctx);
   const result=await ctx.verifyTopMatches([{name:"Artwork leader",scryfall_id:0,distance:194,regional_proof:true,click_text_inliers:text}],[{}],false);
   assert.equal(result.artDecisive,text>=8,"a detected outline cannot distinguish identical art without printed text");
   assert.equal(result.matches.length,1,"catalog rivals never seed an answer");

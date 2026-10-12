@@ -1,0 +1,9 @@
+Real life versus current main: 1 recovered; 0 regressed
+realLife: release gates passed (95%; median 792ms; p90 1557ms)
+tableauEdh10: release gates passed (99%; median 674ms; p90 1670ms)
+tableauVegasEdh20: release gates passed (96%; median 668ms; p90 1582ms)
+tableauEdhDice10: release gates passed (96%; median 688ms; p90 2235ms)
+random200: release gates passed (96.5%; median 806ms; p90 4045ms)
+edh200: release gates passed (97.5%; median 772ms; p90 3837ms)
+recentHint20: all verified, 4.9x faster, flat WASM heap
+Native tail-improvement: 200 exact JPEG pairs, median ratio 0.968, p90 ratio 0.606, +17 correct under 1s; full matrix and confident precision retained

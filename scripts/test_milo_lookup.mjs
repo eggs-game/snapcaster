@@ -41,6 +41,7 @@ assert.throws(() => validateMiloCatalog(manifest, new Int8Array(256), new Float3
 // Exercise the real rescue boundary, with a fake verifier controlling evidence.
 const worker = readFileSync(new URL("../src/recognition/recognizer.js", import.meta.url), "utf8");
 const boundary = worker.slice(worker.indexOf("async function verifyMiloRows("), worker.indexOf("self.onmessage = async (e)"));
+const ownerFunctions = worker.slice(worker.indexOf("function beginMiloOwner("), worker.indexOf("function prefetchMiloRows("));
 const helpers = worker.slice(worker.indexOf("function contentSupportsIdentity("), worker.indexOf("function homographySourceQuad("));
 const geometry = vm.createContext({splitIdentitySupported:()=>true,});
 vm.runInContext(worker.slice(worker.indexOf("function rectifiedClick("), worker.indexOf("function rectifyCard(")), geometry);
@@ -80,35 +81,55 @@ assert.ok(colors.colorSimilarity(colors.colorSignature(colors.whiteBalance(green
   "one-sided lighting correction can falsely veto strong registered artwork");
 assert.ok(colors.registeredColorAgreement(greenCapture,greenReference).color > .99,
   "registered query and reference need the same lighting treatment");
-for (const evidence of ["weak", "neighbour", "unregistered", "verified", "contrast", "contrast-neighbour"]) {
+for (const evidence of ["weak", "neighbour", "unregistered", "verified", "contrast", "contrast-neighbour",
+  "sensitive", "sensitive-neighbour", "sensitive-unregistered", "contrast-rival"]) {
   const initial = { name: "Old guess", scryfall_id: "old", face: 0, distance: 190 };
   const winner = { name: "Retrieved card", scryfall_id: "new", milo_retrieval: true, face: 0, distance: 150,
-    click_inside: evidence === "unregistered" ? null : !evidence.includes("neighbour"), click_inliers: 24, click_art_inliers: 12 };
+    click_inside: evidence.includes("unregistered") ? null : !evidence.includes("neighbour"), click_inliers: 24, click_art_inliers: 12 };
   let calls = 0;
   const timing = {};
   const context = vm.createContext({splitIdentitySupported:()=>true,
     self: {}, cards: [[], []], cardsSha256: "current", orbTiming: timing,
+    currentMiloOwner: 0, miloOwnerActive: true, miloOwnerCancellation: null, deferredMiloContext: null,
     lastMiloContext: { scanId: 7, base: [initial], images: [{}], queryImages: [{}], dists: [190,150], blockedNames: [],
       result: { matches: [initial], printingMatches: [initial], artChecked: 1 } },
     cardMeta: row => row === 1 ? { ...winner } : { ...initial },
-    verifyTopMatches: async (pool, _images, _shaped, _source, _click, _budget, _regions, contrast) => {
+    verifyTopMatches: async (pool, images, _shaped, _source, _click, _budget, _regions, contrast = false, fastThreshold = 20) => {
       calls++; assert.ok(pool.some(m => m.name === "Old guess"));
+      assert.equal(images.length, 2, "the last pass cannot broaden its query-image budget");
+      assert.equal(contrast, calls > 1, "every later pass keeps the existing CLAHE treatment");
+      assert.equal(fastThreshold, calls === 3 ? 8 : 20, "only the last failed-lookup pass lowers FAST");
       timing.refsRanked = calls * 10; timing.sourceFeat = calls * 7;
-      if (evidence.startsWith("contrast")) assert.equal(!!contrast, calls === 2);
-      return { matches: [winner], artDecisive: evidence !== "weak" && (!evidence.startsWith("contrast") || !!contrast), artChecked: 2 };
+      timing.fastThreshold = fastThreshold; timing.restoreContrast = !!contrast;
+      const artDecisive = evidence === "weak" ? false : evidence.startsWith("sensitive") ? calls === 3
+        : evidence.startsWith("contrast") ? calls === 2 : true;
+      return { matches: [evidence === "contrast-rival" ? initial : winner], artDecisive, artChecked: 2 };
     },
   });
-  vm.runInContext(helpers + boundary, context);
+  vm.runInContext(helpers + ownerFunctions + boundary, context);
   await assert.rejects(context.verifyMiloRows(8, [{ row: 1, score: .999 }], "current"), /mismatch/);
   await assert.rejects(context.verifyMiloRows(7, [{ row: 1, score: .999 }], "stale"), /mismatch/);
   assert.equal(calls, 0, "stale rows must never reach the verifier");
-  const result = await context.verifyMiloRows(7, [{ row: 1, score: .999 }, { row: -1, score: .99 }, { row: 1, score: NaN }], "current");
-  const rescued = ["verified", "contrast"].includes(evidence);
+  let result = await context.verifyMiloRows(7, [{ row: 1, score: .999 }, { row: -1, score: .99 }, { row: 1, score: NaN }], "current", { retainOriginal: true });
+  const eligible = evidence === "weak" || evidence.startsWith("sensitive");
+  assert.equal(result.miloRecoveryEligible, eligible);
+  assert.equal(calls, eligible || evidence.startsWith("contrast") ? 2 : 1,
+    "ordinary Milo verification must not run the sensitive pass before retry");
+  if (eligible) {
+    result = await context.verifyMiloRows(7, [], "current", { recovery: true });
+    await assert.rejects(context.verifyMiloRows(7, [], "current", { recovery: true }), /not eligible/,
+      "one failed snapshot can be consumed only once");
+  }
+  const rescued = ["verified", "contrast", "sensitive"].includes(evidence);
   assert.equal(result.miloRescued, rescued);
   assert.equal(result.matches[0].name, rescued ? winner.name : initial.name, "a high model score alone cannot replace the established result");
   assert.equal(initial.milo_retrieval, undefined, "rescue verification must not mutate baseline matches");
   assert.deepEqual(Array.from(result.miloOrbTiming, t => [t.contrast, t.refsRanked, t.sourceFeat]), evidence.startsWith("contrast")
-    ? [[false,10,7],[true,20,14]] : evidence === "weak" ? [[false,10,7],[true,20,14]] : [[false,10,7]]);
+    ? [[false,10,7],[true,20,14]] : evidence === "weak" || evidence.startsWith("sensitive")
+      ? [[false,10,7],[true,20,14],[true,30,21]] : [[false,10,7]]);
+  assert.deepEqual(Array.from(result.miloOrbTiming, t => [t.fastThreshold, t.restoreContrast]),
+    result.miloOrbTiming.length === 3 ? [[20,false],[20,true],[8,true]]
+      : result.miloOrbTiming.length === 2 ? [[20,false],[20,true]] : [[20,false]]);
   timing.refsRanked = 999;
   assert.equal(result.miloOrbTiming[0].refsRanked, 10, "later passes cannot mutate diagnostic snapshots");
 }

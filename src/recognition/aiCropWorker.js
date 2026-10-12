@@ -5,6 +5,17 @@ const BASE = new URL("/vendor/vision/cornelius-2.12-ort-1.30.0/", self.location.
 const SIZE = 384;
 let sessionPromise;
 let ort;
+const miloOptions = { loadGpuRuntime: async () => {
+  if (!self.navigator?.gpu) return null;
+  const adapter = await self.navigator.gpu.requestAdapter();
+  if (!adapter || adapter.isFallbackAdapter || adapter.info?.isFallbackAdapter) return null;
+  const base = new URL("/vendor/vision/ort-webgpu-1.30.0/", self.location.origin).href;
+  const runtime = await import(/* @vite-ignore */ base + "ort.webgpu.min.mjs");
+  runtime.env.wasm.wasmPaths = base;
+  runtime.env.wasm.numThreads = 1;
+  runtime.env.wasm.proxy = false;
+  return runtime;
+} };
 
 function session() {
   if (!sessionPromise) sessionPromise = (async () => {
@@ -17,18 +28,19 @@ function session() {
   return sessionPromise;
 }
 
-self.onmessage = async ({ data: { id, bmp, point, type, images, retry } }) => {
+self.onmessage = async ({ data: { id, bmp, point, type, images, retry, miloGpu } }) => {
   const started = performance.now();
   try {
     const model = await session();
-    // Both sessions share the same ORT WASM runtime and serialized job queue.
+    // Corner detection stays on its original WASM runtime. Milo may use GPU;
+    // callbacks and all model jobs still share the serialized adapter queue.
     if (type === "milo-warmup") {
-      const catalog = await miloCatalog(ort);
-      self.postMessage({ id, ...catalog, diagnostic: { model: "milo1", status: "ready", ms: Math.round(performance.now() - started) } });
+      const catalog = await miloCatalog(ort, miloGpu === false ? {} : { ...miloOptions, gpuBudgetMs: 5000 });
+      self.postMessage({ id, ...catalog, diagnostic: { model: "milo1", status: "ready", backend: catalog.backend, ms: Math.round(performance.now() - started) } });
       return;
     }
     if (type === "milo-lookup") {
-      self.postMessage({ id, ...await lookupMilo(images || [], ort) });
+      self.postMessage({ id, ...await lookupMilo(images || [], ort, miloGpu === false ? {} : { ...miloOptions, gpuBudgetMs: 800 }) });
       return;
     }
     const canvas = new OffscreenCanvas(SIZE, SIZE);

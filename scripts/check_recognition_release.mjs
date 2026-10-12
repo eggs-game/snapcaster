@@ -2,6 +2,9 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { execFileSync } from "node:child_process";
+import { readNativeReleaseEvidence, assertNativeMatrixPrecision, assertNativePrimaryRetention, sha256 } from "./native_recognition_release.mjs";
 const directory = process.argv[2] || ".cache/recognition-release/click-match-1";
 const gates = { realLife: [200, 0], tableauEdh10: [100, .92], tableauVegasEdh20: [200, .83], tableauEdhDice10: [100, .90], random200: [200, .95], edh200: [200, .93] };
 const primaryOnly=process.argv.includes("--primary");
@@ -9,6 +12,27 @@ const broadOnly=process.argv.includes("--broad");
 assert.ok(!(primaryOnly && broadOnly),"choose one partial check scope");
 let candidateBuild;
 const photoEvidencePath=process.argv.find(arg=>arg.startsWith("--photo-improvement="))?.slice("--photo-improvement=".length);
+const nativeEvidencePath=process.argv.find(arg=>arg.startsWith("--native-improvement="))?.slice("--native-improvement=".length);
+let nativePair;
+if (nativeEvidencePath !== undefined) {
+  assert.ok(nativeEvidencePath, "native improvement requires an evidence file");
+  assert.ok(!photoEvidencePath, "choose one alternate improvement evidence mode");
+  assert.ok(!primaryOnly && !broadOnly, "native improvement requires the complete recognition matrix, not a partial check");
+  assert.ok(process.argv[3] && !process.argv[3].startsWith("--"), "native improvement requires a current-main control directory");
+  const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..");
+  const git=(...args)=>execFileSync("git",args,{cwd:root,encoding:"utf8"});
+  const sourceFiles=execFileSync("rg",["--files","src"],{cwd:root,encoding:"utf8"}).trim().split("\n").filter(file=>/\.(jsx?|css)$/.test(file));
+  const mainFiles=git("ls-tree","-r","--name-only","main","--","src").trim().split("\n").filter(file=>/\.(jsx?|css)$/.test(file));
+  const build=source=>JSON.parse(source.match(/const BUILD = ("[^"]+")/)?.[1] || '"unknown"');
+  const snapshot={
+    build:build(readFileSync(path.join(root,"src/main.jsx"),"utf8")),
+    controlBuild:build(git("show","main:src/main.jsx")),controlCommit:git("rev-parse","main").trim(),
+    sourceDigests:Object.fromEntries(sourceFiles.map(file=>[file,sha256(readFileSync(path.join(root,file)))])),
+    controlSourceDigests:Object.fromEntries(mainFiles.map(file=>[file,sha256(git("show",`main:${file}`))])),
+    catalogDigests:Object.fromEntries(["public/carddata/manifest.json","public/carddata/cards.json","public/carddata/milo/manifest.json"].map(file=>[file,sha256(readFileSync(path.join(root,file)))])),
+  };
+  nativePair=readNativeReleaseEvidence(path.resolve(nativeEvidencePath),snapshot);
+}
 let photoPair;
 if (photoEvidencePath) {
   // A photo-targeted release must prove its improvement on unchanged supplied
@@ -42,6 +66,10 @@ for (const [mode, [n, accuracy]] of Object.entries(primaryOnly ? {realLife:gates
   const s = result.summary;
   candidateBuild ??= result.build;
   assert.equal(result.build,candidateBuild,"one candidate build across the checked release suites");
+  if (nativePair) {
+    assert.equal(result.build,nativePair.builds.candidate,"same current candidate in native and recognition suites");
+    assertNativeMatrixPrecision(result,mode);
+  }
   assert.equal(s.n, n, `${mode}: complete all cards`);
   assert.equal(s.errors, 0, `${mode}: no scan errors`);
   assert.ok(s.accuracy >= accuracy, `${mode}: accuracy ${s.accuracy} < ${accuracy}`);
@@ -63,9 +91,13 @@ for (const [mode, [n, accuracy]] of Object.entries(primaryOnly ? {realLife:gates
         assert.equal(result.build,photoPair.build,"same candidate in photo and crowded-table suites");
         assert.equal(control.build,photoPair.records[0].baseline.build,"same current-main control in both suites");
       }
+      if (nativePair) {
+        assert.equal(control.build,nativePair.builds.control,"same current-main control in native and primary recognition suites");
+        assertNativePrimaryRetention(result,control);
+      }
       assert.equal(control.summary.n, 200); assert.equal(control.summary.errors, 0);
       assert.ok(s.accuracy >= control.summary.accuracy, "Real life: no regression against current-main control");
-      if (!photoEvidencePath) assert.ok(control.misses.length - result.misses.length > 4, "Real life: improvement must exceed the documented two-card-per-100 noise band");
+      if (!photoEvidencePath && !nativePair) assert.ok(control.misses.length - result.misses.length > 4, "Real life: improvement must exceed the documented two-card-per-100 noise band");
       const oldMisses = new Map(control.misses.map(m => [m.i, m]));
       const newMisses = new Map(result.misses.map(m => [m.i, m]));
       for (const [i,m] of newMisses) if (oldMisses.has(i)) assert.equal(m.id,oldMisses.get(i).id,"same deterministic card draw");
@@ -78,6 +110,7 @@ for (const [mode, [n, accuracy]] of Object.entries(primaryOnly ? {realLife:gates
 if(primaryOnly) process.exit(0);
 const hintResult = JSON.parse(readFileSync(path.join(directory, "recentHint20.json")));
 assert.equal(hintResult.build,candidateBuild,"same candidate in hint and recognition suites");
+if (nativePair) assertNativeMatrixPrecision(hintResult,"recentHint20");
 const hint = hintResult.summary;
 assert.equal(hint.n, 20); assert.equal(hint.errors, 0); assert.equal(hint.accuracy, 1);
 assert.equal(hint.recentHint.hits, hint.recentHint.attempted);
@@ -85,3 +118,4 @@ assert.equal(hint.recentHint.fullCropFallbacks.length, 0);
 assert.equal(hint.wasmHeapStartMB, hint.wasmHeapEndMB);
 assert.ok(hint.recentHint.speedup >= 2, "recent hints retain a material speedup");
 console.log(`recentHint20: all verified, ${hint.recentHint.speedup}x faster, flat WASM heap`);
+if (nativePair) console.log(`Native ${nativePair.policy}: ${nativePair.matchedCaptures} exact JPEG pairs, median ratio ${nativePair.gains.fresh.medianRatio.toFixed(3)}, p90 ratio ${nativePair.gains.fresh.p90Ratio.toFixed(3)}, +${nativePair.gains.fresh.correctUnder1s} correct under 1s; full matrix and confident precision retained`);

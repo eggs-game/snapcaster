@@ -1,3 +1,50 @@
+// Research only: provenance values hold WeakRef images, never strong image
+// pointers on globally cached feature objects. No pixels/native handles are
+// retained by this bounded alignment cache. Weak
+// image identities plus every geometric/feature setting bind immutable input.
+const rawAlignmentInputs = new WeakMap();
+function recordRawAlignmentInput(features, image, count, restoreContrast, fastThreshold) {
+  if (typeof WeakRef === "function") rawAlignmentInputs.set(features, { image: new WeakRef(image), count, restoreContrast, fastThreshold });
+  return features;
+}
+
+class RawAlignmentCache {
+  constructor(limit = 256) { this.limit = limit; this.ids = new WeakMap(); this.nextId = 1; this.entries = new Map(); }
+  imageId(image) { if (!this.ids.has(image)) this.ids.set(image, this.nextId++); return this.ids.get(image); }
+  clone(result) { return { ...result, ...(Array.isArray(result.halfInliers) ? { halfInliers: result.halfInliers.slice() } : {}), ...(Array.isArray(result.corners) ? { corners: result.corners.map(p => ({ ...p })) } : {}) }; }
+  key(query, reference, bindings) {
+    const values = bindings.map(v => typeof v === "number" ? ["number", Number.isNaN(v) ? "NaN" : Object.is(v, -0) ? "-0" : String(v)] : [typeof v, v]);
+    return JSON.stringify([this.imageId(query), this.imageId(reference), values]);
+  }
+  align(query, reference, bindings, compute) {
+    orbTiming.alignmentCacheCalls = (orbTiming.alignmentCacheCalls || 0) + 1;
+    const key = this.key(query, reference, bindings);
+    if (this.entries.has(key)) {
+      orbTiming.alignmentCacheHits = (orbTiming.alignmentCacheHits || 0) + 1;
+      const entry = this.entries.get(key); this.entries.delete(key); this.entries.set(key, entry); return this.clone(entry);
+    }
+    orbTiming.alignmentCacheMisses = (orbTiming.alignmentCacheMisses || 0) + 1;
+    const result = compute();
+    if (this.entries.size >= this.limit) this.entries.delete(this.entries.keys().next().value);
+    this.entries.set(key, this.clone(result)); return result;
+  }
+}
+
+function rawAlignment(cache, query, reference, click = null, region = null, clippedFrame = false) {
+  const q = rawAlignmentInputs.get(query), r = rawAlignmentInputs.get(reference);
+  const qImage = q?.image.deref(), rImage = r?.image.deref();
+  if (!cache || !q || !r || !qImage || !rImage || q.restoreContrast || r.restoreContrast || q.fastThreshold !== 20 || r.fastThreshold !== 20
+    || ![500, 1600].includes(q.count) || r.count !== 300) {
+    orbTiming.alignmentCacheBypasses = (orbTiming.alignmentCacheBypasses || 0) + 1;
+    return orbAlignment(query, reference, click, region, clippedFrame);
+  }
+  const bindings = [q.count, r.count, q.fastThreshold, r.fastThreshold, qImage.width, qImage.height,
+    rImage.width, rImage.height, !!clippedFrame, click !== null, click?.x, click?.y, region !== null,
+    region?.width, region?.height, region?.click?.x, region?.click?.y, region?.cameraToCrop?.length,
+    ...Array.from(region?.cameraToCrop || [])];
+  return cache.align(qImage, rImage, bindings, () => orbAlignment(query, reference, click, region, clippedFrame));
+}
+
 /* eslint-disable no-restricted-globals */
 // Classic Web Worker: runs the whole card-recognition pipeline (OpenCV outline
 // detection + perspective rectify, then perceptual hashing + Hamming search)
@@ -1759,7 +1806,7 @@ function waitForCV(ms) {
   });
 }
 
-async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads = [], aiOnly = false, aiCandidates = [], useMilo = false, notifyMilo = null, hintsOnly = false) {
+async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads = [], aiOnly = false, aiCandidates = [], useMilo = false, notifyMilo = null, hintsOnly = false, isActive = null) {
   await loadIndex();
   // Prefer the accurate OpenCV pipeline, but don't hang the first scan forever
   // if it's still compiling — fall back to center-crop this once; the diagnostic
@@ -1783,7 +1830,11 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads =
     ny: Number.isFinite(ny) ? Math.max(0, Math.min(1, ny)) : 0.5,
   };
   const click = { x: normalizedPoint.nx * bmp.width, y: normalizedPoint.ny * bmp.height };
+  // ImageBitmap dimensions become zero after close(); verification keeps
+  // using these source coordinates after crop production releases it.
+  const sourceWidth = bmp.width, sourceHeight = bmp.height;
   let sourceImageData = null;
+  const alignmentCache = aiOnly && useMilo ? new RawAlignmentCache(256) : null;
   const getSourceImageData = () => {
     if (!sourceImageData) sourceImageData = bitmapToImageData(bmp);
     return sourceImageData;
@@ -1791,7 +1842,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads =
   const queryRegionsFor = (images) => images.map(image => {
     const candidate = candidates.find(c => c.image === image && c.sourceClick && c.cameraToCrop);
     return candidate ? { mappedClick: candidate.sourceClick, cameraToCrop: candidate.cameraToCrop,
-      click, width: bmp.width, height: bmp.height } : null;
+      click, width: sourceWidth, height: sourceHeight } : null;
   });
   const preparedCache = new WeakMap();
   let hintedQuads = null;
@@ -2478,7 +2529,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads =
         prepared.find((p) => p.candidate.strategy === "art-50")?.candidate.image,
       ].filter((image, i, all) => image && all.indexOf(image) === i);
       try {
-        const verified = await verifyTopMatches(pool, images, cardShapedStrategy(bestCandidateStrategy), getSourceImageData(), click, 0, queryRegionsFor(images));
+        const verified = await verifyTopMatches(pool, images, cardShapedStrategy(bestCandidateStrategy), getSourceImageData(), click, 0, queryRegionsFor(images), false, 20, null, isActive);
         const best = verified.matches[0];
         if (verified.artDecisive && best?.click_inside === true
           && best.click_inliers >= 24 && hasClickProof(best)) earlyVerified = verified;
@@ -2711,11 +2762,11 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads =
       if (!aiOnly) for (const candidate of candidates.filter(c => c.strategy.startsWith("ai-crop-")).slice(0, 2)) {
         if (!queryImages.includes(candidate.image)) queryImages.push(candidate.image);
       }
-      if (aiOnly && useMilo && bestCandidateDistance > 150 && notifyMilo) {
+      if (aiOnly && useMilo && bestCandidateDistance > CONF_GOOD && notifyMilo) {
         const images = candidates.filter(c => c.strategy === "full-frame" || c.strategy.startsWith("ai-crop-")).slice(0, 2).map(c => c.image);
-        if (images.length === 1) notifyMilo(images);
+        if (images.length) notifyMilo(images);
       }
-      const verified = earlyVerified || await verifyTopMatches(verificationPool, queryImages, cardShaped, getSourceImageData(), click, verificationPool.length - verificationCandidates.length, queryRegionsFor(queryImages));
+      const verified = earlyVerified || await verifyTopMatches(verificationPool, queryImages, cardShaped, getSourceImageData(), click, verificationPool.length - verificationCandidates.length, queryRegionsFor(queryImages), false, 20, alignmentCache, isActive);
       // Keep the result UI compact after printing-level verification. The best
       // verified treatment wins for each name, and a decisive exact artwork
       // remains first.
@@ -2730,7 +2781,7 @@ async function identify(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads =
       artDecisive = verified.artDecisive;
       blockedNames = verified.blockedNames || [];
       if (aiOnly && useMilo && !artDecisive && (matchesOut[0]?.distance ?? Infinity) > CONF_GOOD) {
-        miloContext = { queryImages, cardShaped, source: getSourceImageData(), click,
+        miloContext = { alignmentCache, queryImages, cardShaped, source: getSourceImageData(), click,
           base: verified.matches, dists, blockedNames,
           hashes: candidates.filter(c => c.strategy === "full-frame" || c.strategy.startsWith("ai-crop-")).flatMap(c => prepareCandidate(c).variants),
           sourceRegions: new Map(candidates.filter(c => c.sourceClick && c.cameraToCrop).map(c => [c.image, {
@@ -2864,36 +2915,46 @@ function cachedReferencePreview(match) {
   return null;
 }
 
-function orbFeatures(imageData, nfeatures, restoreContrast = false) {
+function orbFeatures(imageData, nfeatures, restoreContrast = false, fastThreshold = 20) {
   const cv = self.cv;
-  const src = cv.matFromImageData(imageData);
-  const gray = new cv.Mat();
-  const mask = new cv.Mat();
-  const kp = new cv.KeyPointVector();
-  const desc = new cv.Mat();
-  const orb = new cv.ORB(nfeatures);
+  let src, gray, mask, kp, desc, orb;
   try {
+    src = cv.matFromImageData(imageData);
+    gray = new cv.Mat();
+    mask = new cv.Mat();
+    kp = new cv.KeyPointVector();
+    desc = new cv.Mat();
+    orb = new cv.ORB(nfeatures);
+    if (fastThreshold !== 20) orb.setFastThreshold(fastThreshold);
     cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
     if (restoreContrast) {
-      const enhanced = new cv.Mat(), clahe = new cv.CLAHE(3, new cv.Size(8, 8));
-      try { clahe.apply(gray, enhanced); enhanced.copyTo(gray); }
-      finally { enhanced.delete(); clahe.delete(); }
+      let enhanced, clahe;
+      try {
+        enhanced = new cv.Mat();
+        clahe = new cv.CLAHE(3, new cv.Size(8, 8));
+        clahe.apply(gray, enhanced); enhanced.copyTo(gray);
+      } finally { enhanced?.delete(); clahe?.delete(); }
     }
     orb.detectAndCompute(gray, mask, kp, desc);
+    const features = { kp, desc, width: imageData.width, height: imageData.height };
+    return recordRawAlignmentInput(features, imageData, nfeatures, restoreContrast, fastThreshold);
+  } catch (error) {
+    kp?.delete(); desc?.delete();
+    throw error;
   } finally {
-    src.delete(); gray.delete(); mask.delete(); orb.delete();
+    src?.delete(); gray?.delete(); mask?.delete(); orb?.delete();
   }
-  return { kp, desc, width: imageData.width, height: imageData.height };
 }
 
 const referenceFeatureCache = [];
-function referenceFeatures(image, restoreContrast = false) {
+function referenceFeatures(image, restoreContrast = false, fastThreshold = 20) {
   orbTiming.refFeatureCalls = (orbTiming.refFeatureCalls || 0) + 1;
   if (typeof WeakRef !== "function") {
     orbTiming.refFeatureMisses = (orbTiming.refFeatureMisses || 0) + 1;
-    return orbFeatures(image, 300, restoreContrast);
+    return orbFeatures(image, 300, restoreContrast, fastThreshold);
   }
-  const found = referenceFeatureCache.findIndex(entry => entry.image.deref() === image && entry.restoreContrast === restoreContrast);
+  const found = referenceFeatureCache.findIndex(entry => entry.image.deref() === image
+    && entry.restoreContrast === restoreContrast && entry.fastThreshold === fastThreshold);
   if (found >= 0) {
     orbTiming.refFeatureHits = (orbTiming.refFeatureHits || 0) + 1;
     const [entry] = referenceFeatureCache.splice(found, 1);
@@ -2905,9 +2966,9 @@ function referenceFeatures(image, restoreContrast = false) {
     const oldest = referenceFeatureCache.shift().features;
     oldest.kp.delete(); oldest.desc.delete();
   }
-  const features = orbFeatures(image, 300, restoreContrast);
+  const features = orbFeatures(image, 300, restoreContrast, fastThreshold);
   features.cachedReference = true;
-  referenceFeatureCache.push({ image: new WeakRef(image), restoreContrast, features });
+  referenceFeatureCache.push({ image: new WeakRef(image), restoreContrast, fastThreshold, features });
   return features;
 }
 function releaseReferenceFeatures(features) {
@@ -3293,7 +3354,15 @@ function referencesShareArtwork(a, b, key) {
   return shared;
 }
 
-async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source = null, click = null, extraBudget = 0, queryRegions = [], featureMode = false) {
+async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source = null, click = null, extraBudget = 0, queryRegions = [], featureMode = false, fastThreshold = 20, alignmentCache = null, isActive = null) {
+  const assertActive = () => {
+    if (isActive && !isActive()) throw new Error("Superseded recognition verification");
+  };
+  assertActive();
+  const waitForReference = promise => isActive?.cancelled
+    ? Promise.race([promise, isActive.cancelled.then(() => {
+      throw new Error("Superseded recognition verification");
+    })]) : promise;
   // The first 24 entries come from combined ranking; the remaining bounded
   // slots are pure-art rescues that the old 24-item slice silently discarded.
   const limit = ORB_SHORTLIST + Math.min(24, Math.max(0, extraBudget));
@@ -3305,6 +3374,9 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source 
   orbTiming.sourceFeat = 0; orbTiming.sourceProbes = 0; orbTiming.sourceMatch = 0;
   orbTiming.distinctEarlyStopRank = -1;
   orbTiming.distinctNameStop = DISTINCT_NAME_ORB_STOP;
+  orbTiming.fastThreshold = fastThreshold;
+  orbTiming.restoreContrast = !!featureMode;
+  orbTiming.alignmentCacheCalls = 0; orbTiming.alignmentCacheHits = 0; orbTiming.alignmentCacheMisses = 0; orbTiming.alignmentCacheBypasses = 0;
   const jobs = shortlist.map(m => fetchReference(m.scryfall_id, m.face || 0));
   const detailJobs = shortlist.map(m => m.milo_highres ? fetchReference(m.scryfall_id, m.face || 0, "normal") : null);
   const enlargedQuery = queryImages.some(image => Math.min(image.width, image.height) > CARD_W * 1.2
@@ -3315,20 +3387,25 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source 
   const referenceAt = async i => {
     inspected.add(i); orbTiming.refsInspected = inspected.size;
     const started = performance.now();
-    [refs[i], detailed[i], enlarged[i]] = await Promise.all([jobs[i], detailJobs[i], enlargedJobs[i]]);
+    [refs[i], detailed[i], enlarged[i]] = await waitForReference(Promise.all([jobs[i], detailJobs[i], enlargedJobs[i]]));
     orbTiming.fetch += performance.now() - started;
+    // Cached promises yield only microtasks. Give queued cancellation a task
+    // boundary after a bounded number of references, then recheck the owner.
+    if (isActive && inspected.size % 8 === 0) await new Promise(resolve => setTimeout(resolve, 0));
+    assertActive();
   };
   const tQF = performance.now();
   const contrastRescue = featureMode;
-  const queryFeats = queryImages.map((img) => orbFeatures(img, 500, contrastRescue));
-  orbTiming.queryFeat = performance.now() - tQF;
-  // References are neutral Scryfall scans, so neutralize the query's room cast
-  // before comparing color and frame-ring hue.
-  const wbQuery = whiteBalance(queryImages[0]);
-  const querySig = colorSignature(wbQuery);
-  const queryRing = queryIsCardShaped ? ringSignature(wbQuery) : null;
+  const queryFeats = [];
   const clippedFrame = queryIsCardShaped && queryImages.includes(source);
   try {
+    for (const image of queryImages) queryFeats.push(orbFeatures(image, 500, contrastRescue, fastThreshold));
+    orbTiming.queryFeat = performance.now() - tQF;
+    // References are neutral Scryfall scans, so neutralize the query's room cast
+    // before comparing color and frame-ring hue.
+    const wbQuery = whiteBalance(queryImages[0]);
+    const querySig = colorSignature(wbQuery);
+    const queryRing = queryIsCardShaped ? ringSignature(wbQuery) : null;
     let lead = 0, second = 0;
     const nameScores = new Map();
     for (let i = 0; i < shortlist.length; i++) {
@@ -3338,13 +3415,13 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source 
       let inliers = 0, registeredCorners = null;
       for (const reference of [refs[i], detailed[i], enlarged[i]].filter(Boolean)) {
         const tRF = performance.now();
-        const rf = referenceFeatures(reference, contrastRescue);
+        const rf = referenceFeatures(reference, contrastRescue, fastThreshold);
         orbTiming.refFeat += performance.now() - tRF;
         try {
           const tM = performance.now();
           for (let j = 0; j < queryFeats.length; j++) {
             const region = queryRegions[j];
-            const alignment = orbAlignment(queryFeats[j], rf, region?.mappedClick || null, region || null);
+            const alignment = rawAlignment(alignmentCache, queryFeats[j], rf, region?.mappedClick || null, region || null);
             inliers = Math.max(inliers, artworkInlierScore(alignment));
             if (region && recordRegionalProof(shortlist[i], alignment) && alignment.inside === true && alignment.corners) {
               registeredCorners = alignment.corners;
@@ -3388,6 +3465,7 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source 
     for (const qf of queryFeats) { qf.kp.delete(); qf.desc.delete(); }
 
   }
+  assertActive();
   if (source && click) {
     // Inspect only the plausible leaders, not every downloaded reference.
     // The extra proof must not erase the sub-second local crop fast path.
@@ -3397,7 +3475,7 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source 
     }
     const needsFull = probes.some(item => !(item.regional_proof && hasPositiveClickProof(item)));
     const tSF = performance.now();
-    const full = needsFull ? orbFeatures(source, 1600, contrastRescue) : null;
+    const full = needsFull ? orbFeatures(source, 1600, contrastRescue, fastThreshold) : null;
     orbTiming.sourceFeat = needsFull ? performance.now() - tSF : 0;
     try {
       for (const item of probes) {
@@ -3415,10 +3493,10 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source 
           const quality = a => (a.inside === true && a.inliers >= 16 && contentSupportsIdentity(a, 8) ? 10000 : 0)
             + (a.inside !== null && contentSupportsIdentity(a, 8) ? 1000 : 0) + a.inliers;
           for (const image of [ref, detailed[index], enlarged[index]].filter(Boolean)) {
-            const rf = referenceFeatures(image, contrastRescue);
+            const rf = referenceFeatures(image, contrastRescue, fastThreshold);
             try {
               const tSM = performance.now();
-              const candidate = orbAlignment(full, rf, click, null, clippedFrame);
+              const candidate = rawAlignment(alignmentCache, full, rf, click, null, clippedFrame);
               orbTiming.sourceMatch += performance.now() - tSM;
               if (!alignment || quality(candidate) > quality(alignment)) { alignment = candidate; ref = image; }
             } finally { releaseReferenceFeatures(rf); }
@@ -3474,7 +3552,8 @@ async function verifyTopMatches(matches, queryImages, queryIsCardShaped, source 
     const a = shortlist.indexOf(leader);
     if (refs[a] === undefined) await referenceAt(a);
     for (const rival of catalogArtworkRivals(leader)) {
-      const ref = await fetchReference(rival.scryfall_id, rival.face || 0);
+      const ref = await waitForReference(fetchReference(rival.scryfall_id, rival.face || 0));
+      assertActive();
       const key = [leader, rival].map(m => `${m.scryfall_id}:${m.face || 0}`).sort().join("|");
       if (refs[a] && ref && referencesShareArtwork(refs[a], ref, key)) {
         leader.shared_artwork = true; break;
@@ -3634,6 +3713,40 @@ loadCV().catch(() => {});
 // rendered on demand. Only the newest scan is kept (bounded memory).
 let lastTitleSource = { scanId: null, candidates: [] };
 let lastMiloContext = null;
+let deferredMiloContext = null;
+let currentMiloOwner = 0;
+let miloOwnerActive = true;
+let miloOwnerCancellation = null;
+
+function beginMiloOwner(ownerId) {
+  if (!Number.isSafeInteger(ownerId) || ownerId < currentMiloOwner) return false;
+  if (ownerId !== currentMiloOwner) {
+    miloOwnerCancellation?.resolve();
+    let resolve;
+    const promise = new Promise(done => { resolve = done; });
+    miloOwnerCancellation = { ownerId, promise, resolve };
+    lastTitleSource = { scanId: null, candidates: [] };
+    lastMiloContext = null;
+    deferredMiloContext = null;
+    currentMiloOwner = ownerId;
+    miloOwnerActive = true;
+  }
+  return miloOwnerActive;
+}
+
+function releaseMiloOwner(ownerId) {
+  if (ownerId !== currentMiloOwner) return;
+  lastMiloContext = null;
+  deferredMiloContext = null;
+  miloOwnerActive = false;
+  miloOwnerCancellation?.resolve();
+}
+
+function miloOwnerGuard(ownerId) {
+  const guard = () => miloOwnerActive && currentMiloOwner === ownerId;
+  guard.cancelled = miloOwnerCancellation?.ownerId === ownerId ? miloOwnerCancellation.promise : null;
+  return guard;
+}
 
 function prefetchMiloRows(rows, fingerprint) {
   if (!cards?.length || !cardsSha256 || fingerprint !== cardsSha256) return;
@@ -3647,10 +3760,30 @@ function prefetchMiloRows(rows, fingerprint) {
   }
 }
 
-async function verifyMiloRows(scanId, rows, fingerprint) {
-  const context = lastMiloContext;
+async function verifyMiloRows(scanId, rows, fingerprint, options = {}) {
+  const context = options.recovery
+    ? [lastMiloContext, deferredMiloContext].find(value => value?.scanId === scanId)
+    : lastMiloContext;
+  const ownerId = options.ownerId ?? context?.ownerId ?? 0;
   // A row number is meaningful only for the exact cards.json used to build it.
-  if (!context || context.scanId !== scanId || !cardsSha256 || fingerprint !== cardsSha256) throw new Error("Milo catalog/scan mismatch");
+  if (!context || context.scanId !== scanId || (context.ownerId ?? 0) !== ownerId
+      || currentMiloOwner !== ownerId || !miloOwnerActive || !cardsSha256 || fingerprint !== cardsSha256) throw new Error("Milo catalog/scan mismatch");
+  if (options.recovery) {
+    const snapshot = context.recovery;
+    if (!snapshot) throw new Error("Milo recovery is not eligible");
+    // Consume one bounded snapshot. A cancelled await may still hold its local
+    // pixels, but it cannot keep a worker slot or publish to a newer request.
+    context.recovery = null;
+    if (deferredMiloContext === context) deferredMiloContext = null;
+    const sensitive = await verifyTopMatches(snapshot.pool.map(match => ({ ...match })), snapshot.queries,
+      context.cardShaped, context.source, context.click, snapshot.added, snapshot.regions, true, 8, null, miloOwnerGuard(ownerId));
+    if (currentMiloOwner !== ownerId || !miloOwnerActive) throw new Error("Milo catalog/scan mismatch");
+    const verified = sensitive.artDecisive && sensitive.matches[0]?.milo_retrieval ? sensitive : snapshot.verified;
+    return miloVerificationResult(context, snapshot.proposals, verified,
+      [...snapshot.timing, { contrast: true, ...orbTiming }]);
+  }
+  context.recovery = null;
+  const isActive = miloOwnerGuard(ownerId);
   const blocked = new Set(context.blockedNames), seen = new Set(), proposals = [];
   for (const entry of Array.isArray(rows) ? rows.slice(0, 12) : []) {
     if (!Number.isInteger(entry.row) || entry.row < 0 || entry.row >= cards.length || !Number.isFinite(entry.score) || seen.has(entry.row)) continue;
@@ -3672,17 +3805,29 @@ async function verifyMiloRows(scanId, rows, fingerprint) {
   const queries = [...new Set([...context.queryImages, ...context.images])].slice(0, 2);
   const pool = [...added, ...base], regions = queries.map(image => context.sourceRegions?.get(image) || null);
   let verified = await verifyTopMatches(pool, queries,
-    context.cardShaped, context.source, context.click, added.length, regions);
+    context.cardShaped, context.source, context.click, added.length, regions, false, 20, context.alignmentCache, isActive);
   const miloOrbTiming = [{ contrast: false, ...orbTiming }];
   if (!verified.artDecisive && added.length) {
     // Retrieval provides the bounded identities; local contrast restores
     // keypoints lost to a lighting gradient. Keep the same geometric/content
     // acceptance rules and preserve the ordinary verifier's successful reads.
     const enhanced = await verifyTopMatches(pool.map(m => ({ ...m })), queries,
-      context.cardShaped, context.source, context.click, added.length, regions, true);
+      context.cardShaped, context.source, context.click, added.length, regions, true, 20, null, isActive);
     miloOrbTiming.push({ contrast: true, ...orbTiming });
     if (enhanced.artDecisive && enhanced.matches[0]?.milo_retrieval) verified = enhanced;
+    // Normal crop retries get their chance before lower-contrast detection.
+    // Preserve the exact raw-populated pool; enhanced.matches may omit rivals.
+    context.recovery = !enhanced.artDecisive ? { pool: pool.map(match => ({ ...match })), queries, regions,
+      added: added.length, proposals, verified, timing: miloOrbTiming } : null;
   }
+  if (currentMiloOwner !== ownerId || !miloOwnerActive) throw new Error("Milo catalog/scan mismatch");
+  if (options.retainOriginal && context.recovery) deferredMiloContext = context;
+  return { ...miloVerificationResult(context, proposals, verified, miloOrbTiming),
+    miloRecoveryEligible: !!context.recovery, miloRecoveryScanId: context.scanId };
+}
+
+function miloVerificationResult(context, proposals, verified, miloOrbTiming) {
+  const blocked = new Set(context.blockedNames);
   const winner = verified.matches[0];
   const rescued = verified.artDecisive && winner?.milo_retrieval && winner.click_inside === true && hasClickProof(winner);
   const names = new Set();
@@ -3703,7 +3848,9 @@ async function verifyMiloRows(scanId, rows, fingerprint) {
 }
 
 self.onmessage = async (e) => {
-  const { id, type, bmp, point, hints, aiQuads, aiOnly, aiCandidates, queryCandidates, scanId, enabled } = e.data || {};
+  const { id, type, bmp, point, hints, aiQuads, aiOnly, aiCandidates, queryCandidates, scanId, enabled, ownerId } = e.data || {};
+  if (type === "milo-begin") { beginMiloOwner(ownerId); return; }
+  if (type === "milo-release") { releaseMiloOwner(ownerId); return; }
   if (type === "set-early-orb-probe") {
     EARLY_ORB_PROBE = e.data.enabled === true;
     self.postMessage({ id, earlyOrbProbe: EARLY_ORB_PROBE });
@@ -3770,21 +3917,27 @@ self.onmessage = async (e) => {
     prefetchMiloRows(e.data.rows, e.data.cards_sha256);
   } else if (type === "milo-verify") {
     try {
-      const res = await verifyMiloRows(scanId, e.data.rows, e.data.cards_sha256);
+      const res = await verifyMiloRows(scanId, e.data.rows, e.data.cards_sha256,
+        { ownerId, retainOriginal: e.data.retainOriginal === true, recovery: e.data.recovery === true });
       lastTitleSource.scanId = id;
       self.postMessage({ id, ...res, referencePreview: cachedReferencePreview(res.matches?.[0]) });
     } catch (err) { self.postMessage({ id, error: String(err?.message || err) }); }
   } else if (type === "identify") {
     try {
-      lastMiloContext = null;
+      const ownsMilo = beginMiloOwner(ownerId ?? id);
+      if (ownsMilo) lastMiloContext = null;
       const res = await identify(bmp, point, hints, aiQuads, aiOnly, aiCandidates, e.data.milo,
         e.data.miloPreviewEnabled ? images => self.postMessage({ id, type: "milo-preview", images }) : null,
-        e.data.hintsOnly === true);
-      lastTitleSource = { scanId: id, candidates: res.titleSource || [] };
+        e.data.hintsOnly === true,
+        miloOwnerGuard(ownerId ?? id));
+      if (ownsMilo && miloOwnerActive && currentMiloOwner === (ownerId ?? id))
+        lastTitleSource = { scanId: id, candidates: res.titleSource || [] };
       delete res.titleSource; // ImageData payloads stay in-worker
       const context = res.miloContext;
       delete res.miloContext;
-      if (context) lastMiloContext = { ...context, scanId: id, result: { ...res, miloImages: [] } };
+      if (context && ownsMilo && miloOwnerActive && currentMiloOwner === (ownerId ?? id)) lastMiloContext = {
+        ...context, scanId: id, ownerId: ownerId ?? id, result: { ...res, miloImages: [] },
+      };
       self.postMessage({ id, ...res, referencePreview: res.hintMiss ? null : cachedReferencePreview(res.matches?.[0]) });
     } catch (err) {
       if (bmp && bmp.close) bmp.close();

@@ -1,0 +1,791 @@
+{
+  "ok": true,
+  "exactPaired": true,
+  "status": "passed",
+  "note": "Additional native click-to-paint gate only; the existing recognition accuracy release matrix remains required and unchanged.",
+  "builds": {
+    "control": "milo-click-34 (local vision)",
+    "candidate": "milo-click-35 (local vision)"
+  },
+  "modes": [
+    "fresh"
+  ],
+  "matchedCaptures": 200,
+  "expectedCaptures": 200,
+  "matchedSourceCaptures": 400,
+  "policy": "tail-improvement",
+  "predeclaredFreshThresholds": {
+    "maxFreshMedianRatio": 1.05,
+    "maxFreshP90Ratio": 0.85,
+    "minFreshUnder1Gain": 10
+  },
+  "thresholds": {
+    "maxFreshMedianRatio": 1.05,
+    "maxFreshP90Ratio": 0.85,
+    "minFreshUnder1Gain": 10
+  },
+  "gains": {
+    "fresh": {
+      "medianRatio": 0.968019680196802,
+      "p90Ratio": 0.6063067367415194,
+      "correctUnder1s": 17
+    }
+  },
+  "summary": {
+    "fresh": {
+      "control": {
+        "n": 200,
+        "correct": 189,
+        "correctUnder1s": 131,
+        "confident": {
+          "n": 189,
+          "correct": 189,
+          "precision": 1
+        },
+        "displayMs": {
+          "n": 189,
+          "p50": 813,
+          "p90": 2093,
+          "max": 4165
+        },
+        "firstHalf": {
+          "n": 100,
+          "correct": 95,
+          "correctUnder1s": 67,
+          "confident": {
+            "n": 95,
+            "correct": 95,
+            "precision": 1
+          },
+          "displayMs": {
+            "n": 95,
+            "p50": 809,
+            "p90": 1989,
+            "max": 3210
+          }
+        },
+        "secondHalf": {
+          "n": 100,
+          "correct": 94,
+          "correctUnder1s": 64,
+          "confident": {
+            "n": 94,
+            "correct": 94,
+            "precision": 1
+          },
+          "displayMs": {
+            "n": 94,
+            "p50": 816,
+            "p90": 2115,
+            "max": 4165
+          }
+        },
+        "byRotation": {
+          "upright": {
+            "n": 109,
+            "correct": 102,
+            "correctUnder1s": 72,
+            "confident": {
+              "n": 102,
+              "correct": 102,
+              "precision": 1
+            },
+            "displayMs": {
+              "n": 102,
+              "p50": 815,
+              "p90": 1923,
+              "max": 4165
+            }
+          },
+          "tapped": {
+            "n": 55,
+            "correct": 53,
+            "correctUnder1s": 38,
+            "confident": {
+              "n": 53,
+              "correct": 53,
+              "precision": 1
+            },
+            "displayMs": {
+              "n": 53,
+              "p50": 802,
+              "p90": 2059,
+              "max": 2857
+            }
+          },
+          "upsidedown": {
+            "n": 36,
+            "correct": 34,
+            "correctUnder1s": 21,
+            "confident": {
+              "n": 34,
+              "correct": 34,
+              "precision": 1
+            },
+            "displayMs": {
+              "n": 34,
+              "p50": 857,
+              "p90": 2200,
+              "max": 3753
+            }
+          }
+        },
+        "byLayout": {
+          "side-by-side": {
+            "n": 120,
+            "correct": 114,
+            "correctUnder1s": 80,
+            "confident": {
+              "n": 114,
+              "correct": 114,
+              "precision": 1
+            },
+            "displayMs": {
+              "n": 114,
+              "p50": 809,
+              "p90": 2093,
+              "max": 4165
+            }
+          },
+          "spaced": {
+            "n": 60,
+            "correct": 58,
+            "correctUnder1s": 44,
+            "confident": {
+              "n": 58,
+              "correct": 58,
+              "precision": 1
+            },
+            "displayMs": {
+              "n": 58,
+              "p50": 802,
+              "p90": 1989,
+              "max": 2845
+            }
+          },
+          "overlapping": {
+            "n": 20,
+            "correct": 17,
+            "correctUnder1s": 7,
+            "confident": {
+              "n": 17,
+              "correct": 17,
+              "precision": 1
+            },
+            "displayMs": {
+              "n": 17,
+              "p50": 1047,
+              "p90": 2479,
+              "max": 2652
+            }
+          }
+        },
+        "byPool": {
+          "card": {
+            "n": 149,
+            "correct": 140,
+            "correctUnder1s": 99,
+            "confident": {
+              "n": 140,
+              "correct": 140,
+              "precision": 1
+            },
+            "displayMs": {
+              "n": 140,
+              "p50": 816,
+              "p90": 2127,
+              "max": 4165
+            }
+          },
+          "token": {
+            "n": 44,
+            "correct": 42,
+            "correctUnder1s": 29,
+            "confident": {
+              "n": 42,
+              "correct": 42,
+              "precision": 1
+            },
+            "displayMs": {
+              "n": 42,
+              "p50": 778,
+              "p90": 1953,
+              "max": 2479
+            }
+          },
+          "basic": {
+            "n": 7,
+            "correct": 7,
+            "correctUnder1s": 3,
+            "confident": {
+              "n": 7,
+              "correct": 7,
+              "precision": 1
+            },
+            "displayMs": {
+              "n": 7,
+              "p50": 1063,
+              "p90": 3753,
+              "max": 3753
+            }
+          }
+        },
+        "byCoverage": {
+          "clear": {
+            "n": 184,
+            "correct": 176,
+            "correctUnder1s": 128,
+            "confident": {
+              "n": 176,
+              "correct": 176,
+              "precision": 1
+            },
+            "displayMs": {
+              "n": 176,
+              "p50": 808,
+              "p90": 1989,
+              "max": 4165
+            }
+          },
+          "0-15%": {
+            "n": 11,
+            "correct": 11,
+            "correctUnder1s": 3,
+            "confident": {
+              "n": 11,
+              "correct": 11,
+              "precision": 1
+            },
+            "displayMs": {
+              "n": 11,
+              "p50": 1106,
+              "p90": 2362,
+              "max": 2479
+            }
+          },
+          "15-30%": {
+            "n": 3,
+            "correct": 2,
+            "correctUnder1s": 0,
+            "confident": {
+              "n": 2,
+              "correct": 2,
+              "precision": 1
+            },
+            "displayMs": {
+              "n": 2,
+              "p50": 2652,
+              "p90": 2652,
+              "max": 2652
+            }
+          },
+          "30%+": {
+            "n": 2,
+            "correct": 0,
+            "correctUnder1s": 0,
+            "confident": {
+              "n": 0,
+              "correct": 0,
+              "precision": null
+            },
+            "displayMs": {
+              "n": 0,
+              "p50": null,
+              "p90": null,
+              "max": null
+            }
+          }
+        },
+        "byPathway": {
+          "art-match": {
+            "n": 189,
+            "correct": 189,
+            "correctUnder1s": 131,
+            "confident": {
+              "n": 189,
+              "correct": 189,
+              "precision": 1
+            },
+            "displayMs": {
+              "n": 189,
+              "p50": 813,
+              "p90": 2093,
+              "max": 4165
+            }
+          },
+          "(unresolved)": {
+            "n": 11,
+            "correct": 0,
+            "correctUnder1s": 0,
+            "confident": {
+              "n": 0,
+              "correct": 0,
+              "precision": null
+            },
+            "displayMs": {
+              "n": 0,
+              "p50": null,
+              "p90": null,
+              "max": null
+            }
+          }
+        },
+        "captureMs": {
+          "n": 200,
+          "p50": 260,
+          "p90": 266,
+          "max": 285
+        },
+        "recognitionMs": {
+          "n": 200,
+          "p50": 553,
+          "p90": 2243,
+          "max": 10437
+        }
+      },
+      "candidate": {
+        "n": 200,
+        "correct": 191,
+        "correctUnder1s": 148,
+        "confident": {
+          "n": 191,
+          "correct": 191,
+          "precision": 1
+        },
+        "displayMs": {
+          "n": 191,
+          "p50": 787,
+          "p90": 1269,
+          "max": 4715
+        },
+        "firstHalf": {
+          "n": 100,
+          "correct": 95,
+          "correctUnder1s": 72,
+          "confident": {
+            "n": 95,
+            "correct": 95,
+            "precision": 1
+          },
+          "displayMs": {
+            "n": 95,
+            "p50": 763,
+            "p90": 1409,
+            "max": 2976
+          }
+        },
+        "secondHalf": {
+          "n": 100,
+          "correct": 96,
+          "correctUnder1s": 76,
+          "confident": {
+            "n": 96,
+            "correct": 96,
+            "precision": 1
+          },
+          "displayMs": {
+            "n": 96,
+            "p50": 794,
+            "p90": 1269,
+            "max": 4715
+          }
+        },
+        "byRotation": {
+          "upright": {
+            "n": 109,
+            "correct": 103,
+            "correctUnder1s": 80,
+            "confident": {
+              "n": 103,
+              "correct": 103,
+              "precision": 1
+            },
+            "displayMs": {
+              "n": 103,
+              "p50": 794,
+              "p90": 1228,
+              "max": 4715
+            }
+          },
+          "tapped": {
+            "n": 55,
+            "correct": 53,
+            "correctUnder1s": 42,
+            "confident": {
+              "n": 53,
+              "correct": 53,
+              "precision": 1
+            },
+            "displayMs": {
+              "n": 53,
+              "p50": 766,
+              "p90": 1210,
+              "max": 2693
+            }
+          },
+          "upsidedown": {
+            "n": 36,
+            "correct": 35,
+            "correctUnder1s": 26,
+            "confident": {
+              "n": 35,
+              "correct": 35,
+              "precision": 1
+            },
+            "displayMs": {
+              "n": 35,
+              "p50": 787,
+              "p90": 1333,
+              "max": 3584
+            }
+          }
+        },
+        "byLayout": {
+          "side-by-side": {
+            "n": 120,
+            "correct": 116,
+            "correctUnder1s": 90,
+            "confident": {
+              "n": 116,
+              "correct": 116,
+              "precision": 1
+            },
+            "displayMs": {
+              "n": 116,
+              "p50": 787,
+              "p90": 1227,
+              "max": 4715
+            }
+          },
+          "spaced": {
+            "n": 60,
+            "correct": 58,
+            "correctUnder1s": 50,
+            "confident": {
+              "n": 58,
+              "correct": 58,
+              "precision": 1
+            },
+            "displayMs": {
+              "n": 58,
+              "p50": 779,
+              "p90": 1176,
+              "max": 2693
+            }
+          },
+          "overlapping": {
+            "n": 20,
+            "correct": 17,
+            "correctUnder1s": 8,
+            "confident": {
+              "n": 17,
+              "correct": 17,
+              "precision": 1
+            },
+            "displayMs": {
+              "n": 17,
+              "p50": 1005,
+              "p90": 1885,
+              "max": 1953
+            }
+          }
+        },
+        "byPool": {
+          "card": {
+            "n": 149,
+            "correct": 142,
+            "correctUnder1s": 109,
+            "confident": {
+              "n": 142,
+              "correct": 142,
+              "precision": 1
+            },
+            "displayMs": {
+              "n": 142,
+              "p50": 792,
+              "p90": 1309,
+              "max": 4715
+            }
+          },
+          "token": {
+            "n": 44,
+            "correct": 42,
+            "correctUnder1s": 33,
+            "confident": {
+              "n": 42,
+              "correct": 42,
+              "precision": 1
+            },
+            "displayMs": {
+              "n": 42,
+              "p50": 729,
+              "p90": 1095,
+              "max": 1885
+            }
+          },
+          "basic": {
+            "n": 7,
+            "correct": 7,
+            "correctUnder1s": 6,
+            "confident": {
+              "n": 7,
+              "correct": 7,
+              "precision": 1
+            },
+            "displayMs": {
+              "n": 7,
+              "p50": 959,
+              "p90": 2769,
+              "max": 2769
+            }
+          }
+        },
+        "byCoverage": {
+          "clear": {
+            "n": 184,
+            "correct": 178,
+            "correctUnder1s": 144,
+            "confident": {
+              "n": 178,
+              "correct": 178,
+              "precision": 1
+            },
+            "displayMs": {
+              "n": 178,
+              "p50": 782,
+              "p90": 1210,
+              "max": 4715
+            }
+          },
+          "0-15%": {
+            "n": 11,
+            "correct": 11,
+            "correctUnder1s": 4,
+            "confident": {
+              "n": 11,
+              "correct": 11,
+              "precision": 1
+            },
+            "displayMs": {
+              "n": 11,
+              "p50": 1014,
+              "p90": 1622,
+              "max": 1885
+            }
+          },
+          "15-30%": {
+            "n": 3,
+            "correct": 2,
+            "correctUnder1s": 0,
+            "confident": {
+              "n": 2,
+              "correct": 2,
+              "precision": 1
+            },
+            "displayMs": {
+              "n": 2,
+              "p50": 1953,
+              "p90": 1953,
+              "max": 1953
+            }
+          },
+          "30%+": {
+            "n": 2,
+            "correct": 0,
+            "correctUnder1s": 0,
+            "confident": {
+              "n": 0,
+              "correct": 0,
+              "precision": null
+            },
+            "displayMs": {
+              "n": 0,
+              "p50": null,
+              "p90": null,
+              "max": null
+            }
+          }
+        },
+        "byPathway": {
+          "art-match": {
+            "n": 191,
+            "correct": 191,
+            "correctUnder1s": 148,
+            "confident": {
+              "n": 191,
+              "correct": 191,
+              "precision": 1
+            },
+            "displayMs": {
+              "n": 191,
+              "p50": 787,
+              "p90": 1269,
+              "max": 4715
+            }
+          },
+          "(unresolved)": {
+            "n": 9,
+            "correct": 0,
+            "correctUnder1s": 0,
+            "confident": {
+              "n": 0,
+              "correct": 0,
+              "precision": null
+            },
+            "displayMs": {
+              "n": 0,
+              "p50": null,
+              "p90": null,
+              "max": null
+            }
+          }
+        },
+        "captureMs": {
+          "n": 200,
+          "p50": 262,
+          "p90": 266,
+          "max": 285
+        },
+        "recognitionMs": {
+          "n": 200,
+          "p50": 517,
+          "p90": 1520,
+          "max": 11553
+        }
+      }
+    }
+  },
+  "catalogDigests": {
+    "public/carddata/manifest.json": "50a1e0e3f62dd34f3242c70fad24a1f3510085caebb7eb01b22743ee9b2b14ac",
+    "public/carddata/cards.json": "e9527a3801fe60d9bf42882c919b4473956a293c8cb66ea732071d804a9d2f8c",
+    "public/carddata/milo/manifest.json": "85bdd724d69300c33e6f48b7bd7cbe90cbd0cdf7a26f4a28a373b665a36d2a6d"
+  },
+  "catalog": {
+    "manifest": {
+      "version": 4,
+      "count": 113269,
+      "names": 35650,
+      "shards": 256,
+      "cards_fields": [
+        "name",
+        "set",
+        "collector_number",
+        "scryfall_id",
+        "face"
+      ],
+      "shard_fields": [
+        "name",
+        "set",
+        "collector_number",
+        "scryfall_id",
+        "face",
+        "hash",
+        "color",
+        "art_hash",
+        "mana_cost",
+        "type_line",
+        "oracle_text"
+      ],
+      "generated_at": "2026-10-12T02:37:11Z",
+      "source": {
+        "provider": "scryfall",
+        "bulk_type": "default_cards",
+        "updated_at": "2026-10-11T21:05:54.791+00:00",
+        "download_uri": "https://data.scryfall.io/default-cards/default-cards-20261011210554.jsonl.gz",
+        "format": "jsonl"
+      }
+    },
+    "milo": {
+      "version": 1,
+      "model": "milo1",
+      "revision": "9bcc5e809e936b8c5630d1e7101aae1de1e76621",
+      "model_sha256": "bd13d8d60383c69da04dce261f32e93fdaeaa8fd618fbc991e7385f71b3d45df",
+      "preprocess": "milo1-rgb-portrait-ccw-bilinear448-imagenet-v1",
+      "dimension": 128,
+      "count": 113269,
+      "names": 35650,
+      "cards_sha256": "e9527a3801fe60d9bf42882c919b4473956a293c8cb66ea732071d804a9d2f8c",
+      "seed_sha256": "c5cb0dc150eb9f5b183396dd25aecaa9efc5ce3d001dd8bef282fcc73ee778be",
+      "files": {
+        "vectors.bin": {
+          "bytes": 14498432,
+          "sha256": "ad622b967e7734807faf55b8def97334cd51174c4d4295f139e698d2d6d1d0c5"
+        },
+        "norms.bin": {
+          "bytes": 453076,
+          "sha256": "2747bd88a24e288d46f3ca0c6e775b9ff90558b8168281bc267265498536408e"
+        },
+        "names.bin": {
+          "bytes": 453076,
+          "sha256": "f0e607e2954e2494c7e675f5220bd1ae385aaa613a3dc8a03e831b5bc4712218"
+        }
+      }
+    }
+  },
+  "regressions": [],
+  "confidentErrors": [],
+  "winnerChanges": [
+    {
+      "scene": 11,
+      "index": 9,
+      "name": "Anger",
+      "mode": "fresh",
+      "control": {
+        "got": null,
+        "winner": null,
+        "by": null,
+        "confidence": null
+      },
+      "candidate": {
+        "got": "Anger",
+        "winner": {
+          "id": "ed8d665e-9df6-4ae9-a567-977c687fa8e2",
+          "face": 0,
+          "distance": 137,
+          "strategy": "milo",
+          "clickInside": true,
+          "regionalProof": true
+        },
+        "by": "art-match",
+        "confidence": 0.825
+      }
+    },
+    {
+      "scene": 18,
+      "index": 8,
+      "name": "Geier Reach Sanitarium",
+      "mode": "fresh",
+      "control": {
+        "got": null,
+        "winner": null,
+        "by": null,
+        "confidence": null
+      },
+      "candidate": {
+        "got": "Geier Reach Sanitarium",
+        "winner": {
+          "id": "8d80ec47-0e47-49e3-9c43-1c126d8523e1",
+          "face": 0,
+          "distance": 165,
+          "strategy": "milo",
+          "clickInside": true,
+          "regionalProof": true
+        },
+        "by": "art-match",
+        "confidence": 0.6
+      }
+    }
+  ],
+  "captureMismatches": [],
+  "failures": [],
+  "inputs": {
+    "control": {
+      "file": "control.json",
+      "sha256": "717b8c7ff02464f491b85eb0f3421f1a1df40670cc76433f77a0449ee7ddc500"
+    },
+    "candidate": {
+      "file": "candidate.json",
+      "sha256": "8b45855957bca3a8afb6b5ec7379508716fec412fd12eec3e57e6828fbd06ecf"
+    }
+  }
+}

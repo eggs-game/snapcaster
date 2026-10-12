@@ -53,20 +53,28 @@ assert.notEqual(colors.referenceColorSignature(reference), colors.referenceColor
 
 function verifier(source, scores, count = 1, regional = true, distinctStop = false) {
   const warps = [], refs = new Map(), timing = {}, extracts = [];
-  const context = vm.createContext({ performance, ImageData: Pixels, CARD_W: 244, CARD_H: 340, ORB_SHORTLIST: count, orbTiming: timing, DISTINCT_NAME_ORB_STOP: distinctStop,
+  const context = vm.createContext({ performance, setTimeout, ImageData: Pixels, CARD_W: 244, CARD_H: 340, ORB_SHORTLIST: count, orbTiming: timing, DISTINCT_NAME_ORB_STOP: distinctStop,
     splitIdentitySupported: () => true, catalogArtworkRivals: () => [], referencesShareArtwork: () => false, excludeProvenNeighbours: () => {},
     fetchReference: async (id, _face, size = "small") => {
       const key = `${id}:${size}`;
       if (!refs.has(key)) refs.set(key, Object.assign(image(size === "small" ? 1 : size === "normal" ? 2 : 3), { id, size }));
       return refs.get(key);
     },
-    orbFeatures: (input, n, contrast) => { extracts.push({ n, contrast }); return { image: input, kp: { delete() {} }, desc: { delete() {} } }; },
+    orbFeatures: (input, n, contrast = false, fastThreshold = 20) => {
+      extracts.push({ n, contrast, fastThreshold });
+      const features = { image: input, kp: { delete() {} }, desc: { delete() {} } };
+      return context.recordRawAlignmentInput ? context.recordRawAlignmentInput(features, input, n, contrast, fastThreshold) : features;
+    },
     orbAlignment: (_query, ref, click) => {
       const inliers = regional ? scores[ref.image.size] : scores[ref.image.id];
       return { inliers, inside: regional || click ? true : null, artInliers: inliers, textInliers: 12, halfInliers: [12,12], corners: regional ? [{ view: ref.image.size }] : undefined };
     },
     rectifyCard: (_source, corners) => { warps.push(corners); return image(corners[0].view === "small" ? 4 : corners[0].view === "normal" ? 5 : 6); },
   });
+  const prefix = source.slice(0, source.indexOf("/* eslint"));
+  if (prefix.includes("const rawAlignmentInputs = new WeakMap();")) {
+    vm.runInContext(prefix + "\nglobalThis.RawAlignmentCache=RawAlignmentCache;", context);
+  }
   vm.runInContext(slice(source, "const referenceFeatureCache =", "function orbAlignment(")
     + slice(source, "function contentSupportsIdentity(", "function extendAiVerification(")
     + slice(source, "function whiteBalance(", "// A split identity")
@@ -139,6 +147,57 @@ for (const rejectedEvidence of ["outside", "no-printed-content"]) {
   guarded.context.orbAlignment = (...args) => ({ ...align(...args), ...(rejectedEvidence === "outside" ? { inside:false } : { artInliers:0, textInliers:0 }) });
   const result = await scanLate(guarded);
   assert.equal(result.artDecisive, false, `${rejectedEvidence} cannot pass the actual geometric/content confidence boundary`);
+}
+
+for(const evidence of ["inside","outside","no-printed-content"]) {
+  const sensitive=verifier(worker,lateScores,12,false,false),align=sensitive.context.orbAlignment;
+  sensitive.context.orbAlignment=(...args)=>({...align(...args),...(evidence==="outside"?{inside:false}:evidence==="no-printed-content"?{artInliers:0,textInliers:0}:{})});
+  const result=await sensitive.context.verifyTopMatches(lateRows.map(row=>({...row})),[image(2)],false,image(8,120,160),{x:50,y:50},0,[],true,8);
+  assert.equal(result.artDecisive,evidence==="inside","lower FAST retains actual source ownership and printed-content confidence gates");
+  assert.equal(sensitive.timing.fastThreshold,8);assert.equal(sensitive.timing.restoreContrast,true);
+  assert.ok(sensitive.extracts.some(f=>f.n===1600),"unregistered crops still require the full-source probe");
+  assert.ok(sensitive.extracts.every(f=>f.fastThreshold===8&&f.contrast===true));
+  assert.ok(sensitive.extracts.every(f=>[300,500,1600].includes(f.n)),"extra contrast cannot increase any descriptor budget");
+}
+
+// Native ownership is observable even when extraction fails before returning
+// its result: setter/constructor/CLAHE/ORB errors must release partial Mats,
+// keypoints and descriptors, while successful descriptors belong to callers.
+function nativeFeatures(failure=null) {
+  const alive=new Set(),configured=[];
+  let matIndex=0;
+  const handle=label=>{if(label===failure)throw new Error(label);const item={label,delete(){assert.ok(alive.delete(item),`${label} freed exactly once`);}};alive.add(item);return item;};
+  const context=vm.createContext({self:{cv:{
+    matFromImageData:()=>handle("source"),
+    Mat:class {constructor(){const label=["gray","mask","descriptor","enhanced"][matIndex++];Object.assign(this,handle(label));this.copyTo=()=>{if(failure==="copy")throw new Error("copy");};}},
+    KeyPointVector:class {constructor(){Object.assign(this,handle("keypoints"));}},
+    ORB:class {constructor(n){Object.assign(this,handle("orb"));assert.equal(n,500);}setFastThreshold(value){if(failure==="setter")throw new Error("setter");configured.push(value);}detectAndCompute(){if(failure==="detect")throw new Error("detect");}},
+    CLAHE:class {constructor(clip,size){Object.assign(this,handle("clahe"));assert.equal(clip,3);assert.deepEqual([size.width,size.height],[8,8]);}apply(){if(failure==="clahe-apply")throw new Error("clahe-apply");}},
+    Size:class {constructor(width,height){Object.assign(this,{width,height});}},
+    cvtColor(){if(failure==="color")throw new Error("color");},COLOR_RGBA2GRAY:0,
+  }}});
+  vm.runInContext(worker.slice(0, worker.indexOf("/* eslint"))
+    + slice(worker,"function orbFeatures(","const referenceFeatureCache ="),context);
+  return{context,alive,configured};
+}
+for(const failure of ["source","gray","mask","keypoints","descriptor","orb","setter","color","enhanced","clahe","clahe-apply","copy","detect"]) {
+  const fixture=nativeFeatures(failure);
+  assert.throws(()=>fixture.context.orbFeatures(image(2),500,true,8),new RegExp(failure));
+  assert.equal(fixture.alive.size,0,`${failure} cannot leak a partial native feature extraction`);
+}
+for(const threshold of [20,8]) {
+  const fixture=nativeFeatures(),features=fixture.context.orbFeatures(image(2),500,true,threshold);
+  assert.deepEqual(fixture.configured,threshold===20?[]:[8]);
+  assert.equal(fixture.alive.size,2,"successful keypoints/descriptors remain owned by verification");
+  features.kp.delete();features.desc.delete();assert.equal(fixture.alive.size,0);
+}
+for(const failure of ["second-query","color-signature"]) {
+  const fixture=verifier(worker,[80],1,false,false),extract=fixture.context.orbFeatures;
+  let calls=0,active=0;
+  fixture.context.orbFeatures=(...args)=>{if(failure==="second-query"&&++calls===2)throw new Error(failure);const feature=extract(...args);active+=2;feature.kp.delete=()=>active--;feature.desc.delete=()=>active--;return feature;};
+  if(failure==="color-signature")fixture.context.whiteBalance=()=>{throw new Error(failure);};
+  await assert.rejects(fixture.context.verifyTopMatches([{name:"Reference",scryfall_id:"id",distance:90}],[image(1),image(2)],false),new RegExp(failure));
+  assert.equal(active,0,"query initialization errors release already extracted native pairs");
 }
 
 console.log("Verifier output exactly matches eager-warp control while caching tiny immutable reference signatures; work counters do not alter early stopping");

@@ -168,7 +168,8 @@ function getWorker() {
         id, matches, printingMatches, titleCandidates, metadataStrips, titleCount, queryCandidates,
         shardedIndex, cardFound, cvStatus, candidatesTried, cropsDropped, artBest, artChecked,
         artDecisive, isolationDebug, isolationCandidates, detectorUsed, detectorState, detectorDistance, isolationTiming, scoreFullTiming, prepTiming, orbTiming, earlyOrb,
-        stageMs, wasmHeapMB, blockedNames, miloImages, miloRescued, miloVerification, miloOrbTiming, referencePreview,
+        stageMs, wasmHeapMB, blockedNames, miloImages, miloRescued, miloVerification, miloOrbTiming,
+        miloRecoveryEligible, miloRecoveryScanId, referencePreview,
         hintHit, hintMiss, preloaded, indexReady, indexCount, workerMs, error,
       } = e.data || {};
       const p = pending.get(id);
@@ -195,6 +196,8 @@ function getWorker() {
         milo_rescued: !!miloRescued,
         milo_verification: miloVerification || [],
         milo_orb_timing: miloOrbTiming || [],
+        milo_recovery_eligible: !!miloRecoveryEligible,
+        milo_recovery_scan_id: miloRecoveryScanId,
         reference_preview: referencePreview || null,
         title_count: titleCount || 0,
         query_candidates: queryCandidates || [],
@@ -260,11 +263,16 @@ export function canPrepareRecognitionCapture() { return aiCropEnabled(); }
 function sameCapturePoint(a, b) {
   return a?.nx === b?.nx && a?.ny === b?.ny;
 }
-export function prepareRecognitionCapture(source, point, { isActive = () => true } = {}) {
+export function prepareRecognitionCapture(source, point, { isActive = () => true, hints = [] } = {}) {
   if (!(source instanceof Blob) || !aiCropEnabled()) return () => {};
   const previous = capturePreparations.get(source);
-  if (previous) previous.active = false;
-  const entry = { active: true, point: { nx: point?.nx, ny: point?.ny }, startedAt: performance.now() };
+  if (previous) {
+    previous.active = false;
+    if (previous.ownerId != null) releaseMiloContexts(previous.ownerId);
+  }
+  const entry = { active: true, isActive, point: { nx: point?.nx, ny: point?.ny },
+    startedAt: performance.now(), ownerAtPreparation: recognitionOwnerSeq,
+    hints: Array.isArray(hints) ? hints.slice(0, 12) : [] };
   capturePreparations.set(source, entry);
   entry.job = (async () => {
     let bitmap;
@@ -272,14 +280,35 @@ export function prepareRecognitionCapture(source, point, { isActive = () => true
       bitmap = await sourceToBitmap(source);
       return await proposeAiCrops(bitmap, entry.point, false, { isActive: () => entry.active && isActive() });
     } catch {
-      return null; // Preparation is optional; the selected frame retains its normal pipeline.
+      return null;
     } finally {
       bitmap?.close();
       entry.finishedAt = performance.now();
     }
   })();
+  entry.job.then(prepared => {
+    // A speculative result is private until the camera selects this exact
+    // Blob. Weak/empty geometry, hints and a busy queue retain normal behavior.
+    if (prepared?.diagnostic?.status !== 'ready' || !prepared.quads?.length
+      || entry.hints.length || !entry.active || !isActive() || !aiCropEnabled() || !miloEnabled()
+      || capturePreparations.get(source) !== entry || identifyActive || queuedIdentify
+      || entry.ownerAtPreparation !== recognitionOwnerSeq) return;
+    entry.specAi = true;
+    entry.specMilo = true;
+    entry.ownerId = ++recognitionOwnerSeq;
+    entry.fullStartedAt = performance.now();
+    if (worker) worker.postMessage({ type: 'milo-begin', ownerId: entry.ownerId });
+    let resolve, reject;
+    entry.fullJob = new Promise((a, b) => { resolve = a; reject = b; });
+    entry.fullJob.catch(() => {});
+    entry.fullJob.then(() => { entry.fullFinishedAt = performance.now(); }, () => { entry.fullFinishedAt = performance.now(); });
+    startIdentifyJob({ source, point: entry.point, hints: [], aiCrop: true, milo: true,
+      ownerId: entry.ownerId, enqueuedAt: entry.fullStartedAt, preparation: entry,
+      earlyPreparation: true, resolve, reject });
+  }).catch(() => {});
   return () => {
     entry.active = false;
+    if (entry.ownerId != null) releaseMiloContexts(entry.ownerId);
     if (capturePreparations.get(source) === entry) capturePreparations.delete(source);
   };
 }
@@ -831,25 +860,31 @@ function applyTitleOCR(result) {
   return withOCRLock(() => applyTitleOCRUnlocked(result));
 }
 
-function runOnWorker(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads = [], aiOnly = false, aiCandidates = [], milo = false, onMilo = null, hintsOnly = false) {
+function runOnWorker(bmp, point = { nx: 0.5, ny: 0.5 }, hints = [], aiQuads = [], aiOnly = false, aiCandidates = [], milo = false, onMilo = null, hintsOnly = false, ownerId = null) {
   const w = getWorker();
   const id = ++seq;
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
       pending.delete(id);
+      releaseMiloContexts(ownerId);
       reject(new Error("Card recognition timed out. Please try again."));
     }, IDENTIFY_TIMEOUT_MS);
     pending.set(id, { resolve, reject, timer, onMilo });
-    w.postMessage({ type: "identify", id, bmp, point, hints: Array.isArray(hints) ? hints.slice(0, 12) : [], aiQuads, aiOnly, aiCandidates, milo, miloPreviewEnabled: typeof onMilo === "function", hintsOnly }, [bmp]);
+    w.postMessage({ type: "identify", id, bmp, point, hints: Array.isArray(hints) ? hints.slice(0, 12) : [], aiQuads, aiOnly, aiCandidates, milo, miloPreviewEnabled: typeof onMilo === "function", hintsOnly, ownerId: ownerId ?? undefined }, [bmp]);
   });
 }
 
-function runMiloVerification(scanId, lookup) {
+function releaseMiloContexts(ownerId) {
+  if (ownerId != null && worker) worker.postMessage({ type: "milo-release", ownerId });
+}
+
+function runMiloVerification(scanId, lookup, { ownerId = null, retainOriginal = false, recovery = false } = {}) {
   const w = getWorker(), id = ++seq;
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => { pending.delete(id); reject(new Error("Milo verification timed out")); }, IDENTIFY_TIMEOUT_MS);
+    const timer = setTimeout(() => { pending.delete(id); releaseMiloContexts(ownerId); reject(new Error("Milo verification timed out")); }, IDENTIFY_TIMEOUT_MS);
     pending.set(id, { resolve, reject, timer });
-    w.postMessage({ type: "milo-verify", id, scanId, rows: lookup.rows, cards_sha256: lookup.cards_sha256 });
+    w.postMessage({ type: "milo-verify", id, scanId, rows: recovery ? [] : lookup.rows,
+      cards_sha256: lookup.cards_sha256, ownerId: ownerId ?? undefined, retainOriginal, recovery });
   });
 }
 
@@ -984,7 +1019,7 @@ async function finishIdentify(result) {
   return out;
 }
 
-async function performIdentify(source, point, hints, aiCrop, useMilo, preparation = null) {
+async function performIdentify(source, point, hints, aiCrop, useMilo, preparation = null, owner = null) {
   const retryAccepted = attempt => {
     if (attempt?.art_best?.clickInside === false) return false;
     if ((attempt?.matches[0]?.distance ?? Infinity) <= VISUAL_EXACT_DISTANCE) return true;
@@ -996,142 +1031,195 @@ async function performIdentify(source, point, hints, aiCrop, useMilo, preparatio
       && attempt.art_best.inliers >= 24 && attempt.art_best.clickInliers >= 24;
   };
   const t0 = performance.now();
-  const bmp = await sourceToBitmap(source);
-  if (preparation && !preparation.active) {
-    bmp.close();
-    throw supersededRecognitionError();
-  }
-  let raw, hintPrepass;
-  if (aiCrop && hints?.length) {
-    // Preserve the same verified hint tiers before waiting for any model.
-    // A stale hint must not suppress the ordinary clicked-card AI pipeline.
-    try {
-      hintPrepass = await runOnWorker(await createImageBitmap(bmp), point, hints, [], false, [], false, null, true);
-      if (hintPrepass.hint_hit) {
-        raw = hintPrepass;
-        bmp.close();
-        if (preparation) preparation.active = false;
-      }
-    } catch (error) {
-      hintPrepass = { error: String(error?.message || error) };
+  let bmp, ownsBitmap = false;
+  const closeBitmap = () => { if (ownsBitmap) { ownsBitmap = false; bmp.close(); } };
+  const assertCurrent = () => {
+    if (useMilo && owner && !owner.isActive()) throw supersededRecognitionError();
+  };
+  const ownerId = owner?.id ?? null;
+  try {
+    bmp = await sourceToBitmap(source);
+    ownsBitmap = true;
+    assertCurrent();
+    if (preparation && !preparation.active) {
+      closeBitmap();
+      throw supersededRecognitionError();
     }
-  }
-  if (!raw && preparation && !preparation.active) {
-    bmp.close();
-    throw supersededRecognitionError();
-  }
-  const inputCard = !raw && aiCrop && useMilo
-    && Math.abs(Math.max(bmp.width, bmp.height) / Math.min(bmp.width, bmp.height) - 340 / 244) < 0.03;
-  const prepared = !raw && preparation && !inputCard ? await preparation.job : null;
-  if (!raw && preparation && !preparation.active) {
-    bmp.close();
-    throw supersededRecognitionError();
-  }
-  const usePrepared = prepared && preparation.active && prepared.diagnostic?.status !== "canceled";
-  const ai = !raw && aiCrop && !inputCard ? (usePrepared
-    ? { ...prepared, diagnostic: { ...prepared.diagnostic, prepared: true,
-      overlapMs: Math.max(0, Math.round(Math.min(t0, preparation.finishedAt) - preparation.startedAt)) } }
-    : await proposeAiCrops(bmp, point))
-    : { quads: [], diagnostic: { status: raw ? "hint-hit" : inputCard ? "input-card" : "off" } };
-  if (hintPrepass) {
-    ai.diagnostic.hintPrepass = { hit: !!hintPrepass.hint_hit, miss: !!hintPrepass.hint_miss,
-      ...(hintPrepass.error ? { error: hintPrepass.error } : {}) };
-  }
-  let fast, speculative, speculativeResult, miloVerification = [], milo = { status: useMilo ? "skipped" : "off" };
-  // A good learned crop should bypass contour enumeration and thousands of
-  // isolation windows. Try only the two proposals, with the SAME identity
-  // gates. Weak reads still receive the complete established pipeline.
-  if (!raw && (ai.quads.length || inputCard)) {
-    const fastStarted = performance.now();
-    try { fast = await runOnWorker(await createImageBitmap(bmp), point, [], ai.quads, true, [], useMilo, images => {
-      if (speculative || !useMilo || !images?.length) return;
-      speculative = lookupAiCrops(images).then(lookup => {
-        speculativeResult = lookup;
-        prefetchMiloReferences(lookup);
-        return lookup;
-      }).catch(error => {
-        speculativeResult = { rows: [], diagnostic: { status: "failed", error: String(error?.message || error) } };
-        return speculativeResult;
-      });
-    }); }
-    catch (error) { ai.diagnostic.fastError = String(error?.message || error); }
-    ai.diagnostic.fastMs = (ai.diagnostic.fastMs || 0) + Math.round(performance.now() - fastStarted);
-    ai.diagnostic.fastHit = fast?.art_best?.clickInside !== false && (
-      (fast?.art_decisive && fast?.matches[0]?.identified_by === "art-match")
-      || (fast?.matches[0]?.distance ?? Infinity) <= VISUAL_EXACT_DISTANCE);
-    if (ai.diagnostic.fastHit) {
-      bmp.close();
-      raw = fast;
-    }
-    if (!raw && useMilo && fast?.milo_images?.length) {
-      const started = performance.now();
-      const lookup = await (speculative || lookupAiCrops(fast.milo_images));
-      milo = lookup.diagnostic;
-      if (speculative) milo.speculative = true;
-      if (lookup.rows?.length) {
-        try {
-          const verified = await runMiloVerification(fast.scan_id, lookup);
-          milo.rescued = verified.milo_rescued;
-          miloVerification = verified.milo_verification || [];
-          fast = verified;
-          if (verified.milo_rescued) { raw = verified; bmp.close(); }
-        } catch (error) { milo.verificationError = String(error?.message || error); }
-      }
-      milo.totalMs = Math.round(performance.now() - started);
-    }
-    if (raw && speculative && ai.diagnostic.fastHit) {
-      // Identity is settled. The model adapter serializes its own callbacks,
-      // so unused lookup work may drain without delaying this answer. Keep
-      // published diagnostics immutable when that background lookup finishes.
-      milo = { ...(speculativeResult?.diagnostic || { status: "pending" }),
-        speculative: true, unused: true, pending: !speculativeResult, rescued: false };
-    }
-  }
-  if (!raw && useMilo && ai.diagnostic.status === "ready") {
-    const retryStarted = performance.now();
-    const retry = await proposeAiCrops(bmp, point, true);
-    ai.diagnostic.retry = retry.diagnostic;
-    if (retry.quads.length) {
+    let raw, hintPrepass;
+    if (aiCrop && hints?.length) {
+      // Preserve the same verified hint tiers before waiting for any model.
+      // A stale hint must not suppress the ordinary clicked-card AI pipeline.
       try {
-        let attempt = await runOnWorker(await createImageBitmap(bmp), point, [], retry.quads, true, [], true);
-        const accepted = retryAccepted(attempt);
-        if (!accepted && attempt.milo_images?.length) {
-          const lookup = await lookupAiCrops(attempt.milo_images);
-          ai.diagnostic.retry.milo = lookup.diagnostic;
-          if (lookup.rows?.length) attempt = await runMiloVerification(attempt.scan_id, lookup);
-          miloVerification.push(...(attempt.milo_verification || []));
+        hintPrepass = await runOnWorker(await createImageBitmap(bmp), point, hints, [], false, [], false, null, true, ownerId);
+        if (hintPrepass.hint_hit) {
+          raw = hintPrepass;
+          closeBitmap();
+          if (preparation) preparation.active = false;
         }
-        if (retryAccepted(attempt)) {
-          raw = attempt; bmp.close(); ai.diagnostic.retryHit = true;
-          if (attempt.milo_rescued) milo = { ...milo, status: "ready", rescued: true, retry: true };
-        }
-      } catch (error) { ai.diagnostic.retryError = String(error?.message || error); }
+      } catch (error) {
+        hintPrepass = { error: String(error?.message || error) };
+      }
     }
-    ai.diagnostic.retryMs = Math.round(performance.now() - retryStarted);
+    if (!raw && preparation && !preparation.active) {
+      closeBitmap();
+      throw supersededRecognitionError();
+    }
+    const inputCard = !raw && aiCrop && useMilo
+      && Math.abs(Math.max(bmp.width, bmp.height) / Math.min(bmp.width, bmp.height) - 340 / 244) < 0.03;
+    const prepared = !raw && preparation && !inputCard ? await preparation.job : null;
+    if (!raw && preparation && !preparation.active) {
+      closeBitmap();
+      throw supersededRecognitionError();
+    }
+    const usePrepared = prepared && preparation.active && prepared.diagnostic?.status !== "canceled";
+    const ai = !raw && aiCrop && !inputCard ? (usePrepared
+      ? { ...prepared, diagnostic: { ...prepared.diagnostic, prepared: true,
+        overlapMs: Math.max(0, Math.round(Math.min(t0, preparation.finishedAt) - preparation.startedAt)) } }
+      : await proposeAiCrops(bmp, point))
+      : { quads: [], diagnostic: { status: raw ? "hint-hit" : inputCard ? "input-card" : "off" } };
+    if (hintPrepass) {
+      ai.diagnostic.hintPrepass = { hit: !!hintPrepass.hint_hit, miss: !!hintPrepass.hint_miss,
+        ...(hintPrepass.error ? { error: hintPrepass.error } : {}) };
+    }
+    assertCurrent();
+    let fast, speculative, speculativeResult, miloVerification = [], milo = { status: useMilo ? "skipped" : "off" };
+    const recoveries = [];
+    // A good learned crop should bypass contour enumeration and thousands of
+    // isolation windows. Try only the two proposals, with the SAME identity
+    // gates. Weak reads still receive the complete established pipeline.
+    if (!raw && (ai.quads.length || inputCard)) {
+      const fastStarted = performance.now();
+      try { fast = await runOnWorker(await createImageBitmap(bmp), point, [], ai.quads, true, [], useMilo, images => {
+        if (speculative || !useMilo || !images?.length || owner && !owner.isActive()) return;
+        speculative = lookupAiCrops(images).then(lookup => {
+          speculativeResult = lookup;
+          prefetchMiloReferences(lookup);
+          return lookup;
+        }).catch(error => {
+          speculativeResult = { rows: [], diagnostic: { status: "failed", error: String(error?.message || error) } };
+          return speculativeResult;
+        });
+      }, false, ownerId); }
+      catch (error) { ai.diagnostic.fastError = String(error?.message || error); }
+      ai.diagnostic.fastMs = (ai.diagnostic.fastMs || 0) + Math.round(performance.now() - fastStarted);
+      assertCurrent();
+      ai.diagnostic.fastHit = fast?.art_best?.clickInside !== false && (
+        (fast?.art_decisive && fast?.matches[0]?.identified_by === "art-match")
+        || (fast?.matches[0]?.distance ?? Infinity) <= VISUAL_EXACT_DISTANCE);
+      if (ai.diagnostic.fastHit) {
+        closeBitmap();
+        raw = fast;
+      }
+      if (!raw && useMilo && fast?.milo_images?.length) {
+        const started = performance.now();
+        const lookup = await (speculative || lookupAiCrops(fast.milo_images));
+        assertCurrent();
+        milo = lookup.diagnostic;
+        if (speculative) milo.speculative = true;
+        if (lookup.rows?.length) {
+          try {
+            const verified = await runMiloVerification(fast.scan_id, lookup, { ownerId, retainOriginal: true });
+            milo.rescued = verified.milo_rescued;
+            miloVerification = verified.milo_verification || [];
+            if (verified.milo_recovery_eligible) recoveries.push({ scanId: verified.milo_recovery_scan_id,
+              lookup, source: "initial" });
+            fast = verified;
+            if (verified.milo_rescued) { raw = verified; closeBitmap(); }
+          } catch (error) { milo.verificationError = String(error?.message || error); }
+        }
+        milo.totalMs = Math.round(performance.now() - started);
+        assertCurrent();
+      }
+      if (raw && speculative && ai.diagnostic.fastHit) {
+        // Identity is settled. The model adapter serializes its own callbacks,
+        // so unused lookup work may drain without delaying this answer. Keep
+        // published diagnostics immutable when that background lookup finishes.
+        milo = { ...(speculativeResult?.diagnostic || { status: "pending" }),
+          speculative: true, unused: true, pending: !speculativeResult, rescued: false };
+      }
+    }
+    if (!raw && useMilo && ai.diagnostic.status === "ready") {
+      const retryStarted = performance.now();
+      const retry = await proposeAiCrops(bmp, point, true);
+      assertCurrent();
+      ai.diagnostic.retry = retry.diagnostic;
+      if (retry.quads.length) {
+        try {
+          let attempt = await runOnWorker(await createImageBitmap(bmp), point, [], retry.quads, true, [], true, null, false, ownerId);
+          assertCurrent();
+          const accepted = retryAccepted(attempt);
+          if (!accepted && attempt.milo_images?.length) {
+            const lookup = await lookupAiCrops(attempt.milo_images);
+            assertCurrent();
+            ai.diagnostic.retry.milo = lookup.diagnostic;
+            if (lookup.rows?.length) attempt = await runMiloVerification(attempt.scan_id, lookup, { ownerId });
+            if (attempt.milo_recovery_eligible) recoveries.push({ scanId: attempt.milo_recovery_scan_id,
+              lookup, source: "retry" });
+            miloVerification.push(...(attempt.milo_verification || []));
+          }
+          if (retryAccepted(attempt)) {
+            raw = attempt; closeBitmap(); ai.diagnostic.retryHit = true;
+            if (attempt.milo_rescued) milo = { ...milo, status: "ready", rescued: true, retry: true };
+          }
+        } catch (error) { ai.diagnostic.retryError = String(error?.message || error); }
+      }
+      ai.diagnostic.retryMs = Math.round(performance.now() - retryStarted);
+      assertCurrent();
+    }
+    // Only still-unresolved clicks pay for low-contrast detection. Each pass
+    // consumes its original bounded worker snapshot, preserving source/rivals.
+    if (!raw && recoveries.length) {
+      const recoveryStarted = performance.now();
+      for (const recovery of recoveries) {
+        assertCurrent();
+        try {
+          const attempt = await runMiloVerification(recovery.scanId, recovery.lookup, { ownerId, recovery: true });
+          miloVerification.push(...(attempt.milo_verification || []));
+          if (attempt.milo_rescued && (recovery.source === "initial" || retryAccepted(attempt))) {
+            raw = attempt; closeBitmap();
+            milo = { ...milo, status: "ready", rescued: true, recovery: true, recoverySource: recovery.source };
+            if (recovery.source === "retry") ai.diagnostic.retryHit = true;
+            break;
+          }
+        } catch (error) { milo.recoveryError = String(error?.message || error); }
+      }
+      milo.recoveryMs = Math.round(performance.now() - recoveryStarted);
+      milo.totalMs = (milo.totalMs || 0) + milo.recoveryMs;
+      assertCurrent();
+    }
+    if (!raw) {
+      ownsBitmap = false; // The ordinary worker owns the transferred original.
+      raw = await runOnWorker(bmp, point, hints, ai.quads, false, fast?.printing_matches || [], false, null, false, ownerId);
+      assertCurrent();
+    }
+    const out = await finishIdentify(raw);
+    assertCurrent();
+    delete out.milo_images;
+    out.milo = milo;
+    out.milo_verification = miloVerification;
+    out.ai_crop = ai.diagnostic;
+    if (!out.hint_hit && hintPrepass?.stage_ms) {
+      out.stage_ms = { ...(out.stage_ms || {}) };
+      for (const key of ["hintPrep", "hint"]) out.stage_ms[key] = (out.stage_ms[key] || 0) + (hintPrepass.stage_ms[key] || 0);
+    }
+    if (aiCrop) out.stage_ms = { ...(out.stage_ms || {}), aiCrop: ai.diagnostic.ms || 0 };
+    if (ai.diagnostic.prepared) out.stage_ms.captureOverlap = ai.diagnostic.overlapMs || 0;
+    if (ai.diagnostic.fastMs) out.stage_ms.aiAttempt = ai.diagnostic.fastMs;
+    if (milo.totalMs) out.stage_ms.milo = milo.totalMs;
+    if (ai.diagnostic.retryMs) out.stage_ms.aiRetry = ai.diagnostic.retryMs;
+    out.stage_ms.modelQueue = (ai.diagnostic.queueMs || 0) + (ai.diagnostic.retry?.queueMs || 0)
+      + (milo.unused ? 0 : milo.queueMs || 0) + (ai.diagnostic.retry?.milo?.queueMs || 0);
+    out.stage_ms = { ...(out.stage_ms || {}), total: Math.round(performance.now() - t0) };
+    return out;
+  } finally {
+    closeBitmap();
+    if (ownerId != null) releaseMiloContexts(ownerId);
   }
-  if (!raw) raw = await runOnWorker(bmp, point, hints, ai.quads, false, fast?.printing_matches || []);
-  const out = await finishIdentify(raw);
-  delete out.milo_images;
-  out.milo = milo;
-  out.milo_verification = miloVerification;
-  out.ai_crop = ai.diagnostic;
-  if (!out.hint_hit && hintPrepass?.stage_ms) {
-    out.stage_ms = { ...(out.stage_ms || {}) };
-    for (const key of ["hintPrep", "hint"]) out.stage_ms[key] = (out.stage_ms[key] || 0) + (hintPrepass.stage_ms[key] || 0);
-  }
-  if (aiCrop) out.stage_ms = { ...(out.stage_ms || {}), aiCrop: ai.diagnostic.ms || 0 };
-  if (ai.diagnostic.prepared) out.stage_ms.captureOverlap = ai.diagnostic.overlapMs || 0;
-  if (ai.diagnostic.fastMs) out.stage_ms.aiAttempt = ai.diagnostic.fastMs;
-  if (milo.totalMs) out.stage_ms.milo = milo.totalMs;
-  if (ai.diagnostic.retryMs) out.stage_ms.aiRetry = ai.diagnostic.retryMs;
-  out.stage_ms.modelQueue = (ai.diagnostic.queueMs || 0) + (ai.diagnostic.retry?.queueMs || 0)
-    + (milo.unused ? 0 : milo.queueMs || 0) + (ai.diagnostic.retry?.milo?.queueMs || 0);
-  out.stage_ms = { ...(out.stage_ms || {}), total: Math.round(performance.now() - t0) };
-  return out;
 }
 
 let identifyActive = false;
 let queuedIdentify = null;
+let recognitionOwnerSeq = 0;
 
 function supersededRecognitionError() {
   const error = new Error("Superseded by a newer card click.");
@@ -1143,7 +1231,9 @@ function startIdentifyJob(job) {
   identifyActive = true;
   const queuedMs = Math.max(0, Math.round(performance.now() - job.enqueuedAt));
   globalThis.__SNAP_RECOGNITION_QUEUE = { active: true, waiting: !!queuedIdentify };
-  performIdentify(job.source, job.point, job.hints, job.aiCrop, job.milo, job.preparation)
+  performIdentify(job.source, job.point, job.hints, job.aiCrop, job.milo, job.preparation,
+    { id: job.ownerId, isActive: () => job.ownerId === recognitionOwnerSeq
+      && (!job.earlyPreparation || job.preparation.active && job.preparation.isActive()) })
     .then(result => {
       result.stage_ms = { ...(result.stage_ms || {}), queue: queuedMs };
       job.resolve(result);
@@ -1162,21 +1252,34 @@ function startIdentifyJob(job) {
 // click wait behind an arbitrary backlog of obsolete scans.
 export function identify(source, point, { hints = [], aiCrop = aiCropEnabled(), milo = miloEnabled() } = {}) {
   return new Promise((resolve, reject) => {
-    const job = {
-      source,
-      point,
-      hints: Array.isArray(hints) ? hints.slice(0, 12) : [],
-      aiCrop: !!aiCrop && aiCropEnabled(),
-      milo: !!aiCrop && !!milo && miloEnabled(),
-      enqueuedAt: performance.now(),
-      resolve,
-      reject,
-    };
-    job.preparation = takeCapturePreparation(job.source, job.point, job.hints, job.aiCrop);
-    if (!identifyActive) {
-      startIdentifyJob(job);
+    const selectedAt = performance.now();
+    const selectedHints = Array.isArray(hints) ? hints.slice(0, 12) : [];
+    const selectedAi = !!aiCrop && aiCropEnabled();
+    const selectedMilo = !!aiCrop && !!milo && miloEnabled();
+    let preparation = takeCapturePreparation(source, point, selectedHints, selectedAi);
+    if (preparation?.fullJob && preparation.active && preparation.isActive()
+      && preparation.ownerId === recognitionOwnerSeq && !selectedHints.length
+      && selectedAi === preparation.specAi && selectedMilo === preparation.specMilo) {
+      // Adopt the original owner/promise. Incrementing the owner here would
+      // invalidate this same request's retained verifier contexts.
+      preparation.fullJob.then(data => {
+        if (!preparation.active || !preparation.isActive() || preparation.ownerId !== recognitionOwnerSeq)
+          throw supersededRecognitionError();
+        const overlap = Math.max(0, Math.min(selectedAt, preparation.fullFinishedAt ?? selectedAt) - preparation.fullStartedAt);
+        resolve({ ...data, stage_ms: { ...(data.stage_ms || {}), captureRecognitionOverlap: Math.round(overlap) },
+          ai_crop: { ...(data.ai_crop || {}), fullPrepared: true } });
+      }, reject).catch(reject);
       return;
     }
+    if (preparation?.fullJob) {
+      preparation.active = false;
+      releaseMiloContexts(preparation.ownerId);
+      preparation = null;
+    }
+    const job = { source, point, hints: selectedHints, aiCrop: selectedAi, milo: selectedMilo,
+      enqueuedAt: selectedAt, resolve, reject, ownerId: ++recognitionOwnerSeq, preparation };
+    if (worker) worker.postMessage({ type: 'milo-begin', ownerId: job.ownerId });
+    if (!identifyActive) { startIdentifyJob(job); return; }
     if (queuedIdentify) {
       if (queuedIdentify.preparation) queuedIdentify.preparation.active = false;
       queuedIdentify.reject(supersededRecognitionError());

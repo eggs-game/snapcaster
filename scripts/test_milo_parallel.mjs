@@ -5,6 +5,21 @@ const matcher=readFileSync(new URL("../src/recognition/matcher.js",import.meta.u
 const worker=readFileSync(new URL("../src/recognition/recognizer.js",import.meta.url),"utf8");
 const modelAdapter=readFileSync(new URL("../src/recognition/aiCrop.js",import.meta.url),"utf8");
 
+// Exercise the actual worker's early notification policy with the same crop
+// objects later used by verification. This changes timing, never retrieval
+// geometry or the exact-match path, and retains the two-image model budget.
+const notificationStart=worker.indexOf("      if (aiOnly && useMilo && bestCandidateDistance > CONF_GOOD && notifyMilo)");
+assert.ok(notificationStart>=0);
+const notification=worker.slice(notificationStart,worker.indexOf("      const verified =",notificationStart));
+for(const count of [0,1,2,3])for(const distance of [90,91,150])for(const enabled of [true,false]) {
+ const images=Array.from({length:count},(_,index)=>({index})),sent=[];
+ const context=vm.createContext({aiOnly:true,useMilo:enabled,bestCandidateDistance:distance,CONF_GOOD:90,
+  candidates:images.map((image,index)=>({image,strategy:`ai-crop-${index+1}`})),notifyMilo:input=>sent.push(input)});
+ vm.runInContext(notification,context);
+ assert.equal(sent.length,enabled&&distance>90&&count?1:0);
+ if(sent.length){assert.equal(sent[0].length,Math.min(2,count));for(let index=0;index<sent[0].length;index++)assert.equal(sent[0][index],images[index]);}
+}
+
 // An interim image notification must not consume the final worker response,
 // cancel its timeout, or revive a callback after the request has completed.
 let cleared=0, previews=0, finals=0, finalResult;

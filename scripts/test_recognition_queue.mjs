@@ -10,6 +10,7 @@ Object.defineProperty(globalThis, "performance", { configurable: true, value: { 
 const posted = [];
 globalThis.Worker = class FakeRecognitionWorker {
   postMessage(message) {
+    if (["milo-begin", "milo-release"].includes(message.type)) return;
     posted.push({ id: message.id, deliver: () => {
       this.onmessage?.({
         data: {

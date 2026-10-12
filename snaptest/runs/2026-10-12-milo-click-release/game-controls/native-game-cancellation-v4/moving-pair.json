@@ -1,0 +1,86 @@
+{
+  "ok": true,
+  "scope": "Actual Game native RTC moving controls paired identical final JPEG,geometry,selected frame,winning printing/face/confidence and full positive source proof. Fake canvas,loopback,models/index warm; not physical cameras/NAT/TURN nor complete200 release timing evidence.",
+  "matchedFinalCaptures": 6,
+  "rows": [
+    {
+      "name": "static-three-steps-warm",
+      "got": "Three Steps Ahead",
+      "sha": "7672e934c2b9a2cc1cc5eba985a98177d9472cc7b6e8b61de8228193b5fd8923",
+      "selected": 0,
+      "exactFinalJPEG": true,
+      "geometryExact": true,
+      "winningProofExact": true,
+      "allMatchesExact": true,
+      "baselineDisplay": 1666,
+      "candidateDisplay": 1546,
+      "earlyStarts": 1
+    },
+    {
+      "name": "first-sharp-static",
+      "got": "Three Steps Ahead",
+      "sha": "7672e934c2b9a2cc1cc5eba985a98177d9472cc7b6e8b61de8228193b5fd8923",
+      "selected": 0,
+      "exactFinalJPEG": true,
+      "geometryExact": true,
+      "winningProofExact": true,
+      "allMatchesExact": true,
+      "baselineDisplay": 926,
+      "candidateDisplay": 764,
+      "earlyStarts": 1
+    },
+    {
+      "name": "first-mild2-clear150",
+      "got": "Three Steps Ahead",
+      "sha": "7672e934c2b9a2cc1cc5eba985a98177d9472cc7b6e8b61de8228193b5fd8923",
+      "selected": 2,
+      "exactFinalJPEG": true,
+      "geometryExact": true,
+      "winningProofExact": true,
+      "allMatchesExact": true,
+      "baselineDisplay": 1103,
+      "candidateDisplay": 1087,
+      "earlyStarts": 1
+    },
+    {
+      "name": "first-blur7-clear150",
+      "got": "Three Steps Ahead",
+      "sha": "7672e934c2b9a2cc1cc5eba985a98177d9472cc7b6e8b61de8228193b5fd8923",
+      "selected": 2,
+      "exactFinalJPEG": true,
+      "geometryExact": true,
+      "winningProofExact": true,
+      "allMatchesExact": true,
+      "baselineDisplay": 1095,
+      "candidateDisplay": 985,
+      "earlyStarts": 0
+    },
+    {
+      "name": "first-blur7-clear220",
+      "got": "Three Steps Ahead",
+      "sha": "7672e934c2b9a2cc1cc5eba985a98177d9472cc7b6e8b61de8228193b5fd8923",
+      "selected": 2,
+      "exactFinalJPEG": true,
+      "geometryExact": true,
+      "winningProofExact": true,
+      "allMatchesExact": true,
+      "baselineDisplay": 1087,
+      "candidateDisplay": 982,
+      "earlyStarts": 0
+    },
+    {
+      "name": "first-valid-A-mild2-later-B150",
+      "got": "Sunbillow Verge",
+      "sha": "a96463230b26e073b877fdc767d9553275396843f3666d56efed2ee5a3680fd2",
+      "selected": 2,
+      "exactFinalJPEG": true,
+      "geometryExact": true,
+      "winningProofExact": true,
+      "allMatchesExact": true,
+      "baselineDisplay": 837,
+      "candidateDisplay": 902,
+      "earlyStarts": 1
+    }
+  ],
+  "heldOldReference": true
+}

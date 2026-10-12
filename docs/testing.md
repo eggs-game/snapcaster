@@ -175,7 +175,13 @@ pathways or confidence are listed even when the named identity and face agree.
 Before the full pair, the fresh speed gate was declared as at least a 10%
 display-median reduction (`maxFreshMedianRatio: 0.9`) and five more correct
 subsecond reads (`minFreshUnder1Gain: 5`, beyond the two-per-100 noise band).
-These defaults cannot be relaxed to pass observed results. CLI overrides
+These defaults cannot be relaxed to pass observed results. BUILD 35 separately
+predeclares a tail policy before the full native candidate run:
+`--tail-improvement` requires p90 at most 85% of control, at least ten more
+correct subsecond displays, and median at most 105% of control. It retains
+every exact-pixel, source/catalog, identity, face and precision gate. The
+original median policy remains the default; either policy may only become
+stricter. CLI overrides
 `--max-fresh-median-ratio` and `--min-fresh-under1-gain` may only be stricter.
 If both full reports
 include repeats, their hashes/accuracy are checked too and
@@ -185,7 +191,22 @@ are no default repeat speed thresholds. `--output` saves the validation JSON.
 `test_native_card_delivery_pair.mjs` injects changed pixels, wrong identities,
 false confidence, missing rows, invisible results and fabricated summaries to
 verify rejection in the fast set. This additional native timing gate does not
-replace or weaken the existing recognition accuracy release matrix.
+replace the complete recognition accuracy release matrix.
+
+For a speed-focused release, the explicit
+`--native-improvement=PAIR.json` argument to `check_recognition_release.mjs`
+can establish material improvement with that complete exact-pixel native pair.
+The checker reloads both 200-row reports, verifies their recorded SHA256 and
+recomputes the original median or predeclared tail policy; a saved `ok` field
+is insufficient. Candidate BUILD and every source/catalog fingerprint must
+match the checkout, and control must be current committed main. The complete
+recognition matrix still runs with its accuracy, rotation and hint floors;
+every previously correct primary identity must remain correct, and every
+confident answer in every candidate suite must be correct. Subset runs cannot
+certify this mode. Without explicit photo/native evidence, the original
+more-than-four recovered-card requirement remains unchanged. Run this check
+before committing the candidate, while HEAD still identifies the control.
+The predeclared BUILD 35 policy is archived with the release evidence.
 
 The native stale-hint probe adds 20 replacement-card cases to that method. Each
 case first clicks a real card from the previous scene, snapshots the verified
@@ -215,6 +236,15 @@ uses preserved compiled bundles with configurable scene/proof paths.
 The release artifact directory archives the control/fixed reports, selection,
 source/catalog versions and paired analysis. These targeted measurements
 supplement the complete 200-card native release pair.
+
+BUILD 35 repeats these controls on its final 71-file source snapshot: both
+unhinted and stale-hint arms reach 19/20, with all eighteen earlier winners and
+sixty JPEG/geometry pairs retained. Four verified hints remain subsecond, and
+Voja retains its normal fallback answer. `scripts/check_native_card_hint_pair.mjs`
+checks those raw reports, actual captured JPEGs, runtime BUILD and final
+source/catalog fingerprints. Its fast negative controls reject forged captures,
+printing/confidence changes, missing real prior hints and mismatched source.
+These targeted controls supplement the full native200 and eight-suite matrix.
 
 **SNAPTEST** is the benchmark, at
 **[snapcast.app/snaptest](https://snapcast.app/snaptest)**.
@@ -416,7 +446,20 @@ The final candidate must pass the same complete release matrix as a crop change.
 checks normal-reference retrieval on the saved new-face cases, missing-catalog
 fallback, and the actual shared WASM allocation across alternating corner and
 lookup jobs. Its wrapper is written only into a temporary compiled `dist`; it
-is not production instrumentation. Run it separately from timed benchmarks.
+is not production instrumentation. GPU checks also compare retrieved rows
+against forced CPU, block the GPU runtime to verify CPU recovery, and check
+that Cornelius remains usable before and after lookup.
+`test_milo_backend.mjs` controls startup deadlines, delayed sessions, invalid
+outputs, device loss, terminal CPU failure and exact tensor disposal;
+`test_milo_gpu_assets.mjs` verifies the runtime files and licenses against the
+pinned package. Run native browser checks separately from timed benchmarks.
+`test_early_full_preparation.mjs` checks exact selected-frame adoption and
+discarded-frame/model/decode ownership. `test_raw_alignment_cache.mjs`, run
+with `--expose-gc`, checks primitive reuse, all input bindings, the 256-entry
+bound and image collection while native reference features remain cached.
+`test_verifier_cancellation.mjs` holds real verifier awaits, checks cleanup
+before public downloads finish, and reproduces warm-loop starvation with an
+intentionally uncancellable control.
 `scripts/test_reference_features_browser.mjs BASE DIST OUTPUT` separately checks
 raw/contrast descriptor and keypoint parity for the thumbnail, legacy normal
 downsample and enlarged reference, reuse after eviction, the 120-entry

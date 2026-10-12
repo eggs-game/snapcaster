@@ -4,6 +4,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { createHash } from "node:crypto";
 
 const CONFIDENT = new Set(["art-match", "visual-exact", "recent-hint", "ocr-title"]);
 const SHA256 = /^[a-f0-9]{64}$/;
@@ -12,6 +13,10 @@ const CATALOG_FILES = ["public/carddata/manifest.json", "public/carddata/cards.j
 // Declared before the full native pair. Callers may make these stricter,
 // never relax them to fit the observed outcome.
 export const NATIVE_PAIR_THRESHOLDS = Object.freeze({ maxFreshMedianRatio: .9, minFreshUnder1Gain: 5 });
+// BUILD 34 already has a subsecond median. The next release targets its slow
+// tail; declare a separate policy before measuring any candidate. The original
+// median-improvement policy stays the default and cannot be relaxed.
+export const NATIVE_TAIL_THRESHOLDS = Object.freeze({ maxFreshMedianRatio: 1.05, maxFreshP90Ratio: .85, minFreshUnder1Gain: 10 });
 const SAMPLE = "authoritative SNAPTEST realLife 200, seed 20260803";
 const METADATA = ["id", "name", "scene", "index", "nx", "ny", "rotation", "coverage", "clipped", "layout", "occ", "pool"];
 const numeric = value => typeof value === "number" && Number.isFinite(value) && value >= 0;
@@ -40,7 +45,12 @@ function summarize(rows, mode) {
 }
 
 export function validateNativePair(control, candidate, thresholds = {}) {
-  thresholds = { ...NATIVE_PAIR_THRESHOLDS, ...thresholds };
+  return evaluateNativePair(control, candidate, { ...NATIVE_PAIR_THRESHOLDS, ...thresholds }, false);
+}
+export function validateNativeTailPair(control, candidate, thresholds = {}) {
+  return evaluateNativePair(control, candidate, { ...NATIVE_TAIL_THRESHOLDS, ...thresholds }, true);
+}
+function evaluateNativePair(control, candidate, thresholds, tail) {
   const failures = [], captureMismatches = [], regressions = [], confidentErrors = [], winnerChanges = [];
   const fail = message => failures.push(message);
   let sourceProofValid = true;
@@ -133,17 +143,24 @@ export function validateNativePair(control, candidate, thresholds = {}) {
   }
   const gains = Object.fromEntries(modes.map(mode => [mode, {
     medianRatio: summary[mode].candidate.displayMs.p50 / summary[mode].control.displayMs.p50,
+    p90Ratio: summary[mode].candidate.displayMs.p90 / summary[mode].control.displayMs.p90,
     correctUnder1s: summary[mode].candidate.correctUnder1s - summary[mode].control.correctUnder1s,
   }]));
-  const thresholdKeys = ["maxFreshMedianRatio", "minFreshUnder1Gain", ...(allRepeats ? ["maxRepeatMedianRatio", "minRepeatUnder1Gain"] : [])];
+  const declared = tail ? NATIVE_TAIL_THRESHOLDS : NATIVE_PAIR_THRESHOLDS;
+  const thresholdKeys = ["maxFreshMedianRatio", "minFreshUnder1Gain", ...(tail ? ["maxFreshP90Ratio"] : []),
+    ...(allRepeats ? ["maxRepeatMedianRatio", "minRepeatUnder1Gain", ...(tail ? ["maxRepeatP90Ratio"] : [])] : [])];
   const thresholdsReady = thresholdKeys.every(key => numeric(thresholds[key]))
-    && thresholds.maxFreshMedianRatio > 0 && thresholds.maxFreshMedianRatio <= NATIVE_PAIR_THRESHOLDS.maxFreshMedianRatio
-    && Number.isInteger(thresholds.minFreshUnder1Gain) && thresholds.minFreshUnder1Gain >= NATIVE_PAIR_THRESHOLDS.minFreshUnder1Gain
-    && (!allRepeats || thresholds.maxRepeatMedianRatio > 0 && Number.isInteger(thresholds.minRepeatUnder1Gain));
-  if (!thresholdsReady) fail("latency thresholds must retain predeclared fresh median ratio <=0.9 and correct subsecond gain >=5; included repeats require explicit thresholds");
+    && thresholds.maxFreshMedianRatio > 0 && thresholds.maxFreshMedianRatio <= declared.maxFreshMedianRatio
+    && Number.isInteger(thresholds.minFreshUnder1Gain) && thresholds.minFreshUnder1Gain >= declared.minFreshUnder1Gain
+    && (!tail || thresholds.maxFreshP90Ratio > 0 && thresholds.maxFreshP90Ratio <= declared.maxFreshP90Ratio)
+    && (!allRepeats || thresholds.maxRepeatMedianRatio > 0 && Number.isInteger(thresholds.minRepeatUnder1Gain)
+      && (!tail || thresholds.maxRepeatP90Ratio > 0));
+  if (!thresholdsReady) fail(tail ? "tail thresholds must retain predeclared median ratio <=1.05, p90 ratio <=0.85 and correct subsecond gain >=10; included repeats require explicit thresholds"
+    : "latency thresholds must retain predeclared fresh median ratio <=0.9 and correct subsecond gain >=5; included repeats require explicit thresholds");
   else for (const mode of modes) {
     const prefix = mode === "fresh" ? "Fresh" : "Repeat";
     if (!(gains[mode].medianRatio <= thresholds[`max${prefix}MedianRatio`])) fail(`${mode}: median reduction does not meet the measured threshold`);
+    if (tail && !(gains[mode].p90Ratio <= thresholds[`max${prefix}P90Ratio`])) fail(`${mode}: p90 reduction does not meet the measured threshold`);
     if (!(gains[mode].correctUnder1s >= thresholds[`min${prefix}Under1Gain`])) fail(`${mode}: correct subsecond count does not meet the measured threshold`);
   }
   return { ok: failures.length === 0, exactPaired: sourceProofValid && captureMismatches.length === 0 && matchedCaptures === expectedCaptures,
@@ -151,17 +168,24 @@ export function validateNativePair(control, candidate, thresholds = {}) {
     note: "Additional native click-to-paint gate only; the existing recognition accuracy release matrix remains required and unchanged.",
     builds: { control: control?.build, candidate: candidate?.build }, modes, matchedCaptures, expectedCaptures,
     matchedSourceCaptures: matchedCaptures * 2,
-    predeclaredFreshThresholds: NATIVE_PAIR_THRESHOLDS, thresholds, gains, summary,
+    policy: tail ? "tail-improvement" : "median-improvement", predeclaredFreshThresholds: declared, thresholds, gains, summary,
     catalogDigests: control?.catalogDigests, catalog: control?.catalog,
     regressions, confidentErrors, winnerChanges, captureMismatches, failures };
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const [controlPath, candidatePath, ...args] = process.argv.slice(2);
-  if (!controlPath || !candidatePath) throw new Error("Usage: check_native_card_delivery_pair.mjs CONTROL.json CANDIDATE.json [--max-fresh-median-ratio=R --min-fresh-under1-gain=N] [--max-repeat-median-ratio=R --min-repeat-under1-gain=N] [--output=FILE]; fresh defaults are predeclared 0.9/+5 and may only become stricter");
+  if (!controlPath || !candidatePath) throw new Error("Usage: check_native_card_delivery_pair.mjs CONTROL.json CANDIDATE.json [--tail-improvement] [--max-fresh-median-ratio=R --max-fresh-p90-ratio=R --min-fresh-under1-gain=N] [--output=FILE]; default 0.9 median/+5 or tail 1.05 median/0.85 p90/+10 may only become stricter; included repeats also require explicit thresholds");
   const flags = Object.fromEntries(args.map(arg => { const [key, ...value] = arg.replace(/^--/, "").split("="); return [key, value.join("=")]; }));
-  const thresholds = Object.fromEntries(["max-fresh-median-ratio", "min-fresh-under1-gain", "max-repeat-median-ratio", "min-repeat-under1-gain"].filter(key => flags[key] !== undefined).map(key => [key.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase()), Number(flags[key])]));
-  const result = validateNativePair(JSON.parse(readFileSync(controlPath)), JSON.parse(readFileSync(candidatePath)), thresholds);
+  const thresholds = Object.fromEntries(["max-fresh-median-ratio", "max-fresh-p90-ratio", "min-fresh-under1-gain", "max-repeat-median-ratio", "max-repeat-p90-ratio", "min-repeat-under1-gain"].filter(key => flags[key] !== undefined).map(key => [key.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase()), Number(flags[key])]));
+  if (flags["tail-improvement"] !== undefined && !["", "1", "true"].includes(flags["tail-improvement"])) throw new Error("Use --tail-improvement without a value (or =true/=1)");
+  const validate = flags["tail-improvement"] !== undefined ? validateNativeTailPair : validateNativePair;
+  const result = validate(JSON.parse(readFileSync(controlPath)), JSON.parse(readFileSync(candidatePath)), thresholds);
+  const evidenceDirectory = flags.output ? path.dirname(path.resolve(flags.output)) : process.cwd();
+  result.inputs = Object.fromEntries([["control",controlPath],["candidate",candidatePath]].map(([arm,file]) => [arm, {
+    file: path.relative(evidenceDirectory,path.resolve(file)),
+    sha256: createHash("sha256").update(readFileSync(file)).digest("hex"),
+  }]));
   const json = JSON.stringify(result, null, 2) + "\n";
   if (flags.output) writeFileSync(flags.output, json);
   console.log(json);

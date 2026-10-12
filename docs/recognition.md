@@ -3,7 +3,7 @@
 One click against 113,269 printing faces — without a recognition
 server or a per-scan inference charge.
 
-The `milo-photo-27` pipeline adds local learned retrieval and a corner detector to
+The `milo-click-35` pipeline adds local learned retrieval and a corner detector to
 perceptual hashing and geometric artwork verification. Tesseract remains the
 optional text fallback. No recognition API, API key, or per-scan inference
 charge is involved; camera captures stay in the browser.
@@ -11,8 +11,15 @@ charge is involved; camera captures stay in the browser.
 ### Local Milo lookup
 
 Milo 1 is a purpose-trained MobileViT card embedder, pinned to revision
-`9bcc5e809e936b8c5630d1e7101aae1de1e76621`. It shares the corner detector's
-serialized worker and ONNX Runtime WASM instance. Lobby warmup loads the
+`9bcc5e809e936b8c5630d1e7101aae1de1e76621`. It shares the corner detector's serialized worker. On a hardware WebGPU
+adapter, Milo uses the same fp32 weights with the pinned ONNX Runtime 1.30 GPU
+backend; Cornelius retains its original WASM runtime. Unsupported adapters,
+blocked assets or initialization failures use the original CPU backend. GPU
+initialization has a five-second lobby budget (800ms for an unwarmed lookup);
+a late session is released without adoption. A lost or invalid GPU session
+retries the exact input once on CPU and releases its tensors and old session.
+`?milo-gpu=0` forces CPU for diagnosis. Lookup diagnostics record the backend
+and whether a device failure caused recovery. Lobby warmup loads the
 5.2 MB model and complete, roughly 15.4 MB quantized reference catalog.
 There is no API key, capture upload or per-scan inference charge. Model and
 runtime licenses, checksums and corresponding-source links ship with the app.
@@ -86,7 +93,17 @@ supplement slots and at most twelve additional Milo slots. Ordinary seeds
 and their query-image budget remain independent.
 
 If ordinary Milo verification fails, a second pass applies local grayscale
-contrast equalization (CLAHE) to query and reference keypoints. It uses the
+contrast equalization (CLAHE) to query and reference keypoints. The initial
+crop and bounded Cornelius retry both get these ordinary passes first. If
+neither settles the card, a final CLAHE pass lowers ORB FAST from 20 to 8 to find
+faint details, trying the original snapshot before the retry snapshot. It
+retains the 500-query, 1600-source and 300-reference keypoint
+caps; reference cache entries distinguish both contrast mode and FAST value.
+Every pass keeps the same candidate pool and independent source verification.
+At most two failed verification snapshots retain their original pixels, rivals
+and click transforms. New requests, cancellation and completion release them;
+a snapshot cannot introduce candidates from another scan or catalog.
+An already decisive rival skips the extra pass. It uses the
 same candidate budget, geometric registration, interior-content requirements,
 color agreement and decisive margins. A successful ordinary read skips this
 pass. Contrast recovery cannot replace missing or fully obscured pixels.
@@ -117,6 +134,14 @@ use the original allocate-and-release path. Native browser checks compare all
 descriptor bytes and keypoint coordinates and stress eviction while measuring
 the actual WASM allocation.
 
+Each learned scan also keeps at most 256 primitive raw alignment results.
+Reuse requires the same immutable query/reference image objects, keypoint
+budgets, FAST value, click, homography and source dimensions. The normal
+verification loops, color checks, rival comparisons and confidence gates
+still run. Returned points are copied; the cache owns no native handles or
+camera pixels. Weak provenance prevents cached reference descriptors from
+retaining image data. CLAHE, FAST8 and browsers without `WeakRef` bypass it.
+
 Registered color checks reuse four tiny signatures per immutable reference,
 without retaining an extra balanced image. When improving registrations replace
 the same candidate's footprint, the verifier warps only the final accepted
@@ -127,14 +152,14 @@ An experimental stop that ignores same-name reprints remains disabled. A
 controlled late-rival test showed it can confidently choose the wrong identity
 even though its aggregate benchmark score is unchanged.
 
-For one uncertain learned crop (best gray distance >150), Milo starts while the
-ordinary artwork verifier is still running. Its bounded reference shortlist
+For one or two uncertain learned crops (best gray distance >90), Milo starts
+while the ordinary artwork verifier is still running. Its bounded reference shortlist
 prefetches thumbnails and the first four normal images after validating the
 catalog fingerprint. The final raw result and scan context must arrive before
 those rows can be verified; the early notification cannot settle recognition.
-The same exact crop pixels and identity gates apply. Two-crop scans keep the
-ordinary schedule because speculative inference delayed easy reads in the
-pilot. Once artwork/hash verification settles identity, unused speculative work
+The same exact crop pixels and identity gates apply. The lookup is
+speculative: it cannot publish an answer before the normal verifier and scan
+context are ready. Once artwork/hash verification settles identity, unused speculative work
 drains in the background instead of holding back the answer. The model adapter
 still serializes every crop/lookup job and owns its callbacks by request ID.
 Late unused rows may warm public references but cannot change the published
@@ -296,11 +321,19 @@ returns the crop. The compressed video stream is never used for recognition.
   centre, so the true in-crop position travels with the image.
 
 For an AI scan, the first sample can start Cornelius while the camera
-continues sampling. This prepares geometry only. The final capture still selects
+continues sampling. Once valid geometry is ready, an idle matcher can also
+start the complete unhinted AI/Milo scan privately. Hints, empty proposals,
+disabled AI/Milo and a busy recognition queue retain normal scheduling.
+The final capture still selects
 the sharpest of all three samples, and every identity check uses that selected
 frame. Preparation is consumed only for the exact same Blob and crop click; a
-later winner gets normal detection. Canceled adopted preparation aborts obsolete
-recognition rather than starting another model job.
+later winner gets normal detection. Only matching options and the original
+request owner can adopt the private result; it cannot update the UI or room
+hints before selection. Canceled adopted preparation aborts obsolete
+recognition rather than starting another model job. Pending public reference
+waits race owner cancellation, and warm verification yields after every eight
+references so queued cancellation messages can run. Discarded scans release
+native features and cannot overwrite the latest title source.
 
 Remote requesters opt into one bounded early binary response. It cannot settle
 the request: the owner commits those exact bytes only after first-sample selection,
@@ -309,6 +342,8 @@ single final response. Discarded transfers, deadlines, timeouts and departures
 release their listeners, chunks and unused URLs. `captureOverlap` reports wall
 time already spent preparing during capture; it is nonexclusive and must not be
 added to `captureMs` or model stage values to reconstruct total latency.
+`ai_crop.fullPrepared` marks complete-scan adoption;
+`captureRecognitionOverlap` records its actual overlap, also nonexclusive.
 
 ### 2. Candidate crops — many guesses at framing
 
@@ -508,6 +543,10 @@ The click scheduler separately coalesces an in-flight duplicate at the same
 spot. There is one active recognition and one newest waiting recognition; a
 new click replaces the waiting job instead of growing a bitmap/OCR backlog.
 Only the latest requested result may update the card panel.
+Obsolete work checks its request owner after decoding, model inference,
+verification and OCR, so it can release retained pixels before the next stage.
+Crop registration captures the source dimensions before closing its bitmap;
+browser bitmap release resets the live dimensions to zero.
 
 ## Where the time goes
 

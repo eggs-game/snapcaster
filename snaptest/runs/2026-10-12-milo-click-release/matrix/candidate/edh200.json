@@ -1,0 +1,948 @@
+{
+  "build": "milo-click-35 (local vision)",
+  "aiCropEnabled": true,
+  "mode": "edh200",
+  "summary": {
+    "n": 200,
+    "errors": 0,
+    "accuracy": 0.975,
+    "avgMs": 1503,
+    "medianMs": 772,
+    "byRotation": {
+      "upright": {
+        "n": 50,
+        "ok": 48,
+        "acc": 0.96
+      },
+      "tilt": {
+        "n": 50,
+        "ok": 49,
+        "acc": 0.98
+      },
+      "sideways": {
+        "n": 50,
+        "ok": 50,
+        "acc": 1
+      },
+      "upsidedown": {
+        "n": 50,
+        "ok": 48,
+        "acc": 0.96
+      }
+    },
+    "byOcclusion": {
+      "none": {
+        "n": 52,
+        "ok": 52,
+        "acc": 1
+      },
+      "fingers": {
+        "n": 52,
+        "ok": 49,
+        "acc": 0.942
+      },
+      "dice": {
+        "n": 48,
+        "ok": 47,
+        "acc": 0.979
+      },
+      "fingers-dice": {
+        "n": 48,
+        "ok": 47,
+        "acc": 0.979
+      }
+    },
+    "firstHalfAcc": 0.97,
+    "secondHalfAcc": 0.98,
+    "peakHeapMB": 24,
+    "wasmHeapStartMB": 134,
+    "wasmHeapEndMB": 134,
+    "wasmHeapPeakMB": 134,
+    "errorsByStage": {},
+    "stageAvgMs": {
+      "prep": 168,
+      "rank": 0,
+      "orb": 406,
+      "total": 1429
+    },
+    "p90Ms": 3837,
+    "maxMs": 5033,
+    "byPathway": {
+      "art-match": {
+        "n": 130,
+        "ok": 130,
+        "acc": 1
+      },
+      "(no match)": {
+        "n": 70,
+        "ok": 65,
+        "acc": 0.929
+      }
+    },
+    "byPlacement": {
+      "mild-centered-a": {
+        "n": 56,
+        "ok": 56,
+        "acc": 1
+      },
+      "above-click": {
+        "n": 48,
+        "ok": 48,
+        "acc": 1
+      },
+      "mild-centered-b": {
+        "n": 48,
+        "ok": 48,
+        "acc": 1
+      },
+      "top-edge-clipped": {
+        "n": 48,
+        "ok": 43,
+        "acc": 0.896
+      }
+    },
+    "byPool": {
+      "card": {
+        "n": 148,
+        "ok": 145,
+        "acc": 0.98
+      },
+      "token": {
+        "n": 44,
+        "ok": 42,
+        "acc": 0.955
+      },
+      "basic": {
+        "n": 8,
+        "ok": 8,
+        "acc": 1
+      }
+    },
+    "missTrueRank": {
+      "rank 2": 0,
+      "rank 3-5": 0,
+      "rank 6+": 0,
+      "absent": 5
+    },
+    "missAvgDist": 183,
+    "ranAt": "2026-10-12T07:31:05.672Z"
+  },
+  "misses": [
+    {
+      "name": "Jenova, Ancient Calamity",
+      "id": "22dd493f-e481-4563-8f87-c5bdbfd54fdd",
+      "pool": "card",
+      "got": "Tax Hounds",
+      "dist": 190,
+      "conf": 0.29,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Tax Hounds (d=190)",
+        "Guildmark (d=192)",
+        "Double-Faced Substitute Card (d=192)"
+      ],
+      "i": 55,
+      "degradeIndex": 55,
+      "placement": "top-edge-clipped",
+      "rot": "upsidedown",
+      "occ": "fingers",
+      "ms": 3713,
+      "cv": "ready",
+      "tried": 121,
+      "dropped": 27,
+      "artBest": {
+        "name": "Tax Hounds",
+        "inliers": 6,
+        "color": 100,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 5,
+        "clickArtInliers": 3,
+        "clickTextInliers": 2,
+        "clickHalfInliers": [
+          5,
+          0
+        ]
+      },
+      "artChecked": 36,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-top-edge--2-30-89-182",
+          "score": 82.56
+        },
+        {
+          "strategy": "isolate-top-edge--2-30-89-176",
+          "score": 79.77
+        },
+        {
+          "strategy": "isolate-top-edge--2-28-92-182",
+          "score": 78.1
+        },
+        {
+          "strategy": "isolate-top-edge-tapped-2-22-68-213",
+          "score": 73.94
+        },
+        {
+          "strategy": "isolate-top-edge--2-28-92-179",
+          "score": 68.83
+        },
+        {
+          "strategy": "isolate-top-edge-tapped-2-24-65-210",
+          "score": 67.28
+        },
+        {
+          "strategy": "isolate-top-edge--2-28-92-176",
+          "score": 66.39
+        },
+        {
+          "strategy": "isolate-top-edge--2-30-89-179",
+          "score": 65.65
+        },
+        {
+          "strategy": "isolate-top-edge-tapped-4-24-68-210",
+          "score": 64.95
+        },
+        {
+          "strategy": "isolate-top-edge-tapped-2-24-65-207",
+          "score": 64.33
+        },
+        {
+          "strategy": "isolate-top-edge-tapped--2-19-92-273",
+          "score": 64.3
+        },
+        {
+          "strategy": "isolate-top-edge-tapped-2-24-65-213",
+          "score": 63.93
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.028541062027215958,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.007624550722539425,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 175,
+        "queueMs": 0,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.007862680591642857,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.011279415339231491,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.007303398102521896,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.007282223552465439,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 346,
+          "queueMs": 0
+        },
+        "retryMs": 347
+      },
+      "truthGeometry": null,
+      "capturePoint": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "stages": {
+        "prep": 418,
+        "rankSeeds": 415,
+        "earlyOrbProbe": 0,
+        "rankRefine": 697,
+        "isolatePrep": 807,
+        "isolateScore": 427,
+        "rank": 0,
+        "orb": 366,
+        "aiCrop": 175,
+        "aiRetry": 347,
+        "modelQueue": 0,
+        "total": 3655,
+        "queue": 0
+      }
+    },
+    {
+      "name": "Librarian",
+      "id": "96064005-4ba8-4355-90e8-6040101f2aa4",
+      "pool": "token",
+      "got": "Trampled Lotus",
+      "dist": 163,
+      "conf": 0.48,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Trampled Lotus (d=163)",
+        "Fear (split card) // Loathing (d=170)",
+        "Primetime Suspect (d=171)"
+      ],
+      "i": 56,
+      "degradeIndex": 56,
+      "placement": "top-edge-clipped",
+      "rot": "upright",
+      "occ": "dice",
+      "ms": 3440,
+      "cv": "ready",
+      "tried": 116,
+      "dropped": 27,
+      "artBest": {
+        "name": "Trampled Lotus",
+        "inliers": 0,
+        "color": 100,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 3,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0,
+        "clickHalfInliers": [
+          0,
+          0
+        ]
+      },
+      "artChecked": 36,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-top-edge-tapped-2-30-38-177",
+          "score": 260.93
+        },
+        {
+          "strategy": "isolate-top-edge-2-33-68-161",
+          "score": 258.73
+        },
+        {
+          "strategy": "isolate-top-edge-2-33-68-164",
+          "score": 258.72
+        },
+        {
+          "strategy": "isolate-top-edge-2-33-68-155",
+          "score": 258.07
+        },
+        {
+          "strategy": "isolate-top-edge-tapped-0-30-35-177",
+          "score": 258.01
+        },
+        {
+          "strategy": "isolate-top-edge-2-33-68-158",
+          "score": 255.5
+        },
+        {
+          "strategy": "isolate-top-edge-tapped-2-28-41-180",
+          "score": 248.06
+        },
+        {
+          "strategy": "isolate-top-edge-tapped-2-28-80-180",
+          "score": 199.72
+        },
+        {
+          "strategy": "isolate-top-edge-6-28-89-179",
+          "score": 157.61
+        },
+        {
+          "strategy": "isolate-top-edge-6-30-80-176",
+          "score": 154.63
+        },
+        {
+          "strategy": "isolate-top-edge-6-30-86-176",
+          "score": 151.54
+        },
+        {
+          "strategy": "isolate-top-edge--2-30-53-176",
+          "score": 147.87
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.05190332233905792,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.03499573841691017,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          }
+        ],
+        "ms": 178,
+        "queueMs": 0,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.007964187301695347,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.054026298224925995,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.02300328202545643,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.02946752868592739,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            }
+          ],
+          "ms": 348,
+          "queueMs": 0
+        },
+        "retryMs": 348
+      },
+      "truthGeometry": null,
+      "capturePoint": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "stages": {
+        "prep": 395,
+        "rankSeeds": 450,
+        "earlyOrbProbe": 0,
+        "rankRefine": 539,
+        "isolatePrep": 760,
+        "isolateScore": 412,
+        "rank": 0,
+        "orb": 298,
+        "aiCrop": 178,
+        "aiRetry": 348,
+        "modelQueue": 0,
+        "total": 3383,
+        "queue": 0
+      }
+    },
+    {
+      "name": "Ashad, the Lone Cyberman",
+      "id": "9d579c01-7d65-4492-88dc-00aff3be6ab3",
+      "pool": "card",
+      "got": "The Karfell Rocker",
+      "dist": 203,
+      "conf": 0.19,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "The Karfell Rocker (d=203)",
+        "Echoing Truth (d=201)",
+        "Kraul Stinger (d=199)"
+      ],
+      "i": 63,
+      "degradeIndex": 63,
+      "placement": "top-edge-clipped",
+      "rot": "upsidedown",
+      "occ": "fingers-dice",
+      "ms": 4247,
+      "cv": "ready",
+      "tried": 126,
+      "dropped": 19,
+      "artBest": {
+        "name": "The Karfell Rocker",
+        "inliers": 12,
+        "color": 92,
+        "weak": false,
+        "clickInside": null,
+        "clickInliers": 14,
+        "clickArtInliers": 12,
+        "clickTextInliers": 2,
+        "clickHalfInliers": [
+          12,
+          2
+        ]
+      },
+      "artChecked": 36,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-top-edge-10-48-62-114",
+          "score": 199.19
+        },
+        {
+          "strategy": "isolate-top-edge-12-48-65-114",
+          "score": 177.44
+        },
+        {
+          "strategy": "isolate-top-edge-tapped-12-26-68-204",
+          "score": 166.4
+        },
+        {
+          "strategy": "isolate-top-edge-tapped-14-26-71-204",
+          "score": 163.97
+        },
+        {
+          "strategy": "isolate-top-edge-tapped-8-26-59-207",
+          "score": 158.26
+        },
+        {
+          "strategy": "isolate-top-edge-tapped-10-24-68-213",
+          "score": 157.45
+        },
+        {
+          "strategy": "isolate-portrait-10-42-56-89",
+          "score": 156.59
+        },
+        {
+          "strategy": "isolate-top-edge-10-48-68-114",
+          "score": 150.18
+        },
+        {
+          "strategy": "isolate-top-edge-tapped-8-26-59-210",
+          "score": 149.77
+        },
+        {
+          "strategy": "isolate-top-edge-tapped-10-24-68-216",
+          "score": 148.05
+        },
+        {
+          "strategy": "isolate-top-edge-tapped-10-24-68-204",
+          "score": 143.43
+        },
+        {
+          "strategy": "isolate-top-edge-10-46-59-114",
+          "score": 138.5
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.03150077164173126,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.009062687866389751,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 179,
+        "queueMs": 0,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.007790375500917435,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.02583353966474533,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.009168914519250393,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.00928278174251318,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 351,
+          "queueMs": 0
+        },
+        "retryMs": 351
+      },
+      "truthGeometry": null,
+      "capturePoint": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "stages": {
+        "prep": 426,
+        "rankSeeds": 375,
+        "earlyOrbProbe": 0,
+        "rankRefine": 910,
+        "isolatePrep": 931,
+        "isolateScore": 434,
+        "rank": 0,
+        "orb": 573,
+        "aiCrop": 179,
+        "aiRetry": 351,
+        "modelQueue": 0,
+        "total": 4181,
+        "queue": 0
+      }
+    },
+    {
+      "name": "Bloodfire Dwarf",
+      "id": "86b5c38e-7d74-4862-8187-f5db4a3d1e0f",
+      "pool": "card",
+      "got": "Skyhunter Skirmisher",
+      "dist": 180,
+      "conf": 0.36,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Skyhunter Skirmisher (d=180)",
+        "A-Town (d=187)",
+        "Cast Out (d=191)"
+      ],
+      "i": 117,
+      "degradeIndex": 117,
+      "placement": "top-edge-clipped",
+      "rot": "tilt",
+      "occ": "fingers",
+      "ms": 3929,
+      "cv": "ready",
+      "tried": 125,
+      "dropped": 20,
+      "artBest": {
+        "name": "Skyhunter Skirmisher",
+        "inliers": 7,
+        "color": 96,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 7,
+        "clickArtInliers": 6,
+        "clickTextInliers": 0,
+        "clickHalfInliers": [
+          6,
+          1
+        ]
+      },
+      "artChecked": 36,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-top-edge-tapped-14-22-80-237",
+          "score": 115.25
+        },
+        {
+          "strategy": "isolate-top-edge-14-28-71-182",
+          "score": 107.45
+        },
+        {
+          "strategy": "isolate-top-edge-10-46-77-114",
+          "score": 107.38
+        },
+        {
+          "strategy": "isolate-top-edge-tapped-14-22-80-240",
+          "score": 104.41
+        },
+        {
+          "strategy": "isolate-top-edge-10-45-77-114",
+          "score": 101.98
+        },
+        {
+          "strategy": "isolate-top-edge-10-48-77-114",
+          "score": 100.71
+        },
+        {
+          "strategy": "isolate-top-edge-10-46-74-111",
+          "score": 99.94
+        },
+        {
+          "strategy": "isolate-top-edge-10-46-74-114",
+          "score": 98.9
+        },
+        {
+          "strategy": "isolate-top-edge-10-45-80-111",
+          "score": 98.82
+        },
+        {
+          "strategy": "isolate-top-edge-10-45-77-111",
+          "score": 96.99
+        },
+        {
+          "strategy": "isolate-top-edge-10-46-80-114",
+          "score": 92.66
+        },
+        {
+          "strategy": "isolate-top-edge-tapped-14-22-80-234",
+          "score": 90.78
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.047111328691244125,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.020074941217899323,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          }
+        ],
+        "ms": 182,
+        "queueMs": 0,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.008415071293711662,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.026956772431731224,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.012522508390247822,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.02285613678395748,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            }
+          ],
+          "ms": 350,
+          "queueMs": 0
+        },
+        "retryMs": 351
+      },
+      "truthGeometry": null,
+      "capturePoint": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "stages": {
+        "prep": 428,
+        "rankSeeds": 340,
+        "earlyOrbProbe": 0,
+        "rankRefine": 817,
+        "isolatePrep": 957,
+        "isolateScore": 428,
+        "rank": 0,
+        "orb": 252,
+        "aiCrop": 182,
+        "aiRetry": 351,
+        "modelQueue": 0,
+        "total": 3760,
+        "queue": 0
+      }
+    },
+    {
+      "name": "Boneyard",
+      "id": "16e06e66-a2dd-42e8-bf65-1e23a3fd3ce0",
+      "pool": "token",
+      "got": "Inheritance",
+      "dist": 181,
+      "conf": 0.35,
+      "trueRank": null,
+      "trueDist": null,
+      "top3": [
+        "Inheritance (d=181)",
+        "Woodland Cemetery (d=187)",
+        "Fighter Class (d=191)"
+      ],
+      "i": 180,
+      "degradeIndex": 180,
+      "placement": "top-edge-clipped",
+      "rot": "upright",
+      "occ": "fingers",
+      "ms": 4045,
+      "cv": "ready",
+      "tried": 97,
+      "dropped": 20,
+      "artBest": {
+        "name": "Inheritance",
+        "inliers": 5,
+        "color": 90,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 5,
+        "clickArtInliers": 5,
+        "clickTextInliers": 0,
+        "clickHalfInliers": [
+          5,
+          0
+        ]
+      },
+      "artChecked": 36,
+      "metadata": null,
+      "metadataVetoed": 0,
+      "metadataConflictAll": false,
+      "metadataError": null,
+      "perfectControl": null,
+      "isolationDebug": [
+        {
+          "strategy": "isolate-portrait-6-51-50-92",
+          "score": 113.24
+        },
+        {
+          "strategy": "isolate-portrait-4-51-47-92",
+          "score": 109.02
+        },
+        {
+          "strategy": "isolate-portrait-6-53-50-92",
+          "score": 106.57
+        },
+        {
+          "strategy": "isolate-portrait-4-53-47-92",
+          "score": 104.62
+        },
+        {
+          "strategy": "isolate-portrait-6-51-50-86",
+          "score": 102.59
+        },
+        {
+          "strategy": "isolate-portrait-4-53-47-89",
+          "score": 102.07
+        },
+        {
+          "strategy": "isolate-portrait-6-53-50-89",
+          "score": 100.5
+        },
+        {
+          "strategy": "isolate-portrait-6-53-50-80",
+          "score": 99.6
+        },
+        {
+          "strategy": "isolate-portrait-6-51-50-89",
+          "score": 97.68
+        },
+        {
+          "strategy": "isolate-portrait-4-51-47-86",
+          "score": 96.57
+        },
+        {
+          "strategy": "isolate-portrait-6-51-50-80",
+          "score": 95.23
+        },
+        {
+          "strategy": "isolate-portrait-4-53-47-86",
+          "score": 95.05
+        }
+      ],
+      "aiCrop": {
+        "model": "cornelius-2.12",
+        "status": "ready",
+        "proposals": 0,
+        "probes": [
+          {
+            "sharpness": 0.025179075077176094,
+            "accepted": false,
+            "reason": "geometry-or-click"
+          },
+          {
+            "sharpness": 0.011898424476385117,
+            "accepted": false,
+            "reason": "weak"
+          }
+        ],
+        "ms": 185,
+        "queueMs": 0,
+        "retry": {
+          "model": "cornelius-2.12",
+          "status": "ready",
+          "proposals": 0,
+          "probes": [
+            {
+              "sharpness": 0.007965580560266972,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.027876948937773705,
+              "accepted": false,
+              "reason": "geometry-or-click"
+            },
+            {
+              "sharpness": 0.011240989901125431,
+              "accepted": false,
+              "reason": "weak"
+            },
+            {
+              "sharpness": 0.008679794147610664,
+              "accepted": false,
+              "reason": "weak"
+            }
+          ],
+          "ms": 351,
+          "queueMs": 0
+        },
+        "retryMs": 352
+      },
+      "truthGeometry": null,
+      "capturePoint": {
+        "nx": 0.5,
+        "ny": 0.5
+      },
+      "stages": {
+        "prep": 445,
+        "rankSeeds": 517,
+        "earlyOrbProbe": 0,
+        "rankRefine": 970,
+        "isolatePrep": 613,
+        "isolateScore": 233,
+        "rank": 0,
+        "orb": 619,
+        "aiCrop": 185,
+        "aiRetry": 352,
+        "modelQueue": 0,
+        "total": 3936,
+        "queue": 0
+      }
+    }
+  ],
+  "errors": []
+}

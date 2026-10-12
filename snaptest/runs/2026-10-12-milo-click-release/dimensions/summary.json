@@ -1,0 +1,1721 @@
+{
+  "ok": true,
+  "completed": true,
+  "total": 18,
+  "correct": {
+    "base": 6,
+    "candidate": 6
+  },
+  "completeProofAllExact": true,
+  "safetyFailures": [],
+  "errors": [],
+  "wasmHeapMB": [
+    134
+  ],
+  "rows": [
+    {
+      "name": "Valakut, the Molten Pinnacle",
+      "i": 26,
+      "kind": "original-native-miss",
+      "baselineCorrect": false,
+      "prototypeCorrect": false,
+      "baselineFace": 0,
+      "prototypeFace": 0,
+      "printingChanged": false,
+      "completeProofExact": true,
+      "sourceProbes": {
+        "base": [
+          5,
+          6,
+          5,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6
+        ],
+        "candidate": [
+          5,
+          6,
+          5,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6
+        ]
+      },
+      "initialRegions": {
+        "base": [
+          {
+            "width": 0,
+            "height": 0,
+            "click": {
+              "x": 297,
+              "y": 297
+            },
+            "mappedClick": {
+              "x": 51.58297815203133,
+              "y": 91.6590729596211
+            },
+            "cameraToCrop": [
+              1.2532830606173002,
+              0.08401895919799172,
+              -346.86421290594126,
+              -0.07710646533390707,
+              1.1758730747924582,
+              -236.92862346881054,
+              -0.00002146309461169791,
+              -0.0000613358092698835,
+              1
+            ]
+          }
+        ],
+        "candidate": [
+          {
+            "width": 594,
+            "height": 594,
+            "click": {
+              "x": 297,
+              "y": 297
+            },
+            "mappedClick": {
+              "x": 51.58297815203133,
+              "y": 91.6590729596211
+            },
+            "cameraToCrop": [
+              1.2532830606173002,
+              0.08401895919799172,
+              -346.86421290594126,
+              -0.07710646533390707,
+              1.1758730747924582,
+              -236.92862346881054,
+              -0.00002146309461169791,
+              -0.0000613358092698835,
+              1
+            ]
+          }
+        ]
+      },
+      "diagnosticMs": {
+        "base": 8580,
+        "candidate": 8629
+      }
+    },
+    {
+      "name": "Path to Exile",
+      "i": 55,
+      "kind": "original-native-miss",
+      "baselineCorrect": false,
+      "prototypeCorrect": false,
+      "baselineFace": 0,
+      "prototypeFace": 0,
+      "printingChanged": false,
+      "completeProofExact": true,
+      "sourceProbes": {
+        "base": [
+          5,
+          5,
+          4,
+          4,
+          6,
+          6,
+          6,
+          6,
+          5,
+          6
+        ],
+        "candidate": [
+          5,
+          5,
+          4,
+          4,
+          6,
+          6,
+          6,
+          6,
+          5,
+          6
+        ]
+      },
+      "initialRegions": {
+        "base": [
+          {
+            "width": 0,
+            "height": 0,
+            "click": {
+              "x": 297,
+              "y": 297
+            },
+            "mappedClick": {
+              "x": 189.50334375827418,
+              "y": 266.8962925415336
+            },
+            "cameraToCrop": [
+              0.15810073505192246,
+              -1.091247593793023,
+              436.0734997241409,
+              0.9693021680587705,
+              0.1302047515827403,
+              -102.71829859767354,
+              -0.00046486481796355556,
+              -0.00007836735599109136,
+              1
+            ]
+          }
+        ],
+        "candidate": [
+          {
+            "width": 594,
+            "height": 594,
+            "click": {
+              "x": 297,
+              "y": 297
+            },
+            "mappedClick": {
+              "x": 189.50334375827418,
+              "y": 266.8962925415336
+            },
+            "cameraToCrop": [
+              0.15810073505192246,
+              -1.091247593793023,
+              436.0734997241409,
+              0.9693021680587705,
+              0.1302047515827403,
+              -102.71829859767354,
+              -0.00046486481796355556,
+              -0.00007836735599109136,
+              1
+            ]
+          }
+        ]
+      },
+      "diagnosticMs": {
+        "base": 9175,
+        "candidate": 9180
+      }
+    },
+    {
+      "name": "Malcolm, Alluring Scoundrel",
+      "i": 86,
+      "kind": "original-native-miss",
+      "baselineCorrect": false,
+      "prototypeCorrect": false,
+      "baselineFace": 1,
+      "prototypeFace": 1,
+      "printingChanged": false,
+      "completeProofExact": true,
+      "sourceProbes": {
+        "base": [
+          6,
+          6,
+          5,
+          6,
+          6,
+          6
+        ],
+        "candidate": [
+          6,
+          6,
+          5,
+          6,
+          6,
+          6
+        ]
+      },
+      "initialRegions": {
+        "base": [
+          {
+            "width": 0,
+            "height": 0,
+            "click": {
+              "x": 297,
+              "y": 297
+            },
+            "mappedClick": {
+              "x": 143.71845389495206,
+              "y": 89.85733069532289
+            },
+            "cameraToCrop": [
+              1.1995175231001112,
+              0.11316205358848436,
+              -232.75414780253084,
+              -0.06628743925221475,
+              1.3068091839446374,
+              -270.20375414252715,
+              -0.00019158219457485082,
+              0.0005053558121341827,
+              1
+            ]
+          }
+        ],
+        "candidate": [
+          {
+            "width": 594,
+            "height": 594,
+            "click": {
+              "x": 297,
+              "y": 297
+            },
+            "mappedClick": {
+              "x": 143.71845389495206,
+              "y": 89.85733069532289
+            },
+            "cameraToCrop": [
+              1.1995175231001112,
+              0.11316205358848436,
+              -232.75414780253084,
+              -0.06628743925221475,
+              1.3068091839446374,
+              -270.20375414252715,
+              -0.00019158219457485082,
+              0.0005053558121341827,
+              1
+            ]
+          }
+        ]
+      },
+      "diagnosticMs": {
+        "base": 5345,
+        "candidate": 5349
+      }
+    },
+    {
+      "name": "Sacred Foundry",
+      "i": 92,
+      "kind": "original-native-miss",
+      "baselineCorrect": false,
+      "prototypeCorrect": false,
+      "baselineFace": 0,
+      "prototypeFace": 0,
+      "printingChanged": false,
+      "completeProofExact": true,
+      "sourceProbes": {
+        "base": [
+          6,
+          6,
+          5,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6
+        ],
+        "candidate": [
+          6,
+          6,
+          5,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6
+        ]
+      },
+      "initialRegions": {
+        "base": [
+          {
+            "width": 0,
+            "height": 0,
+            "click": {
+              "x": 297,
+              "y": 242.19679633867275
+            },
+            "mappedClick": {
+              "x": 172.95870978472254,
+              "y": 191.65726568148872
+            },
+            "cameraToCrop": [
+              2.225486704715321,
+              -0.025580374449496564,
+              -356.98568226876057,
+              -0.059791885005769325,
+              2.8700093597682166,
+              -347.3666136273408,
+              -0.00016701645151176258,
+              0.003184744665336234,
+              1
+            ]
+          }
+        ],
+        "candidate": [
+          {
+            "width": 594,
+            "height": 594,
+            "click": {
+              "x": 297,
+              "y": 242.19679633867275
+            },
+            "mappedClick": {
+              "x": 172.95870978472254,
+              "y": 191.65726568148872
+            },
+            "cameraToCrop": [
+              2.225486704715321,
+              -0.025580374449496564,
+              -356.98568226876057,
+              -0.059791885005769325,
+              2.8700093597682166,
+              -347.3666136273408,
+              -0.00016701645151176258,
+              0.003184744665336234,
+              1
+            ]
+          }
+        ]
+      },
+      "diagnosticMs": {
+        "base": 11337,
+        "candidate": 11729
+      }
+    },
+    {
+      "name": "High Market",
+      "i": 95,
+      "kind": "original-native-miss",
+      "baselineCorrect": false,
+      "prototypeCorrect": false,
+      "baselineFace": 0,
+      "prototypeFace": 0,
+      "printingChanged": false,
+      "completeProofExact": true,
+      "sourceProbes": {
+        "base": [
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          5
+        ],
+        "candidate": [
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          5
+        ]
+      },
+      "initialRegions": {
+        "base": [
+          {
+            "width": 0,
+            "height": 0,
+            "click": {
+              "x": 297,
+              "y": 297
+            },
+            "mappedClick": {
+              "x": 163.88785341184553,
+              "y": 131.5847647133613
+            },
+            "cameraToCrop": [
+              1.2471469684460477,
+              -0.038821705069896593,
+              -209.6033158884314,
+              -0.006291262320344478,
+              1.063230494563673,
+              -194.06336325073693,
+              -0.0000402174018942438,
+              -0.00026011456401548984,
+              1
+            ]
+          }
+        ],
+        "candidate": [
+          {
+            "width": 594,
+            "height": 594,
+            "click": {
+              "x": 297,
+              "y": 297
+            },
+            "mappedClick": {
+              "x": 163.88785341184553,
+              "y": 131.5847647133613
+            },
+            "cameraToCrop": [
+              1.2471469684460477,
+              -0.038821705069896593,
+              -209.6033158884314,
+              -0.006291262320344478,
+              1.063230494563673,
+              -194.06336325073693,
+              -0.0000402174018942438,
+              -0.00026011456401548984,
+              1
+            ]
+          }
+        ]
+      },
+      "diagnosticMs": {
+        "base": 11238,
+        "candidate": 11225
+      }
+    },
+    {
+      "name": "Cat",
+      "i": 100,
+      "kind": "original-native-miss",
+      "baselineCorrect": false,
+      "prototypeCorrect": false,
+      "baselineFace": 0,
+      "prototypeFace": 0,
+      "printingChanged": false,
+      "completeProofExact": true,
+      "sourceProbes": {
+        "base": [
+          3,
+          6,
+          6,
+          6,
+          5,
+          5
+        ],
+        "candidate": [
+          3,
+          6,
+          6,
+          6,
+          5,
+          5
+        ]
+      },
+      "initialRegions": {
+        "base": [
+          {
+            "width": 0,
+            "height": 0,
+            "click": {
+              "x": 297,
+              "y": 234.78260869565216
+            },
+            "mappedClick": {
+              "x": 62.11570551224915,
+              "y": 285.6610445264621
+            },
+            "cameraToCrop": [
+              0.027749216000067613,
+              -1.0658634383319172,
+              297.3075010186836,
+              1.0059164039631272,
+              0.03418161579884054,
+              -52.452842199336516,
+              -0.00021252561289972864,
+              -0.00019831307752238037,
+              1
+            ]
+          }
+        ],
+        "candidate": [
+          {
+            "width": 594,
+            "height": 594,
+            "click": {
+              "x": 297,
+              "y": 234.78260869565216
+            },
+            "mappedClick": {
+              "x": 62.11570551224915,
+              "y": 285.6610445264621
+            },
+            "cameraToCrop": [
+              0.027749216000067613,
+              -1.0658634383319172,
+              297.3075010186836,
+              1.0059164039631272,
+              0.03418161579884054,
+              -52.452842199336516,
+              -0.00021252561289972864,
+              -0.00019831307752238037,
+              1
+            ]
+          }
+        ]
+      },
+      "diagnosticMs": {
+        "base": 5755,
+        "candidate": 5688
+      }
+    },
+    {
+      "name": "The Fire Crystal",
+      "i": 104,
+      "kind": "original-native-miss",
+      "baselineCorrect": false,
+      "prototypeCorrect": false,
+      "baselineFace": 1,
+      "prototypeFace": 1,
+      "printingChanged": false,
+      "completeProofExact": true,
+      "sourceProbes": {
+        "base": [
+          4,
+          5
+        ],
+        "candidate": [
+          4,
+          5
+        ]
+      },
+      "initialRegions": {
+        "base": [
+          {
+            "width": 0,
+            "height": 0,
+            "click": {
+              "x": 297,
+              "y": 297
+            },
+            "mappedClick": {
+              "x": 227.99993107435125,
+              "y": 367.11811941690314
+            },
+            "cameraToCrop": [
+              0,
+              -1.0000002320728913,
+              525,
+              1.236087944164657,
+              0,
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "width": 0,
+            "height": 0,
+            "click": {
+              "x": 297,
+              "y": 297
+            },
+            "mappedClick": {
+              "x": 275.10195037910376,
+              "y": 264.42903864866986
+            },
+            "cameraToCrop": [
+              -0.0476515478877786,
+              -1.0161573471382397,
+              532.6612103429528,
+              0.9999478640197955,
+              -0.3604962256552052,
+              18.38530750841547,
+              -0.00019220766216449328,
+              -0.0005224582980510222,
+              1
+            ]
+          },
+          null
+        ],
+        "candidate": [
+          {
+            "width": 594,
+            "height": 594,
+            "click": {
+              "x": 297,
+              "y": 297
+            },
+            "mappedClick": {
+              "x": 227.99993107435125,
+              "y": 367.11811941690314
+            },
+            "cameraToCrop": [
+              0,
+              -1.0000002320728913,
+              525,
+              1.236087944164657,
+              0,
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "width": 594,
+            "height": 594,
+            "click": {
+              "x": 297,
+              "y": 297
+            },
+            "mappedClick": {
+              "x": 275.10195037910376,
+              "y": 264.42903864866986
+            },
+            "cameraToCrop": [
+              -0.0476515478877786,
+              -1.0161573471382397,
+              532.6612103429528,
+              0.9999478640197955,
+              -0.3604962256552052,
+              18.38530750841547,
+              -0.00019220766216449328,
+              -0.0005224582980510222,
+              1
+            ]
+          },
+          null
+        ]
+      },
+      "diagnosticMs": {
+        "base": 4095,
+        "candidate": 4243
+      }
+    },
+    {
+      "name": "Anger",
+      "i": 119,
+      "kind": "original-native-miss",
+      "baselineCorrect": true,
+      "prototypeCorrect": true,
+      "baselineBy": "art-match",
+      "prototypeBy": "art-match",
+      "baselineFace": 0,
+      "prototypeFace": 0,
+      "printingChanged": false,
+      "completeProofExact": true,
+      "sourceProbes": {
+        "base": [
+          3,
+          5,
+          4,
+          2
+        ],
+        "candidate": [
+          3,
+          5,
+          4,
+          2
+        ]
+      },
+      "initialRegions": {
+        "base": [
+          {
+            "width": 0,
+            "height": 0,
+            "click": {
+              "x": 297,
+              "y": 430.8878718535469
+            },
+            "mappedClick": {
+              "x": 85.00172813105458,
+              "y": 191.05635235907704
+            },
+            "cameraToCrop": [
+              1.0960282175113139,
+              0.08607551150835477,
+              -280.6702605470059,
+              -0.07154232290454042,
+              1.0969825973696126,
+              -267.2560638582943,
+              -0.000041521189039557694,
+              -0.000055001327486300174,
+              1
+            ]
+          }
+        ],
+        "candidate": [
+          {
+            "width": 594,
+            "height": 594,
+            "click": {
+              "x": 297,
+              "y": 430.8878718535469
+            },
+            "mappedClick": {
+              "x": 85.00172813105458,
+              "y": 191.05635235907704
+            },
+            "cameraToCrop": [
+              1.0960282175113139,
+              0.08607551150835477,
+              -280.6702605470059,
+              -0.07154232290454042,
+              1.0969825973696126,
+              -267.2560638582943,
+              -0.000041521189039557694,
+              -0.000055001327486300174,
+              1
+            ]
+          }
+        ]
+      },
+      "diagnosticMs": {
+        "base": 1801,
+        "candidate": 1873
+      }
+    },
+    {
+      "name": "Simic Growth Chamber",
+      "i": 185,
+      "kind": "original-native-miss",
+      "baselineCorrect": false,
+      "prototypeCorrect": false,
+      "baselineFace": 0,
+      "prototypeFace": 0,
+      "printingChanged": false,
+      "completeProofExact": true,
+      "sourceProbes": {
+        "base": [
+          6,
+          4,
+          4,
+          4,
+          6,
+          6,
+          6,
+          6,
+          5,
+          4
+        ],
+        "candidate": [
+          6,
+          4,
+          4,
+          4,
+          6,
+          6,
+          6,
+          6,
+          5,
+          4
+        ]
+      },
+      "initialRegions": {
+        "base": [
+          {
+            "width": 0,
+            "height": 0,
+            "click": {
+              "x": 297,
+              "y": 297
+            },
+            "mappedClick": {
+              "x": 113.61264666822203,
+              "y": 185.10255857839522
+            },
+            "cameraToCrop": [
+              1.2974985847158882,
+              0.2994227611098738,
+              -340.699318912061,
+              -0.2245059026473667,
+              1.4480636408466707,
+              -145.75212982261868,
+              0.000010618909422408955,
+              0.0005813171999741313,
+              1
+            ]
+          }
+        ],
+        "candidate": [
+          {
+            "width": 594,
+            "height": 594,
+            "click": {
+              "x": 297,
+              "y": 297
+            },
+            "mappedClick": {
+              "x": 113.61264666822203,
+              "y": 185.10255857839522
+            },
+            "cameraToCrop": [
+              1.2974985847158882,
+              0.2994227611098738,
+              -340.699318912061,
+              -0.2245059026473667,
+              1.4480636408466707,
+              -145.75212982261868,
+              0.000010618909422408955,
+              0.0005813171999741313,
+              1
+            ]
+          }
+        ]
+      },
+      "diagnosticMs": {
+        "base": 7793,
+        "candidate": 8112
+      }
+    },
+    {
+      "name": "Geier Reach Sanitarium",
+      "i": 188,
+      "kind": "original-native-miss",
+      "baselineCorrect": true,
+      "prototypeCorrect": true,
+      "baselineBy": "art-match",
+      "prototypeBy": "art-match",
+      "baselineFace": 0,
+      "prototypeFace": 0,
+      "printingChanged": false,
+      "completeProofExact": true,
+      "sourceProbes": {
+        "base": [
+          6,
+          5,
+          6,
+          6,
+          5,
+          5,
+          6,
+          4
+        ],
+        "candidate": [
+          6,
+          5,
+          6,
+          6,
+          5,
+          5,
+          6,
+          4
+        ]
+      },
+      "initialRegions": {
+        "base": [
+          {
+            "width": 0,
+            "height": 0,
+            "click": {
+              "x": 297,
+              "y": 338.2105263157895
+            },
+            "mappedClick": {
+              "x": 54.72000783347195,
+              "y": 99.37664599723892
+            },
+            "cameraToCrop": [
+              1.5276670871681524,
+              -0.14710425752304526,
+              -331.621696386072,
+              0.1335249992992279,
+              1.7358247281507275,
+              -495.3490738356138,
+              0.00014573412646855683,
+              0.0008242751928184322,
+              1
+            ]
+          }
+        ],
+        "candidate": [
+          {
+            "width": 594,
+            "height": 594,
+            "click": {
+              "x": 297,
+              "y": 338.2105263157895
+            },
+            "mappedClick": {
+              "x": 54.72000783347195,
+              "y": 99.37664599723892
+            },
+            "cameraToCrop": [
+              1.5276670871681524,
+              -0.14710425752304526,
+              -331.621696386072,
+              0.1335249992992279,
+              1.7358247281507275,
+              -495.3490738356138,
+              0.00014573412646855683,
+              0.0008242751928184322,
+              1
+            ]
+          }
+        ]
+      },
+      "diagnosticMs": {
+        "base": 4579,
+        "candidate": 4762
+      }
+    },
+    {
+      "name": "Kai Budde Bio",
+      "i": 195,
+      "kind": "original-native-miss",
+      "baselineCorrect": false,
+      "prototypeCorrect": false,
+      "baselineFace": 0,
+      "prototypeFace": 0,
+      "printingChanged": false,
+      "completeProofExact": true,
+      "sourceProbes": {
+        "base": [
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          5,
+          6
+        ],
+        "candidate": [
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          5,
+          6
+        ]
+      },
+      "initialRegions": {
+        "base": [
+          {
+            "width": 0,
+            "height": 0,
+            "click": {
+              "x": 297,
+              "y": 297
+            },
+            "mappedClick": {
+              "x": 97.0305103823242,
+              "y": 220.913411474368
+            },
+            "cameraToCrop": [
+              0.6245051656658018,
+              0.02919539451432198,
+              -135.75465557393392,
+              0.03737483788068186,
+              0.8382649500369987,
+              -127.11602550426666,
+              -0.0016193923004092696,
+              0.0002787018632420682,
+              1
+            ]
+          }
+        ],
+        "candidate": [
+          {
+            "width": 594,
+            "height": 594,
+            "click": {
+              "x": 297,
+              "y": 297
+            },
+            "mappedClick": {
+              "x": 97.0305103823242,
+              "y": 220.913411474368
+            },
+            "cameraToCrop": [
+              0.6245051656658018,
+              0.02919539451432198,
+              -135.75465557393392,
+              0.03737483788068186,
+              0.8382649500369987,
+              -127.11602550426666,
+              -0.0016193923004092696,
+              0.0002787018632420682,
+              1
+            ]
+          }
+        ]
+      },
+      "diagnosticMs": {
+        "base": 10407,
+        "candidate": 10793
+      }
+    },
+    {
+      "name": "Dementia Bat",
+      "kind": "safety-control",
+      "baselineCorrect": true,
+      "prototypeCorrect": true,
+      "baselineBy": "art-match",
+      "prototypeBy": "art-match",
+      "baselineFace": 0,
+      "prototypeFace": 0,
+      "printingChanged": false,
+      "completeProofExact": true,
+      "sourceProbes": {
+        "base": [
+          5,
+          5,
+          4
+        ],
+        "candidate": [
+          5,
+          5,
+          4
+        ]
+      },
+      "initialRegions": {
+        "base": [
+          {
+            "width": 0,
+            "height": 0,
+            "click": {
+              "x": 297,
+              "y": 297
+            },
+            "mappedClick": {
+              "x": 177.08618467341893,
+              "y": 173.72714058654503
+            },
+            "cameraToCrop": [
+              1.2292639889597143,
+              -0.13987394611795878,
+              -138.89092407412323,
+              0.11869465817513537,
+              1.266076971745072,
+              -230.1219233090144,
+              0.00021020148185230234,
+              -0.00006623737849885232,
+              1
+            ]
+          }
+        ],
+        "candidate": [
+          {
+            "width": 594,
+            "height": 594,
+            "click": {
+              "x": 297,
+              "y": 297
+            },
+            "mappedClick": {
+              "x": 177.08618467341893,
+              "y": 173.72714058654503
+            },
+            "cameraToCrop": [
+              1.2292639889597143,
+              -0.13987394611795878,
+              -138.89092407412323,
+              0.11869465817513537,
+              1.266076971745072,
+              -230.1219233090144,
+              0.00021020148185230234,
+              -0.00006623737849885232,
+              1
+            ]
+          }
+        ]
+      },
+      "diagnosticMs": {
+        "base": 1500,
+        "candidate": 1347
+      }
+    },
+    {
+      "name": "Champion's Drake",
+      "kind": "safety-control",
+      "baselineCorrect": true,
+      "prototypeCorrect": true,
+      "baselineBy": "art-match",
+      "prototypeBy": "art-match",
+      "baselineFace": 0,
+      "prototypeFace": 0,
+      "printingChanged": false,
+      "completeProofExact": true,
+      "sourceProbes": {
+        "base": [
+          6,
+          1,
+          5,
+          5,
+          5,
+          1
+        ],
+        "candidate": [
+          6,
+          1,
+          5,
+          5,
+          5,
+          1
+        ]
+      },
+      "initialRegions": {
+        "base": [
+          {
+            "width": 0,
+            "height": 0,
+            "click": {
+              "x": 297,
+              "y": 297
+            },
+            "mappedClick": {
+              "x": 143.84212038424826,
+              "y": 56.919669711846865
+            },
+            "cameraToCrop": [
+              2.307648929414744,
+              0.3005310921283929,
+              -534.2026690183707,
+              -0.3850313298361789,
+              2.4582778646483168,
+              -520.6150928828988,
+              0.001156837437920639,
+              0.0011039811024117403,
+              1
+            ]
+          }
+        ],
+        "candidate": [
+          {
+            "width": 594,
+            "height": 594,
+            "click": {
+              "x": 297,
+              "y": 297
+            },
+            "mappedClick": {
+              "x": 143.84212038424826,
+              "y": 56.919669711846865
+            },
+            "cameraToCrop": [
+              2.307648929414744,
+              0.3005310921283929,
+              -534.2026690183707,
+              -0.3850313298361789,
+              2.4582778646483168,
+              -520.6150928828988,
+              0.001156837437920639,
+              0.0011039811024117403,
+              1
+            ]
+          }
+        ]
+      },
+      "diagnosticMs": {
+        "base": 7885,
+        "candidate": 7893
+      }
+    },
+    {
+      "name": "Event: Baxter's Experiments",
+      "kind": "safety-control",
+      "baselineCorrect": false,
+      "prototypeCorrect": false,
+      "baselineFace": 0,
+      "prototypeFace": 0,
+      "printingChanged": false,
+      "completeProofExact": true,
+      "sourceProbes": {
+        "base": [
+          3,
+          3,
+          2,
+          2,
+          3,
+          3,
+          2,
+          2,
+          3
+        ],
+        "candidate": [
+          3,
+          3,
+          2,
+          2,
+          3,
+          3,
+          2,
+          2,
+          3
+        ]
+      },
+      "initialRegions": {
+        "base": [
+          {
+            "width": 0,
+            "height": 0,
+            "click": {
+              "x": 297,
+              "y": 367.866578674062
+            },
+            "mappedClick": {
+              "x": 52.43317585591927,
+              "y": 188.42215587246335
+            },
+            "cameraToCrop": [
+              0.10326300415922335,
+              1.123501568851453,
+              -392.6970511212403,
+              -1.1251354554707562,
+              0.08790110965128327,
+              486.0742117639105,
+              -0.000040036422743608614,
+              -0.000027942327101243543,
+              1
+            ]
+          }
+        ],
+        "candidate": [
+          {
+            "width": 594,
+            "height": 594,
+            "click": {
+              "x": 297,
+              "y": 367.866578674062
+            },
+            "mappedClick": {
+              "x": 52.43317585591927,
+              "y": 188.42215587246335
+            },
+            "cameraToCrop": [
+              0.10326300415922335,
+              1.123501568851453,
+              -392.6970511212403,
+              -1.1251354554707562,
+              0.08790110965128327,
+              486.0742117639105,
+              -0.000040036422743608614,
+              -0.000027942327101243543,
+              1
+            ]
+          }
+        ]
+      },
+      "diagnosticMs": {
+        "base": 5904,
+        "candidate": 5958
+      }
+    },
+    {
+      "name": "Kaya, Orzhov Usurper",
+      "kind": "safety-control",
+      "baselineCorrect": false,
+      "prototypeCorrect": false,
+      "baselineFace": 0,
+      "prototypeFace": 0,
+      "printingChanged": false,
+      "completeProofExact": true,
+      "sourceProbes": {
+        "base": [
+          6,
+          6,
+          6,
+          6,
+          1,
+          6,
+          5
+        ],
+        "candidate": [
+          6,
+          6,
+          6,
+          6,
+          1,
+          6,
+          5
+        ]
+      },
+      "initialRegions": {
+        "base": [
+          {
+            "width": 0,
+            "height": 0,
+            "click": {
+              "x": 297,
+              "y": 264.78686089674017
+            },
+            "mappedClick": {
+              "x": 96.41517752336769,
+              "y": 134.0201508340358
+            },
+            "cameraToCrop": [
+              1.4664361938864348,
+              -1.2168300868749045,
+              -26.243992924670597,
+              -0.04896122202994562,
+              1.4590458478575663,
+              -250.7410850046583,
+              0.00009776884716325426,
+              -0.00047505411556598705,
+              1
+            ]
+          }
+        ],
+        "candidate": [
+          {
+            "width": 594,
+            "height": 594,
+            "click": {
+              "x": 297,
+              "y": 264.78686089674017
+            },
+            "mappedClick": {
+              "x": 96.41517752336769,
+              "y": 134.0201508340358
+            },
+            "cameraToCrop": [
+              1.4664361938864348,
+              -1.2168300868749045,
+              -26.243992924670597,
+              -0.04896122202994562,
+              1.4590458478575663,
+              -250.7410850046583,
+              0.00009776884716325426,
+              -0.00047505411556598705,
+              1
+            ]
+          }
+        ]
+      },
+      "diagnosticMs": {
+        "base": 9153,
+        "candidate": 9374
+      }
+    },
+    {
+      "name": "Whirlwing Stormbrood",
+      "kind": "safety-control",
+      "baselineCorrect": false,
+      "prototypeCorrect": false,
+      "baselineFace": 0,
+      "prototypeFace": 0,
+      "printingChanged": false,
+      "completeProofExact": true,
+      "sourceProbes": {
+        "base": [
+          2
+        ],
+        "candidate": [
+          2
+        ]
+      },
+      "initialRegions": {
+        "base": [
+          {
+            "width": 0,
+            "height": 0,
+            "click": {
+              "x": 320,
+              "y": 320
+            },
+            "mappedClick": {
+              "x": -81.80937799318878,
+              "y": 191.693997074885
+            },
+            "cameraToCrop": [
+              0.07972733371686085,
+              -1.3667551645059777,
+              330.0395249571229,
+              1.3640464922304159,
+              0.07956940503477909,
+              -270.26308324959064,
+              -2.108734222347919e-10,
+              3.2173348499504994e-10,
+              1
+            ]
+          },
+          {
+            "width": 0,
+            "height": 0,
+            "click": {
+              "x": 320,
+              "y": 320
+            },
+            "mappedClick": {
+              "x": -78.26936091421493,
+              "y": 191.2083257508423
+            },
+            "cameraToCrop": [
+              0.07838095507195117,
+              -1.3396021327192154,
+              325.3214159329096,
+              1.3490638664033252,
+              0.07893453032176814,
+              -265.7511612011875,
+              2.1560441727597474e-20,
+              1.6130556492234241e-18,
+              1
+            ]
+          },
+          {
+            "width": 0,
+            "height": 0,
+            "click": {
+              "x": 320,
+              "y": 320
+            },
+            "mappedClick": {
+              "x": -81.79025511980905,
+              "y": 192.92159500699904
+            },
+            "cameraToCrop": [
+              0.07962800741690444,
+              -1.4122296623839456,
+              343.04605540452474,
+              1.411009446332484,
+              0.07256620009709898,
+              -278.0575529498402,
+              0.00009664790061658925,
+              -0.00003566038356836298,
+              1
+            ]
+          },
+          null,
+          null
+        ],
+        "candidate": [
+          {
+            "width": 640,
+            "height": 640,
+            "click": {
+              "x": 320,
+              "y": 320
+            },
+            "mappedClick": {
+              "x": -81.80937799318878,
+              "y": 191.693997074885
+            },
+            "cameraToCrop": [
+              0.07972733371686085,
+              -1.3667551645059777,
+              330.0395249571229,
+              1.3640464922304159,
+              0.07956940503477909,
+              -270.26308324959064,
+              -2.108734222347919e-10,
+              3.2173348499504994e-10,
+              1
+            ]
+          },
+          {
+            "width": 640,
+            "height": 640,
+            "click": {
+              "x": 320,
+              "y": 320
+            },
+            "mappedClick": {
+              "x": -78.26936091421493,
+              "y": 191.2083257508423
+            },
+            "cameraToCrop": [
+              0.07838095507195117,
+              -1.3396021327192154,
+              325.3214159329096,
+              1.3490638664033252,
+              0.07893453032176814,
+              -265.7511612011875,
+              2.1560441727597474e-20,
+              1.6130556492234241e-18,
+              1
+            ]
+          },
+          {
+            "width": 640,
+            "height": 640,
+            "click": {
+              "x": 320,
+              "y": 320
+            },
+            "mappedClick": {
+              "x": -81.79025511980905,
+              "y": 192.92159500699904
+            },
+            "cameraToCrop": [
+              0.07962800741690444,
+              -1.4122296623839456,
+              343.04605540452474,
+              1.411009446332484,
+              0.07256620009709898,
+              -278.0575529498402,
+              0.00009664790061658925,
+              -0.00003566038356836298,
+              1
+            ]
+          },
+          null,
+          null
+        ]
+      },
+      "diagnosticMs": {
+        "base": 2035,
+        "candidate": 1954
+      }
+    },
+    {
+      "name": "Royal // Virtuous",
+      "kind": "safety-control",
+      "baselineCorrect": true,
+      "prototypeCorrect": true,
+      "baselineBy": "art-match",
+      "prototypeBy": "art-match",
+      "baselineFace": 0,
+      "prototypeFace": 0,
+      "printingChanged": false,
+      "completeProofExact": true,
+      "sourceProbes": {
+        "base": [
+          1,
+          1
+        ],
+        "candidate": [
+          1,
+          1
+        ]
+      },
+      "initialRegions": {
+        "base": [
+          {
+            "width": 0,
+            "height": 0,
+            "click": {
+              "x": 297,
+              "y": 98.4309390332034
+            },
+            "mappedClick": {
+              "x": 91.54445711272444,
+              "y": 61.668826320040424
+            },
+            "cameraToCrop": [
+              1.235594126215167,
+              0.02094219911556191,
+              -274.94032064858294,
+              -0.01729409158492184,
+              1.1759975471779132,
+              -47.23288822286219,
+              0.00018887479533050483,
+              -0.00028712443234279225,
+              1
+            ]
+          }
+        ],
+        "candidate": [
+          {
+            "width": 594,
+            "height": 594,
+            "click": {
+              "x": 297,
+              "y": 98.4309390332034
+            },
+            "mappedClick": {
+              "x": 91.54445711272444,
+              "y": 61.668826320040424
+            },
+            "cameraToCrop": [
+              1.235594126215167,
+              0.02094219911556191,
+              -274.94032064858294,
+              -0.01729409158492184,
+              1.1759975471779132,
+              -47.23288822286219,
+              0.00018887479533050483,
+              -0.00028712443234279225,
+              1
+            ]
+          }
+        ]
+      },
+      "diagnosticMs": {
+        "base": 827,
+        "candidate": 851
+      }
+    },
+    {
+      "name": "Bebop, Porcine Punk",
+      "i": 26,
+      "kind": "safety-control",
+      "baselineCorrect": true,
+      "prototypeCorrect": true,
+      "baselineBy": "art-match",
+      "prototypeBy": "art-match",
+      "baselineFace": 0,
+      "prototypeFace": 0,
+      "printingChanged": false,
+      "completeProofExact": true,
+      "sourceProbes": {
+        "base": [
+          3,
+          4,
+          4,
+          4,
+          6,
+          5
+        ],
+        "candidate": [
+          3,
+          4,
+          4,
+          4,
+          6,
+          5
+        ]
+      },
+      "initialRegions": {
+        "base": [
+          {
+            "width": 0,
+            "height": 0,
+            "click": {
+              "x": 320,
+              "y": 320
+            },
+            "mappedClick": {
+              "x": 268.6517065547621,
+              "y": 143.4678597513328
+            },
+            "cameraToCrop": [
+              0.025106411097460778,
+              1.0896177922853392,
+              -67.981058983211,
+              -1.079910741425692,
+              0.013089726112569554,
+              495.5733463201101,
+              0.00009096526091671802,
+              0.00014259666906805835,
+              1
+            ]
+          }
+        ],
+        "candidate": [
+          {
+            "width": 640,
+            "height": 640,
+            "click": {
+              "x": 320,
+              "y": 320
+            },
+            "mappedClick": {
+              "x": 268.6517065547621,
+              "y": 143.4678597513328
+            },
+            "cameraToCrop": [
+              0.025106411097460778,
+              1.0896177922853392,
+              -67.981058983211,
+              -1.079910741425692,
+              0.013089726112569554,
+              495.5733463201101,
+              0.00009096526091671802,
+              0.00014259666906805835,
+              1
+            ]
+          }
+        ]
+      },
+      "diagnosticMs": {
+        "base": 2913,
+        "candidate": 2835
+      }
+    }
+  ]
+}

@@ -1,0 +1,253 @@
+{
+  "schema": "snapcast-frozen-full-production-v1",
+  "createdAt": "2026-10-12T05:34:59.869Z",
+  "baseline": "ae8d3d2",
+  "commit": "ae8d3d2ceb23180c6c512c360b86863d9c5bc461",
+  "build": "milo-click-34 (local vision)",
+  "sourceDigests": {
+    "src/AccountProfile.jsx": "243d81f218d05cc34745a562b4406f0f18321b37278ee0903282e38185d89f9b",
+    "src/AccountPrompt.jsx": "e909d3110913ac25f5c65a9e296e311d1cdecc24d2a887a39821c9afa49d4806",
+    "src/App.jsx": "2909fa7118d20bb77647294484fefae86c676e03c5d6d4e543beccdcf5cac156",
+    "src/AppDropdown.css": "8fa2de0da48406580a71a40703b643a3ab9041aad7f36c467f605c53ab195795",
+    "src/AppDropdown.jsx": "1feaf1c4f36ca6641e6563cc8c637b4d6ef3c445d09cb298abf67ae248dae9b5",
+    "src/AppToast.jsx": "6e585f7acc433b144175df677c89f9bf0ea2485c220f74387a1deac73e085343",
+    "src/CardSidebar.jsx": "9b4269eaae4f689f1fc975c3f8a299786119f5b2385c09d1491c60b8ae55ee43",
+    "src/Community.jsx": "e4eebaa71a83060d204b609046902e297324e4f565a3c03fc3d375c9acde849d",
+    "src/ConfirmDialog.css": "5caf5fe3d2a125eb9802d66767898ef6135be77b2d76c6a22c6c0353fb5f98e7",
+    "src/ConfirmDialog.jsx": "2a636b4fdb7fc1f1defff0e9e8d6bead5ca9a8726d89f5aaf197689ab2aa008f",
+    "src/DeckPage.jsx": "82283794ba81bfb7504d5025dc45fe6c769bcf7eb80e8c44a0135c6e92c814a1",
+    "src/DiscordMark.jsx": "30ea165a5f0fa4542ce84c66b971cf5ded05da5dbfdf0847ab2995d9a64ce6e4",
+    "src/FriendsPage.jsx": "15eb9e0b32050bd1d882d896e0005b4206b55cb9edd31c48d2b4501fdb85830c",
+    "src/Game.jsx": "5f8f55c46378001db6bfde3f1cd159d1fa38fa3608090cd8ced164d0e16c89bc",
+    "src/GamePreview.jsx": "21d4c95128df04f8686edcfb059f61fab1fa33e4ad6e9cd8c65d7427744efcfc",
+    "src/LegalPage.jsx": "c842376ad789fbf9b8eadee7b2358229ef66b228215ee758536331b203c932e0",
+    "src/Lobby.jsx": "c1ec6936c9b80cf2fba5b5284f8ab5441dc63f81237e4068bbbd31b7d76be72c",
+    "src/LocalMockGameConnection.js": "52255bc7832a23e383f298c8c3cee9a959c09451e4b6b93a6142431dcbc02e20",
+    "src/ModerationPage.jsx": "0887060cf1d9042dba6095d0f1bd3379cf299b9d2c819594fe3b0fad3b384758",
+    "src/NotificationsPage.jsx": "fd673f25dacb403fcfc226d2977b26642bb99a8cb0b530fbdf8c2f5ae8bd9e23",
+    "src/Privacy.jsx": "4532df6da1895e4418496dee8133e25452a4ff440569267779b8bb7bd2ca4eb7",
+    "src/ProfilePage.jsx": "3eab9592a02faabcf86b7ec386991b3f30be2fc67b09919f507162b5aabcdfef",
+    "src/PublicGames.jsx": "b3d501d7cd1ca54bd71076fb89e959672a0ded383d3cdfe2f4764da132031a3a",
+    "src/ReviewPrompt.jsx": "6fdc8e3aa16ba40efe46c3d6238c2a2d276bf77cbd769281570f27de63343252",
+    "src/RoutedSiteHeader.jsx": "8a160538f7c91bb0937eb91db51c3f1d13d2ab39820c6ddde2c969dde813aab6",
+    "src/SettingsPage.jsx": "bae16930ce13eb0ffc3a6b9e84db612786c9748ca7e370615f5f2ecd47bc03f4",
+    "src/SiteFooter.jsx": "bf82cb83fde8fb24de6864877484f9979a7cc9d93ebb6a2bf65cd86d6e3d4eaa",
+    "src/SiteHeader.jsx": "984afe73d1ce7b803b93256db888d3b8cda526b7126b2e3157156c832dd51bd8",
+    "src/SnapTest.jsx": "d03090798f4c8832341051253fd7ed6c6d327a037ea9eee841fcf2f00297cac6",
+    "src/Terms.jsx": "20a1994d3d6cd5d15d8e3a2c6ffb1a673db66df69c9b8dbe14e29f101056cb1d",
+    "src/TurnTest.jsx": "c65f1b30cb6665b884d125e617b69d3932edbb18c6470a7f1bbd74d3c3fe1dbd",
+    "src/account.js": "0ba9b309af466a9138a562645983b68a51ba392301e4038b0d2f0f209f5f9f8d",
+    "src/accountIdentity.js": "0418b635540561070669294b8ca95a8abd8d576625286b7be0db0fd9ef5cde1f",
+    "src/authIntent.js": "19b87ae74f11390611a84da0f0dd11d306ecdaa954d9d9968e8b56d2c84ba950",
+    "src/captureGeometry.js": "b01a716377211eb5489d779eccaeaffb57b98f67f3f067481f0dac10a4c131cc",
+    "src/cardNameIndex.js": "85e4b825f9e2395ce545b8f58e17b66391c2be53de07d03ac94372f219d335b8",
+    "src/cardPresentation.js": "54cad20b8a1d02a2cb479db54a4877e41d31ed200ad388825635f1bb4664936d",
+    "src/cardSearch.js": "8889197c199dc5c01a585198e2698f35e227bd87f24f8dc08e64b8e7a43ff509",
+    "src/chatCommands.js": "8757eb9612f5905bc157177b4e50350304c31d123dc188d6632b9daac4e1152e",
+    "src/commanderRules.js": "c8fc05c319d85afdcf03ff3707ed18b5d098f02b7544998492b36aa8d8c89e99",
+    "src/deckAnalysis.js": "b7881627d7c8d286f3117d16bb2e2b9888a9f6c3cdebdebbc01a026ef414ebd9",
+    "src/deckImport.js": "7eff53e86b3bc63a3acfb0efdd2ccaad0561145d21b6777bc4eb46b9fd4fe74a",
+    "src/gameControls.js": "862b94ff514b96b45170bb4f573046b5f3c2277b3acf919ec631e92c32b550e1",
+    "src/gameRooms.js": "b27f9c1fe93bcdee37a6f2f56e54404d29dc28224b6a2b0ebc40b84c30d26607",
+    "src/localMock.js": "9e3e62b45b5eb9af6b9c1344cad7017a945a45d8396510880efa4dab0f55273f",
+    "src/main.jsx": "70abd4804ece205ce6ef2fc18490fb6bc9b6c2b8d63dd611741e915fffb0322b",
+    "src/mediaDevices.js": "353346a3f83ff8a995bbc06da3c51162e1f0916546557d832fa37100aac7b2ed",
+    "src/mediaPlayback.js": "c1c959d3ea5ca1bb551708556a82e9d62e638fa442006308ca04446bcda9fcde",
+    "src/mockDeckFixtures.js": "66439ec7f3ef3269ed1cb17b6ab0cf5a6fdb7c13693417f82d30b457e800b437",
+    "src/realtimeEpochRotation.js": "c9c4488de4644408457d4c6ce64b856d78eb89e47932120c261199b819cc5a53",
+    "src/recognition/aiCrop.js": "4f0d418abeca864f90b2a15b0287e5ffc4054096ddb5878b0f71101063ac72bb",
+    "src/recognition/aiCropGeometry.js": "a9153c763e917e15703a1d5fe8a80714e4722c6f73948e61a733170c064343cb",
+    "src/recognition/aiCropWorker.js": "ad5aecaf05ba3ef91c770a77f23476fa1d9d13b1486ec56d59750a0bd921ba87",
+    "src/recognition/hash.js": "6c3bfa012e82927b783c021886b669eece2c75712e11eaa9039a5e51794b6ea6",
+    "src/recognition/matcher.js": "914063ef18e7373f20e2a85b9c82400745d1c645e45e286c7e1a337fa656dbd9",
+    "src/recognition/metadataEvidence.js": "eb34b3521b5ecec0a756a31638bbfa4f4b301274e471428b5d65518960172ab0",
+    "src/recognition/miloLookup.js": "f61d901f0d300f12dacb1d7860eee94ab1b66ba065347bcc450f1952de177a2f",
+    "src/recognition/recognizer.js": "6e5c70249c18075c623f476e7999c26addd2f1a24e26290565976906e6cbead8",
+    "src/recognitionHints.js": "f4f1c04d3f9443ea44c334c2570de40e7102d2e621e65befd08db8d1764ab294",
+    "src/roomCode.js": "ce2502c643a8545a77da4450e929650f5ae7952c0fc7376d1aad0f40dace147c",
+    "src/signaling.js": "af1ae4d06f354f5e997e512757742271298f58ba8604ef50af0e37ae4b62d20d",
+    "src/snaptest/degrade.js": "ef006310323143b974fe29847c48d7dd3ed3cb077bc41683cbce8203eaf675d2",
+    "src/snaptest/scene.js": "c3aed501c5787dea50b752ba35d959b5e71caf93f617eb7b24790e86ab62e345",
+    "src/soundEffects.js": "f5581047a433575f75a73a00c45a17ed3f4d407d64dbddaf9f466bf9315fe7ac",
+    "src/styles.css": "8a07c5060c66ac3b6b29922d73033dc91ed986df048887ad2c1d1a7604b9b0f0",
+    "src/supabase.js": "e33dec02002ed526de8187d308cdf906fe4cc206b29ced988232beee75ef6669",
+    "src/videoCounters.js": "319e0cc48089409e7bdd7ec343a54078feace56ab26a6ec1a6980b27c29afd84",
+    "src/videoQuality.js": "eecd3cdf80ff2a0ef463ba98c4bc33072aaa35baf0df9eb0520ad79a9020679a",
+    "src/visitorAudio.js": "e0e585aea417f782e2e82ef1de0328c9aedd1fa9f937c47fb75f5661381df977",
+    "src/webrtc.js": "0ddb617d0a57f45076cb8a938bb155dbc530cbad0769d759131b9018a3f1d88e"
+  },
+  "buildInputDigests": {
+    "index.html": "f7f87f54a4414e7f6b617a7476a9eaa7546f6c64529dbacfdfe44830cc726d77",
+    "vite.config.js": "6473928dbb0a4316419c8e4010fabdf69f682cb1f56c186f4db20321e23dc74d",
+    "package.json": "7adcedd808f2cc9222d629d9fd13c16b0e78e75e22a27d2b452177d73a09cc16",
+    "vercel.json": "9d770d4ee3e37ce7d1ff81d94cad8643576f82d759685792b5ac79b3d6a04f6d"
+  },
+  "catalogDigests": {
+    "public/carddata/manifest.json": "50a1e0e3f62dd34f3242c70fad24a1f3510085caebb7eb01b22743ee9b2b14ac",
+    "public/carddata/cards.json": "e9527a3801fe60d9bf42882c919b4473956a293c8cb66ea732071d804a9d2f8c",
+    "public/carddata/milo/manifest.json": "85bdd724d69300c33e6f48b7bd7cbe90cbd0cdf7a26f4a28a373b665a36d2a6d"
+  },
+  "catalog": {
+    "manifest": {
+      "version": 4,
+      "count": 113269,
+      "names": 35650,
+      "shards": 256,
+      "cards_fields": [
+        "name",
+        "set",
+        "collector_number",
+        "scryfall_id",
+        "face"
+      ],
+      "shard_fields": [
+        "name",
+        "set",
+        "collector_number",
+        "scryfall_id",
+        "face",
+        "hash",
+        "color",
+        "art_hash",
+        "mana_cost",
+        "type_line",
+        "oracle_text"
+      ],
+      "generated_at": "2026-10-12T02:37:11Z",
+      "source": {
+        "provider": "scryfall",
+        "bulk_type": "default_cards",
+        "updated_at": "2026-10-11T21:05:54.791+00:00",
+        "download_uri": "https://data.scryfall.io/default-cards/default-cards-20261011210554.jsonl.gz",
+        "format": "jsonl"
+      }
+    },
+    "milo": {
+      "version": 1,
+      "model": "milo1",
+      "revision": "9bcc5e809e936b8c5630d1e7101aae1de1e76621",
+      "model_sha256": "bd13d8d60383c69da04dce261f32e93fdaeaa8fd618fbc991e7385f71b3d45df",
+      "preprocess": "milo1-rgb-portrait-ccw-bilinear448-imagenet-v1",
+      "dimension": 128,
+      "count": 113269,
+      "names": 35650,
+      "cards_sha256": "e9527a3801fe60d9bf42882c919b4473956a293c8cb66ea732071d804a9d2f8c",
+      "seed_sha256": "c5cb0dc150eb9f5b183396dd25aecaa9efc5ce3d001dd8bef282fcc73ee778be",
+      "files": {
+        "vectors.bin": {
+          "bytes": 14498432,
+          "sha256": "ad622b967e7734807faf55b8def97334cd51174c4d4295f139e698d2d6d1d0c5"
+        },
+        "norms.bin": {
+          "bytes": 453076,
+          "sha256": "2747bd88a24e288d46f3ca0c6e775b9ff90558b8168281bc267265498536408e"
+        },
+        "names.bin": {
+          "bytes": 453076,
+          "sha256": "f0e607e2954e2494c7e675f5220bd1ae385aaa613a3dc8a03e831b5bc4712218"
+        }
+      }
+    }
+  },
+  "sourceCount": 70,
+  "compiled": true,
+  "productionHeaders": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(self), microphone=(self), geolocation=(), payment=(), usb=()"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains; preload"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'unsafe-eval' blob: https://cdn.jsdelivr.net; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://api.scryfall.com https://cards.scryfall.io https://cdn.discordapp.com https://media.discordapp.net; connect-src 'self' blob: data: https://*.supabase.co wss://*.supabase.co https://cards.scryfall.io https://api.scryfall.com https://cdn.jsdelivr.net; media-src 'self' blob: mediastream:; font-src 'self' data: https://fonts.gstatic.com; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'"
+        }
+      ]
+    },
+    {
+      "source": "/vendor/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/carddata/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "All application JS/JSX/CSS, full index.html and Vite configuration are immutable copies. No Game, signaling or recognition adapter is injected.",
+    "Both arms serve the same current public catalog/assets. Catalog manifest/cards/model-gallery identifiers are recorded separately from application source.",
+    "The exact Vercel production headers including CSP are applied. This loopback static server does not implement production APIs and rejects all mutations.",
+    "Frozen raw /src modules are exposed solely for the paired SNAPTEST sampler and scene/degradation generator. The application uses production compiled assets."
+  ],
+  "compiledAt": "2026-10-12T05:35:01.434Z",
+  "compiledDigests": {
+    "assets/AccountProfile-zEXonqzv.js": "f6c231971f5a26e913d11710d81950c54a68f01ddfc6eef9886042996e36ad6d",
+    "assets/AppToast-DdiQmtlW.js": "73578f1037deb117d26967577e75fb7f250bc9cf0ed7e00f3679833cb7bfd331",
+    "assets/Community-Z7Rs6UJI.js": "abe0289bdb62e466db165629b404de6f0a5cf979189efbabaa88c4c5c8509f3e",
+    "assets/DeckPage-CvSdGWOK.js": "8611ce7f5d14aafd65c2ee08ffb4f80dd0376eded1e4d4be788e4ea090685798",
+    "assets/FriendsPage-tQuEPMTm.js": "8d1771c4135ff1d3a61c49b2cecc8bd1e5a1863db3da824e03051b6a96d65bda",
+    "assets/Game-DJNT7pPO.js": "670ac7ba6e8231cf2f0d58055936081ed1131f97cb1f93198e985962b086998d",
+    "assets/GamePreview-BfSUId1u.js": "3b5712380c098513aae68e7bb80429bfb8418b1ea0845d4582ef90f0b9f3c514",
+    "assets/LegalPage-B42a1QQv.js": "589cf873e91d3506a5358b96138a3ad438084f2b6478f275904ffd9c5132f5e1",
+    "assets/ModerationPage-Y-rA3hvn.js": "1b55b137dd6169c24acb61a063bb6c2173ca8dc67d83dc53874322e82c29e29d",
+    "assets/NotificationsPage-CKLMb33T.js": "1972176599010fae13daa9282803ec033bc4f666f743e17377c5527b8092e289",
+    "assets/Privacy-B6ISotI6.js": "8e8e5972d97bee19fb89a466292b352c534fa087d0a47497543b943ac8a8bb5b",
+    "assets/ProfilePage-CDiwemVj.js": "27e9c3c417bca62639e27904b225056f9d11969626018187b11a84f1d0175eed",
+    "assets/PublicGames-CzvmB_kd.js": "41ad918f4a306ce57fd74aa42ca7f34b2b36cbe33dd0f2dae60cbca7ad5a14fe",
+    "assets/RoutedSiteHeader-BWLyNEGy.js": "2750e5dc8f01c88b42149f8adf30f0bc095adb4833adce1554b7f4d40c9bfc53",
+    "assets/SettingsPage-BOxIJeud.js": "bea62fbc71fea5247672f4d67af3a505fc7db2145b87178ae91d2b028a98ad76",
+    "assets/SnapTest-U_960BoI.js": "e4f929eb360d2c1f9b611004119a46a103042e5baabc9421edc1c9ab69d652a3",
+    "assets/Terms-B3BzD3xH.js": "b775b58451d90f5cf99adfef17415ca22e159d22b4036cdf2c5ca92874888fd6",
+    "assets/TurnTest-CuLLWHCo.js": "72fd7e687d365b764c794f55d25730b95c1f5f1116a440f525f957dda0216f3b",
+    "assets/account-DG8c821a.js": "d2cc2de95fd0135557548325989f422cde3c17ede0cdd677210db70146ebc83f",
+    "assets/aiCropWorker-rYVqruEM.js": "50d397dc8f9dba4c24516cbbb6c71c538dcdb8eb815d5363b829cde15a54c293",
+    "assets/captureGeometry-BxES11FZ.js": "c913f4e3acfc9512976faba99979094fb8ec66a2229f4ae57000d91ca8c614a5",
+    "assets/cardNameIndex-Cw5hK1Kw.js": "65030f9e14e5252a3080bb326b5d42b1db0a5d02a22ecc0779ee85bae1cc7a5b",
+    "assets/cardSearch-DrfcCeG8.js": "be37693b8af5100c3d27dd24d25b653cb772113f039e014abcd29a44f647f618",
+    "assets/commanderRules-DDo951Q0.js": "cd52083d6c38aa12f39369f2224de99d283c1a5395bb473e4ef013c2f9382da4",
+    "assets/external-link-DUaZ4CaL.js": "a6a09ac6db7a94f5498a62743e9e94b2e0ea40a4bdebce11ffd9811464b66a45",
+    "assets/gameRooms-CIZK0A4f.js": "ed530b52aafa7c6adc17518c2843e4e4b820005e73fa1daff8a4b9a50ca2599c",
+    "assets/index-BFFMH3yV.css": "f7b768e0bf10b93e21db7cebf6a8a83569665fbb3755c12df4daa2608294331b",
+    "assets/index-C7ExtoZH.js": "a1c59500587b3609cad7eeaa017a2f6741b31f7c161816b5d1df70185b9f44d0",
+    "assets/index-FhmQH2ga.js": "eff46877a268451667b48980e9efd231195f7cf3cfa57f3e561196bbec6b4078",
+    "assets/list-BhN-Ul9W.js": "cf17ce00866d54a2ebb3cf7385e38be168b17726c8bcca04abc40f679475b741",
+    "assets/matcher-D4urJM_8.js": "8c41caba6ab44a7150ffdd990698139555e9194c7cb1241b46dd09f1baf00441",
+    "assets/minus-B9CKfU_-.js": "726695e0d2f9023957aa139d99c620628340abccb398362910a4471fa09da248",
+    "assets/play-Bbt8PCZs.js": "d3c15a1c6527d3a3a8f6119a90054e166e9f6df6ad8b9c6642c0d25fc82eed18",
+    "assets/recognizer-Bas-Drv-.js": "887af807cf3b9aa1bf8c02576443a7b9e1a3cb77583a55f73a8aea5509e78049",
+    "assets/shuffle-wRK6L7pg.js": "5c0ccebed46aed1fd18b3ff5db19c83eca20e9e6e7912f818fd3a0da21e32e42",
+    "assets/star-DQTfBZd1.js": "0ed863671b8a28524a08d45f3afa0334d4612901955d269eca3a4b2f53dbb842",
+    "assets/supabase-CPYPzTiH.js": "9cc9b7c7dbe6c863cb30214fd601b782eac53c6f977eedfe336e339b646d31ce",
+    "assets/user-plus-DxkOpfSn.js": "3f2b1c17042f929b1e4a23c03d44c86f7b477a5bd5d1ef06a43a69d576f2deec",
+    "assets/users-round-DG1-1wbv.js": "0467b93d0df0babab890ffc4de0639e544d0b081d57d07b30293ec31c34bae95",
+    "assets/webrtc-Cn9q-1GG.js": "36a3fd749a286b641e2b5965c2ea20d942e47fe15a0bb2207a51efa9c79fe81f",
+    "index.html": "5a83aa5aaae50ac4fab140b31e05b6f0f872bc8582a513206b90132880a7b270"
+  }
+}

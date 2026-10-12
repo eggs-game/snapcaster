@@ -1,0 +1,121 @@
+{
+  "schema": "snapcast-matrix-artifact-manifest-v1",
+  "createdAt": "2026-10-12T07:39:40.329Z",
+  "matrixCompleted": true,
+  "failures": [],
+  "files": [
+    {
+      "file": "arcane-medium-paired.json",
+      "bytes": 1616554,
+      "sha256": "42f8cbb0f28a8b40bbc635c193938dffe778d0e179ce784418cfbf1aedec22d4"
+    },
+    {
+      "file": "bindings/control-reuse.json",
+      "bytes": 218,
+      "sha256": "d3d89ae9cd872ae0e7cdc563cb9591fc00082bb045500d0ade971d2dc3aec697"
+    },
+    {
+      "file": "bindings/frozen-server-checks.json",
+      "bytes": 1393,
+      "sha256": "6fa50a62245cd3935bb098debe5e4e0315349efe72368ebf8e8f521b22ba213d"
+    },
+    {
+      "file": "candidate/arcaneMedium.json",
+      "bytes": 2990,
+      "sha256": "2387079343a4dd8c306b2d6dd81e84fdbe79c4a84a43449af4e073ed39ac8e71"
+    },
+    {
+      "file": "candidate/edh200.json",
+      "bytes": 22491,
+      "sha256": "0a724438863df7f9f94df170a2565bea1c39ec8465c40409f7059ddc2ec4eb06"
+    },
+    {
+      "file": "candidate/random200.json",
+      "bytes": 30013,
+      "sha256": "670cab1c25e260544f9e644c24df027d9508259a4db8bcf49ac5f14b3eb5c80b"
+    },
+    {
+      "file": "candidate/realLife.json",
+      "bytes": 29015,
+      "sha256": "38cba0c5fe939aaf415322797a19fe1c9717f91e631342e8a69ef31449d6be72"
+    },
+    {
+      "file": "candidate/recentHint20.json",
+      "bytes": 1941,
+      "sha256": "af4b416281b5aee0eb1614f301a7f9018eebc32c662907a19148012631410ff1"
+    },
+    {
+      "file": "candidate/tableauEdh10.json",
+      "bytes": 7334,
+      "sha256": "75dcbbf024ff10c7b0dbbeb42fd283385411597685d6f167b054e1a652fbaceb"
+    },
+    {
+      "file": "candidate/tableauEdhDice10.json",
+      "bytes": 21835,
+      "sha256": "626f85b3e51aa9f3faa295547b7a74fb69fa7010181ac3eda690120acc01d6b1"
+    },
+    {
+      "file": "candidate/tableauVegasEdh20.json",
+      "bytes": 41244,
+      "sha256": "b6aad2a06dcc7285fcee6da731f50396ffce1fc9c155dad8f1faa0929e91be4a"
+    },
+    {
+      "file": "control/arcaneMedium.json",
+      "bytes": 2989,
+      "sha256": "db358be73c66f54d9e7eb3fcc5392fec07935f727646409b76e74ce5647e2a1a"
+    },
+    {
+      "file": "control/realLife.json",
+      "bytes": 31041,
+      "sha256": "9c81bed82b4724525c372e3a06bd610bb666ceae8fc252715bdde320e979ed52"
+    },
+    {
+      "file": "drivers/benchmark_milo_lookup.mjs",
+      "bytes": 18405,
+      "sha256": "6d6e5e2a92794c3fa9e302ef6c709faa878b021ee089803caa6c27990285e2e1"
+    },
+    {
+      "file": "drivers/benchmark_recognition_release.mjs",
+      "bytes": 4262,
+      "sha256": "1aacf829c3dc1b718f3f710a4fcc71fd162af15f62710842bf2c372bbdb82f2a"
+    },
+    {
+      "file": "frozen-server.mjs",
+      "bytes": 11362,
+      "sha256": "61800cda33d8c31b731e32f1c0bdcbc7f1970dbe6cdacb2d6bfa37c6dbf2a752"
+    },
+    {
+      "file": "matrix-proof.json",
+      "bytes": 31132,
+      "sha256": "6fcbf39e647fa949180e49fdc6a5c06c9777d3413ce4e5865432a45dda37ccd1"
+    },
+    {
+      "file": "README.md",
+      "bytes": 3505,
+      "sha256": "237e02fe72f87f4cfebedc6ddd183d7d6155bffce7d514073c4c527e4c96dd71"
+    },
+    {
+      "file": "realLife-paired.json",
+      "bytes": 2043266,
+      "sha256": "cb55cc9530fd5fadb69a187106a5fd781be17fdede106e02b1590be9b2b5054c"
+    },
+    {
+      "file": "runner.mjs",
+      "bytes": 14715,
+      "sha256": "48b785ad2a0a0a11d02db4c13affd05859dacae467888b174aeca353b573bf4c"
+    },
+    {
+      "file": "source-proofs/candidate.json",
+      "bytes": 16399,
+      "sha256": "52dbfac879be102fa0e98b59526be44f9c4e19c1e3f69472aaf6611cf7ec82cc"
+    },
+    {
+      "file": "source-proofs/control.json",
+      "bytes": 16298,
+      "sha256": "b83e25ab58ff8618ddfc4f83bf027b1c857b36b4d68e0d316bda0892c8406094"
+    }
+  ],
+  "totalBytes": 3968402,
+  "source": "Immutable full production BUILD34/currentmain ae8d3d2 and final BUILD35, same113269-face catalog; all8candidate gates pluspairedrealLife/Arcane retention passed.",
+  "scope": "Exact raw paired reports, all8candidate and2control exports, matrix/source proofs, exact guarded driver and runner/server source, read-only fullproduction/CSP/build bindings and README. Manifest entries exclude this manifest itself. Browser fixture JPEGs and compiled bundles remain in private cache; reports permit gate recomputation, not standalone browser replay."
+}

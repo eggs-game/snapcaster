@@ -9,6 +9,131 @@ Newest first. Run via `snapcast.app/snaptest`.
 > placements. Results below this note used degrade v1 and are not directly
 > comparable to v2 numbers.
 
+## 2026-10-12 — `milo-click-35` — recover two misses and shorten slow clicks
+
+Milo uses the same local model and gallery with an optional WebGPU backend in
+the existing serialized vision worker. Unsupported hardware, initialization
+failures and device loss retain the WASM path. Cornelius keeps its original
+backend. This adds no paid inference call or card-image upload.
+
+After usable Cornelius geometry is ready, an idle worker can start the complete
+recognition job during the remaining camera samples. Only the final selected
+Blob, click, options and current owner can adopt that private result. Hints,
+empty geometry, a busy worker and later sharper frames retain the ordinary path;
+no provisional identity reaches the sidebar or room hints. Canceled reference
+waits release obsolete native features, and bounded task yields let newer clicks
+interrupt cached verification work.
+
+Raw ORB alignment reuses at most 256 primitive results per scan, keyed by the
+exact images, feature budgets, geometry and click. It does not cache final
+verification decisions or retain source pixels. Every confidence, color,
+source-registration and neighboring-card gate still runs. Captured bitmap
+dimensions survive bitmap closure. A lower FAST threshold is reserved for
+failed original and retry verification, recovering Anger and Geier Reach
+Sanitarium without delaying an already successful retry.
+
+The full native pair freezes current main `ae8d3d2` and final candidate source,
+with the same 113,269-face / 35,650-name catalog. All 200 selected JPEGs and
+geometry agree. All 189 earlier winning names, printings, faces, confidence,
+pathways and source proofs remain unchanged; both additional identities have
+ordinary verified artwork. The tail policy was recorded before candidate timing:
+at least ten additional correct subsecond displays, p90 at most 85% of control,
+and median no worse than 105% of control. The actual ratios are 60.6% and 96.8%,
+with seventeen additional subsecond displays. This does not establish a 10%
+median improvement, and no release threshold was relaxed after measurement.
+
+| Actual game click through decoded card display | Main control | Candidate |
+| --- | --- | --- |
+| Correct visible identities | 189/200 | 191/200 |
+| Confident answers | 189/189 correct | 191/191 correct |
+| Successful display median / p90 | 813ms / 2093ms | 787ms / 1269ms |
+| Correct visible displays under one second | 131/200 | 148/200 |
+| Slowest successful display | 4165ms | 4715ms |
+| Upright / tapped / inverted accuracy | 102/109, 53/55, 34/36 | 103/109, 53/55, 35/36 |
+| First / second half accuracy | 95/100, 94/100 | 95/100, 96/100 |
+| OpenCV WASM heap | 128MiB, flat | 128MiB, flat |
+
+The new Anger and Geier answers still take 3584ms and 4715ms. Nine clicks remain
+unresolved: Valakut, the Molten Pinnacle; Path to Exile; Malcolm, Alluring
+Scoundrel; Sacred Foundry; High Market; Cat; The Fire Crystal; Simic Growth
+Chamber; and the Kai Budde Bio card. Overlapping scenes retain 17/20 correct
+answers, including the same two heavily covered misses. The goal of 200 correct
+answers, each displayed within one second, remains unmet.
+
+These are warmed, unhinted desktop clicks with unchanged three-frame native
+1920 × 1080 capture, quality-0.9 JPEG selection, real local WebRTC and the actual
+Game/sidebar. Median capture overlap is 184ms and is nonexclusive; stage times
+must not be summed. Static scenes always choose sample one. Six paired moving
+controls preserve sharper later samples and full winning proof; separate held
+reference, held model and rapid-click controls reject obsolete publication.
+A warmed newer click completes before an obsolete held reference is released;
+removing cancellation fails that bounded control. Those moving pairs compare
+the integrated pre-overlap candidate, rather than the frozen main baseline.
+GPU/browser controls preserve retrieval ordering and exercise device loss with
+the exact served CSP. The reported flat WASM heap excludes GPU memory and does
+not establish total browser memory stability. Physical cameras, remote NAT/TURN
+and cold downloads remain outside the native latency claim.
+
+An earlier complete candidate also recovered the two identities but retained
+only 131 subsecond displays, so it failed the predeclared tail gate. Immediate
+lower-threshold work delayed successful retries; deferring that work and safely
+overlapping the full job produced the final pair. Rejected early-stopping,
+strong pixel-retention and unsafe first-frame adoption experiments are excluded.
+
+The complete eight-suite recognition matrix also passes on frozen production
+bundles and the production CSP. These URL/SNAPTEST timings exclude native
+capture, WebRTC and sidebar paint, and must not replace the native table above.
+The six broad suites use fresh browsers; only the primary and supplied-photo
+corpora have paired current-main arms.
+
+| Recognition-only suite | Correct top identities | Confident answers | Median / p90 |
+| --- | --- | --- | --- |
+| Realistic tables | 190/200 | 187/187 correct | 792ms / 1557ms |
+| Ten-card Commander tables | 99/100 | 96/96 correct | 674ms / 1670ms |
+| Dense twenty-card tables | 192/200 | 191/191 correct | 668ms / 1582ms |
+| Tables with dice | 96/100 | 92/92 correct | 688ms / 2235ms |
+| Random cards | 193/200 | 130/130 correct | 806ms / 4045ms |
+| Commander pool | 195/200 | 130/130 correct | 772ms / 3837ms |
+| Repeated-card hints | 20/20 | 20/20 correct | 166ms / 196ms |
+| Supplied medium photographs | 198/200 | 196/196 correct | 741ms / 1200ms |
+
+Every one of the current main's 189 primary successes and 198 photo successes
+survives. The quality-0.62 primary recovers Anger, while Geier was already
+correct there; its rotation, source pixels and latency boundary differ from
+the native captures. The photo control is also 198/200 with 196/196 confident
+answers correct: its median is 727ms, p90 1391ms and 148 correct subsecond reads,
+versus 741ms, 1200ms and 152 in the candidate. This is retention evidence,
+rather than a new material photo speed or accuracy claim. The Hive and Seven
+Dwarves remain unresolved. All suites record zero scan errors and a flat
+128MiB OpenCV WASM heap. All twenty hint attempts verify, without a full crop
+fallback, at a 4.9× recognition-only speedup. Vegas retains its overall,
+clear-card and per-rotation floors and a perfect-crop control for every miss.
+
+The precommit release checker reloads the portable native reports by SHA256,
+recomputes the unchanged tail thresholds, verifies every current source and
+catalog fingerprint against the frozen main control, and passes the full
+recognition matrix. Separate paired-photo validation checks all 200 original
+manifest IDs, order, front-face ground truth and prior correct identities.
+
+Final-source native hint controls replay the earlier twenty nearby replacement
+cases through the actual Game and RTC. No-hint and stale-hint arms both reach
+19/20, recovering Anger and leaving High Market unresolved. All sixty actual
+JPEG hashes, geometry and selected frames agree with BUILD 34; all eighteen
+earlier target winners retain their printing, pathway, confidence and source
+proofs. Current no-hint/stale winners agree, with every published answer correct.
+Four separate verified repeat hints retain their exact winners and all display
+within one second (692ms median). Voja remains a stored-hint miss and correctly
+uses normal fallback, retaining its face/printing at an 892ms repeat display.
+These are selected functional controls, not another full200 speed estimate.
+The hint checker binds all 71 final source files, catalog, actual runtime BUILD,
+raw report SHA and captured JPEG bytes; forged evidence has negative controls.
+
+The complete fast policy suite, hash compatibility/duplication checks and
+production build pass. The initial entry remains below its 80KiB gzip budget.
+
+[Archived reports, policies and reproducibility notes](runs/2026-10-12-milo-click-release/)
+retain final and rejected evidence separately.
+
 ## 2026-10-11 — `milo-click-34` — overlap capture work and recover missed hints
 
 Click-to-display improves by preparing Cornelius geometry during the unchanged

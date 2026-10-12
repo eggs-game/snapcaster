@@ -69,10 +69,12 @@ function timingHooks() {
 
 async function runArm(name, directory) {
   const compiled = path.resolve(directory);
-  const metadata = JSON.parse(await readFile(path.join(compiled, "../report.json"), "utf8"));
+  const metadataPath = path.join(compiled, "../report.json");
+  const metadataBytes = await readFile(metadataPath);
+  const metadata = JSON.parse(metadataBytes);
   assert.equal(metadata.ok, true, "Use a completed frozen native benchmark bundle");
   assert.deepEqual(metadata.catalogDigests, sourceProof.catalogDigests);
-  const arm = report.arms[name] = { build: metadata.build, sourceDigests: metadata.sourceDigests, catalogDigests: metadata.catalogDigests, rows: [] };
+  const arm = report.arms[name] = { build: metadata.build, metadataPath, metadataSHA256: createHash("sha256").update(metadataBytes).digest("hex"), sourceDigests: metadata.sourceDigests, catalogDigests: metadata.catalogDigests, rows: [] };
   for (const [file, sha] of Object.entries(metadata.catalogDigests)) assert.equal(createHash("sha256").update(await readFile(path.join(root, file))).digest("hex"), sha);
   const server = createServer(async (req, res) => {
     try {
@@ -104,6 +106,9 @@ async function runArm(name, directory) {
     const page = await context.newPage();
     page.on("pageerror", error => report.errors.push({ arm: name, error: error.message }));
     await page.goto(base, { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => typeof window.__SNAP_BUILD === "string", null, { timeout: 30000 });
+    arm.runtimeBuild = await page.evaluate(() => window.__SNAP_BUILD);
+    assert.equal(arm.runtimeBuild, metadata.build, "Frozen compiled Game BUILD must match its sibling native report");
     await page.waitForFunction(() => window.__nativeViewer?.peers.get("native-source")?.dc?.readyState === "open" && document.querySelector(".tile video")?.videoWidth === 1920, null, { timeout: 30000 });
     await page.waitForFunction(() => window.__SNAP_RECOGNITION_WARMUP?.status === "ready" && window.__SNAP_MILO_WARMUP?.status === "ready", null, { timeout: 120000 });
     for (const item of cases) {

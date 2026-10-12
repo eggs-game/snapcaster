@@ -1,0 +1,145 @@
+{
+  "build": "milo-click-34 (local vision)",
+  "aiCropEnabled": true,
+  "miloEnabled": true,
+  "mode": "arcaneMedium",
+  "summary": {
+    "n": 200,
+    "accuracy": 0.99,
+    "byOcclusion": {},
+    "byPool": {},
+    "byCoverage": {},
+    "byClipped": {},
+    "avgMs": 913,
+    "neighbourMisses": [],
+    "attempted": 200,
+    "correct": 198,
+    "errors": 0,
+    "medianMs": 727,
+    "correctUnder1s": 148,
+    "maxMs": 6402,
+    "p90Ms": 1391,
+    "accepted": {
+      "n": 196,
+      "correct": 196
+    },
+    "byPathway": {
+      "art-match": {
+        "n": 196,
+        "ok": 196,
+        "acc": 1
+      },
+      "(no match)": {
+        "n": 4,
+        "ok": 2,
+        "acc": 0.5
+      }
+    },
+    "byRotation": {},
+    "byLayout": {},
+    "absentMisses": 1,
+    "firstHalf": 100,
+    "secondHalf": 98,
+    "wasmHeapMB": [
+      134,
+      134
+    ],
+    "perfectCropControl": {
+      "n": 0,
+      "ok": 0,
+      "acc": 0
+    },
+    "wasmHeapStartMB": 134,
+    "wasmHeapEndMB": 134,
+    "firstHalfAcc": 1,
+    "secondHalfAcc": 0.98
+  },
+  "misses": [
+    {
+      "name": "The Hive",
+      "id": "dc052e94-1574-4e79-9b1b-288180901dea",
+      "i": 174,
+      "scene": 17,
+      "got": "Rimewood Falls",
+      "trueRank": null,
+      "artBest": {
+        "name": "Rimewood Falls",
+        "inliers": 5,
+        "color": 81,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 6,
+        "clickArtInliers": 1,
+        "clickTextInliers": 5,
+        "clickHalfInliers": [
+          0,
+          6
+        ]
+      },
+      "aiCrop": {
+        "status": "input-card",
+        "fastMs": 675,
+        "fastHit": false
+      },
+      "stages": {
+        "prep": 554,
+        "rankSeeds": 635,
+        "earlyOrbProbe": 0,
+        "rankRefine": 1083,
+        "isolatePrep": 783,
+        "isolateScore": 231,
+        "rank": 0,
+        "orb": 859,
+        "aiCrop": 0,
+        "aiAttempt": 675,
+        "milo": 1352,
+        "modelQueue": 0,
+        "total": 6175,
+        "queue": 0
+      },
+      "ms": 6175
+    },
+    {
+      "name": "Seven Dwarves",
+      "id": "fa5b50fb-949f-4333-8b3f-456e06848f26",
+      "i": 197,
+      "scene": 19,
+      "got": "River Boa",
+      "trueRank": 25,
+      "artBest": {
+        "name": "River Boa",
+        "inliers": 0,
+        "color": 80,
+        "weak": true,
+        "clickInside": null,
+        "clickInliers": 0,
+        "clickArtInliers": 0,
+        "clickTextInliers": 0,
+        "clickHalfInliers": null
+      },
+      "aiCrop": {
+        "status": "input-card",
+        "fastMs": 658,
+        "fastHit": false
+      },
+      "stages": {
+        "prep": 500,
+        "rankSeeds": 632,
+        "earlyOrbProbe": 0,
+        "rankRefine": 859,
+        "isolatePrep": 1079,
+        "isolateScore": 410,
+        "rank": 0,
+        "orb": 400,
+        "aiCrop": 0,
+        "aiAttempt": 658,
+        "milo": 965,
+        "modelQueue": 0,
+        "total": 5508,
+        "queue": 0
+      },
+      "ms": 5508
+    }
+  ],
+  "errors": []
+}

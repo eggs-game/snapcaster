@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { validateNativePair } from "./check_native_card_delivery_pair.mjs";
+import { validateNativePair, validateNativeTailPair, NATIVE_TAIL_THRESHOLDS } from "./check_native_card_delivery_pair.mjs";
 
 const digest = value => createHash("sha256").update(value).digest("hex");
 function report(freshMs, repeatMs, build) {
@@ -72,3 +72,26 @@ const slow = report(1200, 450, "candidate"); slow.summary = { fresh: { displayMs
 assert.equal(check(slow).ok, false, "recompute timing/subsecond counts instead of trusting reported summaries");
 const errored = structuredClone(candidate); errored.nativeErrors.push("peer failed"); assert.equal(check(errored).ok, false);
 console.log("Native pair gate requires all 200 exact fresh JPEG pairs, checks any included repeats, and preserves identities, confident precision, visible paint and explicit measured latency thresholds");
+
+// The subsecond median is already achieved: a separate, predeclared policy
+// evaluates the slow tail without changing the original median gate.
+const tailControl=report(800,500,"tail-control"),tailCandidate=report(800,500,"tail-candidate");
+for(const arm of [tailControl,tailCandidate])for(const row of arm.rows)row.repeat=null;
+const time=(row,ms)=>{row.fresh.displayMs=ms;row.fresh.timing.recognitionMs=ms-260;row.fresh.timing.totalMs=ms-10;};
+for(let i=150;i<200;i++){time(tailControl.rows[i],2000);time(tailCandidate.rows[i],i<170?950:1500);}
+assert.deepEqual(NATIVE_TAIL_THRESHOLDS,{maxFreshMedianRatio:1.05,maxFreshP90Ratio:.85,minFreshUnder1Gain:10});
+const tail=validateNativeTailPair(tailControl,tailCandidate);
+assert.equal(tail.ok,true);assert.equal(tail.policy,"tail-improvement");
+assert.equal(tail.gains.fresh.p90Ratio,.75);assert.equal(tail.gains.fresh.correctUnder1s,20);
+assert.equal(validateNativePair(tailControl,tailCandidate).ok,false,"unchanged median cannot pass the original median policy");
+for(const changed of [{maxFreshMedianRatio:1.06},{maxFreshP90Ratio:.86},{minFreshUnder1Gain:9}])
+ assert.equal(validateNativeTailPair(tailControl,tailCandidate,changed).ok,false,"tail thresholds cannot be weakened after measuring");
+const slowTail=structuredClone(tailCandidate);for(let i=170;i<200;i++)time(slowTail.rows[i],1900);
+assert.equal(validateNativeTailPair(tailControl,slowTail).ok,false,"more subsecond cards alone cannot hide a slow p90");
+const fewerSubsecond=structuredClone(tailCandidate);for(let i=150;i<165;i++)time(fewerSubsecond.rows[i],1500);
+assert.equal(validateNativeTailPair(tailControl,fewerSubsecond).ok,false,"p90 alone cannot hide fewer than ten extra correct subsecond cards");
+const changedTailPixel=structuredClone(tailCandidate);changedTailPixel.rows[0].fresh.capture.sha256=digest("changed tail input");
+assert.equal(validateNativeTailPair(tailControl,changedTailPixel).exactPaired,false);
+const tailWrong=structuredClone(tailCandidate);tailWrong.rows[0].fresh.got="Other";tailWrong.rows[0].fresh.correct=false;
+assert.equal(validateNativeTailPair(tailControl,tailWrong).ok,false,"tail speed cannot hide a lost correct/confident card");
+console.log("Native tail policy preserves the same 200-pixel/accuracy proof and requires predeclared p90/subsecond gains with bounded median change");

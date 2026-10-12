@@ -1,0 +1,230 @@
+{
+  "schema": "snapcast-portable-evidence-archive-v1",
+  "createdAt": "2026-10-12T07:11:27.166Z",
+  "scope": "Native200 final/rejected, GPU worker lifecycle, dimensions controls and related source/validation evidence only; matrix and game controls are separate.",
+  "hash": "sha256",
+  "notes": [
+    "Copied identity files are byte-for-byte originals. The dimensions gzip decompresses to its exact original raw report.",
+    "All fields of raw native/GPU/dimensions reports are preserved; regenerated pair input paths are intentionally relative to their archive location.",
+    "This index excludes itself; later matrix/game archive files are outside this index scope.",
+    "Three native validator stdout logs normalize only their extra final blank line; original bytes and SHA256 remain recorded as provenance. Raw JSON reports and outcomes are unchanged."
+  ],
+  "files": [
+    {
+      "file": "dimensions/report.json.gz",
+      "source": ".cache/card35/dimensions-controls/report.json",
+      "encoding": "gzip",
+      "bytes": 1730117,
+      "sha256": "246576f7eacc415d8a169b8f84431b35f0568315b7961913961e470901f6080f",
+      "originalBytes": 18441735,
+      "originalSha256": "61674b8f9089eeb166601185abf4ffd46a86950f09466be138d93becb4427f2e",
+      "sourceModifiedAt": "2026-10-12T05:59:57.152Z"
+    },
+    {
+      "file": "dimensions/summary.json",
+      "source": ".cache/card35/dimensions-controls/summary.json",
+      "encoding": "identity",
+      "bytes": 39822,
+      "sha256": "fa1613c8aa311435236255b2d6010366bff290988cb04fb0da8716d4311b51e0",
+      "originalBytes": 39822,
+      "originalSha256": "fa1613c8aa311435236255b2d6010366bff290988cb04fb0da8716d4311b51e0",
+      "sourceModifiedAt": "2026-10-12T06:00:16.227Z"
+    },
+    {
+      "file": "gpu/browser-regression.json",
+      "source": ".cache/card35/milo-gpu-browser/report.json",
+      "encoding": "identity",
+      "bytes": 234617,
+      "sha256": "01f47ebefb140b75fb0531d995ccb5c1f2ee956eb6f7da644eb440372eccc567",
+      "originalBytes": 234617,
+      "originalSha256": "01f47ebefb140b75fb0531d995ccb5c1f2ee956eb6f7da644eb440372eccc567",
+      "sourceModifiedAt": "2026-10-12T05:37:19.521Z"
+    },
+    {
+      "file": "native/candidate.json",
+      "source": ".cache/card35/native-final-200/report.json",
+      "encoding": "identity",
+      "bytes": 4175438,
+      "sha256": "8b45855957bca3a8afb6b5ec7379508716fec412fd12eec3e57e6828fbd06ecf",
+      "originalBytes": 4175438,
+      "originalSha256": "8b45855957bca3a8afb6b5ec7379508716fec412fd12eec3e57e6828fbd06ecf",
+      "sourceModifiedAt": "2026-10-12T06:59:41.319Z"
+    },
+    {
+      "file": "native/control.json",
+      "source": ".cache/card35/native-control-200/report.json",
+      "encoding": "identity",
+      "bytes": 3498982,
+      "sha256": "717b8c7ff02464f491b85eb0f3421f1a1df40670cc76433f77a0449ee7ddc500",
+      "originalBytes": 3498982,
+      "originalSha256": "717b8c7ff02464f491b85eb0f3421f1a1df40670cc76433f77a0449ee7ddc500",
+      "sourceModifiedAt": "2026-10-12T05:23:46.655Z"
+    },
+    {
+      "file": "native/original-final-pair.json",
+      "source": ".cache/card35/native-final-pair.json",
+      "encoding": "identity",
+      "bytes": 19099,
+      "sha256": "8a85686d80ffced844d333370d460dc840660245a88c83f6091308171924218c",
+      "originalBytes": 19099,
+      "originalSha256": "8a85686d80ffced844d333370d460dc840660245a88c83f6091308171924218c",
+      "sourceModifiedAt": "2026-10-12T07:00:02.348Z"
+    },
+    {
+      "file": "native/original-rejected-pair.json",
+      "source": ".cache/card35/native-pair-first.json",
+      "encoding": "identity",
+      "bytes": 19180,
+      "sha256": "a5e22623da9d2759518b2bb214c4ea06241b4fea03694929f33d4a9479b8001e",
+      "originalBytes": 19180,
+      "originalSha256": "a5e22623da9d2759518b2bb214c4ea06241b4fea03694929f33d4a9479b8001e",
+      "sourceModifiedAt": "2026-10-12T05:30:29.386Z"
+    },
+    {
+      "file": "native/pair.json",
+      "encoding": "identity",
+      "bytes": 19067,
+      "sha256": "1d4b53c1b9f741e616519071a12fa4922dbe1f4d14f94e7c8120b2f91dbfed3f"
+    },
+    {
+      "file": "native/rejected-candidate.json",
+      "source": ".cache/card35/native-candidate-200/report.json",
+      "encoding": "identity",
+      "bytes": 3907835,
+      "sha256": "7c76e6fef3ed0ea70eeedc3de6c5f465525ed393d52a693bf33ce8d5a2ed912c",
+      "originalBytes": 3907835,
+      "originalSha256": "7c76e6fef3ed0ea70eeedc3de6c5f465525ed393d52a693bf33ce8d5a2ed912c",
+      "sourceModifiedAt": "2026-10-12T05:29:00.677Z"
+    },
+    {
+      "file": "native/rejected-pair.json",
+      "encoding": "identity",
+      "bytes": 19153,
+      "sha256": "a88705855e54622b21603abd39be416bb0420dc26308e9eb26d8d84338b48eea"
+    },
+    {
+      "file": "native/scenes-manifest.json",
+      "source": ".cache/card35/native-control-200/scenes/manifest.json",
+      "encoding": "identity",
+      "bytes": 79090,
+      "sha256": "47e031e0cddf7127f2b1b96e7fbf5ec0415a3f4d8b9832b9e61754173f2f273e",
+      "originalBytes": 79090,
+      "originalSha256": "47e031e0cddf7127f2b1b96e7fbf5ec0415a3f4d8b9832b9e61754173f2f273e",
+      "sourceModifiedAt": "2026-10-12T05:23:24.467Z"
+    },
+    {
+      "file": "policy.json",
+      "encoding": "identity",
+      "bytes": 1081,
+      "sha256": "5abffdf76cdc5bbb1cf53664c2c22ac429f1762558265a4f729ef5c9911cd6ec"
+    },
+    {
+      "file": "README.md",
+      "encoding": "identity",
+      "bytes": 7977,
+      "sha256": "9b48b320feb0275a87d881439aca3ea68c142e9b245d398f65ddf6fdd53a2abd"
+    },
+    {
+      "file": "source-bindings/candidate.json",
+      "source": ".cache/card35/frozen-35/source-proof.json",
+      "encoding": "identity",
+      "bytes": 16399,
+      "sha256": "52dbfac879be102fa0e98b59526be44f9c4e19c1e3f69472aaf6611cf7ec82cc",
+      "originalBytes": 16399,
+      "originalSha256": "52dbfac879be102fa0e98b59526be44f9c4e19c1e3f69472aaf6611cf7ec82cc",
+      "sourceModifiedAt": "2026-10-12T06:53:23.590Z"
+    },
+    {
+      "file": "source-bindings/control.json",
+      "source": ".cache/card35/frozen-34/source-proof.json",
+      "encoding": "identity",
+      "bytes": 16298,
+      "sha256": "b83e25ab58ff8618ddfc4f83bf027b1c857b36b4d68e0d316bda0892c8406094",
+      "originalBytes": 16298,
+      "originalSha256": "b83e25ab58ff8618ddfc4f83bf027b1c857b36b4d68e0d316bda0892c8406094",
+      "sourceModifiedAt": "2026-10-12T05:35:01.447Z"
+    },
+    {
+      "file": "source-bindings/private-v4-source-digests.json",
+      "source": ".cache/card35/native-game-cancellation-v4/source-digests.json",
+      "encoding": "identity",
+      "bytes": 6675,
+      "sha256": "df02c94597701aeb94dcdeebb5089dc786a44ff2cfb1c18022cff31c0c3941a8",
+      "originalBytes": 6675,
+      "originalSha256": "df02c94597701aeb94dcdeebb5089dc786a44ff2cfb1c18022cff31c0c3941a8",
+      "sourceModifiedAt": "2026-10-12T06:24:13.081Z"
+    },
+    {
+      "file": "source-bindings/rejected-native.json",
+      "encoding": "identity",
+      "bytes": 9311,
+      "sha256": "78c89eb1578808dfa8aaf75aba369af4a7298c7eea3cc975a3d90d018b9bf5a3"
+    },
+    {
+      "file": "validation/final-native-pair.log",
+      "encoding": "text-normalized-trailing-blank-line",
+      "bytes": 19067,
+      "sha256": "1d4b53c1b9f741e616519071a12fa4922dbe1f4d14f94e7c8120b2f91dbfed3f"
+    },
+    {
+      "file": "validation/metadata.json",
+      "encoding": "identity",
+      "bytes": 4560,
+      "sha256": "82f7848344f1c6057148d894a20c9ff2f0feae8d0b40d1ca0f3ed0e2c7767265"
+    },
+    {
+      "file": "validation/original-fast-check-and-build.log",
+      "source": ".cache/card35/final-check.log",
+      "encoding": "identity",
+      "bytes": 10584,
+      "sha256": "036b28ccc8b548c0d71e6b9481fa02eaef473acdfb41f129baf830db3435bdbd",
+      "originalBytes": 10584,
+      "originalSha256": "036b28ccc8b548c0d71e6b9481fa02eaef473acdfb41f129baf830db3435bdbd",
+      "sourceModifiedAt": "2026-10-12T06:49:09.522Z"
+    },
+    {
+      "file": "validation/original-native-final-pair.log",
+      "source": ".cache/card35/native-final-pair.log",
+      "encoding": "text-normalized-trailing-blank-line",
+      "bytes": 19099,
+      "sha256": "8a85686d80ffced844d333370d460dc840660245a88c83f6091308171924218c",
+      "originalBytes": 19100,
+      "originalSha256": "338dd4c6cf0b28c2b94ddb74a941492b48fd3fb6ee6741162f30c88a03744866",
+      "sourceModifiedAt": "2026-10-12T07:00:02.348Z"
+    },
+    {
+      "file": "validation/rejected-native-pair.log",
+      "encoding": "text-normalized-trailing-blank-line",
+      "bytes": 19153,
+      "sha256": "a88705855e54622b21603abd39be416bb0420dc26308e9eb26d8d84338b48eea"
+    },
+    {
+      "file": "validation/final-release-gate.log",
+      "source": "Final precommit validator output",
+      "encoding": "identity",
+      "bytes": 665,
+      "sha256": "122510faf81c4a6b633e6f18a82f47d9510c34aa2d9465e105a4cc2e6850540b",
+      "originalBytes": 665,
+      "originalSha256": "122510faf81c4a6b633e6f18a82f47d9510c34aa2d9465e105a4cc2e6850540b"
+    },
+    {
+      "file": "validation/final-release-gate.json",
+      "source": "Final precommit validation",
+      "encoding": "identity",
+      "bytes": 1434,
+      "sha256": "c1a8d3e26f3a587c5f66738e50bfad0e9b8c4b473cd25d080e367a998e149170",
+      "originalBytes": 1434,
+      "originalSha256": "c1a8d3e26f3a587c5f66738e50bfad0e9b8c4b473cd25d080e367a998e149170"
+    },
+    {
+      "file": "validation/precommit-check.log",
+      "source": "Final precommit validation",
+      "encoding": "identity",
+      "bytes": 7622,
+      "sha256": "83b51c7f91e80b4a7941b510c2fbaa09e3c5625878bfcf798f03cef8f3da87e4",
+      "originalBytes": 7622,
+      "originalSha256": "83b51c7f91e80b4a7941b510c2fbaa09e3c5625878bfcf798f03cef8f3da87e4"
+    }
+  ],
+  "readmeRefreshedAt": "2026-10-12T07:45:27.466Z"
+}

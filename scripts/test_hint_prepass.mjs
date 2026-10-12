@@ -13,6 +13,7 @@ const hintGate = slice("const RECENT_HINT_EXACT_DISTANCE =", "// ---------- Open
 const identifyEntry = slice("async function identify(", "  let clickInsideCardLikeQuad = false;")
   + "globalThis.fullFamily++; bmp.close(); return { fullFamilyReached: true, matches: [], titleSource: [] }; }";
 const handler = source.slice(source.indexOf("self.onmessage = async (e) => {"));
+const ownership = slice("function beginMiloOwner(", "function prefetchMiloRows(");
 
 function fixture({ local = 220, outline = 220, cvReady = true, content = true,
   decisive = false, failure = null } = {}) {
@@ -48,9 +49,10 @@ function fixture({ local = 220, outline = 220, cvReady = true, content = true,
       return { matches: args[0], artDecisive: decisive, artBest: { inliers: decisive ? 50 : 2 }, artChecked: 1 };
     },
     cachedReferencePreview: match => { calls.referencePreviews.push(match); return match ? "exact-face-preview" : null; },
-    lastMiloContext: null, lastTitleSource: { scanId: null, candidates: [] }, fullFamily: 0,
+    lastMiloContext: null, deferredMiloContext: null, currentMiloOwner: 0, miloOwnerActive: true, miloOwnerCancellation: null,
+    lastTitleSource: { scanId: null, candidates: [] }, fullFamily: 0,
   });
-  vm.runInContext(hintGate + identifyEntry + handler, context);
+  vm.runInContext(hintGate + identifyEntry + ownership + handler, context);
   const bitmap = () => ({ width: 1000, height: 600, close() { closes++; } });
   const request = async (options = {}) => {
     const prior = closes;
