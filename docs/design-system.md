@@ -1156,6 +1156,20 @@ capture: a camera crop never substitutes for the recognized artwork. Each new
 lookup request selects Cards once; image and metadata upgrades for that same
 request preserve any later choice to read Chat.
 
+A remembered room card uses the same full-opacity reference area and name while
+the new capture is checked. The supporting 12px secondary text reads
+**Previously recognized · Checking…** in a polite status region. This reference
+is provisional: it has no expand, Share, Scryfall or wrong-card actions and is
+kept outside the verified result list. Its name and checking status precede the
+image so the provisional disclosure stays visible in the short mobile panel.
+A failed hint check removes it while
+normal identification continues; a verified result replaces the pending
+treatment and restores its normal controls. The image cursor therefore remains
+the default pointer until verification, rather than promising an available zoom.
+An immediately remembered reference consumes the sidebar's one-shot entrance
+without its opacity fade, including on initial mount; verification cannot
+restart that fade and dim a card that was already visible.
+
 ## Video tile fit modes
 
 Camera tiles keep video playback muted so displaying a board does not depend on

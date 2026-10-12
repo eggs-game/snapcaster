@@ -11,7 +11,7 @@ const result = { matches: [verified], art_decisive: true,
   art_best: { clickInside: true, inliers: 50, clickInliers: 50 }, stage_ms: {} };
 
 for (const scenario of ["hit", "stale", "legacy", "error", "off", "canceled"]) {
-  const calls = [], closed = [], proposals = [];
+  const calls = [], closed = [], proposals = [], misses = [];
   let releaseHint;
   const preparation = { active: true, startedAt: 0, finishedAt: 5,
     job: ["hit", "canceled"].includes(scenario) ? new Promise(() => {}) : Promise.resolve({ quads: ["prepared-selected-frame"], diagnostic: { status: "ready" } }) };
@@ -39,7 +39,7 @@ for (const scenario of ["hit", "stale", "legacy", "error", "off", "canceled"]) {
   });
   vm.runInContext(perform, context);
   const job = context.performIdentify("selected-frame", { nx: .2, ny: .8 }, [hint], scenario !== "off", false,
-    scenario === "off" ? null : preparation);
+    scenario === "off" ? null : preparation, null, () => misses.push(calls.length));
   let output;
   if (scenario === "canceled") {
     await new Promise(setImmediate);
@@ -75,6 +75,8 @@ for (const scenario of ["hit", "stale", "legacy", "error", "off", "canceled"]) {
     }
   }
   assert.equal(proposals.length, 0, "prepared geometry and verified hits avoid duplicate model calls");
+  assert.deepEqual(misses, ["hit", "off"].includes(scenario) ? [] : [1],
+    "a missed or failed hint drops its remembered display before the full fallback starts");
   assert.equal(closed.length, bitmapSerial, "selected originals and transferred clones are all released");
 }
 

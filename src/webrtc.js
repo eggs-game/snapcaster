@@ -3,7 +3,12 @@
 // recipient-only chat whispers that must never enter the room broadcast.
 import { joinRoom, saveConnectionEvent } from "./signaling.js";
 import { cropGeometry } from "./captureGeometry.js";
-import { normalizeRecognitionHint } from "./recognitionHints.js";
+import {
+  RECOGNITION_HINT_LIMIT,
+  normalizeRecognitionHint,
+  rememberRecognitionHint,
+  removeRecognitionHintsForOwner,
+} from "./recognitionHints.js";
 import { RealtimeEpochRotator } from "./realtimeEpochRotation.js";
 import { getSoundEffect } from "./soundEffects.js";
 import { normalizeVideoCounter } from "./videoCounters.js";
@@ -97,6 +102,10 @@ const LIFECYCLE_HEARTBEAT_MS = 5000;
 const NEGOTIATION_TTL_MS = 30000;
 const MAX_PENDING_NEGOTIATION_PEERS = MAX_PLAYERS + MAX_VISITORS;
 const NEGOTIATION_TYPES = new Set(["offer", "answer", "ice"]);
+// Even names containing escaped control characters must leave room for the
+// other state fields under Realtime's smallest 256KB broadcast ceiling.
+const RECOGNITION_HINT_SNAPSHOT_BYTES = 128 * 1024;
+const RECOGNITION_HINT_REQUEST_COOLDOWN_MS = 5000;
 const SNAPSHOT_MESSAGE_TYPES = new Set([
   "identity",
   "life",
@@ -113,6 +122,23 @@ const SNAPSHOT_MESSAGE_TYPES = new Set([
   "video-counter",
 ]);
 
+function boundedRecognitionHintSnapshot(values) {
+  const hints = [];
+  let bytes = 2; // array brackets
+  // Prefer the newest bounded candidates if unusually large metadata cannot
+  // all fit. Normalize before measuring so no arbitrary URLs or pixels enter
+  // the serialized envelope.
+  for (const value of values.slice(-RECOGNITION_HINT_LIMIT).reverse()) {
+    const hint = normalizeRecognitionHint(value);
+    if (!hint) continue;
+    const size = new TextEncoder().encode(JSON.stringify(hint)).byteLength + (hints.length ? 1 : 0);
+    if (bytes + size > RECOGNITION_HINT_SNAPSHOT_BYTES) continue;
+    bytes += size;
+    hints.push(hint);
+  }
+  return hints.reverse();
+}
+
 export class GameConnection {
   constructor(handlers) {
     // handlers: onRoster, onRemoteStream, onPeerLeft, onLife,
@@ -128,6 +154,10 @@ export class GameConnection {
     this.pendingIce = new Map();
     this.pendingMediaTracks = new Set();
     this.deviceSwitches = new Map();
+    this.recognitionHints = [];
+    this.recognitionHintCameraEnabled = new Map();
+    this.recognitionHintSnapshotRequested = false;
+    this.recognitionHintSnapshotReplies = new Map();
     this.lastSignalMembershipRefresh = 0;
     this.localStream = null;
     this.room = null;
@@ -541,8 +571,10 @@ export class GameConnection {
       }
       this.localStream.addTrack(newTrack);
       const actualId = newTrack.getSettings?.().deviceId || deviceId;
-      if (kind === "video") this.videoDeviceId = actualId;
-      else this.audioDeviceId = actualId;
+      if (kind === "video") {
+        this.videoDeviceId = actualId;
+        this.clearRecognitionHints();
+      } else this.audioDeviceId = actualId;
       return this.localStream;
     } catch (error) {
       newTrack.stop();
@@ -676,6 +708,9 @@ export class GameConnection {
     this.pendingSignals.delete(id);
     this.pendingIce.delete(id);
     this.knownIds.delete(id);
+    this._clearRecognitionHintsForOwner(id);
+    this.recognitionHintCameraEnabled.delete(id);
+    this.recognitionHintSnapshotReplies.delete(id);
     this.roster = this.roster.filter((member) => member.id !== id);
     this.h.onPeerReconnecting?.(id, false);
     this.h.onPeerLeft?.(id, { unexpected: !intentional });
@@ -710,6 +745,52 @@ export class GameConnection {
       ...this.videoCounters.map((counter) => ({ type: "video-counter", counter })),
     );
     return messages;
+  }
+
+  _recognitionHintOwnerEnabled(ownerId) {
+    const owner = this.roster.find((member) => member.id === ownerId);
+    if (!owner || owner.role !== "player") return false;
+    if (this.allowedMembershipIds && !this.allowedMembershipIds.has(owner.membershipId)) return false;
+    // A disconnected tile may remain rendered during the grace period, but
+    // its previous camera positions cannot support an instant preview.
+    if (this.presenceRoster.length && !this.presenceRoster.some((member) => member.id === ownerId)) return false;
+    return ownerId === this.myId
+      ? this.cameraEnabled
+      : this.recognitionHintCameraEnabled.get(ownerId) !== false;
+  }
+
+  _recognitionHintSenderAdmitted(senderId) {
+    const sender = this.roster.find((member) => member.id === senderId);
+    return !!sender && ["player", "visitor"].includes(sender.role)
+      && (!this.allowedMembershipIds || this.allowedMembershipIds.has(sender.membershipId));
+  }
+
+  _clearRecognitionHintsForOwner(ownerId) {
+    this.recognitionHints = removeRecognitionHintsForOwner(this.recognitionHints, ownerId);
+    this.h.onRecognitionHintsCleared?.(ownerId);
+  }
+
+  _pruneRecognitionHints(now = Date.now()) {
+    const previousOwners = new Set(this.recognitionHints.map((hint) => hint.ownerId));
+    this.recognitionHints = this.recognitionHints
+      .map((hint) => normalizeRecognitionHint(hint, now))
+      .filter((hint) => hint && this._recognitionHintOwnerEnabled(hint.ownerId))
+      .slice(-RECOGNITION_HINT_LIMIT);
+    const keptOwners = new Set(this.recognitionHints.map((hint) => hint.ownerId));
+    for (const ownerId of previousOwners) {
+      // Expiration drops candidates, but is not a physical camera change.
+      // It must not cancel a fresh scan that is about to publish a new hint.
+      if (!keptOwners.has(ownerId) && !this._recognitionHintOwnerEnabled(ownerId)) this.h.onRecognitionHintsCleared?.(ownerId);
+    }
+    return this.recognitionHints;
+  }
+
+  _receiveRecognitionHint(value) {
+    const hint = normalizeRecognitionHint(value);
+    if (!hint || !this._recognitionHintOwnerEnabled(hint.ownerId)) return false;
+    this.recognitionHints = rememberRecognitionHint(this._pruneRecognitionHints(), hint);
+    this.h.onRecognitionHint?.(hint);
+    return true;
   }
 
   _onRoster(presenceRoster) {
@@ -836,6 +917,7 @@ export class GameConnection {
       }))
       .filter((member, index, all) => all.findIndex((candidate) => candidate.id === member.id) === index)
       .sort((a, b) => a.joinedAt - b.joinedAt);
+    this._pruneRecognitionHints();
 
     const me = presenceRoster.find((r) => r.id === this.myId);
     for (const r of presenceRoster) {
@@ -852,12 +934,22 @@ export class GameConnection {
     for (const targetId of snapshotTargets) {
       const target = presenceRoster.find((member) => member.id === targetId);
       if ((target?.protocol || 1) >= 2) {
-        this.room?.send({ type: "state-snapshot", messages }, targetId);
+        // Shared candidates travel in one bounded field rather than consuming
+        // the existing 40-message state budget. No camera image is retained.
+        this.room?.send({ type: "state-snapshot", messages,
+          recognitionHints: boundedRecognitionHintSnapshot(this.recognitionHints) }, targetId);
       } else {
         // Tabs loaded before protocol 2 do not understand snapshots. Keep a
         // rolling deploy compatible by targeting the legacy messages to them.
         for (const message of messages) this.room?.send(message, targetId);
       }
+    }
+    // A peer's first push can arrive before this browser has its roster. Ask
+    // once after admission instead of replaying unknown-sender game actions.
+    if (!this.recognitionHintSnapshotRequested && this.room
+      && this._recognitionHintSenderAdmitted(this.myId)) {
+      this.recognitionHintSnapshotRequested = true;
+      this.room.send({ type: "recognition-hints-request" });
     }
     this._drainPendingSignals();
   }
@@ -957,6 +1049,11 @@ export class GameConnection {
           if (!SNAPSHOT_MESSAGE_TYPES.has(message?.type)) continue;
           await this._onSignal({ ...message, from: msg.from });
         }
+        // Membership may change while the asynchronous state messages drain.
+        // A revoked sender cannot restore its candidates after that boundary.
+        const hints = this._recognitionHintSenderAdmitted(msg.from) && Array.isArray(msg.recognitionHints)
+          ? boundedRecognitionHintSnapshot(msg.recognitionHints.slice(0, RECOGNITION_HINT_LIMIT)) : [];
+        for (const hint of hints) this._receiveRecognitionHint(hint);
         break;
       }
       case "identity": {
@@ -1036,7 +1133,14 @@ export class GameConnection {
         if (senderRole !== "visitor") this.h.onColor?.(msg.from, String(msg.color || "").slice(0, 20));
         break;
       case "muted": this.h.onMuted?.(msg.from, !!msg.muted); break;
-      case "camera-enabled": this.h.onCameraEnabled?.(msg.from, !!msg.enabled); break;
+      case "camera-enabled": {
+        if (sender) {
+          this.recognitionHintCameraEnabled.set(msg.from, !!msg.enabled);
+          if (!msg.enabled) this._clearRecognitionHintsForOwner(msg.from);
+        }
+        this.h.onCameraEnabled?.(msg.from, !!msg.enabled);
+        break;
+      }
       case "card-identified":
         if (senderRole !== "visitor") this.h.onCardIdentified?.(msg);
         break;
@@ -1044,11 +1148,25 @@ export class GameConnection {
         // Card lookup is available to both seated players and visitors. Every
         // recognized room participant may contribute a hint, while the board
         // owner must still be a seated player with a camera.
-        const sender = this.roster.find((member) => member.id === msg.from);
-        if (!sender) break;
-        const hint = normalizeRecognitionHint(msg);
-        const owner = hint && this.roster.find((member) => member.id === hint.ownerId);
-        if (hint && owner?.role !== "visitor") this.h.onRecognitionHint?.(hint);
+        if (!this._recognitionHintSenderAdmitted(msg.from)) break;
+        this._receiveRecognitionHint(msg);
+        break;
+      }
+      case "recognition-hints-clear": {
+        // A peer may invalidate its own camera setup, never another board's.
+        if (sender?.role === "player" && this._recognitionHintSenderAdmitted(msg.from)) {
+          this._clearRecognitionHintsForOwner(msg.from);
+        }
+        break;
+      }
+      case "recognition-hints-request": {
+        if (!this._recognitionHintSenderAdmitted(msg.from)) break;
+        const now = Date.now();
+        if (now - (this.recognitionHintSnapshotReplies.get(msg.from) || 0)
+          < RECOGNITION_HINT_REQUEST_COOLDOWN_MS) break;
+        this.recognitionHintSnapshotReplies.set(msg.from, now);
+        this.room?.send({ type: "state-snapshot", messages: [],
+          recognitionHints: boundedRecognitionHintSnapshot(this._pruneRecognitionHints()) }, msg.from);
         break;
       }
       case "chat": {
@@ -1651,6 +1769,8 @@ export class GameConnection {
     const counterIds = (this.videoCounters || []).map((counter) => counter.id);
     this.commanderDamage = {};
     this.videoCounters = [];
+    this._persistPlayerState();
+    this.clearRecognitionHints();
     this.setLife(40);
     this.setPoison(0);
     this.setCommander("");
@@ -1705,6 +1825,7 @@ export class GameConnection {
   }
   setCameraEnabled(enabled) {
     this.cameraEnabled = !!enabled;
+    if (!this.cameraEnabled && this.myId) this._clearRecognitionHintsForOwner(this.myId);
     this._persistPlayerState();
     this.room?.send({ type: "camera-enabled", enabled: this.cameraEnabled });
   }
@@ -1713,9 +1834,17 @@ export class GameConnection {
     this.room?.send({ type: "card-identified", card, byName, at });
   }
   announceRecognitionHint(value) {
+    if (this.closed || !this._recognitionHintSenderAdmitted(this.myId)) return false;
     const hint = normalizeRecognitionHint(value);
-    if (!hint) return;
+    if (!hint || !this._recognitionHintOwnerEnabled(hint.ownerId)) return false;
+    this.recognitionHints = rememberRecognitionHint(this._pruneRecognitionHints(), hint);
     this.room?.send({ type: "recognition-hint", ...hint });
+    return true;
+  }
+  clearRecognitionHints() {
+    if (this.closed || this.role === "visitor" || !this.myId) return;
+    this._clearRecognitionHintsForOwner(this.myId);
+    this.room?.send({ type: "recognition-hints-clear" });
   }
   sendChat(text, at = Date.now(), soundId = "") {
     const message = String(text || "").trim().slice(0, 500);
@@ -1865,6 +1994,9 @@ export class GameConnection {
     this.peers.clear();
     this.pendingSignals.clear();
     this.pendingIce.clear();
+    this.recognitionHints = [];
+    this.recognitionHintCameraEnabled.clear();
+    this.recognitionHintSnapshotReplies.clear();
     for (const track of this.pendingMediaTracks) track.stop();
     this.pendingMediaTracks.clear();
     this.room?.leave();

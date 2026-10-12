@@ -1019,7 +1019,7 @@ async function finishIdentify(result) {
   return out;
 }
 
-async function performIdentify(source, point, hints, aiCrop, useMilo, preparation = null, owner = null) {
+async function performIdentify(source, point, hints, aiCrop, useMilo, preparation = null, owner = null, onHintMiss = null) {
   const retryAccepted = attempt => {
     if (attempt?.art_best?.clickInside === false) return false;
     if ((attempt?.matches[0]?.distance ?? Infinity) <= VISUAL_EXACT_DISTANCE) return true;
@@ -1058,6 +1058,9 @@ async function performIdentify(source, point, hints, aiCrop, useMilo, preparatio
         }
       } catch (error) {
         hintPrepass = { error: String(error?.message || error) };
+      }
+      if (!hintPrepass?.hint_hit && (!owner || owner.isActive())) {
+        try { onHintMiss?.(); } catch { /* Optional display notification cannot alter recognition. */ }
       }
     }
     if (!raw && preparation && !preparation.active) {
@@ -1233,7 +1236,7 @@ function startIdentifyJob(job) {
   globalThis.__SNAP_RECOGNITION_QUEUE = { active: true, waiting: !!queuedIdentify };
   performIdentify(job.source, job.point, job.hints, job.aiCrop, job.milo, job.preparation,
     { id: job.ownerId, isActive: () => job.ownerId === recognitionOwnerSeq
-      && (!job.earlyPreparation || job.preparation.active && job.preparation.isActive()) })
+      && (!job.earlyPreparation || job.preparation.active && job.preparation.isActive()) }, job.onHintMiss)
     .then(result => {
       result.stage_ms = { ...(result.stage_ms || {}), queue: queuedMs };
       job.resolve(result);
@@ -1250,7 +1253,7 @@ function startIdentifyJob(job) {
 // Recognition is intentionally latest-only. The worker cannot interrupt a
 // synchronous scan already in progress, but it should never make the newest
 // click wait behind an arbitrary backlog of obsolete scans.
-export function identify(source, point, { hints = [], aiCrop = aiCropEnabled(), milo = miloEnabled() } = {}) {
+export function identify(source, point, { hints = [], aiCrop = aiCropEnabled(), milo = miloEnabled(), onHintMiss = null } = {}) {
   return new Promise((resolve, reject) => {
     const selectedAt = performance.now();
     const selectedHints = Array.isArray(hints) ? hints.slice(0, 12) : [];
@@ -1277,7 +1280,7 @@ export function identify(source, point, { hints = [], aiCrop = aiCropEnabled(), 
       preparation = null;
     }
     const job = { source, point, hints: selectedHints, aiCrop: selectedAi, milo: selectedMilo,
-      enqueuedAt: selectedAt, resolve, reject, ownerId: ++recognitionOwnerSeq, preparation };
+      enqueuedAt: selectedAt, resolve, reject, ownerId: ++recognitionOwnerSeq, preparation, onHintMiss };
     if (worker) worker.postMessage({ type: 'milo-begin', ownerId: job.ownerId });
     if (!identifyActive) { startIdentifyJob(job); return; }
     if (queuedIdentify) {

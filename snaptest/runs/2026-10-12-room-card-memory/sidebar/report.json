@@ -1,0 +1,109 @@
+{
+  "scope": "Actual compiled CardSidebar remembered/final state transitions only. Warm decoded fixture references; excludes room delivery/capture/recognition latency.",
+  "sourceDigests": {
+    "src/CardSidebar.jsx": "454998311cd7099168cbe8ef1913e80c010cc9e3a1588de1961fd9217511d44c",
+    "src/cardPresentation.js": "54cad20b8a1d02a2cb479db54a4877e41d31ed200ad388825635f1bb4664936d",
+    "src/styles.css": "f2f2b1d9dc25b8b92d49f97229bde3149f89c04bc66a4784e63e3e9fbeacc115"
+  },
+  "cases": [
+    {
+      "name": "initial-remembered-reference-before-held-normal",
+      "theme": "dark",
+      "elapsedMs": 17,
+      "title": "Remembered A",
+      "ancestorOpacity": 1,
+      "imageSource": "blob:http://127.0.0.1:63746/af76d080-7324-496a-b5c1-8e68117a845a",
+      "status": "Previously recognized · Checking…",
+      "frameHeight": 374.828125,
+      "titleVisible": true,
+      "statusVisible": true
+    },
+    {
+      "name": "same-request-upgrade-preserves-chat",
+      "theme": "dark"
+    },
+    {
+      "name": "new-request-and-late-old-reference",
+      "theme": "dark",
+      "elapsedMs": 8,
+      "title": "Remembered B",
+      "ancestorOpacity": 1,
+      "imageSource": "blob:http://127.0.0.1:63746/399c591b-49d2-481e-8342-51f74ac0e613",
+      "status": "Previously recognized · Checking…",
+      "frameHeight": 374.828125,
+      "titleVisible": true,
+      "statusVisible": true
+    },
+    {
+      "name": "hint-miss-clears-remembered-before-full-fallback",
+      "theme": "dark"
+    },
+    {
+      "name": "error-cannot-retain-stale-provisional-card",
+      "theme": "dark"
+    },
+    {
+      "name": "ordinary-loading-keeps-placeholder",
+      "theme": "dark"
+    },
+    {
+      "name": "verified-final-restores-actions-and-preserves-upgrade-tab",
+      "theme": "dark"
+    },
+    {
+      "name": "unverified-final-and-ended-loading-do-not-promote-memory",
+      "theme": "dark"
+    },
+    {
+      "name": "initial-remembered-reference-before-held-normal",
+      "theme": "light",
+      "elapsedMs": 16,
+      "title": "Remembered A",
+      "ancestorOpacity": 1,
+      "imageSource": "blob:http://127.0.0.1:63746/12d16acd-16bd-4533-8586-295ecd362d6e",
+      "status": "Previously recognized · Checking…",
+      "frameHeight": 459.828125,
+      "titleVisible": true,
+      "statusVisible": true
+    },
+    {
+      "name": "same-request-upgrade-preserves-chat",
+      "theme": "light"
+    },
+    {
+      "name": "new-request-and-late-old-reference",
+      "theme": "light",
+      "elapsedMs": 10,
+      "title": "Remembered B",
+      "ancestorOpacity": 1,
+      "imageSource": "blob:http://127.0.0.1:63746/b7beb813-5056-406b-a85e-e017cb041d9f",
+      "status": "Previously recognized · Checking…",
+      "frameHeight": 459.828125,
+      "titleVisible": true,
+      "statusVisible": true
+    },
+    {
+      "name": "hint-miss-clears-remembered-before-full-fallback",
+      "theme": "light"
+    },
+    {
+      "name": "error-cannot-retain-stale-provisional-card",
+      "theme": "light"
+    },
+    {
+      "name": "ordinary-loading-keeps-placeholder",
+      "theme": "light"
+    },
+    {
+      "name": "verified-final-restores-actions-and-preserves-upgrade-tab",
+      "theme": "light"
+    },
+    {
+      "name": "unverified-final-and-ended-loading-do-not-promote-memory",
+      "theme": "light"
+    }
+  ],
+  "errors": [],
+  "blockedWrites": [],
+  "ok": true
+}

@@ -1,5 +1,6 @@
 const HINT_TTL_MS = 4 * 60 * 60 * 1000;
-const HINT_CACHE_LIMIT = 32;
+export const RECOGNITION_HINT_LIMIT = 256;
+const HINT_CACHE_LIMIT = RECOGNITION_HINT_LIMIT;
 const HINT_SCAN_LIMIT = 12;
 const HINT_RADIUS = 0.15;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -83,6 +84,35 @@ export function nearbyRecognitionHints(existing, ownerId, nx, ny, now = Date.now
     })
     .slice(0, HINT_SCAN_LIMIT)
     .map(({ entry }) => entry.card);
+}
+
+export function removeRecognitionHintsForOwner(existing, ownerId) {
+  const owner = safeId(ownerId, 40);
+  return (Array.isArray(existing) ? existing : []).filter(entry => entry.ownerId !== owner);
+}
+
+// The wider recognition shortlist must never select a displayed answer. A
+// remembered preview is only useful for a tight, unambiguous repeat click;
+// fresh capture/verification remains responsible for the current identity.
+export function rememberedRecognitionHint(existing, ownerId, nx, ny, now = Date.now()) {
+  const owner = safeId(ownerId, 40), x = safeCoordinate(nx), y = safeCoordinate(ny);
+  if (!owner || x == null || y == null) return null;
+  const candidates = (Array.isArray(existing) ? existing : [])
+    .map(entry => normalizeRecognitionHint(entry, now)).filter(Boolean)
+    .filter(entry => entry.ownerId === owner && entry.card.name
+      && (entry.nx - x) ** 2 + (entry.ny - y) ** 2 <= 0.04 ** 2)
+    .sort((a, b) => b.at - a.at);
+  const positions = [];
+  for (const entry of candidates) {
+    // A later verified card at the exact old spot supersedes its old preview.
+    // Keep both candidates in the ordinary verifier's wider shortlist.
+    if (positions.some(newer => (newer.nx - entry.nx) ** 2 + (newer.ny - entry.ny) ** 2 <= 0.012 ** 2)) continue;
+    positions.push(entry);
+  }
+  const identities = new Set(positions.map(entry => `${entry.card.scryfall_id}:${entry.card.face}`));
+  if (identities.size !== 1) return null;
+  return positions.sort((a, b) => (a.nx - x) ** 2 + (a.ny - y) ** 2
+    - (b.nx - x) ** 2 - (b.ny - y) ** 2 || b.at - a.at)[0] || null;
 }
 
 export function isReusableRecognitionMatch(match) {

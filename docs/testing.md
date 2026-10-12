@@ -1,5 +1,31 @@
 # How we know it works
 
+## Shared remembered-card regression checks
+
+The fast policy set includes `test_remembered_card_cache.mjs`,
+`test_game_remembered_cards.mjs` and `test_room_recognition_hints.mjs`.
+They check tight unambiguous selection, bounded decoded thumbnails, pending
+display before capture, replacement/error cleanup, source changes, authorized
+late-join snapshots and metadata-only transport. A remembered preview must
+never add confidence, history or a new room announcement before verification.
+
+`node scripts/test_remembered_card_sidebar_browser.mjs --chrome=<chrome-path>`
+checks the actual compiled sidebar in desktop dark and mobile light layouts.
+It requires visible checking text and fully opaque decoded pixels, then checks
+miss/error/replacement transitions and preservation of the user's Chat tab.
+
+`node scripts/test_shared_card_memory_browser.mjs --chrome=<chrome-path>`
+runs three independent compiled Game pages with native RTC, capture, matcher
+and sidebar. Only loopback signaling and canvas camera media are adapters.
+It uses lossless scenes from `.cache/native-delivery-control/scenes` and the
+matching `.cache/card35/native-control-200/report.json`; override these with
+`--sceneFixtures=<directory>` and `--sourceProof=<report.json>`.
+Real verified scans populate the room memory, including a late joiner.
+Held capture/worker delivery checks that pending pixels precede fresh work
+without publishing an answer, and that stale memory clears on replacement.
+No accounts or production rooms are created. Pending-paint timing is a UI
+ordering measurement, not a new 200-card accuracy or verified-latency score.
+
 ## Non-recognition UI regression checks
 
 `scripts/test_media_devices.mjs` reproduces stale saved-device failures against

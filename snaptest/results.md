@@ -2,6 +2,22 @@
 
 Newest first. Run via `snapcast.app/snaptest`.
 
+## 2026-10-12 — `milo-click-36` — immediate shared remembered-card display
+
+Three independent compiled Game tabs pass eight native RTC/capture/matcher/UI
+cases, including a late joiner, rapid clicks, capture errors and replacement.
+Warmed pending reference pixels appear in 18ms, 53ms and 37ms for the original
+scanner, another player and the late joiner. The visible checking label stays
+until fresh verification; pending memory cannot publish confidence, history or
+room announcements. Sixteen separate sidebar cases pass in desktop dark and
+mobile light layouts. Fast cache/transport/Game checks and a production build
+also pass.
+
+These are selected functional and pending-paint checks, not a new fresh200
+accuracy score. The most recent complete native200 is still BUILD 35 below.
+Crops, hashes, models and confidence gates are unchanged. Raw reports, source
+proofs and screenshots: [room-card-memory evidence](runs/2026-10-12-room-card-memory/README.md).
+
 > **Degrade v2 (2026-07-20):** manual camera tests failed on speed-17 while
 > SNAPTEST stayed green — real players hold the card well above the click
 > point and near frame edges, which v1 never simulated (cards were always

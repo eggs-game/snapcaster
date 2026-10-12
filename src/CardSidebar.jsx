@@ -555,6 +555,14 @@ export default function CardSidebar({
   // Anything else is a ranked guess and must say so.
   const decisive = isDecisiveCardMatch(top);
   const identifying = Boolean(current?.loading || searching);
+  // Room memory is only a provisional reference until this capture verifies
+  // it. Keep it outside matches so it cannot inherit a decisive result's
+  // confidence, sharing controls or wrong-card report attribution.
+  const remembered = current?.loading && !current.error && !searching
+    && current.rememberedCard?.card ? current.rememberedCard : null;
+  useEffect(() => {
+    if (remembered) setEntering(false);
+  }, [remembered]);
   const debugMode = typeof window !== "undefined"
     && new URLSearchParams(window.location.search).has("debug");
   const gameNameControl = editingLobbyName && !isVisitor ? (
@@ -605,7 +613,7 @@ export default function CardSidebar({
         management ? "management-view" : "",
         collapsed ? "collapsed" : "",
         view === "lookup" && lookupTab === "chat" ? "chat-view" : "",
-        entering && !closing ? "slide-in" : "",
+        entering && !closing && !remembered ? "slide-in" : "",
         closing ? "slide-out" : "",
       ].filter(Boolean).join(" ")}
       onAnimationEnd={(event) => {
@@ -1041,7 +1049,22 @@ export default function CardSidebar({
             </div>
 
             {!identifying && !current && !recentCards.length && <CardPlaceholder />}
-            {identifying && <CardPlaceholder identifying />}
+            {identifying && !remembered && <CardPlaceholder identifying />}
+            {remembered && (
+              <div className="card-hit card-hit-remembered">
+                <div className="card-meta"><b>{remembered.card.name}</b></div>
+                <p className="card-remembered-status" role="status" aria-live="polite" aria-atomic="true">
+                  Previously recognized · Checking…
+                </p>
+                <div className="card-hit-image">
+                  <CardResultImage
+                    key={`${remembered.card.scryfall_id || remembered.card.name}:${remembered.card.face || 0}:${remembered.card.image}`}
+                    card={remembered.card}
+                    previewImage={remembered.previewImage}
+                  />
+                </div>
+              </div>
+            )}
             {!identifying && current?.error && <div className="lookup-status error">{current.error}</div>}
             {!identifying && current?.matches?.length === 0 && (
               <CardPlaceholder failed onFix={current.captureImage ? beginWrongCardReport : undefined} />

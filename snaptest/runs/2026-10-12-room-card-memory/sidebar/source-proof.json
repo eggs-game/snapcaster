@@ -1,0 +1,18 @@
+{
+  "ok": true,
+  "sourceDigests": {
+    "src/CardSidebar.jsx": "454998311cd7099168cbe8ef1913e80c010cc9e3a1588de1961fd9217511d44c",
+    "src/cardPresentation.js": "54cad20b8a1d02a2cb479db54a4877e41d31ed200ad388825635f1bb4664936d",
+    "src/styles.css": "f2f2b1d9dc25b8b92d49f97229bde3149f89c04bc66a4784e63e3e9fbeacc115",
+    "docs/design-system.md": "7e5a38290401991972919ee8b0142289bac41dc4807e67b87b9707ea13193e3b",
+    "scripts/test_remembered_card_sidebar_browser.mjs": "cd280db3750e59e795387e85d14c672de096c844527ac20e9d3f62b771c812ba"
+  },
+  "reportSha256": "22981730709ce5f3b0693b915803ac2522388e0b260f42d31e292882e0c56816",
+  "screenshots": {
+    "dark-remembered.png": "ecaa00a11fc306a04a1461d599d969e2a4f9de97afda582155392334b54ede10",
+    "light-remembered.png": "80a2244aa3a215848dbb2cd94e6bf529f96970134c165bf40a4e50fbfd8eda6b"
+  },
+  "cases": 16,
+  "errors": [],
+  "blockedWrites": []
+}

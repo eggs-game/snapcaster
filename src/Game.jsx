@@ -24,7 +24,10 @@ import {
   nearbyRecognitionHints,
   normalizeRecognitionHint,
   rememberRecognitionHint,
+  rememberedRecognitionHint,
+  removeRecognitionHintsForOwner,
 } from "./recognitionHints.js";
+import { RecognitionHintImages, rememberedHintCard } from "./recognitionHintImages.js";
 import CardSidebar, { cardFromScryfall, formatDiceResult, formatDiceSides } from "./CardSidebar.jsx";
 import AppDropdown from "./AppDropdown.jsx";
 import AppToast from "./AppToast.jsx";
@@ -122,6 +125,10 @@ export default function Game({ session, account, onLeave, themePreference, onThe
   const recentSoundBySenderRef = useRef({});
   const myIdRef = useRef(null);
   const recognitionHintsRef = useRef([]);
+  const recognitionSourceGenerationsRef = useRef(new Map());
+  const recognitionGameEpochRef = useRef(0);
+  const recognitionHintImagesRef = useRef(null);
+  if (!recognitionHintImagesRef.current) recognitionHintImagesRef.current = new RecognitionHintImages();
   const activeRecognitionRef = useRef(null);
   const recognitionPreparationRef = useRef(null);
   const latestRecognitionRequestRef = useRef(0);
@@ -612,6 +619,23 @@ export default function Game({ session, account, onLeave, themePreference, onThe
       },
       onRecognitionHint: (hint) => {
         recognitionHintsRef.current = rememberRecognitionHint(recognitionHintsRef.current, hint);
+        const card = rememberedHintCard(hint);
+        if (card) recognitionHintImagesRef.current.warm(card);
+      },
+      onRecognitionHintsCleared: (ownerId) => {
+        recognitionSourceGenerationsRef.current.set(ownerId, (recognitionSourceGenerationsRef.current.get(ownerId) || 0) + 1);
+        recognitionHintsRef.current = removeRecognitionHintsForOwner(recognitionHintsRef.current, ownerId);
+        const active = activeRecognitionRef.current;
+        if (active?.tileId === ownerId) {
+          ++latestRecognitionRequestRef.current;
+          recognitionPreparationRef.current?.();
+          recognitionPreparationRef.current = null;
+          activeRecognitionRef.current = null;
+          setCurrent(previous => previous?.requestId === active.requestId ? null : previous);
+        } else {
+          setCurrent(previous => previous?.loading && previous.rememberedCard?.ownerId === ownerId
+            ? { ...previous, rememberedCard: null } : previous);
+        }
       },
       onChat: (message) => {
         const soundId = acceptIncomingSound(message.from, message.soundId);
@@ -773,6 +797,11 @@ export default function Game({ session, account, onLeave, themePreference, onThe
       pendingLifeChatsRef.current.clear();
       myIdRef.current = null;
       conn.close();
+      ++recognitionGameEpochRef.current;
+      ++latestRecognitionRequestRef.current;
+      recognitionHintsRef.current = [];
+      recognitionSourceGenerationsRef.current.clear();
+      recognitionHintImagesRef.current.clear();
     };
   }, [isVisitor, markPendingCommanderDamageChat, notifyIncomingChat, queueLifeChat, session.audioDeviceId, session.code, session.joinedAt, session.name, session.participantId, session.startMuted, session.videoDeviceId, session.videoFlipped, updateActivePlayer]);
 
@@ -891,6 +920,8 @@ export default function Game({ session, account, onLeave, themePreference, onThe
       if (dx * dx + dy * dy < 0.0016) return;
     }
     const requestId = ++latestRecognitionRequestRef.current;
+    const sourceGeneration = recognitionSourceGenerationsRef.current.get(tileId) || 0;
+    const gameEpoch = recognitionGameEpochRef.current;
     recognitionPreparationRef.current?.();
     recognitionPreparationRef.current = null;
     activeRecognitionRef.current = { requestId, tileId, nx: pt.nx, ny: pt.ny };
@@ -902,7 +933,12 @@ export default function Game({ session, account, onLeave, themePreference, onThe
     let phase = "capture";
     let firstBlob = null;
     let cancelPreparation = null;
-    setCurrent({ loading: true, requestId });
+    const remembered = rememberedRecognitionHint(recognitionHintsRef.current, tileId, pt.nx, pt.ny);
+    const rememberedCard = rememberedHintCard(remembered);
+    setCurrent({ loading: true, requestId, rememberedCard: rememberedCard ? {
+      ownerId: tileId, card: rememberedCard, at: remembered.at,
+      previewImage: recognitionHintImagesRef.current.preview(rememberedCard),
+    } : null });
     try {
       // Captures are native-resolution crops around the clicked point (both
       // local and remote). The crop is clamped to stay inside the camera frame,
@@ -952,6 +988,11 @@ export default function Game({ session, account, onLeave, themePreference, onThe
         ny: cap.py ?? 0.5,
       }, {
         hints,
+        onHintMiss: () => {
+          if (requestId !== latestRecognitionRequestRef.current) return;
+          setCurrent(previous => previous?.requestId === requestId && previous.loading
+            ? { ...previous, rememberedCard: null } : previous);
+        },
       });
       const recognitionMs = Math.round(performance.now() - recognitionStartedAt);
       const timing = {
@@ -975,7 +1016,8 @@ export default function Game({ session, account, onLeave, themePreference, onThe
         captureChars,
       }, tileId);
       const top = data.matches?.[0];
-      if (isReusableRecognitionMatch(top)) {
+      if (gameEpoch === recognitionGameEpochRef.current
+        && sourceGeneration === (recognitionSourceGenerationsRef.current.get(tileId) || 0) && isReusableRecognitionMatch(top)) {
         const hint = normalizeRecognitionHint({
           ownerId: tileId,
           nx: pt.nx,
@@ -985,6 +1027,8 @@ export default function Game({ session, account, onLeave, themePreference, onThe
         });
         if (hint) {
           recognitionHintsRef.current = rememberRecognitionHint(recognitionHintsRef.current, hint);
+          const card = rememberedHintCard(hint);
+          if (card) recognitionHintImagesRef.current.warm(card);
           conn.announceRecognitionHint(hint);
         }
       }

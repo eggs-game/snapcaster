@@ -62,6 +62,7 @@ rather than assuming the card is where you clicked.
 the same permanents. A strong result from any player or visitor becomes a
 short-lived, room-local hint for that player's nearby board position. Everyone
 in the room contributes to and benefits from the same shortlist. Later scans
+show an unambiguous remembered card immediately with a checking label, then
 verify those few exact printings against the new capture before doing a full
 110,000-printing search; a stale or wrong hint cannot become an answer by
 itself.

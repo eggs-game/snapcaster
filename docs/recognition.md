@@ -3,7 +3,7 @@
 One click against 113,269 printing faces — without a recognition
 server or a per-scan inference charge.
 
-The `milo-click-35` pipeline adds local learned retrieval and a corner detector to
+The `milo-click-36` pipeline adds local learned retrieval and a corner detector to
 perceptual hashing and geometric artwork verification. Tesseract remains the
 optional text fallback. No recognition API, API key, or per-scan inference
 charge is involved; camera captures stay in the browser.
@@ -529,6 +529,18 @@ timestamp, and shares it ephemerally with the room. Every participant
 contributes to and consumes this shortlist. A later click within 15% of that
 board position tests at most 12 hinted printings before the full index.
 
+For a tight, unambiguous repeat click, the Cards panel immediately shows the
+previously recognized printing with “Previously recognized · Checking…”. This
+is a separate pending view: it carries no current-match confidence, cannot be
+shared or added to history, and never enters the worker as an answer. Public
+thumbnail references warm when a hint arrives or a local scan succeeds; a
+separate 32-image LRU retains decoded thumbnails without camera blobs or
+arbitrary peer-supplied image URLs. A cold reference still needs its download.
+Competing nearby identities skip the immediate preview. A later verified card
+at the same point supersedes the old preview, while both remain available to
+the normal verifier. A failed hint check clears the old artwork before the
+ordinary fallback; only the latest verified result settles the panel.
+
 Hints are candidates, never answers. The worker first tests six cheap
 click-local crops, then only OpenCV's card-outline rectifications, against the
 hinted printing. It accepts only at distance 90 or better, or after a decisive
@@ -536,8 +548,13 @@ ORB art verification when the distance is at most 180. A stale, moved, or
 incorrect hint now permits the ordinary learned-crop/Milo path. If that is
 also inconclusive, the complete crop family and 110,000-printing
 rank/verify/OCR pipeline retains the original shortlist for its third hint
-tier. The local cache contains at most 32 hints, expires
+tier. The room memory contains at most 256 metadata-only hints, expires
 them after four hours, and is discarded with the page.
+Authorized room snapshots give late joiners the same memory. Snapshots keep the
+original ages and have both row and byte bounds. Unknown, departed, visitor
+board owners and disabled cameras cannot contribute board positions. Camera
+changes and owner departure clear those positions and cancel pending previews;
+source generations and game epochs prevent older scans from repopulating them.
 
 The click scheduler separately coalesces an in-flight duplicate at the same
 spot. There is one active recognition and one newest waiting recognition; a

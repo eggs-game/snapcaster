@@ -19,7 +19,7 @@ const Community = lazy(() => import("./Community.jsx"));
 const ModerationPage = lazy(() => import("./ModerationPage.jsx"));
 import "./styles.css";
 
-const BUILD = "milo-click-35 (local vision)";
+const BUILD = "milo-click-36 (local vision)";
 window.__SNAP_BUILD = BUILD;
 console.log(`%c[snapcast] build: ${BUILD}`, "color:#0a0;font-weight:bold");
 

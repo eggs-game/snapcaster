@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
+import { rememberedRecognitionHint } from "../src/recognitionHints.js";
+import { RecognitionHintImages, rememberedHintCard } from "../src/recognitionHintImages.js";
 
 // Run the actual Game click handler with deferred camera replies. A newer
 // result must neither wait for nor be overwritten by an older capture.
@@ -31,6 +33,8 @@ const context = vm.createContext({ Blob, performance, Date,
   activeRecognitionRef: { current: null }, latestRecognitionRequestRef: { current: 0 },
   recognitionPreparationRef: { current: null },
   captureObjectUrlsRef: { current: [] }, recognitionHintsRef: { current: [] }, rosterRef: { current: [] },
+  recognitionSourceGenerationsRef: { current: new Map() }, recognitionGameEpochRef: { current: 0 },
+  recognitionHintImagesRef: { current: new RecognitionHintImages() }, rememberedRecognitionHint, rememberedHintCard,
 });
 vm.runInContext(handler.replace("const identify =", "globalThis.identify ="), context);
 const video = { getBoundingClientRect: () => ({ left: 0, top: 0 }) };

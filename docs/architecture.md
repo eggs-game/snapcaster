@@ -458,8 +458,16 @@ the main thread — an early bug that made the lobby unresponsive.
   any player or visitor broadcasts the Scryfall printing ID, board owner,
   approximate normalized click position, and timestamp to the current room.
   Every participant's browser contributes to and consumes the same shared
-  shortlist. Each browser keeps at most 32 hints for four hours and considers
+  shortlist. Each browser keeps at most 256 metadata-only hints for four hours and considers
   at most 12 nearby hints per scan.
+  Authorized state snapshots also supply late joiners, preserving hint ages
+  under a 128KiB snapshot byte budget. Only known admitted seated board owners
+  with enabled cameras qualify. Camera changes, departure and reset clear
+  positions, with per-source generations preventing late scans from restoring
+  old hints. A separate 32-entry decoded public-thumbnail cache warms each
+  printing's reference. Tight, unambiguous repeat clicks show a pending remembered
+  card immediately while fresh verification runs; provisional views carry no
+  current confidence or Share action and never enter history or chat.
   The worker never trusts a hint as the result: it compares the named printing
   with the new capture and accepts only a near-exact visual hash or decisive
   ORB art match, otherwise it runs the unchanged full-index pipeline. Hints
